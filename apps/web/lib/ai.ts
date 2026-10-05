@@ -3,7 +3,7 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
 
 const HF_ROUTER = "https://router.huggingface.co/v1";
-export const DEFAULT_HF_MODEL = "Qwen/Qwen2.5-7B-Instruct";
+export const DEFAULT_HF_MODEL = "meta-llama/Llama-3.3-70B-Instruct";
 
 /**
  * AI_PROVIDER: "huggingface" (default when HF_TOKEN is set), "openai-compatible"

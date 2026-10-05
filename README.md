@@ -32,7 +32,7 @@ Without these variables the site runs as the browser-only demo. With them, hosts
 
 1. **Neon** – create a project at [console.neon.tech](https://console.neon.tech) → *Connect* → copy the pooled connection string into `DATABASE_URL`. Tables are created on the next build, or run `pnpm --filter @stayguide/web db:migrate`.
 2. **Google sign-in** – in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) create an *OAuth client ID* (Web application). Add the authorized redirect URI `https://<your-domain>/api/auth/callback/google` (and `http://localhost:3000/api/auth/callback/google` for development). Set `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, and `AUTH_SECRET` (`openssl rand -base64 32`). Configure the OAuth consent screen and publish it (or add test users).
-3. **Hugging Face** – create a fine-grained token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) with *Make calls to Inference Providers*, set `HF_TOKEN`. Optional `AI_MODEL` (default `Qwen/Qwen2.5-7B-Instruct`). Free accounts get small monthly credits; when they run out, or if AI is not configured, the concierge falls back to keyword search over the guide and the guide builder falls back to the built-in manual parser.
+3. **Hugging Face** – create a fine-grained token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) with *Make calls to Inference Providers*, set `HF_TOKEN`. Optional `AI_MODEL` (default `meta-llama/Llama-3.3-70B-Instruct`). Free accounts get small monthly credits; when they run out, or if AI is not configured, the concierge falls back to keyword search over the guide and the guide builder falls back to the built-in manual parser.
 
 ### What works with live services
 

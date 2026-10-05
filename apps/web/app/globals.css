@@ -2165,3 +2165,12 @@ small {
     scroll-behavior: auto !important;
   }
 }
+
+.status-page { max-width: 720px; margin: 0 auto; }
+.status-list { list-style: none; padding: 0; display: grid; gap: 12px; margin-top: 24px; }
+.status-list li { display: flex; gap: 12px; padding: 16px; border: 1px solid #e2e8e4; border-radius: 14px; background: #fff; text-align: left; }
+.status-list li > span { font-size: 18px; line-height: 1.4; }
+.status-list li.ok > span, .status-list li.ok em { color: var(--teal); }
+.status-list li.off > span, .status-list li.off em { color: #9a3412; }
+.status-list em { font-style: normal; font-size: 14px; margin-left: 6px; }
+.status-list p { margin: 4px 0 0; color: #475569; font-size: 14px; }
