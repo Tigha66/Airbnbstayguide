@@ -1,0 +1,12 @@
+node_modules
+.next
+.turbo
+dist
+out
+.expo
+.env*
+!.env.example
+*.tsbuildinfo
+test-results
+playwright-report
+.vercel

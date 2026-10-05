@@ -1,0 +1,12 @@
+.env*
+**/.env*
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/.expo
+**/.turbo
+**/test-results
+**/playwright-report
+.git
+apps/mobile
