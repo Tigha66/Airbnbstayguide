@@ -34,3 +34,24 @@ These are code/integration tasks, not simply environment-variable switches:
 Supabase URL/public/server keys and migration access; selected AI provider/model/key; Stripe test secret, four Price IDs and both webhook signing secrets; Resend verified sender/key; Expo token/project and Apple signing/submission credentials; optional Sentry, PostHog, and VAPID configuration. All environment names and purposes are in each app's `.env.example`.
 
 No real payments, messages, reservations, or AI translation are claimed by the demo. Missing services return explicit unavailable responses. Service credentials alone do not complete the remaining implementation work.
+
+## Recovery note (2026-10-05)
+
+The original sandbox ran out of disk and crashed before any commit reached
+GitHub. The source was recovered from the last Vercel upload. Not recovered:
+`apps/mobile` (the Expo iOS app was excluded by `.vercelignore`) and the small
+`/status` page added afterwards. Both need to be rebuilt.
+
+### Deploying
+Vercel (Hobby) blocks CLI deploys whose git commit author is not a member of
+the Vercel team. Deploy from a git-free copy:
+
+```bash
+git archive HEAD | tar -x -C /tmp/deploy
+# add .vercel/project.json (projectId + orgId), then:
+npx vercel deploy --prod --yes --token $VERCEL_TOKEN   # run inside /tmp/deploy
+```
+
+The CI workflow lives at `docs/ci.workflow.yml`. Move it to
+`.github/workflows/ci.yml` from the GitHub web UI (the agent's GitHub app lacks
+the `workflow` scope, which is what blocked every earlier push).
