@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireHost } from "@/lib/session";
 import { deleteProperty, propertyDataSchema, updateProperty } from "@/lib/repo";
+import { syncSubscriptionQuantity } from "@/lib/billing";
 import { safeOrigin } from "@/lib/api";
 type Ctx = { params: Promise<{ id: string }> };
 export async function PUT(request: Request, { params }: Ctx) {
@@ -20,7 +21,7 @@ export async function DELETE(request: Request, { params }: Ctx) {
   const host = await requireHost();
   if ("response" in host) return host.response;
   const { id } = await params;
-  return (await deleteProperty(host.user.id, id))
-    ? NextResponse.json({ deleted: true })
-    : NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!(await deleteProperty(host.user.id, id))) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  await syncSubscriptionQuantity(host.user.id);
+  return NextResponse.json({ deleted: true });
 }

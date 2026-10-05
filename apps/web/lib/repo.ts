@@ -228,22 +228,45 @@ export async function hostReply(ownerId: string, threadId: string, content: stri
   return true;
 }
 
-export async function createExtraRequest(propertyId: string, extra: { id: string; name: string; price: number }, guest: { name: string; contact: string; note: string }) {
+export async function createExtraRequest(
+  propertyId: string,
+  extra: { id: string; name: string; price: number },
+  guest: { name: string; contact: string; note: string },
+  status: "pending" | "awaiting_payment" = "pending",
+) {
   const [row] = await query<{ id: string }>(
-    `INSERT INTO extra_requests (property_id, extra_id, extra_name, price, guest_name, guest_contact, note) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-    [propertyId, extra.id, extra.name, extra.price, guest.name, guest.contact, guest.note],
+    `INSERT INTO extra_requests (property_id, extra_id, extra_name, price, guest_name, guest_contact, note, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+    [propertyId, extra.id, extra.name, extra.price, guest.name, guest.contact, guest.note, status],
   );
   return row.id;
 }
-export type ExtraRequest = { id: string; propertyId: string; propertyName: string; extraName: string; price: number; guestName: string; guestContact: string; note: string; status: string; createdAt: string };
+export async function attachExtraCheckout(id: string, sessionId: string) {
+  await query(`UPDATE extra_requests SET checkout_session_id = $2 WHERE id = $1`, [id, sessionId]);
+}
+/** Webhook: a guest finished (or abandoned) Stripe Checkout for an extra. */
+export async function settleExtraCheckout(sessionId: string, status: "pending" | "paid" | "expired", paymentIntentId: string | null) {
+  const rows = await query(
+    `UPDATE extra_requests SET status = $2, payment_intent_id = COALESCE($3, payment_intent_id) WHERE checkout_session_id = $1 AND status = 'awaiting_payment' RETURNING id`,
+    [sessionId, status, paymentIntentId],
+  );
+  return rows.length > 0;
+}
+export async function getOwnedExtraRequest(ownerId: string, id: string) {
+  const [row] = await query<{ id: string; status: string; payment_intent_id: string | null }>(
+    `SELECT r.id, r.status, r.payment_intent_id FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE r.id = $2 AND p.owner_id = $1`,
+    [ownerId, id],
+  );
+  return row ?? null;
+}
+export type ExtraRequest = { id: string; propertyId: string; propertyName: string; extraName: string; price: number; guestName: string; guestContact: string; note: string; status: string; prepaid: boolean; createdAt: string };
 export async function listExtraRequests(ownerId: string): Promise<ExtraRequest[]> {
   const rows = await query<Record<string, unknown>>(
-    `SELECT r.*, p.data->>'name' AS property_name FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE p.owner_id = $1 ORDER BY r.created_at DESC LIMIT 100`,
+    `SELECT r.*, p.data->>'name' AS property_name FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE p.owner_id = $1 AND r.status NOT IN ('awaiting_payment','expired') ORDER BY r.created_at DESC LIMIT 100`,
     [ownerId],
   );
-  return rows.map((r) => ({ id: String(r.id), propertyId: String(r.property_id), propertyName: String(r.property_name), extraName: String(r.extra_name), price: Number(r.price), guestName: String(r.guest_name), guestContact: String(r.guest_contact), note: String(r.note), status: String(r.status), createdAt: new Date(r.created_at as string).toISOString() }));
+  return rows.map((r) => ({ id: String(r.id), propertyId: String(r.property_id), propertyName: String(r.property_name), extraName: String(r.extra_name), price: Number(r.price), guestName: String(r.guest_name), guestContact: String(r.guest_contact), note: String(r.note), status: String(r.status), prepaid: Boolean(r.payment_intent_id), createdAt: new Date(r.created_at as string).toISOString() }));
 }
-export async function setExtraRequestStatus(ownerId: string, id: string, status: "approved" | "declined" | "paid") {
+export async function setExtraRequestStatus(ownerId: string, id: string, status: "approved" | "declined" | "paid" | "refunded") {
   const rows = await query(
     `UPDATE extra_requests r SET status = $3 FROM properties p WHERE r.id = $2 AND p.id = r.property_id AND p.owner_id = $1 RETURNING r.id`,
     [ownerId, id, status],
@@ -280,4 +303,58 @@ export async function analytics(ownerId: string) {
     topQuestions: top.map((t) => ({ question: t.content, count: Number(t.n) })),
     aiMessagesThisMonth: Number(usage[0]?.messages ?? 0),
   };
+}
+
+export type Billing = {
+  plan: Plan;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  subscriptionStatus: string | null;
+  stripeAccountId: string | null;
+  payoutsReady: boolean;
+  propertyCount: number;
+};
+export async function getBilling(userId: string): Promise<Billing | null> {
+  const [r] = await query<Record<string, unknown>>(
+    `SELECT u.plan, u.stripe_customer_id, u.stripe_subscription_id, u.subscription_status, u.stripe_account_id, u.payouts_ready,
+            (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) AS property_count
+       FROM users u WHERE u.id = $1`,
+    [userId],
+  );
+  if (!r) return null;
+  return {
+    plan: r.plan as Plan,
+    stripeCustomerId: (r.stripe_customer_id as string) ?? null,
+    stripeSubscriptionId: (r.stripe_subscription_id as string) ?? null,
+    subscriptionStatus: (r.subscription_status as string) ?? null,
+    stripeAccountId: (r.stripe_account_id as string) ?? null,
+    payoutsReady: Boolean(r.payouts_ready),
+    propertyCount: Number(r.property_count),
+  };
+}
+export async function setStripeCustomer(userId: string, customerId: string) {
+  await query(`UPDATE users SET stripe_customer_id = $2 WHERE id = $1`, [userId, customerId]);
+}
+export async function setStripeAccount(userId: string, accountId: string, ready: boolean) {
+  await query(`UPDATE users SET stripe_account_id = $2, payouts_ready = $3 WHERE id = $1`, [userId, accountId, ready]);
+}
+/** Webhook: mirror a Stripe subscription onto the host. Matches by customer id, falling back to metadata.user_id. */
+export async function applySubscription(input: { customerId: string; userId?: string; subscriptionId: string | null; status: string | null; plan: Plan }) {
+  const rows = await query(
+    `UPDATE users SET plan = $3, stripe_subscription_id = $4, subscription_status = $5, stripe_customer_id = $1
+      WHERE stripe_customer_id = $1 OR ($2::uuid IS NOT NULL AND id = $2::uuid) RETURNING id`,
+    [input.customerId, input.userId ?? null, input.plan, input.subscriptionId, input.status],
+  );
+  return rows.length > 0;
+}
+/** Host who owns the given published property: used to route extras payments to their Connect account. */
+export async function getPayoutAccount(ownerId: string) {
+  const [r] = await query<{ stripe_account_id: string | null; payouts_ready: boolean }>(
+    `SELECT stripe_account_id, payouts_ready FROM users WHERE id = $1`,
+    [ownerId],
+  );
+  return r?.stripe_account_id && r.payouts_ready ? r.stripe_account_id : null;
+}
+export async function setExtraRequestStatusById(id: string, status: "pending" | "paid") {
+  await query(`UPDATE extra_requests SET status = $2 WHERE id = $1`, [id, status]);
 }

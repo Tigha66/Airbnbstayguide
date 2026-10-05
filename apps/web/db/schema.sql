@@ -61,3 +61,18 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   window_start timestamptz NOT NULL,
   count integer NOT NULL
 );
+-- Billing (Stripe subscriptions) and payouts (Stripe Connect Express)
+ALTER TABLE users ALTER COLUMN plan SET DEFAULT 'free';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id text;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id text;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_status text;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_account_id text;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS payouts_ready boolean NOT NULL DEFAULT false;
+-- Paid plans only come from an active Stripe subscription
+UPDATE users SET plan = 'free' WHERE plan <> 'free' AND stripe_subscription_id IS NULL AND email <> 'demo@stayguide.app';
+-- Extras paid through Stripe Checkout
+ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS checkout_session_id text;
+ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS payment_intent_id text;
+ALTER TABLE extra_requests DROP CONSTRAINT IF EXISTS extra_requests_status_check;
+ALTER TABLE extra_requests ADD CONSTRAINT extra_requests_status_check CHECK (status IN ('awaiting_payment','pending','approved','declined','paid','refunded','expired'));
+CREATE UNIQUE INDEX IF NOT EXISTS extra_requests_checkout_idx ON extra_requests(checkout_session_id)

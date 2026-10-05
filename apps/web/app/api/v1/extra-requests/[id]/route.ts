@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireHost } from "@/lib/session";
-import { setExtraRequestStatus } from "@/lib/repo";
+import { getOwnedExtraRequest, setExtraRequestStatus } from "@/lib/repo";
 import { parseJson, safeOrigin } from "@/lib/api";
-const schema = z.object({ status: z.enum(["approved", "declined", "paid"]) });
+import { stripeClient } from "@/lib/stripe";
+const schema = z.object({ status: z.enum(["approved", "declined", "paid", "refunded"]) });
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!safeOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   const host = await requireHost();
@@ -11,7 +12,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params;
   const parsed = schema.safeParse(parseJson(await request.text()));
   if (!parsed.success || !z.uuid().safeParse(id).success) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-  return (await setExtraRequestStatus(host.user.id, id, parsed.data.status))
-    ? NextResponse.json({ status: parsed.data.status })
-    : NextResponse.json({ error: "Request not found" }, { status: 404 });
+  const req = await getOwnedExtraRequest(host.user.id, id);
+  if (!req) return NextResponse.json({ error: "Request not found" }, { status: 404 });
+  let status = parsed.data.status;
+  if (req.payment_intent_id) {
+    // Paid online: move the money with Stripe rather than just changing a label.
+    const stripe = stripeClient();
+    try {
+      if (req.status === "pending" && status === "approved") {
+        await stripe.paymentIntents.capture(req.payment_intent_id);
+        status = "paid";
+      } else if (req.status === "pending" && status === "declined") {
+        await stripe.paymentIntents.cancel(req.payment_intent_id);
+      } else if (req.status === "paid" && status === "refunded") {
+        await stripe.refunds.create({ payment_intent: req.payment_intent_id, reverse_transfer: true, refund_application_fee: true });
+      } else return NextResponse.json({ error: "That change isn’t possible for a paid request." }, { status: 409 });
+    } catch (error) {
+      console.error("[extras] payment update failed", error);
+      return NextResponse.json({ error: "Stripe couldn’t process this. The hold may have expired; please contact the guest." }, { status: 502 });
+    }
+  } else if (status === "refunded") return NextResponse.json({ error: "Only online payments can be refunded here." }, { status: 409 });
+  await setExtraRequestStatus(host.user.id, id, status);
+  return NextResponse.json({ status });
 }

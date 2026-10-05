@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { propertySchema } from "@stayguide/shared";
 import { requireHost } from "@/lib/session";
 import { createProperty, listProperties, LimitError } from "@/lib/repo";
+import { syncSubscriptionQuantity } from "@/lib/billing";
 import { safeOrigin, parseJson } from "@/lib/api";
 import { aiConfigured } from "@/lib/ai";
 import { buildSectionsWithAi } from "@/lib/guide-builder";
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
   }
   try {
     const property = await createProperty(host.user, input, sections);
+    await syncSubscriptionQuantity(host.user.id);
     return NextResponse.json({ property, ai: Boolean(sections?.length) }, { status: 201 });
   } catch (e) {
     if (e instanceof LimitError) return NextResponse.json({ error: e.message }, { status: 403 });
