@@ -74,3 +74,8 @@ Stripe is connected in **test mode**.
 - Re-provision prices/portal/webhook with `pnpm --filter @stayguide/web stripe:setup`
   (env: STRIPE_SECRET_KEY, APP_URL). Going live = run it with the live key and
   store the printed STRIPE_WEBHOOK_SECRET in Vercel.
+
+**Update:** switched to Stripe **live mode**. Live products, prices, portal and webhook
+were provisioned with `stripe:setup`; the test-mode webhook was removed and test-mode
+customer/subscription ids were cleared from the database. Checkout accepts
+promotion codes (use Stripe coupons for founding-host discounts).
