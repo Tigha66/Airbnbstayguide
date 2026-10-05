@@ -55,3 +55,22 @@ npx vercel deploy --prod --yes --token $VERCEL_TOKEN   # run inside /tmp/deploy
 The CI workflow lives at `docs/ci.workflow.yml`. Move it to
 `.github/workflows/ci.yml` from the GitHub web UI (the agent's GitHub app lacks
 the `workflow` scope, which is what blocked every earlier push).
+
+## Payments (2026-10-05)
+
+Stripe is connected in **test mode**.
+
+- Host subscriptions: Free (1 property) / Starter $9 / Pro $19 per property per month,
+  yearly = 10× monthly. Checkout + Customer Portal; plan is derived from the Stripe
+  price lookup key (`stayguide_<plan>_<monthly|yearly>`); quantity follows the
+  property count. Verified end to end against production (subscribe → upgrade → cancel).
+- Extras: when the host has finished Stripe Connect (Express) onboarding, guests pay
+  in Checkout; StayGuide keeps 5% (`application_fee_amount`). Extras that need
+  approval are authorised and captured only on approval; decline releases the
+  hold; paid extras can be refunded (transfer and fee reversed).
+- **Blocked on the platform owner:** activate Connect at
+  https://dashboard.stripe.com/connect. Until then hosts see "coming soon" and
+  extras fall back to manual requests.
+- Re-provision prices/portal/webhook with `pnpm --filter @stayguide/web stripe:setup`
+  (env: STRIPE_SECRET_KEY, APP_URL). Going live = run it with the live key and
+  store the printed STRIPE_WEBHOOK_SECRET in Vercel.
