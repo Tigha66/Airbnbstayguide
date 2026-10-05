@@ -1,9 +1,17 @@
-import { stripeClient, stripeConfigured, billableQuantity } from "./stripe";
-import { getBilling, setStripeAccount, setStripeCustomer, type User } from "./repo";
+import { stripeClient, stripeConfigured, billableQuantity, isMissing } from "./stripe";
+import { clearStripeAccount, clearStripeCustomer, getBilling, setStripeAccount, setStripeCustomer, type User } from "./repo";
 
 export async function ensureCustomer(user: User) {
   const billing = await getBilling(user.id);
-  if (billing?.stripeCustomerId) return billing.stripeCustomerId;
+  if (billing?.stripeCustomerId) {
+    try {
+      const existing = await stripeClient().customers.retrieve(billing.stripeCustomerId);
+      if (!("deleted" in existing && existing.deleted)) return billing.stripeCustomerId;
+    } catch (error) {
+      if (!isMissing(error)) throw error;
+    }
+    await clearStripeCustomer(user.id);
+  }
   const customer = await stripeClient().customers.create({
     email: user.email,
     name: user.name ?? undefined,
@@ -41,7 +49,8 @@ export async function refreshPayoutStatus(userId: string, accountId: string | nu
     const ready = Boolean(account.charges_enabled && account.details_submitted);
     await setStripeAccount(userId, accountId, ready);
     return ready;
-  } catch {
+  } catch (error) {
+    if (isMissing(error)) await clearStripeAccount(userId);
     return false;
   }
 }

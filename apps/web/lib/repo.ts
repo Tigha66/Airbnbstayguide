@@ -358,3 +358,14 @@ export async function getPayoutAccount(ownerId: string) {
 export async function setExtraRequestStatusById(id: string, status: "pending" | "paid") {
   await query(`UPDATE extra_requests SET status = $2 WHERE id = $1`, [id, status]);
 }
+/** Forgets Stripe ids that no longer exist (e.g. after switching from test to live keys). */
+export async function clearStripeCustomer(userId: string) {
+  await query(
+    `UPDATE users SET stripe_customer_id = NULL, stripe_subscription_id = NULL, subscription_status = NULL,
+       plan = CASE WHEN stripe_subscription_id IS NULL THEN plan ELSE 'free' END WHERE id = $1`,
+    [userId],
+  );
+}
+export async function clearStripeAccount(userId: string) {
+  await query(`UPDATE users SET stripe_account_id = NULL, payouts_ready = false WHERE id = $1`, [userId]);
+}

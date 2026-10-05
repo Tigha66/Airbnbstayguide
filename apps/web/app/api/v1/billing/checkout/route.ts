@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireHost } from "@/lib/session";
-import { getBilling } from "@/lib/repo";
+import { clearStripeCustomer, getBilling } from "@/lib/repo";
 import { ensureCustomer } from "@/lib/billing";
-import { appUrl, billableQuantity, priceId, stripeClient, stripeConfigured } from "@/lib/stripe";
+import { appUrl, billableQuantity, isMissing, priceId, stripeClient, stripeConfigured } from "@/lib/stripe";
 import { parseJson, safeOrigin, unavailable } from "@/lib/api";
 const schema = z.object({ plan: z.enum(["starter", "pro"]), yearly: z.boolean().default(false) });
 export async function POST(request: Request) {
@@ -14,7 +14,18 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(parseJson(await request.text()));
   if (!parsed.success) return NextResponse.json({ error: "Choose a plan" }, { status: 400 });
   const billing = await getBilling(host.user.id);
-  if (billing?.stripeSubscriptionId && billing.subscriptionStatus !== "canceled")
+  let subscribed = Boolean(billing?.stripeSubscriptionId && billing.subscriptionStatus !== "canceled");
+  if (subscribed) {
+    try {
+      const sub = await stripeClient().subscriptions.retrieve(billing!.stripeSubscriptionId!);
+      subscribed = !["canceled", "incomplete_expired"].includes(sub.status);
+    } catch (error) {
+      if (!isMissing(error)) throw error;
+      await clearStripeCustomer(host.user.id);
+      subscribed = false;
+    }
+  }
+  if (subscribed)
     return NextResponse.json({ error: "You already have a subscription. Use “Manage billing” to change plans.", code: "ALREADY_SUBSCRIBED" }, { status: 409 });
   const origin = appUrl(request);
   try {

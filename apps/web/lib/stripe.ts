@@ -77,3 +77,5 @@ export function extraCheckoutParams(input: {
     expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
   };
 }
+/** True when Stripe says the object doesn't exist in this mode/account (stale test-mode ids). */
+export const isMissing = (error: unknown) => (error as { code?: string })?.code === "resource_missing";

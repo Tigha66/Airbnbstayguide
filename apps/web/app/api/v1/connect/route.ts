@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireHost } from "@/lib/session";
-import { getBilling, setStripeAccount } from "@/lib/repo";
-import { appUrl, stripeClient, stripeConfigured } from "@/lib/stripe";
+import { clearStripeAccount, getBilling, setStripeAccount } from "@/lib/repo";
+import { appUrl, isMissing, stripeClient, stripeConfigured } from "@/lib/stripe";
 import { parseJson, safeOrigin, unavailable } from "@/lib/api";
 const schema = z.object({ country: z.string().regex(/^[A-Z]{2}$/).optional() });
 /** Starts (or resumes) Stripe Express onboarding so the host can receive payments for extras. */
@@ -17,6 +17,15 @@ export async function POST(request: Request) {
   try {
     const billing = await getBilling(host.user.id);
     let accountId = billing?.stripeAccountId ?? null;
+    if (accountId) {
+      try {
+        await stripe.accounts.retrieve(accountId);
+      } catch (error) {
+        if (!isMissing(error)) throw error;
+        await clearStripeAccount(host.user.id);
+        accountId = null;
+      }
+    }
     if (!accountId) {
       const account = await stripe.accounts.create({
         type: "express",

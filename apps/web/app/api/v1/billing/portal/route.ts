@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireHost } from "@/lib/session";
-import { getBilling } from "@/lib/repo";
-import { appUrl, portalConfigurationId, stripeClient, stripeConfigured } from "@/lib/stripe";
+import { clearStripeCustomer, getBilling } from "@/lib/repo";
+import { appUrl, isMissing, portalConfigurationId, stripeClient, stripeConfigured } from "@/lib/stripe";
 import { safeOrigin, unavailable } from "@/lib/api";
 export async function POST(request: Request) {
   if (!safeOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
@@ -18,6 +18,10 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ url: session.url });
   } catch (error) {
+    if (isMissing(error)) {
+      await clearStripeCustomer(host.user.id);
+      return NextResponse.json({ error: "Your billing account was reset. Please choose a plan again." }, { status: 409 });
+    }
     console.error("[billing] portal failed", error);
     return NextResponse.json({ error: "Could not open billing. Please try again." }, { status: 502 });
   }
