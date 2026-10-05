@@ -76,6 +76,19 @@ export function GuestGuide({
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("tab") === "extras") queueMicrotask(() => setTab("extras"));
+    const extra = params.get("extra");
+    if (extra === "success" || extra === "cancelled") {
+      queueMicrotask(() => {
+        setTab("extras");
+        setToast(
+          extra === "success"
+            ? "Thank you! Your payment is confirmed. If your host needs to approve it, you’ll only be charged once they do."
+            : "Payment cancelled. Nothing was charged.",
+        );
+        setTimeout(() => setToast(""), 7000);
+      });
+      history.replaceState(null, "", location.pathname);
+    }
     const detected = navigator.language.split("-")[0];
     if (languages.includes(detected as (typeof languages)[number]))
       queueMicrotask(() => setLanguage(detected));
@@ -544,15 +557,19 @@ export function GuestGuide({
                 }),
               });
               const body = await res.json().catch(() => ({}));
-              if (res.ok) {
+              if (res.ok && body.checkoutUrl) {
+                notify("Opening secure checkout…");
+                location.assign(body.checkoutUrl);
+              } else if (res.ok) {
                 setRequesting(null);
-                notify("Request sent! Your host will confirm and explain how to pay.");
+                notify(body.note || "Request sent! Your host will confirm and explain how to pay.");
               } else notify(body.error || "Couldn’t send your request. Please try again.");
             }}
           >
             <h3>Request: {requesting.name} · {money(requesting.price)}</h3>
             <p style={{ fontSize: 12 }}>
-              Your host will confirm availability and how to pay. Nothing is charged now.
+              If your host accepts online payment you’ll continue to secure checkout (card, Apple Pay or Google Pay).
+              Extras that need your host’s approval are only charged once they confirm.
             </p>
             <label style={{ display: "block", marginTop: 10 }}>
               Your name
@@ -567,7 +584,7 @@ export function GuestGuide({
               <input name="note" maxLength={1000} placeholder="e.g. We land at 9 AM" />
             </label>
             <div className="row" style={{ gap: 8, marginTop: 14 }}>
-              <button className="button">Send request</button>
+              <button className="button">Continue</button>
               <button type="button" className="button secondary" onClick={() => setRequesting(null)}>
                 Cancel
               </button>

@@ -18,7 +18,8 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
     }
   }
   const auth = authConfigured() && dbOk;
-  const stripe = Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_"));
+  const stripe = Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_") && process.env.STRIPE_WEBHOOK_SECRET);
+  const mode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_") ? "live" : "test";
   return [
     { key: "database", label: "Database (Neon)", ok: dbOk, detail: dbDetail },
     {
@@ -37,7 +38,7 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       key: "payments",
       label: "Payments (Stripe)",
       ok: stripe,
-      detail: stripe ? "Stripe key present." : "Not connected yet: subscriptions and paid extras are disabled.",
+      detail: stripe ? `Stripe connected (${mode} mode): subscriptions and paid extras are on.` : "Not connected yet: needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET.",
     },
   ];
 }

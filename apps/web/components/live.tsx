@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { Send, Check, X, RefreshCw } from "lucide-react";
-import { money } from "@stayguide/shared";
+import { Send, Check, X, RefreshCw, CreditCard, Landmark, ExternalLink } from "lucide-react";
+import { money, plans, type Plan } from "@stayguide/shared";
 import { PageHeading } from "./ui";
 
 type Thread = {
@@ -20,6 +20,7 @@ type ExtraRequest = {
   guestContact: string;
   note: string;
   status: string;
+  prepaid: boolean;
   createdAt: string;
 };
 const when = (iso: string) =>
@@ -140,13 +141,20 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
 
 export function LiveExtraRequests({ notify }: { notify: (m: string) => void }) {
   const { data, reload } = usePoll<{ requests: ExtraRequest[] }>("/api/v1/extra-requests", 20000);
-  const act = async (id: string, status: "approved" | "declined" | "paid") => {
+  const act = async (id: string, status: "approved" | "declined" | "paid" | "refunded") => {
     const res = await fetch(`/api/v1/extra-requests/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    notify(res.ok ? `Request ${status}. Let your guest know how to pay.` : "Couldn’t update the request.");
+    const body = await res.json().catch(() => ({}));
+    const done: Record<string, string> = {
+      paid: "Payment captured. The money is on its way to your bank.",
+      approved: "Request approved. Let your guest know how to pay.",
+      declined: "Request declined. Any card hold has been released.",
+      refunded: "Refund issued to the guest.",
+    };
+    notify(res.ok ? done[body.status] ?? "Request updated." : body.error || "Couldn’t update the request.");
     void reload();
   };
   const requests = data?.requests ?? [];
@@ -170,14 +178,18 @@ export function LiveExtraRequests({ notify }: { notify: (m: string) => void }) {
             {r.note && <div style={{ fontSize: 12, marginTop: 4 }}>“{r.note}”</div>}
           </div>
           <span className={`pill ${r.status === "pending" ? "amber" : ""}`}>{r.status}</span>
+          {r.prepaid && r.status !== "refunded" && <span className="pill">{r.status === "pending" ? "card authorised" : "paid online"}</span>}
           {r.status === "pending" && (
             <div className="row" style={{ gap: 6 }}>
-              <button className="button small" onClick={() => act(r.id, "approved")}><Check size={13} /> Approve</button>
-              <button className="button secondary small" onClick={() => act(r.id, "declined")}><X size={13} /> Decline</button>
+              <button className="button small" onClick={() => act(r.id, "approved")}><Check size={13} /> {r.prepaid ? "Approve & charge" : "Approve"}</button>
+              <button className="button secondary small" onClick={() => act(r.id, "declined")}><X size={13} /> {r.prepaid ? "Decline & release" : "Decline"}</button>
             </div>
           )}
-          {r.status === "approved" && (
+          {r.status === "approved" && !r.prepaid && (
             <button className="button secondary small" onClick={() => act(r.id, "paid")}>Mark as paid</button>
+          )}
+          {r.status === "paid" && r.prepaid && (
+            <button className="button secondary small" onClick={() => { if (confirm("Refund this guest in full?")) void act(r.id, "refunded"); }}>Refund</button>
           )}
         </div>
       ))}
@@ -232,6 +244,168 @@ export function LiveAnalytics() {
           </div>
         </>
       )}
+    </>
+  );
+}
+
+type BillingState = {
+  stripe: boolean;
+  plan: Plan;
+  status: string | null;
+  subscribed: boolean;
+  propertyCount: number;
+  billableQuantity: number;
+  payouts: { started: boolean; ready: boolean };
+};
+const COUNTRIES: [string, string][] = [
+  ["GB", "United Kingdom"], ["US", "United States"], ["IE", "Ireland"], ["FR", "France"], ["ES", "Spain"], ["PT", "Portugal"],
+  ["IT", "Italy"], ["DE", "Germany"], ["NL", "Netherlands"], ["BE", "Belgium"], ["AT", "Austria"], ["CH", "Switzerland"],
+  ["GR", "Greece"], ["HR", "Croatia"], ["DK", "Denmark"], ["SE", "Sweden"], ["NO", "Norway"], ["FI", "Finland"],
+  ["PL", "Poland"], ["CZ", "Czech Republic"], ["CA", "Canada"], ["AU", "Australia"], ["NZ", "New Zealand"], ["AE", "United Arab Emirates"],
+];
+async function postForUrl(url: string, body?: unknown) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.url) throw Object.assign(new Error(data.error || "Something went wrong. Please try again."), { code: data.code });
+  window.location.assign(data.url);
+}
+
+export function LiveBilling({ notify }: { notify: (m: string) => void }) {
+  const { data, error, reload } = usePoll<BillingState>("/api/v1/billing", 60000);
+  const [yearly, setYearly] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  // The country picker only renders after billing loads client-side, so reading navigator here is hydration-safe.
+  const [country, setCountry] = useState(() => {
+    const guess = typeof navigator === "undefined" ? "" : navigator.language.split("-")[1]?.toUpperCase();
+    return guess && COUNTRIES.some(([c]) => c === guess) ? guess : "GB";
+  });
+  const [connectBlocked, setConnectBlocked] = useState(false);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const messages: Record<string, string> = {
+      "checkout=success": "Thank you! Your plan is being activated. This can take a few seconds.",
+      "checkout=cancelled": "Checkout cancelled. Nothing was charged.",
+      "payouts=done": "Payout details saved. Stripe may take a moment to verify them.",
+      "payouts=retry": "That setup link expired. Please continue payout setup.",
+    };
+    for (const [k, msg] of Object.entries(messages)) {
+      const [key, value] = k.split("=");
+      if (q.get(key) === value) {
+        notify(msg);
+        window.history.replaceState(null, "", window.location.pathname);
+        if (key === "checkout") setTimeout(reload, 3000);
+      }
+    }
+  }, [notify, reload]);
+  const run = async (key: string, fn: () => Promise<void>) => {
+    setBusy(key);
+    try {
+      await fn();
+    } catch (e) {
+      const err = e as Error & { code?: string };
+      if (err.code === "CONNECT_NOT_ENABLED") setConnectBlocked(true);
+      notify(err.message);
+      setBusy(null);
+    }
+  };
+  if (error && !data) return <div className="notice">Couldn’t load billing. Please refresh the page.</div>;
+  if (!data) return <p>Loading billing…</p>;
+  const qty = data.billableQuantity;
+  return (
+    <>
+      <PageHeading title="Plans & billing" description="Simple, per-property pricing. Change or cancel any time." />
+      {!data.stripe && <div className="notice" style={{ marginBottom: 16 }}>Payments are not connected on this deployment yet.</div>}
+      <div className="card panel" style={{ marginBottom: 20 }}>
+        <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <div className="eyebrow">Current plan</div>
+            <h3 style={{ margin: "4px 0" }}>
+              {plans[data.plan].name}
+              {data.status && data.status !== "active" && <span className="pill amber" style={{ marginLeft: 8 }}>{data.status.replace("_", " ")}</span>}
+            </h3>
+            <small>
+              {data.propertyCount} propert{data.propertyCount === 1 ? "y" : "ies"} · up to {plans[data.plan].properties} on this plan · {plans[data.plan].messages} AI messages / month
+            </small>
+          </div>
+          {data.subscribed && (
+            <button className="button" disabled={busy !== null} onClick={() => run("portal", () => postForUrl("/api/v1/billing/portal"))}>
+              <CreditCard size={15} /> {busy === "portal" ? "Opening…" : "Manage billing"}
+            </button>
+          )}
+        </div>
+        {data.status === "past_due" && <div className="notice" style={{ marginTop: 12 }}>Your last payment failed. Please update your card in “Manage billing” to keep your plan.</div>}
+      </div>
+
+      {!data.subscribed && (
+        <>
+          <div className="filter-bar">
+            <small>Billed for {qty} propert{qty === 1 ? "y" : "ies"} · updates automatically as you add or remove properties</small>
+            <div className="tabs">
+              <button className={!yearly ? "active" : ""} onClick={() => setYearly(false)}>Monthly</button>
+              <button className={yearly ? "active" : ""} onClick={() => setYearly(true)}>Yearly · 2 months free</button>
+            </div>
+          </div>
+          <div className="pricing-grid">
+            {(["starter", "pro"] as const).map((plan) => (
+              <div className={`card pricing-card ${plan === "pro" ? "featured" : ""}`} key={plan}>
+                <div className="eyebrow">{plans[plan].name}</div>
+                <h3>{plan === "starter" ? "For the independent host" : "Your hospitality, elevated"}</h3>
+                <div className="price">${plans[plan].monthly * qty * (yearly ? 10 : 1)}</div>
+                <small>{yearly ? "per year" : "per month"} · ${plans[plan].monthly}/property/month{yearly ? ", billed yearly" : ""}</small>
+                <ul>
+                  <li><Check size={14} /> Up to {plans[plan].properties} properties</li>
+                  <li><Check size={14} /> {plans[plan].messages} AI concierge messages / month</li>
+                  <li><Check size={14} /> Paid extras · 5% platform fee</li>
+                  {plan === "pro" && <li><Check size={14} /> Custom branding & priority support</li>}
+                </ul>
+                <button
+                  className={`button ${plan === "pro" ? "" : "secondary"}`}
+                  disabled={!data.stripe || busy !== null}
+                  onClick={() => run(plan, () => postForUrl("/api/v1/billing/checkout", { plan, yearly }))}
+                >
+                  {busy === plan ? "Opening checkout…" : `Choose ${plans[plan].name}`}
+                </button>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>Prices in USD. Secure payment by Stripe. Cancel any time from “Manage billing”.</p>
+        </>
+      )}
+
+      <div className="card panel" style={{ marginTop: 24 }}>
+        <div className="row" style={{ gap: 10, alignItems: "center" }}>
+          <Landmark size={18} />
+          <h3 style={{ margin: 0 }}>Get paid for extras</h3>
+          {data.payouts.ready && <span className="pill">Active</span>}
+        </div>
+        {data.payouts.ready ? (
+          <>
+            <p>Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.</p>
+            <button className="button secondary" disabled={busy !== null} onClick={() => run("dash", () => postForUrl("/api/v1/connect/dashboard"))}>
+              <ExternalLink size={14} /> {busy === "dash" ? "Opening…" : "Open payouts dashboard"}
+            </button>
+          </>
+        ) : connectBlocked ? (
+          <p>Online payments for extras are coming soon. Until then, guests send requests and you confirm how they pay.</p>
+        ) : (
+          <>
+            <p>Connect a bank account with Stripe so guests can pay for extras online. Until then, guests send requests and you confirm payment yourself.</p>
+            <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
+              {!data.payouts.started && (
+                <label>
+                  Country of your bank account
+                  <select value={country} onChange={(e) => setCountry(e.target.value)}>
+                    {COUNTRIES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+                  </select>
+                </label>
+              )}
+              <button className="button" disabled={!data.stripe || busy !== null} onClick={() => run("connect", () => postForUrl("/api/v1/connect", data.payouts.started ? {} : { country }))}>
+                {busy === "connect" ? "Opening Stripe…" : data.payouts.started ? "Continue payout setup" : "Set up payouts"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </>
   );
 }

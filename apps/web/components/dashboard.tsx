@@ -65,7 +65,7 @@ import {
   deleteLiveProperty,
 } from "@/lib/demo-store";
 import { parseManual, extractWifi, extractTime } from "@/lib/guide-parser";
-import { LiveInbox, LiveExtraRequests, LiveAnalytics } from "./live";
+import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling } from "./live";
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
@@ -1290,7 +1290,8 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
             </>
           )}
-          {view === "billing" && (
+          {view === "billing" && live && <LiveBilling notify={notify} />}
+          {view === "billing" && !live && (
             <>
               <PageHeading
                 title="A plan for every kind of host"

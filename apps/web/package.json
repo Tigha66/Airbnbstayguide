@@ -7,6 +7,7 @@
     "build": "node scripts/migrate.mjs && node scripts/build-sw.mjs && next build",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "tsx scripts/seed.mts",
+    "stripe:setup": "tsx scripts/stripe-setup.mts",
     "start": "next start --hostname 0.0.0.0",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
