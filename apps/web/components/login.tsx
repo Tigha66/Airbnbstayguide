@@ -32,7 +32,7 @@ export function Login({
             <br />
             Welcome home.
           </h1>
-          <p style={{ marginTop: 20, color: "#74826a" }}>
+          <p className="login-art-sub">
             A little less work. A little more hospitality.
           </p>
           {/* eslint-disable-next-line @next/next/no-img-element */}

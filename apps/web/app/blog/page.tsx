@@ -18,7 +18,7 @@ export default function Page() {
                 style={{
                   fontFamily: "var(--serif)",
                   fontSize: 25,
-                  fontWeight: 400,
+                  fontWeight: 800,
                   lineHeight: 1.3,
                 }}
               >

@@ -1078,7 +1078,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       <p>{extra.description}</p>
                       <div className="price">
                         {money(extra.price)}{" "}
-                        <small style={{ fontSize: 12, fontFamily: "Arial" }}>
+                        <small style={{ fontSize: 12 }}>
                           per stay
                         </small>
                       </div>
