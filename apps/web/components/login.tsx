@@ -45,11 +45,11 @@ export function Login({
       </div>
       <main className="login-form">
         <Logo />
-        <h1>Your next great stay starts here.</h1>
-        <p>Sign in with your Google account. No password to remember.</p>
+        <h1>Sign in to your account</h1>
+        <p>Welcome back. Sign in with your Google account to continue.</p>
         {configured ? (
           <form action={googleAction}>
-            <button className="button" style={{ width: "100%" }}>
+            <button className="button" type="submit">
               <GoogleMark />
               Continue with Google
             </button>
@@ -60,7 +60,7 @@ export function Login({
           </div>
         )}
         {error && (
-          <div className="notice" role="alert" style={{ marginTop: 20 }}>
+          <div className="notice" role="alert">
             We couldn’t sign you in. Please try again.
           </div>
         )}
@@ -72,17 +72,15 @@ export function Login({
             color: "var(--muted)",
           }}
         >
-          or take a little look around
+          or explore without signing in
         </div>
         <Link className="button secondary" href="/dashboard">
-          Explore the demo workspace
+          Explore the demo
           <ArrowRight size={15} />
         </Link>
         <small>
           By continuing, you agree to our <Link href="/legal/terms">Terms</Link>{" "}
-          and <Link href="/legal/privacy">Privacy Policy</Link>.{" "}
-          {!configured &&
-            "Live sign-in requires Google and database configuration."}
+          and <Link href="/legal/privacy">Privacy Policy</Link>.
         </small>
       </main>
     </div>
