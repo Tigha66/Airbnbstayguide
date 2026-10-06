@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { plans, sectionSchema, type Plan, type Property } from "@stayguide/shared";
+import { randomBytes } from "node:crypto";
+import { plans, sectionSchema, stayWindow, toPublicProperty, type Plan, type Property } from "@stayguide/shared";
 import { query } from "./db";
 import { parseManual, extractWifi, extractTime } from "./guide-parser";
 
@@ -26,6 +27,8 @@ export const propertyDataSchema = z.object({
   hostPhone: z.string().max(40),
   sections: z.array(sectionSchema).max(60),
   extras: z.array(extraSchema).max(40),
+  privateNotes: z.string().max(4000).optional(),
+  wifiPrivate: z.boolean().optional(),
 });
 
 export type User = { id: string; email: string; name: string | null; plan: Plan };
@@ -72,7 +75,72 @@ export async function getPublishedProperty(slug: string) {
       WHERE p.slug = $1 AND p.status = 'published'`,
     [slug],
   );
-  return row ? { property: toProperty(row), ownerId: row.owner_id, ownerEmail: row.owner_email } : null;
+  // Public callers never receive private stay details (door codes, protected Wi-Fi).
+  return row ? { property: toPublicProperty(toProperty(row)), ownerId: row.owner_id, ownerEmail: row.owner_email } : null;
+}
+
+export type Stay = { id: string; guestName: string; checkIn: string; checkOut: string; token: string; createdAt: string };
+type StayRow = { id: string; guest_name: string; check_in: string | Date; check_out: string | Date; token: string; created_at: string | Date };
+const isoDay = (d: string | Date) => (d instanceof Date ? d.toISOString().slice(0, 10) : String(d).slice(0, 10));
+const toStay = (r: StayRow): Stay => ({
+  id: r.id,
+  guestName: r.guest_name,
+  checkIn: isoDay(r.check_in),
+  checkOut: isoDay(r.check_out),
+  token: r.token,
+  createdAt: new Date(r.created_at).toISOString(),
+});
+export async function listStays(ownerId: string, propertyId: string) {
+  const rows = await query<StayRow>(
+    `SELECT s.id, s.guest_name, s.check_in, s.check_out, s.token, s.created_at
+       FROM stays s JOIN properties p ON p.id = s.property_id
+      WHERE p.owner_id = $1 AND p.id = $2 ORDER BY s.check_in DESC LIMIT 200`,
+    [ownerId, propertyId],
+  );
+  return rows.map(toStay);
+}
+export async function createStay(ownerId: string, propertyId: string, input: { guestName: string; checkIn: string; checkOut: string }) {
+  if (!(await getOwnedProperty(ownerId, propertyId))) return null;
+  const token = randomBytes(18).toString("base64url");
+  const [row] = await query<StayRow>(
+    `INSERT INTO stays (property_id, guest_name, check_in, check_out, token) VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, guest_name, check_in, check_out, token, created_at`,
+    [propertyId, input.guestName, input.checkIn, input.checkOut, token],
+  );
+  return toStay(row);
+}
+export async function deleteStay(ownerId: string, stayId: string) {
+  const rows = await query(
+    `DELETE FROM stays s USING properties p WHERE s.id = $2 AND s.property_id = p.id AND p.owner_id = $1 RETURNING s.id`,
+    [ownerId, stayId],
+  );
+  return rows.length > 0;
+}
+export type StayAccess =
+  | { status: "active"; guestName: string; checkIn: string; checkOut: string; privateNotes: string; wifi: string; wifiPassword: string }
+  | { status: "upcoming" | "ended"; guestName: string; checkIn: string; checkOut: string }
+  | { status: "invalid" };
+/** Resolves a guest's stay link. Private details are only returned inside the stay window. */
+export async function getStayAccess(slug: string, token: string, now = new Date()): Promise<StayAccess> {
+  if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) return { status: "invalid" };
+  const [row] = await query<StayRow & { data: Property }>(
+    `SELECT s.id, s.guest_name, s.check_in, s.check_out, s.token, s.created_at, p.data
+       FROM stays s JOIN properties p ON p.id = s.property_id
+      WHERE s.token = $1 AND p.slug = $2 AND p.status = 'published'`,
+    [token, slug],
+  );
+  if (!row) return { status: "invalid" };
+  const stay = toStay(row);
+  const status = stayWindow(stay.checkIn, stay.checkOut, now);
+  const base = { guestName: stay.guestName, checkIn: stay.checkIn, checkOut: stay.checkOut };
+  if (status !== "active") return { status, ...base };
+  return {
+    status,
+    ...base,
+    privateNotes: row.data.privateNotes ?? "",
+    wifi: row.data.wifi ?? "",
+    wifiPassword: row.data.wifiPassword ?? "",
+  };
 }
 
 export function slugify(name: string) {

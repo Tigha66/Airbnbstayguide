@@ -63,8 +63,21 @@ test('unconfigured live endpoints fail closed',async({request})=>{
  }
  const chat=await request.post('/api/v1/guides/casa-serena/chat',{data:{message:'hi'}});
  expect(chat.status()).toBe(503);
+ const stay=await request.post('/api/v1/guides/casa-serena/stay',{data:{token:'x'.repeat(24)}});
+ expect(stay.status()).toBe(503);
+ const stays=await request.get('/api/v1/properties/p1/stays');
+ expect(stays.status()).toBe(503);
  const webhook=await request.post('/api/stripe/webhook',{data:{type:'customer.subscription.created'}});
  expect(webhook.status()).toBe(503);
+});
+test('editor offers private stay details and explains stay links need an account',async({page})=>{
+ await page.goto('/dashboard/editor');
+ await expect(page.getByRole('heading',{name:'Private stay details'})).toBeVisible();
+ await page.getByLabel('Private arrival details').fill('Door code 4821#');
+ await page.getByLabel('Only show the Wi-Fi password to guests with a private stay link').check();
+ await expect(page.getByText('Sign in to create private links for real guests.')).toBeVisible();
+ await page.reload();
+ await expect(page.getByLabel('Private arrival details')).toHaveValue('Door code 4821#');
 });
 test('mobile dashboard and guest guide fit the viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844});

@@ -75,4 +75,15 @@ ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS checkout_session_id text;
 ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS payment_intent_id text;
 ALTER TABLE extra_requests DROP CONSTRAINT IF EXISTS extra_requests_status_check;
 ALTER TABLE extra_requests ADD CONSTRAINT extra_requests_status_check CHECK (status IN ('awaiting_payment','pending','approved','declined','paid','refunded','expired'));
-CREATE UNIQUE INDEX IF NOT EXISTS extra_requests_checkout_idx ON extra_requests(checkout_session_id)
+CREATE UNIQUE INDEX IF NOT EXISTS extra_requests_checkout_idx ON extra_requests(checkout_session_id);
+-- Per-stay private links: door codes and other private details are only revealed with a valid token
+CREATE TABLE IF NOT EXISTS stays (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_id text NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  guest_name text NOT NULL,
+  check_in date NOT NULL,
+  check_out date NOT NULL,
+  token text NOT NULL UNIQUE,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS stays_property_idx ON stays(property_id, check_in);

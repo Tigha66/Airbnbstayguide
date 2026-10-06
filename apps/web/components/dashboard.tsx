@@ -69,6 +69,7 @@ import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling } from "./live
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
+import { PrivateAccessPanel } from "./stays";
 const nav = [
   ["", "Overview", Home],
   ["properties", "Properties", BookOpen],
@@ -954,6 +955,13 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   )}
                 </div>
               </div>
+              <PrivateAccessPanel
+                key={property.id}
+                property={property}
+                live={live}
+                save={saveProperty}
+                notify={notify}
+              />
               {!live && (
                 <div className="notice" style={{ marginTop: 20 }}>
                   Demo editor · Changes are stored in this browser. Sign in to
