@@ -36,6 +36,12 @@ test('share kit preserves selected property and generates a QR card',async({page
  await page.getByRole('button',{name:'Generate QR card'}).click();
  await expect(page.getByRole('img',{name:'QR code for The Olive Grove'})).toBeVisible();
 });
+test('signed-out billing actions lead to sign-in instead of dead controls',async({page})=>{
+ await page.goto('/dashboard/billing');
+ await expect(page.getByRole('link',{name:'Sign in for Starter'})).toHaveAttribute('href','/login?returnTo=%2Fdashboard%2Fbilling');
+ await expect(page.getByRole('link',{name:'Sign in for Pro'})).toHaveAttribute('href','/login?returnTo=%2Fdashboard%2Fbilling');
+ await expect(page.getByText(/Sign in with Google to manage a real StayGuide subscription/)).toBeVisible();
+});
 test('guest guide reloads offline after the service worker takes control',async({page,context})=>{
  await page.goto('/g/casa-serena');
  await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise<void>(resolve=>navigator.serviceWorker.addEventListener('controllerchange',()=>resolve(),{once:true}));await fetch(location.pathname,{headers:{Accept:'text/html'}});});

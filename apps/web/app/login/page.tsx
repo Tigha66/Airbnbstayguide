@@ -6,14 +6,18 @@ export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; returnTo?: string }>;
 }) {
   const configured = authConfigured();
-  if (configured && (await auth())?.user) redirect("/dashboard");
-  const { error } = await searchParams;
+  const { error, returnTo: requestedReturnTo } = await searchParams;
+  const returnTo =
+    requestedReturnTo?.startsWith("/") && !requestedReturnTo.startsWith("//")
+      ? requestedReturnTo
+      : "/dashboard";
+  if (configured && (await auth())?.user) redirect(returnTo);
   async function google() {
     "use server";
-    await signIn("google", { redirectTo: "/dashboard" });
+    await signIn("google", { redirectTo: returnTo });
   }
   return <Login configured={configured} error={error} googleAction={google} />;
 }

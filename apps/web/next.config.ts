@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   transpilePackages: ["@stayguide/shared"],
   poweredByHeader: false,
+  allowedDevOrigins: ["127.0.0.1", "*.daytonaproxy01.net"],
   async headers() {
     return [
       {
