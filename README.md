@@ -1,6 +1,6 @@
 # StayGuide
 
-A warm, premium digital guest guide and host workspace. **Current release: a functional demo and integration foundation, not a launch-ready paid SaaS.** No fake live payments, AI responses, or guest messages are presented as real.
+A warm, premium digital guest guide and host workspace for short-term rental hosts. **Current release: web beta with live-service integrations in source.** The web app supports demo mode without credentials and production mode with Neon, Google Auth, AI, Stripe, email, and monitoring environment variables.
 
 ## Run locally
 
@@ -12,18 +12,18 @@ pnpm --filter @stayguide/web dev
 # http://localhost:3000 — marketing
 # http://localhost:3000/dashboard — host demo
 # http://localhost:3000/demo — guest guide
-pnpm --filter @stayguide/mobile dev
 ```
 
-Copy `apps/web/.env.example` to `.env.local` in the same directory when connecting services. Copy `apps/mobile/.env.example` to `.env` there. No credentials are required for the demo. Never place server secrets in `NEXT_PUBLIC_*` or `EXPO_PUBLIC_*` variables.
+Copy `apps/web/.env.example` to `apps/web/.env.local` when connecting services. No credentials are required for the browser-only demo. Never place server secrets in `NEXT_PUBLIC_*` variables.
 
 ## Architecture
 
-- `apps/web`: Next.js 16 App Router, strict TypeScript, Tailwind 4: marketing site, host dashboard, guest PWA (`/g/[slug]`) and `/api/v1/*`.
+- `apps/web`: Next.js 16 App Router, strict TypeScript, custom CSS/Tailwind 4 tooling: marketing site, host dashboard, guest PWA (`/g/[slug]`) and `/api/v1/*`.
   - **Database:** Neon serverless Postgres (`@neondatabase/serverless`), schema in `apps/web/db/schema.sql`, applied automatically before every build.
   - **Accounts:** Auth.js (NextAuth v5) with Google sign-in, JWT sessions. Every host query is scoped by `owner_id` in `lib/repo.ts`.
   - **AI:** Vercel AI SDK against Hugging Face Inference Providers (OpenAI-compatible router) by default; any OpenAI-compatible API, OpenAI or Anthropic also work.
-- `apps/mobile`: Expo SDK 57 native host app (still uses the earlier Supabase auth adapter; migration to the Neon API is pending).
+  - **Payments:** Stripe subscriptions, Customer Portal, signed webhooks, Connect Express onboarding, destination charges for extras, manual capture/decline/refund state transitions.
+  - **Notifications and monitoring:** Resend host notifications and a generic monitoring webhook are optional production integrations.
 - `packages/shared`: Zod validation, demo guides, plan limits, concierge prompt, fee calculations.
 
 ## Free-tier setup (Neon + Google + Hugging Face)
@@ -40,16 +40,17 @@ Without these variables the site runs as the browser-only demo. With them, hosts
 - Create properties from a pasted house manual (AI-structured, or parsed from `LABEL:` lines / headings), edit sections, extras, publish/unpublish, delete; autosave with status indicator.
 - Guest links work on any device; views are counted; the guest PWA caches published guides offline.
 - Concierge: answers only from the guide, cites sections, answers in the guest's language (AI mode), escalates unknown questions to the host inbox; host replies appear in the guest's chat. Per-plan monthly AI limits and Postgres rate limiting on public endpoints.
-- Extras: guests send a request (name, contact, note); hosts approve/decline/mark paid in the dashboard. Payment is arranged by the host for now.
+- Extras: guests send a request (name, contact, note). If Stripe and a ready Connect account are configured, paid extras go through Stripe Checkout; approval-required extras are authorized and captured only when the host approves. Without Connect, extras fall back to manual host confirmation.
 - Analytics from real data: views, questions, resolution rate, approved extras revenue, top questions, AI usage.
+- Host email notifications for escalated guest questions and extra requests when `RESEND_API_KEY` and `EMAIL_FROM` are configured.
 
 ## Working demo
 
 Without accounts configured, the dashboard and guest guides run entirely in the browser (local storage), with sample properties `/g/casa-serena` and `/g/olive-grove`. Custom demo guides are visible only in the browser where they were made.
 
-## Stripe (not wired yet)
+## Stripe
 
-Stripe billing and Connect payouts were built against the earlier Supabase schema and are disabled until moved to Neon. The webhook routes return 503 so Stripe retries rather than dropping events. `lib/webhook.ts` and the shared 5% fee helper remain tested.
+Stripe billing and Connect payouts are wired against the Neon schema. Price lookup keys are `stayguide_{starter|pro}_{monthly|yearly}` and are provisioned by `apps/web/scripts/stripe-setup.mts`. Connect Express must be activated in the Stripe dashboard before hosts can receive extras payouts.
 
 ## Deploy to Vercel
 
@@ -64,17 +65,7 @@ Use environment settings for credentials. `NEXT_PUBLIC_APP_URL` must match the p
 
 ## Native iOS
 
-```bash
-cd apps/mobile
-npx eas-cli login
-npx eas-cli init
-# Set EXPO_PUBLIC_API_URL, Supabase values, and EXPO_PUBLIC_EAS_PROJECT_ID.
-npx eas-cli build -p ios --profile development
-npx eas-cli build -p ios --profile production --non-interactive
-npx eas-cli submit -p ios --latest
-```
-
-Bundle ID: `com.tigha66.stayguide`. EAS profiles cover development, simulator preview, and production. Production signing needs an Apple Developer team. Submission needs App Store Connect access/API key. Native export is a JavaScript bundle, **not a signed IPA or a TestFlight release**. Validate entitlements, push, biometrics, camera, and Apple sign-in on hardware. Session lock is optional and does not yet auto-lock on app background. The app contains no host subscription purchase button or subscription payment link.
+The Expo iOS host app is not present in this recovered repository. Rebuild it separately after the web product is stable.
 
 ## Verification
 
@@ -88,6 +79,7 @@ pnpm --filter @stayguide/web exec playwright install chromium
 pnpm test:e2e
 ```
 
-GitHub Actions runs lint, type checks, unit tests, and web/native export. Browser tests target the demo and deliberately check that unavailable payment integrations fail closed. A real signup → AI → Stripe purchase E2E needs test credentials and remaining integration implementation. Lighthouse ≥90 has not been certified. Logs from sandbox checks are kept in `/tmp/logs`.
+GitHub Actions should run lint, type checks, unit tests, and web build once the workflow is moved into `.github/workflows`. Browser tests target the demo and deliberately check that unavailable integrations fail closed. A real signup → AI → Stripe purchase E2E needs production/test credentials and an activated Stripe Connect account. Lighthouse ≥90 has not been certified. Logs from sandbox checks are kept in `/tmp/logs`.
+See [technical launch audit](docs/TECHNICAL_LAUNCH_AUDIT.md) for the latest sandbox verification results.
 
 See [launch plan and App Store draft](docs/LAUNCH.md).

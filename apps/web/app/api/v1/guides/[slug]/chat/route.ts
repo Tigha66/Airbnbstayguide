@@ -5,6 +5,8 @@ import { dbConfigured } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
 import { parseJson, unavailable } from "@/lib/api";
 import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
+import { notifyHostEscalation } from "@/lib/email";
+import { captureError } from "@/lib/monitoring";
 import { consumeAiUsage, consumeRateLimit, getPublishedProperty, saveMessages, threadBelongsTo } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Live concierge");
@@ -28,7 +30,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     try {
       answer = await aiAnswer(found.property, body.message, body.language);
       mode = "ai";
-    } catch {
+    } catch (error) {
+      await captureError(error, { area: "concierge", slug, mode: "ai" });
       answer = keywordAnswer(found.property, body.message, body.language);
     }
   } else answer = keywordAnswer(found.property, body.message, body.language);
@@ -37,5 +40,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     { role: "guest", content: body.message, language: body.language },
     { role: "assistant", content: answer.answer, language: body.language, citations: answer.citations, escalated: answer.escalate },
   ]);
+  if (answer.escalate)
+    await notifyHostEscalation({
+      hostEmail: found.ownerEmail,
+      propertyName: found.property.name,
+      threadId,
+      question: body.message,
+      language: body.language,
+    });
   return NextResponse.json({ ...answer, threadId, mode });
 }

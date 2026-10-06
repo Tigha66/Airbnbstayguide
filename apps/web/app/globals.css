@@ -2174,3 +2174,77 @@ small {
 .status-list li.off > span, .status-list li.off em { color: #9a3412; }
 .status-list em { font-style: normal; font-size: 14px; margin-left: 6px; }
 .status-list p { margin: 4px 0 0; color: #475569; font-size: 14px; }
+/* Private stay details & stay links */
+.form-grid.two-col {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+.checkbox-row input {
+  width: auto;
+}
+.stay-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin: 12px 0 16px;
+}
+.stay-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.stay-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.stay-list li > div {
+  flex: 1;
+  min-width: 160px;
+  display: grid;
+  font-size: 12px;
+}
+.pill.upcoming {
+  background: #faf1df;
+  color: #9b7738;
+}
+.pill.ended {
+  background: #eee;
+  color: #777;
+}
+.stay-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+.stay-card h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stay-card .private-notes {
+  margin-top: 10px;
+  padding: 12px;
+  background: #f6f8f1;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-size: 14px;
+}

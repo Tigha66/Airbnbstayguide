@@ -69,6 +69,7 @@ import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling } from "./live
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
+import { PrivateAccessPanel } from "./stays";
 const nav = [
   ["", "Overview", Home],
   ["properties", "Properties", BookOpen],
@@ -954,6 +955,13 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   )}
                 </div>
               </div>
+              <PrivateAccessPanel
+                key={property.id}
+                property={property}
+                live={live}
+                save={saveProperty}
+                notify={notify}
+              />
               {!live && (
                 <div className="notice" style={{ marginTop: 20 }}>
                   Demo editor · Changes are stored in this browser. Sign in to
@@ -1290,8 +1298,15 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
             </>
           )}
-          {view === "billing" && live && <LiveBilling notify={notify} />}
-          {view === "billing" && !live && (
+          {view === "billing" && !liveState.checked && (
+            <div className="card panel" role="status">
+              Checking your account and billing details…
+            </div>
+          )}
+          {view === "billing" && liveState.checked && live && (
+            <LiveBilling notify={notify} />
+          )}
+          {view === "billing" && liveState.checked && !live && (
             <>
               <PageHeading
                 title="A plan for every kind of host"
@@ -1366,24 +1381,25 @@ export function Dashboard({ view = "" }: { view?: string }) {
                         </li>
                       )}
                     </ul>
-                    <button
+                    <Link
                       className="button secondary"
-                      onClick={() =>
-                        notify(
-                          "Billing is not connected yet. No subscription was created.",
-                        )
+                      href={
+                        plan === "free"
+                          ? "/dashboard"
+                          : "/login?returnTo=%2Fdashboard%2Fbilling"
                       }
                     >
                       {plan === "free"
                         ? "Try the demo"
-                        : `Choose ${plans[plan].name}`}
-                    </button>
+                        : `Sign in for ${plans[plan].name}`}
+                    </Link>
                   </div>
                 ))}
               </div>
               <div className="notice" style={{ marginTop: 20 }}>
-                Billing preview · Stripe account and product prices are required
-                before subscriptions can be purchased. All prices in USD.
+                You’re viewing sample pricing. Sign in with Google to manage a
+                real StayGuide subscription securely through Stripe. All prices
+                are in USD.
               </div>
             </>
           )}

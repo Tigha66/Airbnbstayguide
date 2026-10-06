@@ -11,11 +11,17 @@ import {
   Sparkles,
   Wifi,
   Download,
+  KeyRound,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { demoAnswer, languages, money, type Property } from "@stayguide/shared";
+import { demoAnswer, languages, money, stayWindow, type Property } from "@stayguide/shared";
 import { useDemo } from "@/lib/demo-store";
 import { Logo, GuideIcon } from "./ui";
+type StayAccess =
+  | { status: "active"; guestName: string; checkIn: string; checkOut: string; privateNotes: string; wifi: string; wifiPassword: string }
+  | { status: "upcoming" | "ended"; guestName: string; checkIn: string; checkOut: string };
+const stayDay = (iso: string) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 type Message = {
   role: "assistant" | "user" | "host";
   content: string;
@@ -42,6 +48,51 @@ export function GuestGuide({
   const [deferredInstall, setDeferredInstall] = useState<Event | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [requesting, setRequesting] = useState<Property["extras"][number] | null>(null);
+  const [access, setAccess] = useState<StayAccess | null>(null);
+  useEffect(() => {
+    if (!liveGuide) return;
+    const tokenKey = `stayguide-stay-${slug}`;
+    const accessKey = `stayguide-stay-access-${slug}`;
+    const params = new URLSearchParams(location.search);
+    const fromLink = params.get("stay");
+    if (fromLink) {
+      localStorage.setItem(tokenKey, fromLink);
+      // Keep the private token out of the address bar, screenshots and shared links.
+      params.delete("stay");
+      const rest = params.toString();
+      history.replaceState(null, "", location.pathname + (rest ? `?${rest}` : ""));
+    }
+    const token = fromLink || localStorage.getItem(tokenKey);
+    if (!token) return;
+    const showSavedStay = () => {
+      try {
+        const cached = JSON.parse(localStorage.getItem(accessKey) || "null") as StayAccess | null;
+        if (cached?.status === "active" && stayWindow(cached.checkIn, cached.checkOut) === "active") setAccess(cached);
+        else localStorage.removeItem(accessKey);
+      } catch {
+        localStorage.removeItem(accessKey);
+      }
+    };
+    fetch(`/api/v1/guides/${slug}/stay`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    })
+      .then(async (res) => {
+        if (res.status === 404) {
+          localStorage.removeItem(tokenKey);
+          localStorage.removeItem(accessKey);
+          return;
+        }
+        if (!res.ok) return showSavedStay();
+        const body = (await res.json()) as StayAccess;
+        setAccess(body);
+        if (body.status === "active") localStorage.setItem(accessKey, JSON.stringify(body));
+        else localStorage.removeItem(accessKey);
+      })
+      .catch(showSavedStay); // Offline: show the details saved during this stay.
+  }, [liveGuide, slug]);
+  const wifiPassword = access?.status === "active" && access.wifiPassword ? access.wifiPassword : property?.wifiPassword ?? "";
   useEffect(() => {
     if (!liveGuide) return;
     void fetch(`/api/v1/guides/${slug}/view`, { method: "POST" }).catch(() => {});
@@ -256,6 +307,38 @@ export function GuestGuide({
       <main className="guest-body">
         {tab === "guide" && (
           <>
+            {access && (
+              <section className="stay-card" aria-label="Your private stay details">
+                <h3>
+                  <KeyRound size={18} color="#7c906b" />
+                  Welcome, {access.guestName}
+                </h3>
+                <p className="muted" style={{ fontSize: 12 }}>
+                  {stayDay(access.checkIn)} → {stayDay(access.checkOut)}
+                </p>
+                {access.status === "active" ? (
+                  <>
+                    {access.privateNotes && <div className="private-notes">{access.privateNotes}</div>}
+                    {access.wifiPassword && (
+                      <p style={{ fontSize: 13, marginTop: 10 }}>
+                        Wi-Fi <strong>{access.wifi}</strong> · Password <strong>{access.wifiPassword}</strong>
+                      </p>
+                    )}
+                    <small className="muted" style={{ display: "block", marginTop: 8 }}>
+                      Just for you. Please don’t share these details.
+                    </small>
+                  </>
+                ) : access.status === "upcoming" ? (
+                  <p style={{ fontSize: 13, marginTop: 8 }}>
+                    Your private arrival details will appear here the day before check-in.
+                  </p>
+                ) : (
+                  <p style={{ fontSize: 13, marginTop: 8 }}>
+                    This stay has ended. We hope you had a lovely time.
+                  </p>
+                )}
+              </section>
+            )}
             <div className="guest-welcome">
               <h2>Olá, make yourself at home.</h2>
               <p>{property.description}</p>
@@ -263,17 +346,19 @@ export function GuestGuide({
             <div className="guest-quick">
               <button
                 onClick={async () => {
-                  if (!property.wifiPassword) {
-                    notify("Ask your host for the Wi-Fi details.");
+                  if (!wifiPassword) {
+                    notify(
+                      property.wifiPrivate
+                        ? "The Wi-Fi password is in the private stay link from your host."
+                        : "Ask your host for the Wi-Fi details.",
+                    );
                     return;
                   }
                   try {
-                    await navigator.clipboard.writeText(property.wifiPassword);
+                    await navigator.clipboard.writeText(wifiPassword);
                     notify(`${property.wifi} · Password copied`);
                   } catch {
-                    notify(
-                      `Network: ${property.wifi} · Password: ${property.wifiPassword}`,
-                    );
+                    notify(`Network: ${property.wifi} · Password: ${wifiPassword}`);
                   }
                 }}
               >

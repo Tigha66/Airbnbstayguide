@@ -68,6 +68,35 @@ describe("repository (Neon schema on PGlite)", () => {
     const stats = await repo.analytics(a.id);
     expect(stats).toMatchObject({ views: 1, questions: 1, resolutionRate: 0, extrasRevenue: 3000, extraRequests: 1, aiMessagesThisMonth: 1 });
   });
+  it("keeps private stay details out of public guides and only reveals them via a valid stay link", async () => {
+    const [p] = await repo.listProperties(a.id);
+    const data = repo.propertyDataSchema.parse({ ...p, wifiPassword: "Secret-Wifi", wifiPrivate: true, privateNotes: "Door code 4821" });
+    await repo.updateProperty(a.id, p.id, data);
+    const pub = (await repo.getPublishedProperty(p.slug))!.property;
+    expect(pub.privateNotes).toBeUndefined();
+    expect(pub.wifiPassword).toBe("");
+    expect(JSON.stringify(pub)).not.toContain("4821");
+    // Hosts can only create/list/delete stays on their own properties.
+    expect(await repo.createStay(b.id, p.id, { guestName: "X", checkIn: "2026-10-10", checkOut: "2026-10-12" })).toBeNull();
+    const stay = (await repo.createStay(a.id, p.id, { guestName: "Maria", checkIn: "2026-10-10", checkOut: "2026-10-12" }))!;
+    expect(stay.token.length).toBeGreaterThanOrEqual(24);
+    expect(await repo.listStays(b.id, p.id)).toEqual([]);
+    expect((await repo.listStays(a.id, p.id)).map((s) => s.guestName)).toEqual(["Maria"]);
+    // Window: from the day before check-in until the end of the day after checkout.
+    const at = (iso: string) => repo.getStayAccess(p.slug, stay.token, new Date(iso));
+    expect((await at("2026-10-08T23:00:00Z")).status).toBe("upcoming");
+    const active = await at("2026-10-09T08:00:00Z");
+    expect(active).toMatchObject({ status: "active", privateNotes: "Door code 4821", wifiPassword: "Secret-Wifi", guestName: "Maria" });
+    expect((await at("2026-10-13T23:59:00Z")).status).toBe("active");
+    const ended = await at("2026-10-14T00:00:00Z");
+    expect(ended.status).toBe("ended");
+    expect(JSON.stringify(ended)).not.toContain("4821");
+    expect((await repo.getStayAccess("wrong-slug", stay.token, new Date("2026-10-10T12:00:00Z"))).status).toBe("invalid");
+    expect((await repo.getStayAccess(p.slug, "x".repeat(24), new Date("2026-10-10T12:00:00Z"))).status).toBe("invalid");
+    expect(await repo.deleteStay(b.id, stay.id)).toBe(false);
+    expect(await repo.deleteStay(a.id, stay.id)).toBe(true);
+    expect((await at("2026-10-10T12:00:00Z")).status).toBe("invalid");
+  });
   it("deletes the account and all data", async () => {
     await repo.deleteUser(a.id);
     expect(await repo.listProperties(a.id)).toEqual([]);

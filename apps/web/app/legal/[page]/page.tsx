@@ -21,26 +21,29 @@ export default async function Page({
             : "A few clear expectations."}
         </h1>
         <div className="notice">
-          Draft notice for the StayGuide demonstration. Operator identity, legal
-          contact, jurisdictions, retention schedule, and final terms must be
-          supplied before accepting real customers.
+          Draft notice for StayGuide. Operator identity, legal contact,
+          jurisdictions, retention schedule, refund/support policies, and final
+          terms must be reviewed before broad public sale.
         </div>
         {page === "privacy" ? (
           <>
             <h2>Information in this preview</h2>
             <p>
-              The demo workspace stores guide edits and preferences in your
-              browser’s local storage. Do not enter real guest personal
-              information, private door codes, or confidential documents. Clear
-              site data in your browser to remove your local demo information.
+              StayGuide can run as a browser-only demo or as a connected host
+              workspace. In demo mode, guide edits and preferences are stored in
+              your browser’s local storage. In connected mode, host accounts,
+              guides, guest questions, extra requests, analytics, billing
+              identifiers, and usage counters are stored in the production
+              database.
             </p>
             <h2>Hosting and external services</h2>
             <p>
               Vercel hosts this site and may process request metadata. Vercel
               Analytics is included for aggregated website usage measurement.
-              Property photographs load from Unsplash. Opening map links takes
-              you to Google Maps. Live Supabase, Stripe, email, and AI
-              processing are not enabled without configuration.
+              Property photographs can load from Unsplash. Opening map links
+              takes you to Google Maps. Depending on configuration, StayGuide
+              can also use Neon Postgres, Google sign-in, Hugging Face or other
+              AI providers, Stripe, Resend, and monitoring services.
             </p>
             <h2>Offline guide storage</h2>
             <p>
@@ -59,12 +62,13 @@ export default async function Page({
           </>
         ) : (
           <>
-            <h2>Demonstration service</h2>
+            <h2>Service status</h2>
             <p>
-              StayGuide currently provides a product preview. Sample metrics,
-              messages, and extras are fictional. Demo checkout does not charge
-              a card or reserve a service. Do not rely on the sample concierge
-              for emergency assistance or real property access.
+              StayGuide provides a browser demo and a connected web service when
+              production environment variables are configured. Sample demo
+              metrics, messages, and extras are fictional. Connected guides,
+              billing, and paid extras depend on the host’s configured account
+              and Stripe availability.
             </p>
             <h2>Your content</h2>
             <p>
@@ -73,12 +77,13 @@ export default async function Page({
               responsible for checking the accuracy of their guides. AI
               suggestions require human review before publication.
             </p>
-            <h2>Planned billing</h2>
+            <h2>Billing and extras</h2>
             <p>
-              Displayed prices describe planned subscription tiers. Final
-              billing terms, cancellation rights, applicable taxes, refund
-              policies, and extras fulfillment responsibilities must be
-              established before paid subscriptions are activated.
+              Displayed prices describe StayGuide subscription tiers. Stripe
+              processes subscriptions and, where Stripe Connect is ready for the
+              host, paid guest extras. Final cancellation rights, taxes, refund
+              rules, payout responsibilities, and support processes require
+              operator review before public sale.
             </p>
             <h2>Service limitations</h2>
             <p>

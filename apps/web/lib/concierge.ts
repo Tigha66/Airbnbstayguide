@@ -15,7 +15,7 @@ export const unknownAnswer = (language: string): ConciergeAnswer => ({
 });
 function guideFor(property: Property) {
   const facts = [
-    `## Stay details\nCheck-in: ${property.checkIn}\nCheckout: ${property.checkOut}${property.wifi ? `\nWi-Fi network: ${property.wifi}` : ""}${property.wifiPassword ? `\nWi-Fi password: ${property.wifiPassword}` : ""}${property.hostPhone ? `\nHost phone: ${property.hostPhone}` : ""}`,
+    `## Stay details\nCheck-in: ${property.checkIn}\nCheckout: ${property.checkOut}${property.wifi ? `\nWi-Fi network: ${property.wifi}` : ""}${property.wifiPassword ? `\nWi-Fi password: ${property.wifiPassword}` : property.wifiPrivate ? "\nWi-Fi password: shown in the guest's private stay link from the host (top of the guide)." : ""}${property.hostPhone ? `\nHost phone: ${property.hostPhone}` : ""}`,
   ];
   return { sections: property.sections, facts: facts.join("\n") };
 }

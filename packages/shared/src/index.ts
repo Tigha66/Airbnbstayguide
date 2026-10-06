@@ -71,7 +71,32 @@ export type Property = {
   hostPhone: string;
   sections: Section[];
   extras: Extra[];
+  /** Door codes, lockbox, parking codes. Only revealed through a valid stay link. */
+  privateNotes?: string;
+  /** When true, the Wi-Fi password is only revealed through a valid stay link. */
+  wifiPrivate?: boolean;
 };
+/** Strips everything that must only reach guests holding a valid stay link. */
+export function toPublicProperty(p: Property): Property {
+  const { privateNotes: _private, ...rest } = p;
+  void _private;
+  return { ...rest, wifiPassword: p.wifiPrivate ? "" : p.wifiPassword };
+}
+/** A stay link works from the day before check-in until the day after checkout (UTC). */
+export function stayWindow(checkIn: string, checkOut: string, now = new Date()) {
+  const day = 86_400_000;
+  const start = Date.parse(`${checkIn}T00:00:00Z`) - day;
+  const end = Date.parse(`${checkOut}T00:00:00Z`) + 2 * day;
+  const t = now.getTime();
+  return t < start ? "upcoming" : t >= end ? "ended" : "active";
+}
+export const staySchema = z
+  .object({
+    guestName: z.string().trim().min(1).max(120),
+    checkIn: z.iso.date(),
+    checkOut: z.iso.date(),
+  })
+  .refine((s) => s.checkOut >= s.checkIn, { message: "Checkout must be on or after check-in" });
 export const sections: Section[] = [
   {
     id: "arrival",
