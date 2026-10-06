@@ -6,9 +6,9 @@ Commit audited: `024ad322242e61f13932da2376a647a41cf51534`
 
 ## Verdict
 
-StayGuide is a credible, working web SaaS codebase with a strong beta-ready surface: marketing pages, guest guide PWA, host dashboard, authenticated APIs, Neon persistence, AI guide/concierge paths, Stripe subscription billing, Stripe Connect extras, rate limits, and unit coverage are present in source.
+StayGuide is a credible, working web SaaS codebase with a strong beta-ready surface: marketing pages, guest guide PWA, host dashboard, authenticated APIs, Neon persistence, AI guide/concierge paths, Stripe subscription billing, Stripe Connect extras, host email notifications, monitoring hooks, rate limits, and unit coverage are present in source.
 
-It is not yet broad-market launch ready without a short hardening pass. The largest launch risks are production payment validation, transactional notifications, monitoring, legal/operator readiness, documentation drift, and incomplete browser/E2E verification in this sandbox.
+It is not yet broad-market launch ready without a short hardening pass. The largest launch risks are production payment validation, email deliverability, monitoring verification, legal/operator readiness, and incomplete browser/E2E verification in this sandbox.
 
 ## Verification run
 
@@ -99,9 +99,9 @@ Turbo verification was run with a temporary `/tmp/logs/bin/pnpm` shim because Co
 1. Production build must complete in the deployment environment and should be reproducible locally or in CI. The sandbox build was killed by memory pressure during Next page-data collection.
 2. Browser E2E and mobile viewport checks need to run in an environment with the required Chromium system libraries.
 3. Stripe Connect must be verified in live mode with an actual onboarded Express account, a paid extra, manual capture, decline/cancel, and refund.
-4. Transactional email is not implemented/connected; host notifications and guest follow-up depend on dashboard polling today.
-5. Monitoring is missing: add Sentry or equivalent for server/client errors and PostHog or analytics for funnels.
-6. Documentation is inconsistent. `README.md` and older `docs/STATUS.md` sections still say Stripe is disabled or the app is only a demo, while newer source and docs show Stripe billing/extras are wired.
+4. Transactional email is now wired through Resend in source, but needs production sender verification and a delivery test.
+5. Monitoring is now wired through a generic error webhook/status flag, but needs a production provider and alert routing.
+6. Documentation has been refreshed, but sales/support material should still be reviewed against the actual production configuration before public launch.
 7. Secrets previously shared in chat should be rotated before real customer traffic.
 8. Legal/operator details, custom domain, privacy review, refund/support policies, and production contact details need final review.
 9. The CI workflow is stored at `docs/ci.workflow.yml`; it should be installed as `.github/workflows/ci.yml` when repository permissions allow it.
@@ -114,6 +114,5 @@ Turbo verification was run with a temporary `/tmp/logs/bin/pnpm` shim because Co
 3. Run the build in Vercel/CI and record build memory settings. If needed, configure the deployment environment for enough memory rather than changing app behavior blindly.
 4. Run Playwright in CI or a workstation with Chromium dependencies installed.
 5. Complete a live Stripe Connect pilot with one host and one real paid extra.
-6. Add email notifications and monitoring before scaling beyond personally supported pilots.
+6. Verify email delivery and monitoring alerts before scaling beyond personally supported pilots.
 7. Rotate secrets and finish legal/domain/support setup before public marketing.
-

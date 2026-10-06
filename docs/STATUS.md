@@ -1,81 +1,59 @@
-# Release status
+# StayGuide release status
 
-## Update: free-tier backend (Neon + Google + Hugging Face)
+Updated: 2026-10-06
 
-Implemented and tested (PGlite integration tests + browser tests): Google sign-in, Neon-backed property/guide CRUD with owner isolation and plan limits, autosave, public guides on any device, view analytics, concierge with AI (Hugging Face) or keyword fallback, citations, escalation to a live inbox with host replies shown to guests, extra requests with approve/decline, account deletion, Postgres rate limiting. Activates when `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` (and optionally `HF_TOKEN`) are set; not yet verified against a live Neon database or real Google OAuth.
+## Current state
 
-Still open: Stripe billing and payouts for extras (requests only for now), email/push notifications, per-stay access codes for door codes, AI translation of the guide body (the concierge already answers in the guest's language), team members, the iOS app's migration from Supabase auth to the new API, custom domains. The section below describes the earlier Supabase plan and is partly superseded.
+StayGuide is a web beta with production integrations wired in source. It can run in browser-only demo mode without credentials, and it can run as a connected SaaS when the required environment variables are configured.
 
-## Ready to review as a demo
+Implemented in the recovered web app:
 
-- Responsive marketing, pricing calculator, ROI calculator, FAQ, three articles, draft legal notices.
-- Browser-persisted host property creation, section editor, markdown preview, reorder, sample inbox, extras catalog, QR kit, analytics preview, dark mode.
-- Guest guide, sample Wi-Fi, maps, guide-based concierge lookup and source citations, extras preview, install manifest and Serwist offline caching.
-- Expo native host UI, guide editing/cache, native share, camera, haptics, optional session biometric lock, Apple auth and API client adapters.
-- Shared schemas, plan calculations, API and migration groundwork, CI, unit/browser testing.
+- Marketing, pricing, demo, blog, draft legal, status, login, dashboard, and guest guide routes.
+- Guest guide PWA with install manifest and offline guide caching.
+- Google sign-in through Auth.js.
+- Neon Postgres persistence with host-owned data scoped by `owner_id`.
+- AI guide builder and AI concierge through Hugging Face by default, with OpenAI-compatible, OpenAI, and Anthropic options.
+- Keyword fallback when AI is not configured or fails.
+- Host inbox escalation and guest-visible host replies.
+- Per-plan property limits, AI monthly usage counters, and public endpoint rate limits.
+- Stripe subscriptions, Customer Portal, signed webhooks, plan mapping by lookup key, and property-count quantity sync.
+- Stripe Connect Express onboarding and destination-charge extras with 5% platform fee.
+- Manual capture for approval-required extras, decline/cancel, and refund flow.
+- Resend host notifications for escalated guest questions and extra requests.
+- Optional monitoring webhook plus status reporting for monitoring configuration.
+- Unit/repository/billing tests covering 30 assertions across shared and web packages.
 
-## Must finish before accepting customers
+## Verified in this sandbox
 
-These are code/integration tasks, not simply environment-variable switches:
+- `pnpm install --frozen-lockfile`: passed.
+- `pnpm lint`: passed.
+- `pnpm typecheck`: passed.
+- `pnpm test`: passed.
+- `pnpm build`: compiled and typechecked, then was killed with exit 137 during Next page-data collection in this memory-limited sandbox.
+- Playwright Chromium installed, but browser UI tests could not run because the sandbox is missing `libnspr4.so`. The API-only E2E that checks unconfigured endpoints fail closed passed.
 
-- Connect host and guest UIs to authenticated multi-tenant CRUD; complete real onboarding and role-aware team management. The current dashboard always uses demo storage.
-- Harden and test RLS, immutable tenant/parent identifiers, cleaner access, sensitive section access, ownership transfer/deletion, plan transitions, and tenant isolation in a real database. Migration is an unapplied draft.
-- Add public published-guide projection, per-stay access-code verification, and private credential reveal; never place real entry codes in public/offline caches.
-- Add pgvector indexing/retrieval, provider timeouts and robust grounded output validation, real thread continuity, translation/cache invalidation, PDF import, nearby places workflow.
-- Complete Stripe Connect onboarding and readiness, extras approval/Checkout/payment/refund state machine, idempotent order webhooks, Customer Portal, property-count synchronization, invoice and trial notifications.
-- Realtime inbox subscription, verified push registration/delivery, email adapters, retries/outbox, PostHog/Sentry integration, privacy and retention controls.
-- Native live CRUD, real order approvals, background auto-lock, offline conflict resolution, push delivery and token rotation, complete account deletion including owned organizations and subscriptions.
-- Convert journal content to MDX if required, add actual testimonials only with permission, final reviewed terms/privacy and verified operator/contact details.
-- Measure performance and accessibility against the requested Lighthouse/WCAG goals; complete live E2E, database concurrency/security tests, device tests, and App Store review setup.
-- shadcn/ui and NativeWind alignment if those remain architectural requirements. Current components are local React/CSS and React Native StyleSheet.
+See `docs/TECHNICAL_LAUNCH_AUDIT.md` for details and log locations.
 
-## Service values still needed
+## External owner actions still required
 
-Supabase URL/public/server keys and migration access; selected AI provider/model/key; Stripe test secret, four Price IDs and both webhook signing secrets; Resend verified sender/key; Expo token/project and Apple signing/submission credentials; optional Sentry, PostHog, and VAPID configuration. All environment names and purposes are in each app's `.env.example`.
+These cannot be completed by source changes alone:
 
-No real payments, messages, reservations, or AI translation are claimed by the demo. Missing services return explicit unavailable responses. Service credentials alone do not complete the remaining implementation work.
+- Activate/approve Stripe Connect for the platform account.
+- Run a real live-mode Connect pilot with an onboarded host, paid extra, manual capture, decline, and refund.
+- Configure DNS/custom domain and production OAuth redirect URLs.
+- Rotate any secrets that were shared during development.
+- Add real production credentials in Vercel for Neon, Auth, AI, Stripe, Resend, and monitoring.
+- Review final terms, privacy policy, refund policy, support process, taxes, and operator details with a qualified reviewer.
+- Move `docs/ci.workflow.yml` to `.github/workflows/ci.yml` when GitHub workflow permissions allow it.
 
-## Recovery note (2026-10-05)
+## Remaining product gaps
 
-The original sandbox ran out of disk and crashed before any commit reached
-GitHub. The source was recovered from the last Vercel upload. Not recovered:
-`apps/mobile` (the Expo iOS app was excluded by `.vercelignore`) and the small
-`/status` page added afterwards. Both need to be rebuilt.
+- iOS host app is not present in the recovered repository and must be rebuilt separately.
+- Push notifications are not implemented.
+- Per-stay access codes/private credential reveal are not implemented.
+- Photo uploads, maps/nearby-place management, team members, and advanced imports remain future work.
+- Lighthouse/accessibility certification has not been completed.
 
-### Deploying
-Vercel (Hobby) blocks CLI deploys whose git commit author is not a member of
-the Vercel team. Deploy from a git-free copy:
+## Launch recommendation
 
-```bash
-git archive HEAD | tar -x -C /tmp/deploy
-# add .vercel/project.json (projectId + orgId), then:
-npx vercel deploy --prod --yes --token $VERCEL_TOKEN   # run inside /tmp/deploy
-```
-
-The CI workflow lives at `docs/ci.workflow.yml`. Move it to
-`.github/workflows/ci.yml` from the GitHub web UI (the agent's GitHub app lacks
-the `workflow` scope, which is what blocked every earlier push).
-
-## Payments (2026-10-05)
-
-Stripe is connected in **test mode**.
-
-- Host subscriptions: Free (1 property) / Starter $9 / Pro $19 per property per month,
-  yearly = 10× monthly. Checkout + Customer Portal; plan is derived from the Stripe
-  price lookup key (`stayguide_<plan>_<monthly|yearly>`); quantity follows the
-  property count. Verified end to end against production (subscribe → upgrade → cancel).
-- Extras: when the host has finished Stripe Connect (Express) onboarding, guests pay
-  in Checkout; StayGuide keeps 5% (`application_fee_amount`). Extras that need
-  approval are authorised and captured only on approval; decline releases the
-  hold; paid extras can be refunded (transfer and fee reversed).
-- **Blocked on the platform owner:** activate Connect at
-  https://dashboard.stripe.com/connect. Until then hosts see "coming soon" and
-  extras fall back to manual requests.
-- Re-provision prices/portal/webhook with `pnpm --filter @stayguide/web stripe:setup`
-  (env: STRIPE_SECRET_KEY, APP_URL). Going live = run it with the live key and
-  store the printed STRIPE_WEBHOOK_SECRET in Vercel.
-
-**Update:** switched to Stripe **live mode**. Live products, prices, portal and webhook
-were provisioned with `stripe:setup`; the test-mode webhook was removed and test-mode
-customer/subscription ids were cleared from the database. Checkout accepts
-promotion codes (use Stripe coupons for founding-host discounts).
+Use the current web app for a closely supported beta with a few pilot hosts after production credentials are configured and a Vercel build completes. Do not run broad public paid acquisition until live Connect payments, email deliverability, monitoring, legal/domain setup, and browser E2E are verified.
