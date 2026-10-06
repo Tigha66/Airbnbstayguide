@@ -350,7 +350,7 @@ export function GuestGuide({
                 <h3
                   style={{
                     fontFamily: "var(--serif)",
-                    fontWeight: 400,
+                    fontWeight: 800,
                     fontSize: 23,
                   }}
                 >
