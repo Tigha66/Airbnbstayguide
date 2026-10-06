@@ -29,8 +29,9 @@ Implemented in the recovered web app:
 - `pnpm lint`: passed.
 - `pnpm typecheck`: passed.
 - `pnpm test`: passed.
-- `pnpm build`: compiled and typechecked, then was killed with exit 137 during Next page-data collection in this memory-limited sandbox.
-- Playwright Chromium installed, but browser UI tests could not run because the sandbox is missing `libnspr4.so`. The API-only E2E that checks unconfigured endpoints fail closed passed.
+- `next build`: completed. On very high core-count machines the default worker count can exhaust memory during page-data collection; limiting workers (for example `experimental.cpus`) avoids it.
+- Playwright browser E2E against `next build && next start`: all 7 tests passed, including signed-out billing → sign-in links, offline guest guide reload, fail-closed endpoints, and mobile viewport.
+- Note: the offline-reload test fails under `next dev` because dev chunks are not reliably cached; run offline checks against a production build, as Next.js recommends.
 
 See `docs/TECHNICAL_LAUNCH_AUDIT.md` for details and log locations.
 
