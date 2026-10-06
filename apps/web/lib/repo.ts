@@ -65,11 +65,14 @@ export async function getOwnedProperty(ownerId: string, id: string) {
   return row ? toProperty(row) : null;
 }
 export async function getPublishedProperty(slug: string) {
-  const [row] = await query<PropertyRow & { owner_id: string }>(
-    `SELECT id, slug, status, data, owner_id FROM properties WHERE slug = $1 AND status = 'published'`,
+  const [row] = await query<PropertyRow & { owner_id: string; owner_email: string }>(
+    `SELECT p.id, p.slug, p.status, p.data, p.owner_id, u.email AS owner_email
+       FROM properties p
+       JOIN users u ON u.id = p.owner_id
+      WHERE p.slug = $1 AND p.status = 'published'`,
     [slug],
   );
-  return row ? { property: toProperty(row), ownerId: row.owner_id } : null;
+  return row ? { property: toProperty(row), ownerId: row.owner_id, ownerEmail: row.owner_email } : null;
 }
 
 export function slugify(name: string) {

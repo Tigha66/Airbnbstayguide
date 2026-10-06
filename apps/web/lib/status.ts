@@ -1,6 +1,8 @@
 import { authConfigured } from "@/auth";
 import { aiConfigured } from "@/lib/ai";
 import { dbConfigured, query } from "@/lib/db";
+import { emailConfigured } from "@/lib/email";
+import { monitoringConfigured } from "@/lib/monitoring";
 
 export type ServiceStatus = { key: string; label: string; ok: boolean; detail: string };
 
@@ -39,6 +41,18 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       label: "Payments (Stripe)",
       ok: stripe,
       detail: stripe ? `Stripe connected (${mode} mode): subscriptions and paid extras are on.` : "Not connected yet: needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET.",
+    },
+    {
+      key: "email",
+      label: "Transactional email (Resend)",
+      ok: emailConfigured(),
+      detail: emailConfigured() ? "Host notification email is configured." : "Needs RESEND_API_KEY and EMAIL_FROM for host notifications.",
+    },
+    {
+      key: "monitoring",
+      label: "Error monitoring",
+      ok: monitoringConfigured(),
+      detail: monitoringConfigured() ? "Error monitoring endpoint is configured." : "Needs SENTRY_DSN, LOGTAIL_SOURCE_TOKEN, or STAYGUIDE_MONITORING_WEBHOOK.",
     },
   ];
 }

@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { dbConfigured } from "@/lib/db";
 import { parseJson, unavailable } from "@/lib/api";
+import { notifyHostExtraRequest } from "@/lib/email";
+import { captureError } from "@/lib/monitoring";
 import { attachExtraCheckout, consumeRateLimit, createExtraRequest, getPayoutAccount, getPublishedProperty, setExtraRequestStatusById } from "@/lib/repo";
 import { appUrl, extraCheckoutParams, stripeClient, stripeConfigured } from "@/lib/stripe";
 const schema = z.object({
@@ -27,6 +29,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const destination = stripeConfigured() && extra.price > 0 ? await getPayoutAccount(found.ownerId) : null;
   if (!destination) {
     const id = await createExtraRequest(found.property.id, extra, guest);
+    await notifyHostExtraRequest({
+      hostEmail: found.ownerEmail,
+      propertyName: found.property.name,
+      extraName: extra.name,
+      guestName: guest.name,
+      guestContact: guest.contact,
+      note: guest.note,
+      status: "pending",
+    });
     return NextResponse.json({ id, status: "pending" }, { status: 201 });
   }
   const id = await createExtraRequest(found.property.id, extra, guest, "awaiting_payment");
@@ -43,10 +54,28 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       }),
     );
     await attachExtraCheckout(id, session.id);
+    await notifyHostExtraRequest({
+      hostEmail: found.ownerEmail,
+      propertyName: found.property.name,
+      extraName: extra.name,
+      guestName: guest.name,
+      guestContact: guest.contact,
+      note: guest.note,
+      status: "awaiting_payment",
+    });
     return NextResponse.json({ id, status: "awaiting_payment", checkoutUrl: session.url, approval: extra.approval }, { status: 201 });
   } catch (error) {
-    console.error("[extras] checkout failed", error);
+    await captureError(error, { area: "extras", slug, extraId: extra.id });
     await setExtraRequestStatusById(id, "pending");
+    await notifyHostExtraRequest({
+      hostEmail: found.ownerEmail,
+      propertyName: found.property.name,
+      extraName: extra.name,
+      guestName: guest.name,
+      guestContact: guest.contact,
+      note: guest.note,
+      status: "pending",
+    });
     return NextResponse.json({ id, status: "pending", note: "Online payment is unavailable right now; your host will confirm how to pay." }, { status: 201 });
   }
 }
