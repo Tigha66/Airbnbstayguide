@@ -5,6 +5,7 @@ import { dbConfigured } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
 import { parseJson, unavailable } from "@/lib/api";
 import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
+import { detectLanguage } from "@/lib/language";
 import { consumeAiUsage, consumeRateLimit, getPublishedProperty, saveMessages, threadBelongsTo } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Live concierge");
@@ -22,20 +23,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const found = await getPublishedProperty(slug);
   if (!found) return NextResponse.json({ error: "Guide not found" }, { status: 404 });
   const threadId = body.threadId && (await threadBelongsTo(body.threadId, found.property.id)) ? body.threadId : crypto.randomUUID();
+  // Reply in the language the guest actually wrote in; the guide's language menu is only a fallback.
+  const language = detectLanguage(body.message) ?? body.language;
   let answer: ConciergeAnswer;
   let mode: "ai" | "keyword" = "keyword";
   if (aiConfigured() && (await consumeAiUsage(found.ownerId))) {
     try {
-      answer = await aiAnswer(found.property, body.message, body.language);
+      answer = await aiAnswer(found.property, body.message, language);
       mode = "ai";
     } catch {
-      answer = keywordAnswer(found.property, body.message, body.language);
+      answer = keywordAnswer(found.property, body.message, language);
     }
-  } else answer = keywordAnswer(found.property, body.message, body.language);
-  if (!answer.answer) answer = unknownAnswer(body.language);
+  } else answer = keywordAnswer(found.property, body.message, language);
+  if (!answer.answer) answer = unknownAnswer(language);
   await saveMessages(found.property.id, threadId, [
-    { role: "guest", content: body.message, language: body.language },
-    { role: "assistant", content: answer.answer, language: body.language, citations: answer.citations, escalated: answer.escalate },
+    { role: "guest", content: body.message, language },
+    { role: "assistant", content: answer.answer, language, citations: answer.citations, escalated: answer.escalate },
   ]);
-  return NextResponse.json({ ...answer, threadId, mode });
+  return NextResponse.json({ ...answer, threadId, mode, language });
 }
