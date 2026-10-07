@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { mapsUrl, propertySchema, demoProperties } from "@stayguide/shared";
 import { propertyDataSchema } from "./repo";
+import { keywordAnswer } from "./concierge";
 
 describe("property address", () => {
   it("opens Maps at the exact street address when one is set", () => {
@@ -18,5 +19,13 @@ describe("property address", () => {
     expect(propertyDataSchema.safeParse({ ...p, address: "1 Main St" }).success).toBe(true);
     expect(propertyDataSchema.safeParse({ ...p }).success).toBe(true);
     expect(propertyDataSchema.safeParse({ ...p, address: "x".repeat(301) }).success).toBe(false);
+  });
+  it("answers address questions even without the AI", () => {
+    const p = { ...demoProperties[0], address: "123 Ridge Road, Gatlinburg, TN 37738" };
+    expect(keywordAnswer(p, "What's the address?", "en")).toMatchObject({ answer: "The address is 123 Ridge Road, Gatlinburg, TN 37738.", escalate: false });
+    expect(keywordAnswer(p, "Quelle est l'adresse ?", "fr").answer).toBe("L’adresse est 123 Ridge Road, Gatlinburg, TN 37738.");
+    expect(keywordAnswer(p, "¿Cuál es la dirección?", "es").answer).toContain("123 Ridge Road");
+    // Without an address it still escalates rather than inventing one.
+    expect(keywordAnswer({ ...p, address: "" }, "What's the address?", "en").escalate).toBe(true);
   });
 });
