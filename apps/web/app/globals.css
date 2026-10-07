@@ -2791,3 +2791,20 @@ small {
     grid-template-columns: 1fr 1fr;
   }
 }
+.admin-health {
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  display: grid;
+  gap: 4px;
+  border-left: 4px solid var(--teal);
+}
+.admin-health.bad {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+}
+.admin-health.bad strong {
+  color: #b91c1c;
+}
+.admin-health small {
+  word-break: break-word;
+}

@@ -75,4 +75,6 @@ ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS checkout_session_id text;
 ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS payment_intent_id text;
 ALTER TABLE extra_requests DROP CONSTRAINT IF EXISTS extra_requests_status_check;
 ALTER TABLE extra_requests ADD CONSTRAINT extra_requests_status_check CHECK (status IN ('awaiting_payment','pending','approved','declined','paid','refunded','expired'));
-CREATE UNIQUE INDEX IF NOT EXISTS extra_requests_checkout_idx ON extra_requests(checkout_session_id)
+CREATE UNIQUE INDEX IF NOT EXISTS extra_requests_checkout_idx ON extra_requests(checkout_session_id);
+-- Insertion order for chat messages (a guest question and its answer can share a timestamp)
+ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS seq bigserial;

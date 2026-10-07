@@ -4,6 +4,7 @@ import { auth, authConfigured } from "@/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { adminHosts, getUser } from "@/lib/repo";
 import { AdminOverview } from "@/components/admin-overview";
+import { aiHealthCheck } from "@/lib/ai";
 
 export const metadata: Metadata = { title: "Owner overview", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -15,5 +16,6 @@ export default async function AdminPage() {
   const me = await getUser(session.user.id);
   // Anyone else gets a plain 404, so the page's existence isn't revealed.
   if (!me || !isAdminEmail(me.email)) notFound();
-  return <AdminOverview hosts={await adminHosts()} />;
+  const [hosts, ai] = await Promise.all([adminHosts(), aiHealthCheck()]);
+  return <AdminOverview hosts={hosts} ai={ai} />;
 }

@@ -69,3 +69,22 @@ export async function generateJson(system: string, prompt: string, maxOutputToke
   });
   return extractJson(result.text);
 }
+
+/** Owner diagnostics: makes one tiny AI call and reports whether it works (and why not). */
+export async function aiHealthCheck(): Promise<{ ok: boolean; provider: string; model: string; detail: string }> {
+  const p = provider() || "none";
+  const model = p === "huggingface" ? process.env.AI_MODEL || DEFAULT_HF_MODEL : process.env.AI_MODEL || "";
+  if (!aiConfigured()) return { ok: false, provider: p, model, detail: "No AI provider is configured." };
+  try {
+    const result = await generateText({
+      model: aiModel(),
+      prompt: "Reply with the single word OK.",
+      maxOutputTokens: 5,
+      abortSignal: AbortSignal.timeout(15000),
+    });
+    return { ok: true, provider: p, model, detail: `Answered: ${result.text.trim().slice(0, 40) || "(empty)"}` };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { ok: false, provider: p, model, detail: message.slice(0, 300) };
+  }
+}
