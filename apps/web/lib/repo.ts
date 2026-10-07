@@ -16,6 +16,7 @@ export const propertyDataSchema = z.object({
   name: z.string().trim().min(2).max(120),
   slug: z.string().optional(),
   location: z.string().trim().min(2).max(200),
+  address: z.string().trim().max(300).optional(),
   image: z.string().max(2000),
   status: z.enum(["published", "draft"]),
   description: z.string().max(12000),
@@ -83,7 +84,7 @@ export class LimitError extends Error {}
 
 export async function createProperty(
   owner: User,
-  input: { name: string; location: string; description: string },
+  input: { name: string; location: string; address?: string; description: string },
   aiSections?: Property["sections"],
 ) {
   const [{ count }] = await query<{ count: string | number }>(
@@ -102,6 +103,7 @@ export async function createProperty(
     slug,
     name: input.name,
     location: input.location,
+    address: input.address?.trim() ?? "",
     image: fallbackImage,
     status: "published",
     description: `Welcome to ${input.name}. Everything you need for a wonderful stay is right here.`,

@@ -155,7 +155,7 @@ function queueSave(property: Property) {
 export function isLive() {
   return live.live;
 }
-export async function createLiveProperty(input: { name: string; location: string; description: string }) {
+export async function createLiveProperty(input: { name: string; location: string; address?: string; description: string }) {
   const res = await fetch("/api/v1/properties", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

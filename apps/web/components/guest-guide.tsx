@@ -13,7 +13,7 @@ import {
   Download,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { demoAnswer, languages, money, type Property } from "@stayguide/shared";
+import { demoAnswer, languages, mapsUrl, money, type Property } from "@stayguide/shared";
 import { useDemo } from "@/lib/demo-store";
 import { Logo, GuideIcon } from "./ui";
 type Message = {
@@ -282,7 +282,7 @@ export function GuestGuide({
                 <small>Tap to connect</small>
               </button>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`}
+                href={mapsUrl(property)}
                 target="_blank"
                 rel="noopener noreferrer"
               >

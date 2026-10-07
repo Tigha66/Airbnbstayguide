@@ -58,6 +58,13 @@ describe("repository (Neon schema on PGlite)", () => {
     expect(messages.map((m) => m.role)).toEqual(["guest", "assistant", "host"]);
     expect(await repo.threadBelongsTo(thread, "another-property")).toBe(false);
   });
+  it("stores the street address given at creation", async () => {
+    const c = await repo.upsertUser("cabin@example.com", "Cabin Host");
+    const p = await repo.createProperty(c, { name: "Smoky Ridge Cabin", location: "Gatlinburg, TN", address: " 123 Ridge Road ", description: "" });
+    expect(p.address).toBe("123 Ridge Road");
+    expect((await repo.getOwnedProperty(c.id, p.id))?.address).toBe("123 Ridge Road");
+    await repo.deleteUser(c.id);
+  });
   it("handles extra requests and analytics", async () => {
     const [p] = await repo.listProperties(a.id);
     const id = await repo.createExtraRequest(p.id, { id: "late", name: "Late checkout", price: 3000 }, { name: "Guest", contact: "g@x.com", note: "" });

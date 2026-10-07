@@ -152,6 +152,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
     const result = propertySchema.safeParse({
       name: form.get("name"),
       location: form.get("location"),
+      address: form.get("address") ?? "",
       description: form.get("description"),
     });
     if (!result.success) {
@@ -750,9 +751,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   ))}
                 </select>
                 <div className="row">
-                  <span className="muted" style={{ fontSize: 11 }}>
-                    Saved on this device
-                  </span>
+                  {!live && (
+                    <span className="muted" style={{ fontSize: 11 }}>
+                      Saved on this device
+                    </span>
+                  )}
                   <button
                     className="button small"
                     onClick={() => {
@@ -766,7 +769,9 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       notify(
                         property.status === "published"
                           ? "Guide moved to draft."
-                          : "Demo guide published on this device.",
+                          : live
+                            ? "Guide published. Guests can open it now."
+                            : "Demo guide published on this device.",
                       );
                     }}
                   >
@@ -774,6 +779,37 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       ? "Unpublish"
                       : "Publish guide"}
                   </button>
+                </div>
+              </div>
+              <div className="card property-details">
+                <div className="property-details-head">
+                  <h3>Property details</h3>
+                  <small className="muted">
+                    Shown to guests and used by the concierge. Changes save automatically.
+                  </small>
+                </div>
+                <div className="property-details-grid">
+                  {(
+                    [
+                      ["address", "Street address", "e.g. 123 Ridge Road, Gatlinburg, TN 37738", 300],
+                      ["location", "City, country", "e.g. Gatlinburg, Tennessee", 200],
+                      ["checkIn", "Check-in time", "e.g. 4:00 PM", 40],
+                      ["checkOut", "Checkout time", "e.g. 10:00 AM", 40],
+                      ["wifi", "Wi-Fi network", "e.g. SmokyRidge_Guest", 120],
+                      ["wifiPassword", "Wi-Fi password", "e.g. bearden2026", 120],
+                      ["hostPhone", "Host phone", "e.g. +1 865 555 0100", 40],
+                    ] as const
+                  ).map(([field, label, placeholder, max]) => (
+                    <label key={field} className={field === "address" ? "wide" : ""}>
+                      {label}
+                      <input
+                        value={property[field] ?? ""}
+                        placeholder={placeholder}
+                        maxLength={max}
+                        onChange={(e) => saveProperty({ ...property, [field]: e.target.value })}
+                      />
+                    </label>
+                  ))}
                 </div>
               </div>
               <div className="editor-grid">
@@ -1496,9 +1532,18 @@ export function Dashboard({ view = "" }: { view?: string }) {
               City, country
               <input
                 name="location"
-                placeholder="e.g. Lisbon, Portugal"
+                placeholder="e.g. Gatlinburg, Tennessee"
                 required
                 minLength={2}
+              />
+            </label>
+            <label>
+              Street address <small>Optional · used for “Open in Maps”</small>
+              <input
+                name="address"
+                placeholder="e.g. 123 Ridge Road, Gatlinburg, TN 37738"
+                maxLength={300}
+                autoComplete="street-address"
               />
             </label>
             <label>
