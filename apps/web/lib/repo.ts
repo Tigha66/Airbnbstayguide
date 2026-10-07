@@ -147,10 +147,20 @@ export async function consumeRateLimit(bucket: string, max: number, windowSecond
   return Number(row.count) <= max;
 }
 export const monthKey = (d = new Date()) => d.toISOString().slice(0, 7);
-/** Counts one concierge message against the owner's monthly plan allowance. */
+/** Monthly AI concierge allowance: the plan's messages per property (at least one property). */
+export function aiMessageLimit(plan: Plan, propertyCount: number) {
+  return (plans[plan]?.messages ?? plans.free.messages) * Math.max(1, propertyCount);
+}
+async function ownerAiLimit(ownerId: string) {
+  const [row] = await query<{ plan: Plan; properties: string | number }>(
+    `SELECT u.plan, (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) AS properties FROM users u WHERE u.id = $1`,
+    [ownerId],
+  );
+  return aiMessageLimit(row?.plan ?? "free", Number(row?.properties ?? 0));
+}
+/** Counts one concierge message against the owner's monthly allowance (plan messages × properties). */
 export async function consumeAiUsage(ownerId: string) {
-  const owner = await getUser(ownerId);
-  const limit = plans[owner?.plan ?? "free"]?.messages ?? 25;
+  const limit = await ownerAiLimit(ownerId);
   const [row] = await query<{ messages: number }>(
     `INSERT INTO usage_counters (owner_id, month, messages) VALUES ($1, $2, 1)
      ON CONFLICT (owner_id, month) DO UPDATE SET messages = usage_counters.messages + 1
@@ -292,6 +302,7 @@ export async function analytics(ownerId: string) {
     [ownerId],
   );
   const usage = await query<{ messages: number }>(`SELECT messages FROM usage_counters WHERE owner_id = $1 AND month = $2`, [ownerId, monthKey()]);
+  const aiLimit = await ownerAiLimit(ownerId);
   const questions = Number(chats.questions);
   return {
     views: Number(views.total ?? 0),
@@ -302,6 +313,7 @@ export async function analytics(ownerId: string) {
     extraRequests: Number(extras.requests),
     topQuestions: top.map((t) => ({ question: t.content, count: Number(t.n) })),
     aiMessagesThisMonth: Number(usage[0]?.messages ?? 0),
+    aiMessageLimit: aiLimit,
   };
 }
 
@@ -368,4 +380,49 @@ export async function clearStripeCustomer(userId: string) {
 }
 export async function clearStripeAccount(userId: string) {
   await query(`UPDATE users SET stripe_account_id = NULL, payouts_ready = false WHERE id = $1`, [userId]);
+}
+
+export type AdminHostRow = {
+  email: string;
+  name: string | null;
+  plan: Plan;
+  subscriptionStatus: string | null;
+  properties: number;
+  published: number;
+  aiMessagesThisMonth: number;
+  aiMessageLimit: number;
+  guestQuestions30d: number;
+  payoutsReady: boolean;
+  signedUp: string;
+};
+/** Owner-only overview of every host account (read-only). */
+export async function adminHosts(): Promise<AdminHostRow[]> {
+  const rows = await query<Record<string, unknown>>(
+    `SELECT u.email, u.name, u.plan, u.subscription_status, u.payouts_ready, u.created_at,
+            (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) AS properties,
+            (SELECT count(*) FROM properties p WHERE p.owner_id = u.id AND p.status = 'published') AS published,
+            COALESCE((SELECT messages FROM usage_counters c WHERE c.owner_id = u.id AND c.month = $1), 0) AS ai_messages,
+            (SELECT count(*) FROM chat_messages m JOIN properties p ON p.id = m.property_id
+              WHERE p.owner_id = u.id AND m.role = 'guest' AND m.created_at > now() - interval '30 days') AS questions_30d
+       FROM users u
+      ORDER BY properties DESC, u.created_at DESC`,
+    [monthKey()],
+  );
+  return rows.map((r) => {
+    const plan = (r.plan as Plan) in plans ? (r.plan as Plan) : "free";
+    const properties = Number(r.properties);
+    return {
+      email: String(r.email),
+      name: (r.name as string) ?? null,
+      plan,
+      subscriptionStatus: (r.subscription_status as string) ?? null,
+      properties,
+      published: Number(r.published),
+      aiMessagesThisMonth: Number(r.ai_messages),
+      aiMessageLimit: aiMessageLimit(plan, properties),
+      guestQuestions30d: Number(r.questions_30d),
+      payoutsReady: Boolean(r.payouts_ready),
+      signedUp: new Date(r.created_at as string).toISOString().slice(0, 10),
+    };
+  });
 }

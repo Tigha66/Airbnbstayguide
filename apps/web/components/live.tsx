@@ -206,6 +206,7 @@ type Stats = {
   extraRequests: number;
   topQuestions: { question: string; count: number }[];
   aiMessagesThisMonth: number;
+  aiMessageLimit?: number;
 };
 export function LiveAnalytics() {
   const { data, error } = usePoll<Stats>("/api/v1/analytics", 60000);
@@ -224,7 +225,7 @@ export function LiveAnalytics() {
               ["Answered without you", data.questions ? `${data.resolutionRate}%` : "—"],
               ["Extras approved", money(data.extrasRevenue)],
               ["Extra requests", String(data.extraRequests)],
-              ["AI messages this month", String(data.aiMessagesThisMonth)],
+              ["AI messages this month", data.aiMessageLimit ? `${data.aiMessagesThisMonth.toLocaleString()} / ${data.aiMessageLimit.toLocaleString()}` : String(data.aiMessagesThisMonth)],
             ].map(([label, value]) => (
               <div className="card stat-card" key={label}>
                 <div className="stat-top">{label}</div>
@@ -350,11 +351,11 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
               <div className={`card pricing-card ${plan === "pro" ? "featured" : ""}`} key={plan}>
                 <div className="eyebrow">{plans[plan].name}</div>
                 <h3>{plan === "starter" ? "For the independent host" : "Your hospitality, elevated"}</h3>
-                <div className="price">${plans[plan].monthly * qty * (yearly ? 10 : 1)}</div>
-                <small>{yearly ? "per year" : "per month"} · ${plans[plan].monthly}/property/month{yearly ? ", billed yearly" : ""}</small>
+                <div className="price">£{plans[plan].monthly * qty * (yearly ? 10 : 1)}</div>
+                <small>{yearly ? "per year" : "per month"} · £{plans[plan].monthly}/property/month{yearly ? ", billed yearly" : ""}</small>
                 <ul>
                   <li><Check size={14} /> Up to {plans[plan].properties} properties</li>
-                  <li><Check size={14} /> {plans[plan].messages} AI concierge messages / month</li>
+                  <li><Check size={14} /> {plans[plan].messages} AI concierge messages / property / month</li>
                   <li><Check size={14} /> Paid extras · 5% platform fee</li>
                   {plan === "pro" && <li><Check size={14} /> Custom branding & priority support</li>}
                 </ul>
@@ -368,7 +369,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>Prices in USD. Secure payment by Stripe. Cancel any time from “Manage billing”.</p>
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>Prices in GBP (£). Secure payment by Stripe. Cancel any time from “Manage billing”.</p>
         </>
       )}
 

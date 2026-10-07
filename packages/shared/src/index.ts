@@ -237,8 +237,11 @@ export function demoAnswer(property: Property, message: string) {
         escalate: true,
       };
 }
-export const money = (cents: number, currency = "USD") =>
-  new Intl.NumberFormat("en-US", {
+/** Billing currency for plans and guest extras (amounts are stored in minor units: pence). */
+export const CURRENCY = "gbp";
+export const CURRENCY_SYMBOL = "£";
+export const money = (cents: number, currency = "GBP") =>
+  new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
