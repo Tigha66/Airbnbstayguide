@@ -88,7 +88,7 @@ export function Pricing() {
                   : "Make every stay your own"}
             </h3>
             <div className="price">
-              ${priceFor(key, key === "free" ? 1 : quantity, annual)}
+              £{priceFor(key, key === "free" ? 1 : quantity, annual)}
             </div>
             <small>
               {annual ? "per year" : "per month"} ·{" "}
@@ -134,8 +134,8 @@ export function Pricing() {
         className="muted"
         style={{ fontSize: 11, textAlign: "center", marginTop: 22 }}
       >
-        Planned pricing in USD. Payment processing fees are additional. Live
-        subscriptions are not enabled in this preview.
+        Prices in GBP (£), per property. Secure payment by Stripe. Cancel any
+        time.
       </p>
     </>
   );
@@ -194,12 +194,12 @@ export function RoiCalculator() {
               color: "var(--teal)",
             }}
           >
-            ${Math.round(((stays * uptake) / 100) * 30 * 0.95)}
+            £{Math.round(((stays * uptake) / 100) * 30 * 0.95)}
             <small style={{ fontSize: 12 }}>/mo</small>
           </strong>
         </div>
         <small style={{ fontSize: 10 }}>
-          Illustration at $30 per extra, after the 5% platform fee, before
+          Illustration at £30 per extra, after the 5% platform fee, before
           processing fees and fulfillment costs. Not a revenue guarantee.
         </small>
       </div>
