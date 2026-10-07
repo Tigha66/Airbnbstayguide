@@ -195,7 +195,7 @@ export async function threadBelongsTo(threadId: string, propertyId: string) {
 }
 export async function threadMessages(propertyId: string, threadId: string) {
   return query<{ role: string; content: string; citations: string[]; created_at: string }>(
-    `SELECT role, content, citations, created_at FROM chat_messages WHERE property_id = $1 AND thread_id = $2 ORDER BY created_at, id`,
+    `SELECT role, content, citations, created_at FROM chat_messages WHERE property_id = $1 AND thread_id = $2 ORDER BY created_at, seq`,
     [propertyId, threadId],
   );
 }
@@ -215,7 +215,7 @@ export async function inbox(ownerId: string): Promise<InboxThread[]> {
      WHERE p.owner_id = $1 AND m.thread_id IN (
        SELECT thread_id FROM chat_messages m2 JOIN properties p2 ON p2.id = m2.property_id
        WHERE p2.owner_id = $1 GROUP BY thread_id ORDER BY max(m2.created_at) DESC LIMIT 50)
-     ORDER BY m.created_at, m.id`,
+     ORDER BY m.created_at, m.seq`,
     [ownerId],
   );
   const threads = new Map<string, InboxThread>();

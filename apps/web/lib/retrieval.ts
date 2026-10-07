@@ -17,6 +17,7 @@ const synonyms: Record<string, string[]> = {
   wifi: ["wifi", "internet", "network", "password"],
   internet: ["wifi", "internet", "network"],
   checkout: ["checkout", "leave", "departure"],
+  checkin: ["checkin", "arrival", "key", "access"],
   leave: ["checkout", "leave"],
   park: ["parking", "car", "garage"],
   car: ["parking", "car"],
@@ -53,9 +54,11 @@ export function tokens(text: string) {
     .toLowerCase()
     .normalize("NFKD")
     .replace(/\p{M}/gu, "") // drop accents ("départ" → "depart") instead of splitting the word
+    .replace(/check[\s-]?(in|out)\b/g, "check$1") // "check-out" / "check out" → "checkout"
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .split(/\s+/)
-    .map((t) => t.replace(/(ing|ed|es|s)$/, (m, _g, i, s) => (s.length > 4 ? "" : m)))
+    // Light stemming, only when a real stem remains ("parking" → "park", but "bring" stays "bring").
+    .map((t) => t.replace(/(ing|ed|es|s)$/, (m, _g, _i, s) => (s.length - m.length >= 4 ? "" : m)))
     .filter((t) => t.length > 1 && !stop.has(t));
 }
 // The dictionary keyed by the same normalised form tokens() produces (e.g. "poubelles" → "poubell").
@@ -86,7 +89,8 @@ export function retrieve(sections: Section[], question: string, limit = 4) {
     let score = 0;
     for (const t of new Set(q)) {
       if (title.has(t)) score += 3;
-      score += Math.min(body.filter((b) => b === t || b.startsWith(t)).length, 3);
+      // Prefix matches ("park" → "parking") only for real words, so "br" can't match "Breeze".
+      score += Math.min(body.filter((b) => b === t || (t.length >= 4 && b.startsWith(t))).length, 3);
     }
     return { s, score };
   });

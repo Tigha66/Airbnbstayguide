@@ -8,7 +8,8 @@ const statusLabel = (plan: string, status: string | null) =>
   plan === "free" ? "Free" : status === "past_due" ? "Payment failed (retrying)" : status === "trialing" ? "Trial" : status ? status[0].toUpperCase() + status.slice(1) : "Active";
 
 /** Owner overview table (rendered by /admin after the owner check). */
-export function AdminOverview({ hosts }: { hosts: AdminHostRow[] }) {
+export type AiHealth = { ok: boolean; provider: string; model: string; detail: string };
+export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHealth }) {
   const paying = hosts.filter((h) => h.plan !== "free" && PAYING.has(h.subscriptionStatus ?? ""));
   const paidProperties = paying.reduce((n, h) => n + h.properties, 0);
   const monthly = paying.reduce((n, h) => n + plans[h.plan].monthly * Math.max(1, h.properties), 0);
@@ -39,6 +40,14 @@ export function AdminOverview({ hosts }: { hosts: AdminHostRow[] }) {
           <p>Every host account, their plan, properties and usage. Read-only.</p>
         </div>
       </div>
+      {ai && (
+        <div className={`card admin-health ${ai.ok ? "ok" : "bad"}`} role="status">
+          <strong>{ai.ok ? "AI concierge is working" : "AI concierge is NOT working: guests get keyword answers"}</strong>
+          <small>
+            Provider: {ai.provider} · Model: {ai.model || "—"} · {ai.detail}
+          </small>
+        </div>
+      )}
       <div className="stats-grid admin-stats">
         {totals.map(([label, value]) => (
           <div className="card stat-card" key={label}>

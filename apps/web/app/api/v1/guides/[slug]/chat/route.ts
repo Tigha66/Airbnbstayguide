@@ -31,7 +31,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     try {
       answer = await aiAnswer(found.property, body.message, language);
       mode = "ai";
-    } catch {
+    } catch (error) {
+      // Visible in Vercel → Logs; the guest still gets an answer from the keyword search.
+      console.error("[concierge] AI answer failed; using keyword search", error);
       answer = keywordAnswer(found.property, body.message, language);
     }
   } else answer = keywordAnswer(found.property, body.message, language);
