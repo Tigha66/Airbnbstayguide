@@ -54,6 +54,8 @@ import {
   type Property,
   type Section,
   type Plan,
+  CURRENCY,
+  CURRENCY_SYMBOL,
 } from "@stayguide/shared";
 import {
   useDemo,
@@ -225,7 +227,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
     },
     {
       label: "Extras revenue",
-      value: "£486",
+      value: `${CURRENCY_SYMBOL}486`,
       foot: "+24.2%",
       detail: "vs. previous month",
       icon: Gift,
@@ -600,7 +602,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     {
                       icon: Gift,
                       title: "A slower goodbye, booked.",
-                      detail: "Casa Serena · Late checkout · £35",
+                      detail: "Casa Serena · Late checkout · " + CURRENCY_SYMBOL + "35",
                       time: "12 min ago",
                     },
                     {
@@ -1338,7 +1340,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                           : "Your hospitality, elevated"}
                     </h3>
                     <div className="price">
-                      £{priceFor(plan, plan === "free" ? 1 : quantity, yearly)}
+                      {CURRENCY_SYMBOL}{priceFor(plan, plan === "free" ? 1 : quantity, yearly)}
                     </div>
                     <small>
                       {yearly ? "per year" : "per month"} ·{" "}
@@ -1383,7 +1385,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
               <div className="notice" style={{ marginTop: 20 }}>
                 Billing preview · Stripe account and product prices are required
-                before subscriptions can be purchased. All prices in GBP (£).
+                before subscriptions can be purchased. All prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}).
               </div>
             </>
           )}
@@ -1574,7 +1576,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
               <textarea required name="description" maxLength={1000} />
             </label>
             <label>
-              Price (£)
+              Price ({CURRENCY_SYMBOL})
               <input
                 required
                 type="number"

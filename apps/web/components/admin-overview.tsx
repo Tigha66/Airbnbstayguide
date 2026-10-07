@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { plans } from "@stayguide/shared";
+import { plans, CURRENCY_LOCALE, CURRENCY_SYMBOL } from "@stayguide/shared";
 import type { AdminHostRow } from "@/lib/repo";
 import { Logo } from "./ui";
 
@@ -18,8 +18,8 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
     ["Paying hosts", paying.length],
     ["Properties (all)", hosts.reduce((n, h) => n + h.properties, 0)],
     ["Paid properties", paidProperties],
-    ["Est. monthly revenue", `£${monthly.toLocaleString("en-GB")}`],
-    ["AI messages this month", hosts.reduce((n, h) => n + h.aiMessagesThisMonth, 0).toLocaleString("en-GB")],
+    ["Est. monthly revenue", `${CURRENCY_SYMBOL}${monthly.toLocaleString(CURRENCY_LOCALE)}`],
+    ["AI messages this month", hosts.reduce((n, h) => n + h.aiMessagesThisMonth, 0).toLocaleString(CURRENCY_LOCALE)],
   ] as const;
 
   return (
@@ -65,7 +65,7 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
               <th>Billing</th>
               <th className="num">Properties</th>
               <th className="num">Published</th>
-              <th className="num">Monthly (£)</th>
+              <th className="num">Monthly ({CURRENCY_SYMBOL})</th>
               <th className="num">AI messages (month)</th>
               <th className="num">Guest questions (30 days)</th>
               <th>Payouts</th>
@@ -95,11 +95,11 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
                   </td>
                   <td className="num">{h.properties}</td>
                   <td className="num">{h.published}</td>
-                  <td className="num">{isPaying ? `£${plans[h.plan].monthly * Math.max(1, h.properties)}` : "—"}</td>
+                  <td className="num">{isPaying ? `${CURRENCY_SYMBOL}${plans[h.plan].monthly * Math.max(1, h.properties)}` : "—"}</td>
                   <td className={`num ${nearLimit ? "warn" : ""}`}>
-                    {h.aiMessagesThisMonth.toLocaleString("en-GB")} / {h.aiMessageLimit.toLocaleString("en-GB")}
+                    {h.aiMessagesThisMonth.toLocaleString(CURRENCY_LOCALE)} / {h.aiMessageLimit.toLocaleString(CURRENCY_LOCALE)}
                   </td>
-                  <td className="num">{h.guestQuestions30d.toLocaleString("en-GB")}</td>
+                  <td className="num">{h.guestQuestions30d.toLocaleString(CURRENCY_LOCALE)}</td>
                   <td>{h.payoutsReady ? "Ready" : "—"}</td>
                   <td>{h.signedUp}</td>
                 </tr>

@@ -6,7 +6,7 @@ import {
   ArrowUpRight,
   Check,
 } from "lucide-react";
-import { plans, priceFor, type Plan } from "@stayguide/shared";
+import { plans, priceFor, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
 import { Logo } from "./ui";
 export function MarketingNav() {
   return (
@@ -88,7 +88,7 @@ export function Pricing() {
                   : "Make every stay your own"}
             </h3>
             <div className="price">
-              £{priceFor(key, key === "free" ? 1 : quantity, annual)}
+              {CURRENCY_SYMBOL}{priceFor(key, key === "free" ? 1 : quantity, annual)}
             </div>
             <small>
               {annual ? "per year" : "per month"} ·{" "}
@@ -134,7 +134,7 @@ export function Pricing() {
         className="muted"
         style={{ fontSize: 11, textAlign: "center", marginTop: 22 }}
       >
-        Prices in GBP (£), per property. Secure payment by Stripe. Cancel any
+        Prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}), per property. Secure payment by Stripe. Cancel any
         time.
       </p>
     </>
@@ -194,12 +194,12 @@ export function RoiCalculator() {
               color: "var(--teal)",
             }}
           >
-            £{Math.round(((stays * uptake) / 100) * 30 * 0.95)}
+            {CURRENCY_SYMBOL}{Math.round(((stays * uptake) / 100) * 30 * 0.95)}
             <small style={{ fontSize: 12 }}>/mo</small>
           </strong>
         </div>
         <small style={{ fontSize: 10 }}>
-          Illustration at £30 per extra, after the 5% platform fee, before
+          Illustration at {CURRENCY_SYMBOL}30 per extra, after the 5% platform fee, before
           processing fees and fulfillment costs. Not a revenue guarantee.
         </small>
       </div>

@@ -237,11 +237,12 @@ export function demoAnswer(property: Property, message: string) {
         escalate: true,
       };
 }
-/** Billing currency for plans and guest extras (amounts are stored in minor units: pence). */
-export const CURRENCY = "gbp";
-export const CURRENCY_SYMBOL = "£";
-export const money = (cents: number, currency = "GBP") =>
-  new Intl.NumberFormat("en-GB", {
+/** Billing currency for plans and guest extras (amounts are stored in minor units: cents). */
+export const CURRENCY = "usd";
+export const CURRENCY_SYMBOL = "$";
+export const CURRENCY_LOCALE = "en-US";
+export const money = (cents: number, currency = CURRENCY.toUpperCase()) =>
+  new Intl.NumberFormat(CURRENCY_LOCALE, {
     style: "currency",
     currency,
     maximumFractionDigits: 0,

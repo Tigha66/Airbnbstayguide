@@ -2386,6 +2386,14 @@ small {
   }
 }
 @media (max-width: 640px) {
+  /* iPhone Safari zooms into any field with text under 16px and stays zoomed,
+     cutting off the right edge of the page (e.g. the concierge send button). */
+  input,
+  textarea,
+  select,
+  .guest-language {
+    font-size: 16px;
+  }
   .sidebar {
     transform: translateX(-100%);
     width: 235px;
