@@ -58,14 +58,14 @@ export function extractJson(text: string): unknown {
   }
   throw new Error("Unterminated JSON in model output");
 }
-export async function generateJson(system: string, prompt: string, maxOutputTokens = 1200) {
+export async function generateJson(system: string, prompt: string, maxOutputTokens = 1200, timeoutMs = 25000) {
   const result = await generateText({
     model: aiModel(),
     system,
     prompt,
     temperature: 0.2,
     maxOutputTokens,
-    abortSignal: AbortSignal.timeout(25000),
+    abortSignal: AbortSignal.timeout(timeoutMs),
   });
   return extractJson(result.text);
 }

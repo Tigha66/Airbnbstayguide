@@ -3,6 +3,7 @@ import type { Property } from "@stayguide/shared";
 import { conciergeSystemPrompt } from "@stayguide/shared";
 import { generateJson } from "./ai";
 import { guideContext, retrieve } from "./retrieval";
+export const CONCIERGE_AI_TIMEOUT_MS = 12000;
 export type ConciergeAnswer = { answer: string; citations: string[]; escalate: boolean };
 const languageNames: Record<string, string> = { en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian", pt: "Portuguese", nl: "Dutch", ar: "Arabic", ja: "Japanese", zh: "Chinese", ko: "Korean", hi: "Hindi" };
 // Shown when the guide doesn't cover a question; the conversation is escalated to the host.
@@ -46,6 +47,8 @@ export async function aiAnswer(property: Property, question: string, language: s
       `\nValid citation titles: ${JSON.stringify(["Stay details", ...sections.map((s) => s.title)])}.\nRespond with JSON only, for example {"answer":"...","citations":["Checkout"],"escalate":false}.`,
     question,
     700,
+    // Guests are waiting: fall back to the keyword search rather than leave them hanging.
+    CONCIERGE_AI_TIMEOUT_MS,
   );
   const out = schema.parse(json);
   const valid = new Set(["Stay details", ...sections.map((s) => s.title)]);
