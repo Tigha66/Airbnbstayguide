@@ -32,6 +32,8 @@ export const languages = [
 export const propertySchema = z.object({
   name: z.string().trim().min(2).max(120),
   location: z.string().trim().min(2).max(200),
+  /** Optional street address; used for "Open in Maps" and by the concierge. */
+  address: z.string().trim().max(300).default(""),
   description: z.string().max(12000).default(""),
 });
 export const chatSchema = z.object({
@@ -56,11 +58,18 @@ export type Extra = {
   icon: string;
   approval: boolean;
 };
+/** Google Maps link for a property: the exact street address when set, otherwise the town. */
+export function mapsUrl(property: { address?: string; location: string }) {
+  const query = property.address?.trim() || property.location;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
 export type Property = {
   id: string;
   name: string;
   slug: string;
   location: string;
+  /** Street address (optional; older guides don't have one). */
+  address?: string;
   image: string;
   status: "published" | "draft";
   description: string;

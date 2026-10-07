@@ -2816,3 +2816,36 @@ small {
 .admin-health small {
   word-break: break-word;
 }
+/* Editor: property details (address, times, Wi-Fi, phone) */
+.property-details {
+  padding: 20px 22px;
+  margin-bottom: 22px;
+}
+.property-details-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin-bottom: 16px;
+}
+.property-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+.property-details-grid .wide {
+  grid-column: span 2;
+}
+@media (max-width: 900px) {
+  .property-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .property-details-grid {
+    grid-template-columns: 1fr;
+  }
+  .property-details-grid .wide {
+    grid-column: auto;
+  }
+}
