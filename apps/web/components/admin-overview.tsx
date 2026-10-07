@@ -5,7 +5,7 @@ import { Logo } from "./ui";
 
 const PAYING = new Set(["active", "trialing", "past_due"]);
 const statusLabel = (plan: string, status: string | null) =>
-  plan === "free" ? "Free" : status === "past_due" ? "Payment failed (retrying)" : status === "trialing" ? "Trial" : status ? status[0].toUpperCase() + status.slice(1) : "Active";
+  plan === "free" ? "Free" : !status ? "Complimentary" : status === "past_due" ? "Payment failed (retrying)" : status === "trialing" ? "Trial" : status ? status[0].toUpperCase() + status.slice(1) : "Active";
 
 /** Owner overview table (rendered by /admin after the owner check). */
 export type AiHealth = { ok: boolean; provider: string; model: string; detail: string };
@@ -89,7 +89,7 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
                   </td>
                   <td>{plans[h.plan].name}</td>
                   <td>
-                    <span className={`pill ${h.subscriptionStatus === "past_due" || (h.plan !== "free" && !isPaying) ? "amber" : ""}`}>
+                    <span className={`pill ${h.subscriptionStatus === "past_due" || (h.plan !== "free" && h.subscriptionStatus && !isPaying) ? "amber" : ""}`}>
                       {statusLabel(h.plan, h.subscriptionStatus)}
                     </span>
                   </td>
