@@ -33,7 +33,14 @@ function guideFor(property: Property) {
   return { sections: property.sections, facts: facts.join("\n") };
 }
 /** Answers without AI by returning the best-matching guide section. */
+// "What's the address?" in the supported Latin-script languages (accents stripped before matching).
+const addressQuestion =
+  /\b(address|located|where is the (house|property|cabin|apartment|home|place)|adresse|direccion|ubicacion|indirizzo|endereco|morada|adres|anschrift)\b/;
+const addressLabel: Record<string, string> = { en: "The address is", fr: "L’adresse est", es: "La dirección es", de: "Die Adresse lautet", it: "L’indirizzo è", pt: "A morada é", nl: "Het adres is" };
 export function keywordAnswer(property: Property, question: string, language: string): ConciergeAnswer {
+  const plain = question.toLowerCase().normalize("NFKD").replace(/\p{M}/gu, "");
+  if (property.address?.trim() && addressQuestion.test(plain))
+    return { answer: `${addressLabel[language] ?? addressLabel.en} ${property.address.trim()}.`, citations: ["Stay details"], escalate: false };
   const [best] = retrieve(property.sections, question, 1);
   if (!best) return unknownAnswer(language);
   return { answer: best.body, citations: [best.title], escalate: false };
