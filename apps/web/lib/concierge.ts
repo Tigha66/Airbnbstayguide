@@ -5,11 +5,23 @@ import { generateJson } from "./ai";
 import { guideContext, retrieve } from "./retrieval";
 export type ConciergeAnswer = { answer: string; citations: string[]; escalate: boolean };
 const languageNames: Record<string, string> = { en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian", pt: "Portuguese", nl: "Dutch", ar: "Arabic", ja: "Japanese", zh: "Chinese", ko: "Korean", hi: "Hindi" };
+// Shown when the guide doesn't cover a question; the conversation is escalated to the host.
+const unknownText: Record<string, string> = {
+  en: "I don’t have that information in this guide, so I’ve passed your question to your host. They’ll reply here soon.",
+  fr: "Je n’ai pas cette information dans le guide. J’ai transmis votre question à votre hôte, qui vous répondra ici très vite.",
+  es: "No tengo esa información en la guía. He enviado tu pregunta a tu anfitrión, que te responderá aquí pronto.",
+  de: "Diese Information steht nicht im Gästeleitfaden. Ich habe Ihre Frage an Ihren Gastgeber weitergeleitet, der Ihnen hier bald antwortet.",
+  it: "Non ho questa informazione nella guida. Ho inoltrato la tua domanda al tuo host, che ti risponderà qui a breve.",
+  pt: "Não tenho essa informação no guia. Enviei a sua pergunta ao seu anfitrião, que responderá aqui em breve.",
+  nl: "Die informatie staat niet in de gids. Ik heb je vraag doorgestuurd naar je host, die hier snel zal antwoorden.",
+  ar: "لا تتوفر هذه المعلومة في الدليل، لذلك أرسلت سؤالك إلى مضيفك وسيرد عليك هنا قريبًا.",
+  ja: "その情報はガイドに記載されていないため、ホストに質問を転送しました。まもなくこちらで返信があります。",
+  zh: "指南中没有这方面的信息，我已将您的问题转给房东，房东会很快在这里回复您。",
+  ko: "가이드에 해당 정보가 없어 호스트에게 질문을 전달했습니다. 곧 여기에서 답변을 받으실 수 있습니다.",
+  hi: "यह जानकारी गाइड में नहीं है, इसलिए मैंने आपका प्रश्न आपके होस्ट को भेज दिया है। वे जल्द ही यहाँ जवाब देंगे।",
+};
 export const unknownAnswer = (language: string): ConciergeAnswer => ({
-  answer:
-    language === "fr" ? "Je n’ai pas cette information dans le guide. J’ai transmis votre question à votre hôte."
-    : language === "es" ? "No tengo esa información en la guía. He enviado tu pregunta a tu anfitrión."
-    : "I don’t have that information in this guide, so I’ve passed your question to your host. They’ll reply here soon.",
+  answer: unknownText[language] ?? unknownText.en,
   citations: [],
   escalate: true,
 });
