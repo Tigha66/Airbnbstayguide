@@ -68,6 +68,24 @@ describe("repository (Neon schema on PGlite)", () => {
     const stats = await repo.analytics(a.id);
     expect(stats).toMatchObject({ views: 1, questions: 1, resolutionRate: 0, extrasRevenue: 3000, extraRequests: 1, aiMessagesThisMonth: 1 });
   });
+  it("gives each plan its AI messages per property", () => {
+    expect(repo.aiMessageLimit("free", 0)).toBe(25);
+    expect(repo.aiMessageLimit("free", 1)).toBe(25);
+    expect(repo.aiMessageLimit("starter", 7)).toBe(2100);
+    expect(repo.aiMessageLimit("pro", 3)).toBe(4500);
+  });
+  it("stops AI answers once the monthly allowance is used", async () => {
+    // b is on Free: 25 messages per property, at least one property counted.
+    for (let i = 0; i < 25; i++) expect(await repo.consumeAiUsage(b.id)).toBe(true);
+    expect(await repo.consumeAiUsage(b.id)).toBe(false);
+  });
+  it("lists every host for the owner overview", async () => {
+    const hosts = await repo.adminHosts();
+    const ana = hosts.find((h) => h.email === "host@example.com");
+    expect(hosts).toHaveLength(2);
+    expect(ana).toMatchObject({ plan: "free", properties: 1, published: 1, aiMessagesThisMonth: 1, aiMessageLimit: 25 });
+    expect(hosts.find((h) => h.email === "other@example.com")).toMatchObject({ aiMessagesThisMonth: 26, aiMessageLimit: 25 });
+  });
   it("deletes the account and all data", async () => {
     await repo.deleteUser(a.id);
     expect(await repo.listProperties(a.id)).toEqual([]);
