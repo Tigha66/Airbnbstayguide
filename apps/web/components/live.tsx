@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { Send, Check, X, RefreshCw, CreditCard, Landmark, ExternalLink } from "lucide-react";
-import { money, plans, type Plan } from "@stayguide/shared";
+import { money, plans, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
 import { PageHeading } from "./ui";
 
 type Thread = {
@@ -351,8 +351,8 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
               <div className={`card pricing-card ${plan === "pro" ? "featured" : ""}`} key={plan}>
                 <div className="eyebrow">{plans[plan].name}</div>
                 <h3>{plan === "starter" ? "For the independent host" : "Your hospitality, elevated"}</h3>
-                <div className="price">£{plans[plan].monthly * qty * (yearly ? 10 : 1)}</div>
-                <small>{yearly ? "per year" : "per month"} · £{plans[plan].monthly}/property/month{yearly ? ", billed yearly" : ""}</small>
+                <div className="price">{CURRENCY_SYMBOL}{plans[plan].monthly * qty * (yearly ? 10 : 1)}</div>
+                <small>{yearly ? "per year" : "per month"} · {CURRENCY_SYMBOL}{plans[plan].monthly}/property/month{yearly ? ", billed yearly" : ""}</small>
                 <ul>
                   <li><Check size={14} /> Up to {plans[plan].properties} properties</li>
                   <li><Check size={14} /> {plans[plan].messages} AI concierge messages / property / month</li>
@@ -369,7 +369,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>Prices in GBP (£). Secure payment by Stripe. Cancel any time from “Manage billing”.</p>
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>Prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}). Secure payment by Stripe. Cancel any time from “Manage billing”.</p>
         </>
       )}
 

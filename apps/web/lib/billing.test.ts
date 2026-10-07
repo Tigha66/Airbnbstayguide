@@ -47,11 +47,11 @@ describe("plans", () => {
     expect(planFromSubscription(sub("unpaid", "stayguide_pro_monthly"))).toBe("free");
     expect(planFromSubscription(sub("active", "someone_else_pro"))).toBe("free");
   });
-  it("recognises the GBP prices and the original USD ones", () => {
-    expect(lookupKey("starter", false)).toBe("stayguide_starter_monthly_gbp");
-    expect(lookupKey("pro", true)).toBe("stayguide_pro_yearly_gbp");
-    expect(planFromSubscription(sub("active", "stayguide_starter_monthly_gbp"))).toBe("starter");
-    expect(planFromSubscription(sub("active", "stayguide_pro_yearly_gbp"))).toBe("pro");
+  it("recognises current-currency prices and the original un-suffixed ones", () => {
+    expect(lookupKey("starter", false)).toBe("stayguide_starter_monthly_usd");
+    expect(lookupKey("pro", true)).toBe("stayguide_pro_yearly_usd");
+    expect(planFromSubscription(sub("active", "stayguide_starter_monthly_usd"))).toBe("starter");
+    expect(planFromSubscription(sub("active", "stayguide_pro_yearly_usd"))).toBe("pro");
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly_gbp_extra"))).toBe("free");
   });
   it("bills at least one and at most 100 properties", () => {
@@ -65,7 +65,7 @@ describe("extras checkout", () => {
   const base = { requestId: "r1", propertyId: "p1", slug: "sea", destination: "acct_host", origin: "https://x.test" };
   it("sends money to the host minus a 5% platform fee", () => {
     const params = extraCheckoutParams({ ...base, extra: { name: "Late checkout", description: "", price: 3000, approval: false } });
-    expect(params.line_items?.[0]?.price_data?.currency).toBe("gbp");
+    expect(params.line_items?.[0]?.price_data?.currency).toBe("usd");
     expect(params.payment_intent_data?.application_fee_amount).toBe(150);
     expect(params.payment_intent_data?.transfer_data?.destination).toBe("acct_host");
     expect(params.payment_intent_data?.capture_method).toBe("automatic");

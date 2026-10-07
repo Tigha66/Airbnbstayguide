@@ -12,7 +12,7 @@ export const appUrl = (request?: Request) =>
   (process.env.NEXT_PUBLIC_APP_URL || (request ? new URL(request.url).origin : "http://localhost:3000")).replace(/\/$/, "");
 
 /**
- * Plan prices are found by lookup key, e.g. stayguide_pro_yearly_gbp, and created on first use if
+ * Plan prices are found by lookup key, e.g. stayguide_pro_yearly_usd, and created on first use if
  * missing (scripts/stripe-setup.mts creates the same ones). Older keys without a currency suffix
  * (the original USD prices) are still recognised for existing subscriptions.
  */
