@@ -136,19 +136,23 @@ export default function Page() {
               ],
               [
                 "What does the AI concierge know?",
-                "The live concierge is designed to answer only from your property guide and cite its sources. Questions it cannot answer should go to the host. This preview uses a local guide lookup, with no AI service connected.",
+                "Only what’s in your guide. It answers 24/7 in the guest’s own language and shows which section it used. If the answer isn’t in your guide, it never guesses: it tells the guest it has passed the question to you, and it appears in your Guest inbox.",
               ],
               [
                 "Can I use my existing house manual?",
-                "Yes. Paste the content you own into the property setup form. The demo saves it as a section you can edit. AI-assisted organization will be available after the AI integration is configured.",
+                "Yes. Paste your existing house manual when you add a property, and our AI organizes it into clear sections (arrival, Wi-Fi, house rules, checkout and more) using only what you wrote. You can edit everything afterwards.",
               ],
               [
                 "How do extras payments work?",
-                "Live extras will use Stripe Checkout with payouts to connected host accounts and a 5% platform fee. Extras in this demo are a preview; no payments are taken.",
+                "Guests pay securely by card, Apple Pay or Google Pay through Stripe. The money goes to your own Stripe account, minus a 5% platform fee. For extras that need your approval, the guest is only charged once you accept.",
+              ],
+              [
+                "Which languages can guests use?",
+                "Guests can read their guide in English, French, Spanish or Arabic, translated automatically from what you wrote, and the concierge answers in 12 languages. Door codes, Wi-Fi passwords and times are never changed by translation.",
               ],
               [
                 "Is StayGuide available now?",
-                "You can explore the working demo today. Production authentication, payment processing, and live AI still need service configuration and integration testing.",
+                "Yes. Sign in with Google, create your first guide free, and upgrade when you’re ready. Running a hotel, resort or many units? Talk to us about the Hotel & Multi-Unit plan.",
               ],
             ].map(([q, a]) => (
               <details key={q}>

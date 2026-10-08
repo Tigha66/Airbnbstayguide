@@ -403,11 +403,15 @@ export function Dashboard({ view = "" }: { view?: string }) {
             </Link>
           </div>
           <Link href="/dashboard/settings" className="sidebar-user">
-            <span className="avatar">{state.hostName.slice(0, 1)}M</span>
+            <span className="avatar">
+              {live && liveState.user
+                ? (liveState.user.name || liveState.user.email).slice(0, 2).toUpperCase()
+                : `${state.hostName.slice(0, 1)}M`}
+            </span>
             <div>
-              <strong>{state.hostName} Morgan</strong>
+              <strong>{live && liveState.user ? liveState.user.name || liveState.user.email : `${state.hostName} Morgan`}</strong>
               <br />
-              <small>Demo host account</small>
+              <small>{live ? "Workspace owner" : "Demo host account"}</small>
             </div>
             <ChevronDown size={12} style={{ marginLeft: "auto" }} />
           </Link>
@@ -1409,7 +1413,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       className="button secondary"
                       onClick={() =>
                         notify(
-                          "Billing is not connected yet. No subscription was created.",
+                          "This is a demo workspace. Sign in with Google to choose a plan.",
                         )
                       }
                     >
@@ -1422,8 +1426,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 <HotelPlanCard />
               </div>
               <div className="notice" style={{ marginTop: 20 }}>
-                Billing preview · Stripe account and product prices are required
-                before subscriptions can be purchased. All prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}).
+                Demo workspace · Sign in with Google to choose a plan. Prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}), billed securely by Stripe.
               </div>
             </>
           )}
@@ -1470,16 +1473,21 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 <div className="card panel stack">
                   <h3>The people behind the welcome</h3>
                   <div className="row">
-                    <span className="avatar">AM</span>
+                    <span className="avatar">
+                      {live && liveState.user
+                        ? (liveState.user.name || liveState.user.email).slice(0, 2).toUpperCase()
+                        : "AM"}
+                    </span>
                     <div>
-                      <strong>{state.hostName} Morgan</strong>
+                      <strong>{live && liveState.user ? liveState.user.name || liveState.user.email : `${state.hostName} Morgan`}</strong>
                       <br />
-                      <small>Workspace owner · Demo</small>
+                      <small>{live && liveState.user ? `Workspace owner · ${liveState.user.email}` : "Workspace owner · Demo"}</small>
                     </div>
                   </div>
                   <p className="muted" style={{ fontSize: 12 }}>
-                    Team invitations, custom domains, and account management
-                    become available when authentication is connected.
+                    {live
+                      ? "Team access for co-hosts and staff is coming soon."
+                      : "This is a demo workspace saved in your browser. Sign in with Google to create your real account."}
                   </p>
                   <button
                     className="button secondary"
