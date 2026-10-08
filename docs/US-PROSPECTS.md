@@ -111,7 +111,7 @@ results with real guests?
 
 Abdelhak Tirha, Founder, StayGuide
 hello@getstayguide.com · www.getstayguide.com
-Book a 15-min demo: {Cal.com / Calendly link}
+Book a 15-min demo: https://cal.com/abdelhak-tirha-ovnocv/demo
 {Business name}, {UK postal address}, United Kingdom
 Not interested? Reply "no" and I won't email again.
 ```
@@ -231,7 +231,7 @@ you can see the results with real guests?
 
 Abdelhak Tirha, Founder, StayGuide
 hello@getstayguide.com · www.getstayguide.com
-Book a 15-min demo: {Cal.com / Calendly link}
+Book a 15-min demo: https://cal.com/abdelhak-tirha-ovnocv/demo
 {Business name}, {UK postal address}, United Kingdom
 Not interested? Reply "no" and I won't email again.
 ```
@@ -296,5 +296,5 @@ guest guide with a 24/7 AI concierge that answers guests from your house
 info, in their own language, and passes anything else to your team. I'd
 like to set up 3 of your properties free for 3 months so you can test it
 with real guests. Demo: https://www.getstayguide.com/g/sea-breeze-loft
-Who's the best person to talk to? hello@getstayguide.com · {Cal.com / Calendly link}
+Who's the best person to talk to? hello@getstayguide.com · https://cal.com/abdelhak-tirha-ovnocv/demo
 ```
