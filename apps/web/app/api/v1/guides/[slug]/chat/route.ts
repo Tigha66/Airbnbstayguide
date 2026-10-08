@@ -14,7 +14,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   try {
     body = chatSchema.parse(parseJson(await request.text()));
   } catch {
-    return NextResponse.json({ error: "Please type a shorter question." }, { status: 400 });
+    return NextResponse.json({ error: "Please type a question (up to 2,000 characters)." }, { status: 400 });
   }
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const bucket = createHash("sha256").update(`${process.env.AUTH_SECRET ?? "stayguide"}:${ip}:${slug}`).digest("hex");
