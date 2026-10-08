@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Logo } from "./ui";
+import { makeTr } from "@/lib/app-i18n";
+import { siteDir, type SiteLocale } from "@/lib/site-i18n";
 function GoogleMark() {
   return (
     <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
@@ -15,53 +17,56 @@ export function Login({
   configured,
   error,
   googleAction,
+  locale = "en",
 }: {
   configured: boolean;
   error?: string;
   googleAction: () => Promise<void>;
+  locale?: SiteLocale;
 }) {
+  const tr = makeTr(locale);
   return (
-    <div className="login-page">
+    <div className="login-page" lang={locale} dir={siteDir(locale)}>
       <div className="login-art">
         <Logo />
         <div>
           <h1>
-            Good hosts make
+            {tr("Good hosts make")}
             <br />
-            great stays.
+            {tr("great stays.")}
             <br />
-            Welcome home.
+            {tr("Welcome home.")}
           </h1>
           <p className="login-art-sub">
-            A little less work. A little more hospitality.
+            {tr("A little less work. A little more hospitality.")}
           </p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=85"
-            alt="A warm and welcoming living room"
+            alt={tr("A warm and welcoming living room")}
           />
         </div>
-        <small>Thoughtful hosting starts here.</small>
+        <small>{tr("Thoughtful hosting starts here.")}</small>
       </div>
       <main className="login-form">
         <Logo />
-        <h1>Sign in to your account</h1>
-        <p>Welcome back. Sign in with your Google account to continue.</p>
+        <h1>{tr("Sign in to your account")}</h1>
+        <p>{tr("Welcome back. Sign in with your Google account to continue.")}</p>
         {configured ? (
           <form action={googleAction}>
             <button className="button" type="submit">
               <GoogleMark />
-              Continue with Google
+              {tr("Continue with Google")}
             </button>
           </form>
         ) : (
           <div className="notice" role="status">
-            Live accounts are not connected yet. Explore the demo below.
+            {tr("Live accounts are not connected yet. Explore the demo below.")}
           </div>
         )}
         {error && (
           <div className="notice" role="alert">
-            We couldn’t sign you in. Please try again.
+            {tr("We couldn’t sign you in. Please try again.")}
           </div>
         )}
         <div
@@ -72,15 +77,15 @@ export function Login({
             color: "var(--muted)",
           }}
         >
-          or explore without signing in
+          {tr("or explore without signing in")}
         </div>
         <Link className="button secondary" href="/dashboard">
-          Explore the demo
+          {tr("Explore the demo")}
           <ArrowRight size={15} />
         </Link>
         <small>
-          By continuing, you agree to our <Link href="/legal/terms">Terms</Link>{" "}
-          and <Link href="/legal/privacy">Privacy Policy</Link>.
+          {tr("By continuing, you agree to our")} <Link href="/legal/terms">{tr("Terms")}</Link>{" "}
+          {tr("and")} <Link href="/legal/privacy">{tr("Privacy Policy")}</Link>.
         </small>
       </main>
     </div>

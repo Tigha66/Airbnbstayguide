@@ -4,10 +4,12 @@ import { X } from "lucide-react";
 export function Modal({
   title,
   close,
+  closeLabel = "Close dialog",
   children,
 }: {
   title: string;
   close: () => void;
+  closeLabel?: string;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export function Modal({
           <h2>{title}</h2>
           <button
             className="icon-button"
-            aria-label="Close dialog"
+            aria-label={closeLabel}
             onClick={close}
           >
             <X size={17} />

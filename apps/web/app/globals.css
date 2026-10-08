@@ -3089,3 +3089,84 @@ small {
     font-size: clamp(34px, 10.5vw, 46px);
   }
 }
+/* Host app (dashboard + sign-in) in Arabic: right-to-left */
+.app-shell[lang="ar"],
+.app-shell[lang="ar"] :is(h1, h2, h3, h4, p, a, button, span, strong, small, label, input, textarea, select, li, em, time),
+.login-page[lang="ar"],
+.login-page[lang="ar"] :is(h1, h2, h3, p, a, button, span, strong, small) {
+  font-family: var(--font-arabic), var(--font-sans-stack);
+}
+.app-shell[lang="ar"] *,
+.login-page[lang="ar"] * {
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+}
+.app-shell[dir="rtl"] .sidebar {
+  inset: 0 0 0 auto;
+  border-right: 0;
+  border-left: 1px solid var(--line);
+}
+.app-shell[dir="rtl"] .dashboard-shell {
+  margin-left: 0;
+  margin-right: 226px;
+}
+.app-shell[dir="rtl"] .workspace svg:last-child,
+.app-shell[dir="rtl"] .nav-item .badge {
+  margin-left: 0;
+  margin-right: auto;
+}
+.app-shell[dir="rtl"] :is(.lucide-arrow-right, .lucide-arrow-up-right, .lucide-chevron-right) {
+  transform: scaleX(-1);
+}
+.app-shell[dir="rtl"] .bubble {
+  border-radius: 14px 14px 2px 14px;
+}
+.app-shell[dir="rtl"] .bubble.host {
+  border-radius: 14px 14px 14px 2px;
+}
+@media (max-width: 1150px) {
+  .app-shell[dir="rtl"] .dashboard-shell {
+    margin-right: 200px;
+  }
+}
+@media (max-width: 900px) {
+  .app-shell[dir="rtl"] .dashboard-shell {
+    margin-right: 180px;
+  }
+}
+@media (max-width: 640px) {
+  .app-shell[dir="rtl"] .dashboard-shell {
+    margin-right: 0;
+  }
+  .app-shell[dir="rtl"] .sidebar {
+    transform: translateX(100%);
+  }
+  .app-shell[dir="rtl"] .sidebar.open {
+    transform: translateX(0);
+  }
+}
+/* Compact language menu in the dashboard top bar */
+.topbar-right .language-menu {
+  height: 34px;
+  padding: 0 8px;
+}
+.topbar-right .language-menu select {
+  font-size: 12px;
+}
+@media (max-width: 640px) {
+  .topbar-right .language-menu select {
+    font-size: 16px;
+  }
+}
+.form-grid > label > .language-menu {
+  width: fit-content;
+  font-weight: 500;
+}
+.login-page[dir="rtl"] :is(.lucide-arrow-right, .lucide-arrow-up-right) {
+  transform: scaleX(-1);
+}
+/* Arabic letters are taller: give big headlines more line spacing. */
+.login-page[lang="ar"] h1,
+.app-shell[lang="ar"] :is(h1, .welcome-title, .hero-banner h2) {
+  line-height: 1.35;
+}
