@@ -35,10 +35,10 @@ export function GuideIcon({
   const Icon = iconMap[name] || BookOpen;
   return <Icon size={size} />;
 }
-export function Logo({ light = false }: { light?: boolean }) {
+export function Logo({ light = false, href = "/" }: { light?: boolean; href?: string }) {
   return (
     <Link
-      href="/"
+      href={href}
       className={`logo ${light ? "logo-light" : ""}`}
       aria-label="StayGuide home"
     >

@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/dashboard", "/api/", "/g/", "/auth/"],
     },
-    sitemap: `${process.env.NEXT_PUBLIC_APP_URL || "https://stayguide.app"}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.getstayguide.com"}/sitemap.xml`,
   };
 }

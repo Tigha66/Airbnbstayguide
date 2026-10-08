@@ -8,8 +8,8 @@ import { guideHash, guideLanguage, guideText, keepsProtected, protectedTokens, t
 const mockedAi = vi.mocked(generateJson);
 
 describe("guest interface translations", () => {
-  it("has every text in English, French, Spanish and Arabic", () => {
-    expect(guestUiLanguages).toEqual(["en", "fr", "es", "ar"]);
+  it("has every text in English, French, Spanish, German and Arabic", () => {
+    expect(guestUiLanguages).toEqual(["en", "fr", "es", "de", "ar"]);
     const keys = Object.keys(guestText("en")).sort();
     for (const lang of guestUiLanguages) {
       const t = guestText(lang);
@@ -23,7 +23,8 @@ describe("guest interface translations", () => {
     expect(guestText("ar").navStay).toBe("إقامتك");
   });
   it("falls back to English for other languages and marks Arabic as right-to-left", () => {
-    expect(guestText("de")).toBe(guestText("en"));
+    expect(guestText("it")).toBe(guestText("en"));
+    expect(guestText("de").welcome).toBe("Willkommen, fühlen Sie sich wie zu Hause.");
     expect(isRtl("ar")).toBe(true);
     expect(isRtl("fr")).toBe(false);
     expect(fill(guestText("fr").wifiCopied, { network: "SeaView" })).toBe("SeaView · Mot de passe copié");
@@ -94,7 +95,7 @@ describe("translateGuide", () => {
 describe("sample guide answers", () => {
   const p = demoProperties[0];
   it("understands the translated suggestion questions", () => {
-    for (const lang of ["en", "fr", "es", "ar"])
+    for (const lang of ["en", "fr", "es", "de", "ar"])
       for (const q of guestText(lang).suggestions) expect(demoAnswer(p, q, lang).escalate, `${lang}: ${q}`).toBe(false);
   });
   it("replies in the guest's language when the sample guide has no answer", () => {

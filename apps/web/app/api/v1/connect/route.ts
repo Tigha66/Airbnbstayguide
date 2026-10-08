@@ -51,6 +51,24 @@ export async function POST(request: Request) {
     console.error("[connect] onboarding failed", error);
     if (/signed up for Connect/i.test(message))
       return NextResponse.json({ error: "Payouts aren’t enabled on the platform yet (Stripe Connect is not activated).", code: "CONNECT_NOT_ENABLED" }, { status: 503 });
-    return NextResponse.json({ error: "Could not start payout setup. Please try again." }, { status: 502 });
+    // Stripe asks the platform to finish its Connect platform profile (business model, loss liability) first.
+    if (/platform.?profile|responsibilit|managing losses|loss liability/i.test(message))
+      return NextResponse.json(
+        {
+          error: "Payouts need one more step from StayGuide: the Stripe Connect platform profile isn’t complete yet. Please try again later.",
+          code: "CONNECT_PROFILE_INCOMPLETE",
+          detail: message.slice(0, 300),
+        },
+        { status: 503 },
+      );
+    // Otherwise show Stripe's own explanation (e.g. unsupported country, account under review) so it can be fixed.
+    const isStripeError = String((error as { type?: string })?.type ?? "").startsWith("Stripe");
+    return NextResponse.json(
+      {
+        error: isStripeError && message ? `Stripe: ${message.slice(0, 300)}` : "Could not start payout setup. Please try again.",
+        code: "CONNECT_FAILED",
+      },
+      { status: 502 },
+    );
   }
 }

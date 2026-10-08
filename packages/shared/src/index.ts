@@ -261,6 +261,7 @@ const demoUnknown: Record<string, string> = {
   en: "I don’t have that information in this guide. In a connected property, I would pass your question to your host. This is a demo, so no message has been sent.",
   fr: "Je n’ai pas cette information dans ce guide. Dans un logement connecté, je transmettrais votre question à votre hôte. Ceci est une démo : aucun message n’a été envoyé.",
   es: "No tengo esa información en esta guía. En un alojamiento conectado, enviaría tu pregunta a tu anfitrión. Esto es una demo, así que no se ha enviado ningún mensaje.",
+  de: "Diese Information steht nicht in dieser Gästemappe. In einer verbundenen Unterkunft würde ich Ihre Frage an Ihren Gastgeber weiterleiten. Dies ist eine Demo, daher wurde keine Nachricht gesendet.",
   ar: "هذه المعلومة غير موجودة في هذا الدليل. في عقار متصل، كنت سأرسل سؤالك إلى مضيفك. هذه نسخة تجريبية، لذلك لم تُرسل أي رسالة.",
 };
 export function demoAnswer(property: Property, message: string, language = "en") {
@@ -271,7 +272,7 @@ export function demoAnswer(property: Property, message: string, language = "en")
     [/check.?out|leave|leaving|départ|depart|partir|salida|abreise|partenza|saída|vertrek|المغادرة|مغادرة|الخروج/, "checkout"],
     [/check.?in|arriv|door|key|clé|porte|llave|puerta|llegada|schlüssel|tür|ankunft|chiav|chave|chegada|sleutel|aankomst|الوصول|المفتاح|مفتاح|الباب|الدخول/, "arrival"],
     [/park|car space|garer|stationnement|aparcar|estacion|parcheggi|parkeren|ركن|موقف|السيارة|سيارة/, "parking"],
-    [/coffee|washer|wash|air con|appliance|machine|lave|cafetière|cafetera|lavadora|waschmaschine|lavatrice|máquina|القهوة|قهوة|الغسالة|غسالة|المكيف|آلة/, "appliances"],
+    [/coffee|washer|wash|air con|appliance|machine|lave|cafetière|cafetera|kaffee|lavadora|waschmaschine|lavatrice|máquina|القهوة|قهوة|الغسالة|غسالة|المكيف|آلة/, "appliances"],
     [/trash|rubbish|recycl|bin|poubelle|déchet|basura|müll|spazzatura|rifiuti|lixo|afval|القمامة|النفايات|الزبالة/, "trash"],
     [/quiet|rule|smok|\bpets?\b|party|règle|fumer|fête|bruit|regla|fumar|fiesta|regel|rauchen|regol|fumare|festa|roken|قواعد|القواعد|التدخين|تدخين|حفلة|حيوان/, "rules"],
     [/emergency|first.?aid|fire|urgence|médecin|hôpital|urgencia|notfall|emergenza|emergência|noodgeval|طوارئ|الطوارئ|إسعاف|مستشفى|طبيب/, "emergency"],

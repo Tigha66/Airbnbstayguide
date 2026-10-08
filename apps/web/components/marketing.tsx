@@ -1,57 +1,113 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-} from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ArrowRight, ArrowUpRight, Check, Globe } from "lucide-react";
 import { plans, priceFor, selfServePlans, CURRENCY, CURRENCY_SYMBOL } from "@stayguide/shared";
+import {
+  fillSite,
+  isSiteLocale,
+  localeBase,
+  localeNames,
+  siteLocales,
+  siteText,
+  type SiteLocale,
+  type SiteText,
+} from "@/lib/site-i18n";
 import { HotelPlanCard } from "./hotel-plan";
 import { Logo } from "./ui";
-export function MarketingNav() {
+
+/** Remembers the visitor's website language (read by the language redirect in proxy.ts). */
+function rememberLocale(locale: SiteLocale) {
+  document.cookie = `sg_lang=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  try {
+    // The guest demo opens in the same language.
+    localStorage.setItem("stayguide-language", locale);
+  } catch {
+    /* private browsing */
+  }
+}
+
+/** Switches the website language, staying on the same page where a translation exists. */
+export function LanguageMenu({ locale }: { locale: SiteLocale }) {
+  const router = useRouter();
+  const pathname = usePathname() || "/";
+  return (
+    <label className="language-menu">
+      <Globe size={15} aria-hidden="true" />
+      <span className="sr-only">{siteText(locale).nav.language}</span>
+      <select
+        value={locale}
+        aria-label={siteText(locale).nav.language}
+        onChange={(e) => {
+          const next = e.target.value as SiteLocale;
+          rememberLocale(next);
+          const [, first, ...rest] = pathname.split("/");
+          const page = "/" + (isSiteLocale(first) ? rest : [first, ...rest]).filter(Boolean).join("/");
+          const translated = page === "/" || page === "/pricing";
+          router.push(`${localeBase(next)}${translated ? (page === "/" ? "" : page) : ""}` || "/");
+        }}
+      >
+        {siteLocales.map((code) => (
+          <option key={code} value={code}>
+            {localeNames[code].flag} {localeNames[code].label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
+  const t = siteText(locale).nav;
+  const base = localeBase(locale);
   return (
     <header className="marketing-nav">
-      <Logo />
+      <Logo href={base || "/"} />
       <nav>
-        <Link href="/#how-it-works">How it works</Link>
-        <Link href="/pricing">Pricing</Link>
-        <Link href="/demo">Guest demo</Link>
-        <Link href="/login">Log in</Link>
+        <Link href={`${base}/#how-it-works`}>{t.howItWorks}</Link>
+        <Link href={`${base}/pricing`}>{t.pricing}</Link>
+        <Link href="/demo">{t.demo}</Link>
+        <Link href="/login">{t.login}</Link>
+        <LanguageMenu locale={locale} />
         <Link href="/dashboard" className="button">
-          Explore StayGuide
+          {t.explore}
           <ArrowUpRight size={14} />
         </Link>
       </nav>
     </header>
   );
 }
-export function MarketingFooter() {
+
+export function MarketingFooter({ locale = "en" }: { locale?: SiteLocale }) {
+  const t = siteText(locale).footer;
   return (
     <footer className="marketing-footer">
       <Logo />
-      <span>Made for thoughtful hosts.</span>
+      <span>{t.tagline}</span>
       <nav>
-        <Link href="/blog">Journal</Link>
-        <Link href="/legal/privacy">Privacy</Link>
-        <Link href="/legal/terms">Terms</Link>
+        <Link href="/blog">{t.journal}</Link>
+        <Link href="/legal/privacy">{t.privacy}</Link>
+        <Link href="/legal/terms">{t.terms}</Link>
       </nav>
     </footer>
   );
 }
-export function Pricing() {
+
+export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
+  const all = siteText(locale);
+  const t = all.pricing;
   const [annual, setAnnual] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const titles: Record<(typeof selfServePlans)[number], string> = { free: t.freeTitle, starter: t.starterTitle, pro: t.proTitle };
+  const unit = (n: number) => `${n} ${n === 1 ? t.property : t.properties}`;
   return (
     <>
-      <div
-        className="filter-bar"
-        style={{ maxWidth: 660, margin: "30px auto" }}
-      >
+      <div className="filter-bar" style={{ maxWidth: 660, margin: "30px auto" }}>
         <label style={{ minWidth: 210 }}>
-          Your little places: {quantity}
+          {t.places}: {quantity}
           <input
-            aria-label="Number of properties"
+            aria-label={t.places}
             type="range"
             min="1"
             max="20"
@@ -60,117 +116,91 @@ export function Pricing() {
           />
         </label>
         <div className="tabs">
-          <button
-            className={!annual ? "active" : ""}
-            onClick={() => setAnnual(false)}
-          >
-            Monthly
+          <button className={!annual ? "active" : ""} onClick={() => setAnnual(false)}>
+            {t.monthly}
           </button>
-          <button
-            className={annual ? "active" : ""}
-            onClick={() => setAnnual(true)}
-          >
-            Yearly · 2 months free
+          <button className={annual ? "active" : ""} onClick={() => setAnnual(true)}>
+            {t.yearly}
           </button>
         </div>
       </div>
-      <div className="pricing-grid" style={{ textAlign: "left" }}>
+      <div className="pricing-grid" style={{ textAlign: "start" }}>
         {selfServePlans.map((key) => (
-          <div
-            className={`card pricing-card ${key === "pro" ? "featured" : ""}`}
-            key={key}
-          >
-            <div className="eyebrow">{plans[key].name}</div>
-            <h3>
-              {key === "free"
-                ? "Start your hosting story"
-                : key === "starter"
-                  ? "A little help goes a long way"
-                  : "Make every stay your own"}
-            </h3>
+          <div className={`card pricing-card ${key === "pro" ? "featured" : ""}`} key={key}>
+            <div className="eyebrow">{key === "free" ? t.planFree : plans[key].name}</div>
+            <h3>{titles[key]}</h3>
             <div className="price">
-              {CURRENCY_SYMBOL}{priceFor(key, key === "free" ? 1 : quantity, annual)}
+              {CURRENCY_SYMBOL}
+              {priceFor(key, key === "free" ? 1 : quantity, annual)}
             </div>
             <small>
-              {annual ? "per year" : "per month"} ·{" "}
-              {key === "free"
-                ? "1 property"
-                : `${quantity} ${quantity === 1 ? "property" : "properties"}`}
+              {annual ? t.perYear : t.perMonth} · {key === "free" ? unit(1) : unit(quantity)}
             </small>
             <ul>
               <li>
                 <Check size={14} />
-                Beautiful digital guidebooks
+                {t.guidebooks}
               </li>
               <li>
                 <Check size={14} />
-                {plans[key].messages} AI messages / property / month
+                {fillSite(t.aiMessages, { n: plans[key].messages.toLocaleString(locale === "ar" ? "en" : locale) })}
               </li>
               <li>
                 <Check size={14} />
-                Guest extras · 5% platform fee
+                {t.languages}
               </li>
               <li>
                 <Check size={14} />
-                Offline guest access
+                {t.extras}
+              </li>
+              <li>
+                <Check size={14} />
+                {t.offline}
               </li>
               {key === "pro" && (
                 <li>
                   <Check size={14} />
-                  Priority support
+                  {t.priority}
                 </li>
               )}
             </ul>
-            <Link
-              className={`button ${key === "pro" ? "" : "secondary"}`}
-              href="/dashboard"
-            >
-              Explore the demo
+            <Link className={`button ${key === "pro" ? "" : "secondary"}`} href="/dashboard">
+              {t.cta}
               <ArrowRight size={14} />
             </Link>
           </div>
         ))}
-        <HotelPlanCard />
+        <HotelPlanCard text={all.hotel} />
       </div>
-      <p
-        className="muted"
-        style={{ fontSize: 11, textAlign: "center", marginTop: 22 }}
-      >
-        Prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}), per property. Secure payment by Stripe. Cancel any
-        time.
+      <p className="muted" style={{ fontSize: 11, textAlign: "center", marginTop: 22 }}>
+        {fillSite(t.note, { code: CURRENCY.toUpperCase(), symbol: CURRENCY_SYMBOL })}
       </p>
     </>
   );
 }
-export function RoiCalculator() {
+
+export function RoiCalculator({ locale = "en" }: { locale?: SiteLocale }) {
+  const t: SiteText["roi"] = siteText(locale).roi;
   const [stays, setStays] = useState(20);
   const [uptake, setUptake] = useState(25);
   return (
     <div className="split" style={{ alignItems: "center" }}>
       <div>
-        <div className="eyebrow">A LITTLE MORE FROM EVERY STAY</div>
+        <div className="eyebrow">{t.eyebrow}</div>
         <h2>
-          Small extras.
-          <br />A lovely difference.
+          {t.title1}
+          <br />
+          {t.title2}
         </h2>
-        <p className="muted">
-          An earlier check-in. A homemade breakfast. Thoughtful touches can be
-          good for guests and good for your business.
-        </p>
+        <p className="muted">{t.body}</p>
       </div>
       <div className="card panel form-grid">
         <label>
-          Monthly stays: {stays}
-          <input
-            type="range"
-            min="1"
-            max="100"
-            value={stays}
-            onChange={(e) => setStays(Number(e.target.value))}
-          />
+          {t.stays}: {stays}
+          <input type="range" min="1" max="100" value={stays} onChange={(e) => setStays(Number(e.target.value))} />
         </label>
         <label>
-          Guests choosing an extra: {uptake}%
+          {t.uptake}: {uptake}%
           <input
             type="range"
             min="5"
@@ -180,30 +210,15 @@ export function RoiCalculator() {
             onChange={(e) => setUptake(Number(e.target.value))}
           />
         </label>
-        <div
-          className="row"
-          style={{
-            justifyContent: "space-between",
-            borderTop: "1px solid var(--line)",
-            paddingTop: 15,
-          }}
-        >
-          <span className="muted">Estimated extra revenue</span>
-          <strong
-            style={{
-              fontSize: 35,
-              fontFamily: "var(--serif)",
-              color: "var(--teal)",
-            }}
-          >
-            {CURRENCY_SYMBOL}{Math.round(((stays * uptake) / 100) * 30 * 0.95)}
-            <small style={{ fontSize: 12 }}>/mo</small>
+        <div className="row" style={{ justifyContent: "space-between", borderTop: "1px solid var(--line)", paddingTop: 15 }}>
+          <span className="muted">{t.estimate}</span>
+          <strong style={{ fontSize: 35, fontFamily: "var(--serif)", color: "var(--teal)" }}>
+            {CURRENCY_SYMBOL}
+            {Math.round(((stays * uptake) / 100) * 30 * 0.95)}
+            <small style={{ fontSize: 12 }}>{t.perMonth}</small>
           </strong>
         </div>
-        <small style={{ fontSize: 10 }}>
-          Illustration at {CURRENCY_SYMBOL}30 per extra, after the 5% platform fee, before
-          processing fees and fulfillment costs. Not a revenue guarantee.
-        </small>
+        <small style={{ fontSize: 10 }}>{fillSite(t.note, { price: `${CURRENCY_SYMBOL}30` })}</small>
       </div>
     </div>
   );
