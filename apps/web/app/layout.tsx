@@ -22,7 +22,7 @@ const arabic = Noto_Sans_Arabic({
 });
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://stayguide.app",
+    process.env.NEXT_PUBLIC_APP_URL || "https://www.getstayguide.com",
   ),
   title: {
     default: "StayGuide — A better stay starts here",

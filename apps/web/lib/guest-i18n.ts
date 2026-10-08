@@ -1,5 +1,5 @@
 /**
- * Guest guide interface text. Fully translated into English, French, Spanish and Arabic;
+ * Guest guide interface text. Fully translated into English, French, Spanish, German and Arabic;
  * other concierge languages fall back to English for the interface (their guide content
  * is still translated by AI, and the concierge answers in the guest's language).
  */
@@ -242,6 +242,83 @@ const es: GuestText = {
   translating: "Traduciendo tu guía…",
 };
 
+const de: GuestText = {
+  offline: "Sie sind offline. Ihre gespeicherte Gästemappe ist weiterhin verfügbar.",
+  notFoundTitle: "Diese Gästemappe ist noch nicht verfügbar.",
+  notFoundBody:
+    "Prüfen Sie den Link mit Ihrem Gastgeber. Eine in der Demo erstellte Gästemappe ist nur in dem Browser verfügbar, in dem sie erstellt wurde.",
+  exploreSample: "Beispiel-Gästemappe ansehen",
+  languageLabel: "Sprache",
+  eyebrow: "IHR ZUHAUSE FERN VON ZUHAUSE",
+  welcome: "Willkommen, fühlen Sie sich wie zu Hause.",
+  wifi: "WLAN",
+  wifiTap: "Tippen zum Verbinden",
+  wifiAsk: "Fragen Sie Ihren Gastgeber nach den WLAN-Daten.",
+  wifiCopied: "{network} · Passwort kopiert",
+  wifiShow: "Netzwerk: {network} · Passwort: {password}",
+  findWay: "Anfahrt",
+  openMaps: "In Maps öffnen",
+  needHand: "Brauchen Sie Hilfe?",
+  hereForYou: "Wir sind für Sie da",
+  demoConcierge: "Dies ist ein Demo-Concierge. Es ist kein echter Gastgeber verbunden.",
+  checkIn: "Check-in",
+  checkOut: "Check-out",
+  details: "Alle kleinen Details",
+  helpTitle: "Ein bisschen Hilfe, wann immer Sie sie brauchen.",
+  helpBody: "Vom Kaffee bis zur Abreise: Ihre Gästemappe hat die Antworten.",
+  meetConcierge: "Zum Concierge",
+  install: "Diese Gästemappe auf dem Startbildschirm speichern",
+  chatTitle: "Ihr kleiner Helfer vor Ort.",
+  chatIntro: "Fragen Sie alles zu Ihrem Aufenthalt in {name}.",
+  chatIntro2: "Ich finde die Antwort in Ihrer Gästemappe.",
+  demoNotice: "Demo-Concierge · Die Antworten stammen aus dieser Beispiel-Gästemappe. Es wird kein Gastgeber kontaktiert.",
+  chatWelcome: "Willkommen! Wie kann ich Ihnen beim Ankommen helfen?",
+  suggestions: ["Wann ist der Check-out?", "Wie funktioniert die Kaffeemaschine?", "Wo kann ich parken?"],
+  fromGuide: "Aus Ihrer Gästemappe",
+  fromHost: "Von Ihrem Gastgeber",
+  notified: "Ihr Gastgeber wurde benachrichtigt und antwortet hier",
+  outsideSample: "Nicht in der Beispiel-Gästemappe · Es wurde kein Gastgeber kontaktiert",
+  thinking: "Ich suche dieses Detail…",
+  askLabel: "Fragen Sie Ihren Concierge",
+  askPlaceholder: "Fragen Sie zu Ihrem Aufenthalt…",
+  send: "Frage senden",
+  unavailable: "Der Concierge ist gerade nicht verfügbar. Bitte wenden Sie sich an Ihren Gastgeber.",
+  extrasTitle: "Ein kleines Extra.",
+  extrasBody1: "Kleine Annehmlichkeiten. Durchdachte Details.",
+  extrasBody2: "Machen Sie diesen Aufenthalt noch persönlicher.",
+  sampleExtras: "Beispiel-Extras · In dieser Demo wird nichts bezahlt und nichts reserviert.",
+  request: "Anfragen",
+  requestExtra: "Extra anfragen",
+  treat: "Gönnen Sie sich etwas",
+  demoRequest: "Nur eine Demo-Anfrage – es wurde nichts gesendet oder berechnet.",
+  approval: "Vorbehaltlich der Zustimmung Ihres Gastgebers",
+  noExtrasTitle: "Schöne Extras sind unterwegs.",
+  noExtrasBody: "Ihr Gastgeber hat noch keine Extras hinzugefügt.",
+  requestTitle: "Anfrage",
+  requestHelp:
+    "Wenn Ihr Gastgeber Online-Zahlungen akzeptiert, geht es weiter zur sicheren Bezahlung (Karte, Apple Pay oder Google Pay). Extras, die die Zustimmung Ihres Gastgebers benötigen, werden erst nach der Bestätigung berechnet.",
+  yourName: "Ihr Name",
+  contact: "E-Mail oder Telefon",
+  note: "Nachricht an Ihren Gastgeber (optional)",
+  notePlaceholder: "z. B. Wir landen um 9 Uhr",
+  continue: "Weiter",
+  cancel: "Abbrechen",
+  openingCheckout: "Sichere Bezahlung wird geöffnet…",
+  requestSent: "Anfrage gesendet! Ihr Gastgeber bestätigt sie und erklärt Ihnen die Bezahlung.",
+  requestFailed: "Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+  paid: "Vielen Dank! Ihre Zahlung ist bestätigt. Muss Ihr Gastgeber zustimmen, wird erst nach seiner Zustimmung abgebucht.",
+  paymentCancelled: "Zahlung abgebrochen. Es wurde nichts berechnet.",
+  footer: "Ein durchdachter Aufenthalt, präsentiert von",
+  navStay: "Ihr Aufenthalt",
+  navConcierge: "Concierge",
+  navExtras: "Extras",
+  navLabel: "Navigation der Gästemappe",
+  translated: "Automatisch übersetzt",
+  showOriginal: "Original anzeigen",
+  showTranslation: "Übersetzung anzeigen",
+  translating: "Ihre Gästemappe wird übersetzt…",
+};
+
 const ar: GuestText = {
   offline: "أنت غير متصل بالإنترنت. دليلك المحفوظ لا يزال متاحًا.",
   notFoundTitle: "هذا الدليل غير متاح بعد.",
@@ -319,7 +396,7 @@ const ar: GuestText = {
   translating: "جارٍ ترجمة دليلك…",
 };
 
-const dictionaries: Record<string, GuestText> = { en, fr, es, ar };
+const dictionaries: Record<string, GuestText> = { en, fr, es, de, ar };
 /** Languages with a fully translated guest interface. */
 export const guestUiLanguages = Object.keys(dictionaries);
 /** Right-to-left scripts. */
