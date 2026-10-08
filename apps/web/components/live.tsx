@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Send, Check, X, RefreshCw, CreditCard, Landmark, ExternalLink } from "lucide-react";
 import { money, plans, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
 import { PageHeading } from "./ui";
+import { HotelPlanCard } from "./hotel-plan";
 
 type Thread = {
   threadId: string;
@@ -325,7 +326,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
               {data.status && data.status !== "active" && <span className="pill amber" style={{ marginLeft: 8 }}>{data.status.replace("_", " ")}</span>}
             </h3>
             <small>
-              {data.propertyCount} propert{data.propertyCount === 1 ? "y" : "ies"} · up to {plans[data.plan].properties} on this plan · {plans[data.plan].messages} AI messages / month
+              {data.propertyCount} propert{data.propertyCount === 1 ? "y" : "ies"} · up to {plans[data.plan].properties} on this plan · {plans[data.plan].messages.toLocaleString()} AI messages / property / month
             </small>
           </div>
           {data.subscribed && (
@@ -337,7 +338,17 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
         {data.status === "past_due" && <div className="notice" style={{ marginTop: 12 }}>Your last payment failed. Please update your card in “Manage billing” to keep your plan.</div>}
       </div>
 
-      {!data.subscribed && (
+      {data.plan === "hotel" && (
+        <>
+          <div className="notice" style={{ marginBottom: 16 }}>
+            Your Hotel & Multi-Unit plan is managed by StayGuide and invoiced separately. Contact us to change it.
+          </div>
+          <div className="pricing-grid">
+            <HotelPlanCard current />
+          </div>
+        </>
+      )}
+      {!data.subscribed && data.plan !== "hotel" && (
         <>
           <div className="filter-bar">
             <small>Billed for {qty} propert{qty === 1 ? "y" : "ies"} · updates automatically as you add or remove properties</small>
@@ -357,7 +368,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
                   <li><Check size={14} /> Up to {plans[plan].properties} properties</li>
                   <li><Check size={14} /> {plans[plan].messages} AI concierge messages / property / month</li>
                   <li><Check size={14} /> Paid extras · 5% platform fee</li>
-                  {plan === "pro" && <li><Check size={14} /> Custom branding & priority support</li>}
+                  {plan === "pro" && <li><Check size={14} /> Priority support</li>}
                 </ul>
                 <button
                   className={`button ${plan === "pro" ? "" : "secondary"}`}
@@ -368,6 +379,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
                 </button>
               </div>
             ))}
+            <HotelPlanCard />
           </div>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>Prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}). Secure payment by Stripe. Cancel any time from “Manage billing”.</p>
         </>

@@ -396,12 +396,13 @@ export type AdminHostRow = {
   aiMessageLimit: number;
   guestQuestions30d: number;
   payoutsReady: boolean;
+  hasSubscription: boolean;
   signedUp: string;
 };
 /** Owner-only overview of every host account (read-only). */
 export async function adminHosts(): Promise<AdminHostRow[]> {
   const rows = await query<Record<string, unknown>>(
-    `SELECT u.email, u.name, u.plan, u.subscription_status, u.payouts_ready, u.created_at,
+    `SELECT u.email, u.name, u.plan, u.subscription_status, u.payouts_ready, u.created_at, u.stripe_subscription_id,
             (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) AS properties,
             (SELECT count(*) FROM properties p WHERE p.owner_id = u.id AND p.status = 'published') AS published,
             COALESCE((SELECT messages FROM usage_counters c WHERE c.owner_id = u.id AND c.month = $1), 0) AS ai_messages,
@@ -425,6 +426,7 @@ export async function adminHosts(): Promise<AdminHostRow[]> {
       aiMessageLimit: aiMessageLimit(plan, properties),
       guestQuestions30d: Number(r.questions_30d),
       payoutsReady: Boolean(r.payouts_ready),
+      hasSubscription: Boolean(r.stripe_subscription_id) && r.subscription_status !== "canceled",
       signedUp: new Date(r.created_at as string).toISOString().slice(0, 10),
     };
   });
@@ -444,4 +446,19 @@ export async function saveGuideTranslation(propertyKey: string, language: string
      ON CONFLICT (property_key, language) DO UPDATE SET source_hash = EXCLUDED.source_hash, data = EXCLUDED.data, created_at = now()`,
     [propertyKey, language, sourceHash, JSON.stringify(data)],
   );
+}
+
+/**
+ * Owner action: switch an account to the sales-led Hotel plan (or back to Free).
+ * Refused for accounts with an active Stripe subscription, whose plan Stripe controls.
+ */
+export async function setManagedPlan(email: string, plan: "hotel" | "free") {
+  const rows = await query<{ id: string }>(
+    `UPDATE users SET plan = $2
+      WHERE lower(email) = lower($1)
+        AND (stripe_subscription_id IS NULL OR subscription_status = 'canceled')
+      RETURNING id`,
+    [email, plan],
+  );
+  return rows.length > 0;
 }

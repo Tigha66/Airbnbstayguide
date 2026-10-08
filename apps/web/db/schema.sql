@@ -69,7 +69,8 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_status text;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_account_id text;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS payouts_ready boolean NOT NULL DEFAULT false;
 -- Paid plans only come from an active Stripe subscription
-UPDATE users SET plan = 'free' WHERE plan <> 'free' AND stripe_subscription_id IS NULL AND email <> 'demo@stayguide.app';
+-- (Hotel & Multi-Unit accounts are activated by the owner without a Stripe subscription, so they're kept.)
+UPDATE users SET plan = 'free' WHERE plan NOT IN ('free', 'hotel') AND stripe_subscription_id IS NULL AND email <> 'demo@stayguide.app';
 -- Extras paid through Stripe Checkout
 ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS checkout_session_id text;
 ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS payment_intent_id text;

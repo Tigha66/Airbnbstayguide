@@ -6,7 +6,8 @@ import {
   ArrowUpRight,
   Check,
 } from "lucide-react";
-import { plans, priceFor, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
+import { plans, priceFor, selfServePlans, CURRENCY, CURRENCY_SYMBOL } from "@stayguide/shared";
+import { HotelPlanCard } from "./hotel-plan";
 import { Logo } from "./ui";
 export function MarketingNav() {
   return (
@@ -74,7 +75,7 @@ export function Pricing() {
         </div>
       </div>
       <div className="pricing-grid" style={{ textAlign: "left" }}>
-        {(Object.keys(plans) as Plan[]).map((key) => (
+        {selfServePlans.map((key) => (
           <div
             className={`card pricing-card ${key === "pro" ? "featured" : ""}`}
             key={key}
@@ -116,7 +117,7 @@ export function Pricing() {
               {key === "pro" && (
                 <li>
                   <Check size={14} />
-                  Your branding & custom domain
+                  Priority support
                 </li>
               )}
             </ul>
@@ -129,6 +130,7 @@ export function Pricing() {
             </Link>
           </div>
         ))}
+        <HotelPlanCard />
       </div>
       <p
         className="muted"
