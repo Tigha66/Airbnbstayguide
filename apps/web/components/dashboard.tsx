@@ -53,9 +53,9 @@ import {
   propertySchema,
   type Property,
   type Section,
-  type Plan,
   CURRENCY,
   CURRENCY_SYMBOL,
+  selfServePlans,
 } from "@stayguide/shared";
 import {
   useDemo,
@@ -68,6 +68,7 @@ import {
 } from "@/lib/demo-store";
 import { parseManual, extractWifi, extractTime } from "@/lib/guide-parser";
 import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling } from "./live";
+import { HotelPlanCard } from "./hotel-plan";
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
@@ -392,7 +393,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
             <Sparkles size={18} color="#8a9b6c" />
             <h3>A little more possibility.</h3>
             <p>
-              More properties. Your own brand.
+              More properties. More AI answers.
               <br />
               Even better guest experiences.
             </p>
@@ -1362,7 +1363,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 </div>
               </div>
               <div className="pricing-grid">
-                {(Object.keys(plans) as Plan[]).map((plan) => (
+                {selfServePlans.map((plan) => (
                   <div
                     className={`card pricing-card ${plan === "pro" ? "featured" : ""}`}
                     key={plan}
@@ -1400,7 +1401,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       {plan === "pro" && (
                         <li>
                           <Check size={14} />
-                          Custom branding & domain
+                          Priority support
                         </li>
                       )}
                     </ul>
@@ -1418,6 +1419,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     </button>
                   </div>
                 ))}
+                <HotelPlanCard />
               </div>
               <div className="notice" style={{ marginTop: 20 }}>
                 Billing preview · Stripe account and product prices are required

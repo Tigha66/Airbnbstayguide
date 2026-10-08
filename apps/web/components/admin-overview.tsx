@@ -2,10 +2,11 @@ import Link from "next/link";
 import { plans, CURRENCY_LOCALE, CURRENCY_SYMBOL } from "@stayguide/shared";
 import type { AdminHostRow } from "@/lib/repo";
 import { Logo } from "./ui";
+import { AdminPlanButton } from "./admin-plan-button";
 
 const PAYING = new Set(["active", "trialing", "past_due"]);
 const statusLabel = (plan: string, status: string | null) =>
-  plan === "free" ? "Free" : !status ? "Complimentary" : status === "past_due" ? "Payment failed (retrying)" : status === "trialing" ? "Trial" : status ? status[0].toUpperCase() + status.slice(1) : "Active";
+  plan === "hotel" ? "Invoiced" : plan === "free" ? "Free" : !status ? "Complimentary" : status === "past_due" ? "Payment failed (retrying)" : status === "trialing" ? "Trial" : status ? status[0].toUpperCase() + status.slice(1) : "Active";
 
 /** Owner overview table (rendered by /admin after the owner check). */
 export type AiHealth = { ok: boolean; provider: string; model: string; detail: string };
@@ -16,6 +17,7 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
   const totals = [
     ["Hosts", hosts.length],
     ["Paying hosts", paying.length],
+    ["Hotel accounts", hosts.filter((h) => h.plan === "hotel").length],
     ["Properties (all)", hosts.reduce((n, h) => n + h.properties, 0)],
     ["Paid properties", paidProperties],
     ["Est. monthly revenue", `${CURRENCY_SYMBOL}${monthly.toLocaleString(CURRENCY_LOCALE)}`],
@@ -70,12 +72,13 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
               <th className="num">Guest questions (30 days)</th>
               <th>Payouts</th>
               <th>Signed up</th>
+              <th>Hotel plan</th>
             </tr>
           </thead>
           <tbody>
             {hosts.length === 0 && (
               <tr>
-                <td colSpan={10} className="muted">No hosts yet.</td>
+                <td colSpan={11} className="muted">No hosts yet.</td>
               </tr>
             )}
             {hosts.map((h) => {
@@ -102,6 +105,9 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
                   <td className="num">{h.guestQuestions30d.toLocaleString(CURRENCY_LOCALE)}</td>
                   <td>{h.payoutsReady ? "Ready" : "—"}</td>
                   <td>{h.signedUp}</td>
+                  <td>
+                    <AdminPlanButton email={h.email} plan={h.plan} hasSubscription={h.hasSubscription} />
+                  </td>
                 </tr>
               );
             })}

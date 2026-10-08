@@ -93,6 +93,30 @@ describe("repository (Neon schema on PGlite)", () => {
     expect(ana).toMatchObject({ plan: "free", properties: 1, published: 1, aiMessagesThisMonth: 1, aiMessageLimit: 25 });
     expect(hosts.find((h) => h.email === "other@example.com")).toMatchObject({ aiMessagesThisMonth: 26, aiMessageLimit: 25 });
   });
+  it("lets the owner switch an account to the Hotel plan and keeps it across deploys", async () => {
+    const h = await repo.upsertUser("hotel@example.com", "Grand Hotel");
+    expect(await repo.setManagedPlan("HOTEL@example.com", "hotel")).toBe(true);
+    expect((await repo.getUser(h.id))?.plan).toBe("hotel");
+    expect(repo.aiMessageLimit("hotel", 40)).toBe(60000);
+    // The schema migration that runs on every deploy must not reset it.
+    const schema = readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8");
+    for (const st of splitStatements(schema).filter((x) => x.startsWith("UPDATE users"))) await (await import("./db")).query(st);
+    expect((await repo.getUser(h.id))?.plan).toBe("hotel");
+    // Hotel accounts can have many properties.
+    for (let i = 0; i < 3; i++) await repo.createProperty({ ...h, plan: "hotel" }, { name: `Room ${i + 1}`, location: "Lisbon", description: "" });
+    expect((await repo.listProperties(h.id)).length).toBe(3);
+    expect(await repo.setManagedPlan("hotel@example.com", "free")).toBe(true);
+    expect((await repo.getUser(h.id))?.plan).toBe("free");
+    await repo.deleteUser(h.id);
+  });
+  it("won't override a plan controlled by an active Stripe subscription", async () => {
+    const s = await repo.upsertUser("subscriber@example.com", "Sub");
+    await repo.applySubscription({ customerId: "cus_sub", userId: s.id, subscriptionId: "sub_1", status: "active", plan: "starter" });
+    expect(await repo.setManagedPlan("subscriber@example.com", "hotel")).toBe(false);
+    expect((await repo.getUser(s.id))?.plan).toBe("starter");
+    expect(await repo.setManagedPlan("nobody@example.com", "hotel")).toBe(false);
+    await repo.deleteUser(s.id);
+  });
   it("deletes the account and all data", async () => {
     await repo.deleteUser(a.id);
     expect(await repo.listProperties(a.id)).toEqual([]);

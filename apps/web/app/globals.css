@@ -1174,7 +1174,7 @@ small {
 }
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 20px;
 }
 .pricing-card {
@@ -2738,7 +2738,7 @@ small {
   margin-bottom: 36px;
 }
 .admin-stats {
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   margin: 0 0 22px;
 }
 .admin-stats .stat-value {
@@ -2897,4 +2897,17 @@ small {
 .guest-page[dir="rtl"] .markdown ul {
   padding-left: 0;
   padding-right: 20px;
+}
+/* Hotel & Multi-Unit plan card */
+.hotel-card {
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgb(20 184 166 / 0.14), transparent 60%),
+    var(--card);
+  border: 1px solid rgb(15 118 110 / 0.45);
+}
+.hotel-card .price {
+  font-size: 40px !important;
+}
+.hotel-card .button {
+  width: 100%;
 }
