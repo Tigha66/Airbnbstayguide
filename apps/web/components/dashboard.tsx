@@ -69,6 +69,8 @@ import {
 import { parseManual, extractWifi, extractTime } from "@/lib/guide-parser";
 import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling } from "./live";
 import { HotelPlanCard } from "./hotel-plan";
+import { AppLanguageMenu, useAppLocale } from "./app-locale";
+import { siteDir, siteText } from "@/lib/site-i18n";
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
@@ -104,6 +106,7 @@ const threads = [
 ];
 export function Dashboard({ view = "" }: { view?: string }) {
   const state = useDemo();
+  const { locale, tr } = useAppLocale();
   const liveState = useLive();
   const live = liveState.live;
   const router = useRouter();
@@ -137,7 +140,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
     setError("");
   }, []);
   const title =
-    [...nav, ...secondNav].find((n) => n[0] === view)?.[1] || "Guide editor";
+    tr([...nav, ...secondNav].find((n) => n[0] === view)?.[1] || "Guide editor");
   const currentSection =
     property?.sections.find((s) => s.id === sectionId) || property?.sections[0];
   const updateSection = (patch: Partial<Section>) => {
@@ -167,12 +170,12 @@ export function Dashboard({ view = "" }: { view?: string }) {
         close();
         notify(
           ai
-            ? "Property created. AI organized your guide — have a look."
-            : "Property created. Your guide is ready to edit.",
+            ? tr("Property created. AI organized your guide — have a look.")
+            : tr("Property created. Your guide is ready to edit."),
         );
         router.push("/dashboard/editor");
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not create the property.");
+        setError(e instanceof Error ? e.message : tr("Could not create the property."));
       } finally {
         setCreating(false);
       }
@@ -202,43 +205,43 @@ export function Dashboard({ view = "" }: { view?: string }) {
         ? parseManual(manual)
         : sections.map((s) => ({
             ...s,
-            body: "Add your property’s " + s.type + " information here.",
+            body: tr("Add your property’s {type} information here.", { type: s.type }),
           })),
       extras: [],
     };
     saveProperty(next);
     setSelected(id);
     close();
-    notify("Property created. Your guide is ready to edit.");
+    notify(tr("Property created. Your guide is ready to edit."));
     router.push("/dashboard/editor");
   }
   const stats = [
     {
-      label: "Guide views",
+      label: tr("Guide views"),
       value: "1,284",
       foot: "+18.6%",
-      detail: "vs. previous month",
+      detail: tr("vs. previous month"),
       icon: Eye,
     },
     {
-      label: "AI conversations",
+      label: tr("AI conversations"),
       value: "342",
       foot: "94%",
-      detail: "answered without you",
+      detail: tr("answered without you"),
       icon: MessageCircle,
     },
     {
-      label: "Extras revenue",
+      label: tr("Extras revenue"),
       value: `${CURRENCY_SYMBOL}486`,
       foot: "+24.2%",
-      detail: "vs. previous month",
+      detail: tr("vs. previous month"),
       icon: Gift,
     },
     {
-      label: "Happy guests",
+      label: tr("Happy guests"),
       value: "98%",
       foot: "4.9 / 5",
-      detail: "average guest rating",
+      detail: tr("average guest rating"),
       icon: HeartIcon,
     },
   ];
@@ -255,14 +258,14 @@ export function Dashboard({ view = "" }: { view?: string }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={p.image}
-              alt={`${p.name}, a welcoming holiday home`}
+              alt={tr("{name}, a welcoming holiday home", { name: p.name })}
               loading="lazy"
             />
             <span className={`pill ${p.status === "draft" ? "amber" : ""}`}>
-              {p.status === "published" ? "Published" : "Draft"}
+              {p.status === "published" ? tr("Published") : tr("Draft")}
             </span>
             <button
-              aria-label={`Edit ${p.name}`}
+              aria-label={tr("Edit {name}", { name: p.name })}
               className="photo-menu"
               onClick={() => {
                 setSelected(p.id);
@@ -275,7 +278,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
           <div className="property-body">
             <div className="property-title">
               <h3>{p.name}</h3>
-              <Link aria-label={`Preview ${p.name}`} href={`/g/${p.slug}`}>
+              <Link aria-label={tr("Preview {name}", { name: p.name })} href={`/g/${p.slug}`}>
                 <ArrowUpRight size={17} />
               </Link>
             </div>
@@ -286,23 +289,23 @@ export function Dashboard({ view = "" }: { view?: string }) {
             <div className="property-meta">
               <span>
                 <BookOpen size={12} />
-                {p.sections.length} sections
+                {tr("{n} sections", { n: p.sections.length })}
               </span>
               <span>
                 <Eye size={12} />
-                {i < 2 ? [842, 442][i] : 0} demo views
+                {tr("{n} demo views", { n: i < 2 ? [842, 442][i] : 0 })}
               </span>
               <span>
                 <MessageCircle size={12} />
-                {i < 2 ? [218, 124][i] : 0} chats
+                {tr("{n} chats", { n: i < 2 ? [218, 124][i] : 0 })}
               </span>
             </div>
             <div className="property-bottom">
-              <small>Made with a little extra care</small>
+              <small>{tr("Made with a little extra care")}</small>
               <div className="row">
                 <button
                   className="icon-button"
-                  aria-label={`Share ${p.name}`}
+                  aria-label={tr("Share {name}", { name: p.name })}
                   onClick={() => {
                     setSelected(p.id);
                     router.push("/dashboard/share");
@@ -317,7 +320,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     router.push("/dashboard/editor");
                   }}
                 >
-                  Edit guide
+                  {tr("Edit guide")}
                   <ArrowRight size={12} />
                 </button>
               </div>
@@ -329,7 +332,9 @@ export function Dashboard({ view = "" }: { view?: string }) {
   );
   return (
     <div
-      className={state.dark ? "theme-dark" : ""}
+      className={`app-shell ${state.dark ? "theme-dark" : ""}`}
+      lang={locale}
+      dir={siteDir(locale)}
       style={{
         minHeight: "100vh",
         background: "var(--bg)",
@@ -342,7 +347,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
           {mobile && (
             <button
               className="icon-button"
-              aria-label="Close navigation"
+              aria-label={tr("Close navigation")}
               onClick={() => setMobile(false)}
             >
               <X size={16} />
@@ -355,11 +360,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
           </div>
           <div>
             <strong>{state.organization}</strong>
-            <small>Host workspace</small>
+            <small>{tr("Host workspace")}</small>
           </div>
           <ChevronDown size={12} />
         </div>
-        <div className="nav-label">WORKSPACE</div>
+        <div className="nav-label">{tr("WORKSPACE")}</div>
         <nav>
           {nav.map(([path, label, Icon]) => (
             <Link
@@ -369,8 +374,8 @@ export function Dashboard({ view = "" }: { view?: string }) {
               className={`nav-item ${view === path ? "active" : ""}`}
             >
               <Icon size={17} strokeWidth={1.6} />
-              {label}
-              {path === "inbox" && <span className="badge">2</span>}
+              {tr(label)}
+              {path === "inbox" && !live && <span className="badge">2</span>}
             </Link>
           ))}
         </nav>
@@ -384,21 +389,21 @@ export function Dashboard({ view = "" }: { view?: string }) {
               className={`nav-item ${view === path ? "active" : ""}`}
             >
               <Icon size={17} strokeWidth={1.6} />
-              {label}
+              {tr(label)}
             </Link>
           ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="upgrade-card">
             <Sparkles size={18} color="#8a9b6c" />
-            <h3>A little more possibility.</h3>
+            <h3>{tr("A little more possibility.")}</h3>
             <p>
-              More properties. More AI answers.
+              {tr("More properties. More AI answers.")}
               <br />
-              Even better guest experiences.
+              {tr("Even better guest experiences.")}
             </p>
             <Link className="button cream" href="/dashboard/billing">
-              Explore Pro
+              {tr("Explore Pro")}
               <ArrowUpRight size={12} />
             </Link>
           </div>
@@ -411,9 +416,9 @@ export function Dashboard({ view = "" }: { view?: string }) {
             <div>
               <strong>{live && liveState.user ? liveState.user.name || liveState.user.email : `${state.hostName} Morgan`}</strong>
               <br />
-              <small>{live ? "Workspace owner" : "Demo host account"}</small>
+              <small>{live ? tr("Workspace owner") : tr("Demo host account")}</small>
             </div>
-            <ChevronDown size={12} style={{ marginLeft: "auto" }} />
+            <ChevronDown size={12} style={{ marginInlineStart: "auto" }} />
           </Link>
         </div>
       </aside>
@@ -422,12 +427,12 @@ export function Dashboard({ view = "" }: { view?: string }) {
           <div className="breadcrumb">
             <button
               className="mobile-menu icon-button"
-              aria-label="Open navigation"
+              aria-label={tr("Open navigation")}
               onClick={() => setMobile(true)}
             >
               <Menu size={17} />
             </button>
-            <span>Workspace</span>
+            <span>{tr("Workspace")}</span>
             <ChevronRight size={12} />
             <span style={{ color: "var(--ink)" }}>{title}</span>
           </div>
@@ -435,41 +440,42 @@ export function Dashboard({ view = "" }: { view?: string }) {
             {live ? (
               <span className="demo-badge" role="status">
                 {liveState.sync === "saving"
-                  ? "SAVING…"
+                  ? tr("SAVING…")
                   : liveState.sync === "error"
-                    ? "NOT SAVED · RETRYING ON NEXT EDIT"
-                    : "ALL CHANGES SAVED"}
+                    ? tr("NOT SAVED · RETRYING ON NEXT EDIT")
+                    : tr("ALL CHANGES SAVED")}
               </span>
             ) : (
               <>
-                <span className="demo-badge">DEMO WORKSPACE</span>
+                <span className="demo-badge">{tr("DEMO WORKSPACE")}</span>
                 {liveState.services.accounts && (
-                  <Link href="/login">Sign in</Link>
+                  <Link href="/login">{tr("Sign in")}</Link>
                 )}
               </>
             )}
+            <AppLanguageMenu compact />
             <Link href="/demo">
-              View guest experience
+              {tr("View guest experience")}
               <ArrowUpRight
                 size={12}
-                style={{ display: "inline", marginLeft: 5 }}
+                style={{ display: "inline", marginInlineStart: 5 }}
               />
             </Link>
             <button
-              aria-label="Toggle dark mode"
+              aria-label={tr("Toggle dark mode")}
               onClick={() => updateDemo({ dark: !state.dark })}
             >
               {state.dark ? <Sun size={17} /> : <Moon size={17} />}
             </button>
-            <Link aria-label="Guest notifications" href="/dashboard/inbox">
+            <Link aria-label={tr("Guest notifications")} href="/dashboard/inbox">
               <Bell size={17} />
             </Link>
             {live && liveState.user ? (
               <form action={signOutAction}>
                 <button
                   className="avatar"
-                  title={`Signed in as ${liveState.user.email}. Click to sign out.`}
-                  aria-label={`Sign out ${liveState.user.email}`}
+                  title={tr("Signed in as {email}. Click to sign out.", { email: liveState.user.email })}
+                  aria-label={tr("Sign out {email}", { email: liveState.user.email })}
                 >
                   {(liveState.user.name || liveState.user.email).slice(0, 2).toUpperCase()}
                 </button>
@@ -485,41 +491,42 @@ export function Dashboard({ view = "" }: { view?: string }) {
               <div className="page-heading">
                 <div>
                   <div className="eyebrow">
-                    YOUR LITTLE HOSTING HEADQUARTERS
+                    {tr("YOUR LITTLE HOSTING HEADQUARTERS")}
                   </div>
                   <h1 className="welcome-title">
-                    Good things start with a <span>great stay.</span>
+                    {tr("Good things start with a")} <span>{tr("great stay.")}</span>
                   </h1>
                   <p>
-                    Welcome back, {state.hostName}. Here’s how your properties
-                    are doing.
+                    {tr("Welcome back, {name}. Here’s how your properties are doing.", {
+                      name: live && liveState.user ? (liveState.user.name || liveState.user.email).split(" ")[0] : state.hostName,
+                    })}
                   </p>
                 </div>
                 <span className="button secondary date-button">
                   <CalendarDays size={13} />
-                  Demo month
+                  {tr("Demo month")}
                   <ChevronDown size={12} />
                 </span>
               </div>
               <section className="hero-banner">
                 <div className="hero-banner-copy">
-                  <div className="eyebrow">LESS MANAGING. MORE HOSTING.</div>
+                  <div className="eyebrow">{tr("LESS MANAGING. MORE HOSTING.")}</div>
                   <h2>
-                    A thoughtful stay,
+                    {tr("A thoughtful stay,")}
                     <br />
-                    without the extra work.
+                    {tr("without the extra work.")}
                   </h2>
                   <p>
-                    Your guides handle the little questions.
+                    {tr("Your guides handle the little questions.")}
                     <br />
-                    You focus on making guests feel at home.
+                    {tr("You focus on making guests feel at home.")}
                   </p>
                   <button
                     className="button"
                     onClick={() => setModal("property")}
                   >
                     <Plus size={13} />
-                    Create a guide
+                    {tr("Create a guide")}
                     <ArrowUpRight size={12} />
                   </button>
                 </div>
@@ -531,25 +538,25 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       alt="Casa Serena guest guide preview"
                     />
                     <div className="mini-copy">
-                      <small>YOUR HOME AWAY FROM HOME</small>
+                      <small>{tr("YOUR HOME AWAY FROM HOME")}</small>
                       <br />
-                      <strong>Olá, welcome home.</strong>
+                      <strong>{tr("Olá, welcome home.")}</strong>
                       <div className="mini-grid">
                         <span>
                           <Wifi size={10} />
-                          Wi-Fi
+                          {tr("Wi-Fi")}
                         </span>
                         <span>
                           <MapPin size={10} />
-                          Explore
+                          {tr("Explore")}
                         </span>
                         <span>
                           <BookOpen size={10} />
-                          Your stay
+                          {tr("Your stay")}
                         </span>
                         <span>
                           <Gift size={10} />
-                          Little extras
+                          {tr("Little extras")}
                         </span>
                       </div>
                     </div>
@@ -557,8 +564,8 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   <div className="floating-chip">
                     <CheckCheck size={20} />
                     <div>
-                      <strong>Happy guests. Happy host.</strong>
-                      <small>Thoughtful details, all in one place.</small>
+                      <strong>{tr("Happy guests. Happy host.")}</strong>
+                      <small>{tr("Thoughtful details, all in one place.")}</small>
                     </div>
                   </div>
                 </div>
@@ -583,14 +590,13 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
               <div className="section-heading">
                 <h2>
-                  Your properties{" "}
+                  {tr("Your properties")}{" "}
                   <small>
-                    {state.properties.length} little places. Endless
-                    possibilities.
+                    {tr("{n} little places. Endless possibilities.", { n: state.properties.length })}
                   </small>
                 </h2>
                 <Link className="text-link" href="/dashboard/properties">
-                  View all properties
+                  {tr("View all properties")}
                   <ArrowRight size={13} />
                 </Link>
               </div>
@@ -598,31 +604,30 @@ export function Dashboard({ view = "" }: { view?: string }) {
               <div className="bottom-grid">
                 <section className="card panel">
                   <div className="panel-title">
-                    <h2>Around your properties</h2>
+                    <h2>{tr("Around your properties")}</h2>
                     <Link className="text-link" href="/dashboard/inbox">
-                      View inbox
+                      {tr("View inbox")}
                       <ArrowUpRight size={12} />
                     </Link>
                   </div>
                   {[
                     {
                       icon: Gift,
-                      title: "A slower goodbye, booked.",
-                      detail: "Casa Serena · Late checkout · " + CURRENCY_SYMBOL + "35",
-                      time: "12 min ago",
+                      title: tr("A slower goodbye, booked."),
+                      detail: "Casa Serena · " + tr("Late checkout") + " · " + CURRENCY_SYMBOL + "35",
+                      time: tr("12 min ago"),
                     },
                     {
                       icon: MessageCircle,
-                      title: "One less question on your plate.",
-                      detail:
-                        "The Olive Grove · Wi-Fi details shared by concierge",
-                      time: "34 min ago",
+                      title: tr("One less question on your plate."),
+                      detail: "The Olive Grove · " + tr("Wi-Fi details shared by concierge"),
+                      time: tr("34 min ago"),
                     },
                     {
                       icon: BookOpen,
-                      title: "A warm welcome, delivered.",
-                      detail: "Casa Serena · A guest opened their guide",
-                      time: "1 hour ago",
+                      title: tr("A warm welcome, delivered."),
+                      detail: "Casa Serena · " + tr("A guest opened their guide"),
+                      time: tr("1 hour ago"),
                     },
                   ].map(({ icon: Icon, title, detail, time }) => (
                     <div className="activity-item" key={title}>
@@ -639,21 +644,21 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 </section>
                 <section className="card panel tip-panel">
                   <div className="eyebrow">
-                    <Lightbulb size={14} />A LITTLE HOSTING INSPIRATION
+                    <Lightbulb size={14} />
+                    {tr("A LITTLE HOSTING INSPIRATION")}
                   </div>
                   <h3>
-                    Small extras.
+                    {tr("Small extras.")}
                     <br />
-                    Memorable experiences.
+                    {tr("Memorable experiences.")}
                   </h3>
                   <p>
-                    A late checkout. A local breakfast.
+                    {tr("A late checkout. A local breakfast.")}
                     <br />
-                    Turn thoughtful touches into extra income, and give guests a
-                    stay to remember.
+                    {tr("Turn thoughtful touches into extra income, and give guests a stay to remember.")}
                   </p>
                   <Link href="/dashboard/extras" className="text-link">
-                    Explore your extras
+                    {tr("Explore your extras")}
                     <ArrowRight size={13} />
                   </Link>
                   <Leaf className="tip-leaf" size={105} strokeWidth={0.7} />
@@ -664,20 +669,20 @@ export function Dashboard({ view = "" }: { view?: string }) {
           {view === "properties" && (
             <>
               <PageHeading
-                title="Your properties"
-                description="Beautiful places deserve a thoughtful welcome."
+                title={tr("Your properties")}
+                description={tr("Beautiful places deserve a thoughtful welcome.")}
               >
                 <button className="button" onClick={() => setModal("property")}>
                   <Plus size={16} />
-                  Add property
+                  {tr("Add property")}
                 </button>
               </PageHeading>
               <div className="filter-bar">
                 <div className="search-field">
                   <Search size={16} />
                   <input
-                    aria-label="Search properties"
-                    placeholder="Find a little place…"
+                    aria-label={tr("Search properties")}
+                    placeholder={tr("Find a little place…")}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -689,7 +694,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       onClick={() => setFilter(f)}
                       key={f}
                     >
-                      {f[0].toUpperCase() + f.slice(1)}
+                      {f === "all" ? tr("All") : f === "published" ? tr("Published") : tr("Draft")}
                     </button>
                   ))}
                 </div>
@@ -698,14 +703,14 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 cards
               ) : (
                 <Empty
-                  title="No properties here yet"
-                  description="Create a property or try another search."
+                  title={tr("No properties here yet")}
+                  description={tr("Create a property or try another search.")}
                 >
                   <button
                     className="button"
                     onClick={() => setModal("property")}
                   >
-                    Add a property
+                    {tr("Add a property")}
                   </button>
                 </Empty>
               )}
@@ -715,33 +720,33 @@ export function Dashboard({ view = "" }: { view?: string }) {
             <>
               <PageHeading
                 title={property.name}
-                description="A little local knowledge goes a long way."
+                description={tr("A little local knowledge goes a long way.")}
               >
                 <Link className="button secondary" href={`/g/${property.slug}`}>
                   <Eye size={15} />
-                  Guest preview
+                  {tr("Guest preview")}
                 </Link>
                 {live && (
                   <button
                     className="button secondary"
                     onClick={async () => {
-                      if (!confirm(`Delete ${property.name} and its guide? This cannot be undone.`)) return;
+                      if (!confirm(tr("Delete {name} and its guide? This cannot be undone.", { name: property.name }))) return;
                       try {
                         await deleteLiveProperty(property.id);
-                        notify("Property deleted.");
+                        notify(tr("Property deleted."));
                         router.push("/dashboard/properties");
                       } catch {
-                        notify("Couldn’t delete the property. Please try again.");
+                        notify(tr("Couldn’t delete the property. Please try again."));
                       }
                     }}
                   >
-                    Delete
+                    {tr("Delete")}
                   </button>
                 )}
               </PageHeading>
               <div className="filter-bar">
                 <select
-                  aria-label="Select property to edit"
+                  aria-label={tr("Select property to edit")}
                   style={{ maxWidth: 270 }}
                   value={property.id}
                   onChange={(e) => {
@@ -758,7 +763,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 <div className="row">
                   {!live && (
                     <span className="muted" style={{ fontSize: 11 }}>
-                      Saved on this device
+                      {tr("Saved on this device")}
                     </span>
                   )}
                   <button
@@ -773,24 +778,24 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       });
                       notify(
                         property.status === "published"
-                          ? "Guide moved to draft."
+                          ? tr("Guide moved to draft.")
                           : live
-                            ? "Guide published. Guests can open it now."
-                            : "Demo guide published on this device.",
+                            ? tr("Guide published. Guests can open it now.")
+                            : tr("Demo guide published on this device."),
                       );
                     }}
                   >
                     {property.status === "published"
-                      ? "Unpublish"
-                      : "Publish guide"}
+                      ? tr("Unpublish")
+                      : tr("Publish guide")}
                   </button>
                 </div>
               </div>
               <div className="card property-details">
                 <div className="property-details-head">
-                  <h3>Property details</h3>
+                  <h3>{tr("Property details")}</h3>
                   <small className="muted">
-                    Shown to guests and used by the concierge. Changes save automatically.
+                    {tr("Shown to guests and used by the concierge. Changes save automatically.")}
                   </small>
                 </div>
                 <div className="property-details-grid">
@@ -806,7 +811,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     ] as const
                   ).map(([field, label, placeholder, max]) => (
                     <label key={field} className={field === "address" ? "wide" : ""}>
-                      {label}
+                      {tr(label)}
                       <input
                         value={property[field] ?? ""}
                         placeholder={placeholder}
@@ -856,7 +861,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                           {
                             id,
                             type: "custom",
-                            title: "A new little detail",
+                            title: tr("A new little detail"),
                             body: "",
                             icon: "book",
                           },
@@ -866,26 +871,26 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     }}
                   >
                     <Plus size={15} />
-                    Add section
+                    {tr("Add section")}
                   </button>
                 </div>
                 <div className="card section-editor">
                   {currentSection && (
                     <>
                       <div className="filter-bar">
-                        <h3>Make it feel like you.</h3>
+                        <h3>{tr("Make it feel like you.")}</h3>
                         <div className="tabs">
                           <button
                             className={!editPreview ? "active" : ""}
                             onClick={() => setEditPreview(false)}
                           >
-                            Write
+                            {tr("Write")}
                           </button>
                           <button
                             className={editPreview ? "active" : ""}
                             onClick={() => setEditPreview(true)}
                           >
-                            Preview
+                            {tr("Preview")}
                           </button>
                         </div>
                       </div>
@@ -897,7 +902,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       ) : (
                         <div className="form-grid">
                           <label>
-                            Section title
+                            {tr("Section title")}
                             <input
                               value={currentSection.title}
                               onChange={(e) =>
@@ -906,7 +911,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                             />
                           </label>
                           <label>
-                            Icon
+                            {tr("Icon")}
                             <select
                               value={currentSection.icon}
                               onChange={(e) =>
@@ -930,19 +935,18 @@ export function Dashboard({ view = "" }: { view?: string }) {
                             </select>
                           </label>
                           <label>
-                            Your local knowledge
+                            {tr("Your local knowledge")}
                             <textarea
                               rows={12}
                               value={currentSection.body}
-                              placeholder="All the details that make a stay effortless. Markdown is welcome."
+                              placeholder={tr("All the details that make a stay effortless. Markdown is welcome.")}
                               onChange={(e) =>
                                 updateSection({ body: e.target.value })
                               }
                             />
                           </label>
                           <small>
-                            Use **bold**, bullet lists, and links. Drag sections
-                            to reorder, or use the arrow buttons.
+                            {tr("Use **bold**, bullet lists, and links. Drag sections to reorder, or use the arrow buttons.")}
                           </small>
                           <div className="row">
                             {[-1, 1].map((direction) => (
@@ -950,8 +954,8 @@ export function Dashboard({ view = "" }: { view?: string }) {
                                 key={direction}
                                 aria-label={
                                   direction === -1
-                                    ? "Move section up"
-                                    : "Move section down"
+                                    ? tr("Move section up")
+                                    : tr("Move section down")
                                 }
                                 className="icon-button"
                                 onClick={() => {
@@ -983,12 +987,14 @@ export function Dashboard({ view = "" }: { view?: string }) {
                               className="button secondary small"
                               onClick={() =>
                                 notify(
-                                  "All changes are saved automatically on this device.",
+                                  live
+                                    ? tr("All changes are saved automatically.")
+                                    : tr("All changes are saved automatically on this device."),
                                 )
                               }
                             >
                               <Check size={13} />
-                              Save changes
+                              {tr("Save changes")}
                             </button>
                           </div>
                         </div>
@@ -999,8 +1005,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
               {!live && (
                 <div className="notice" style={{ marginTop: 20 }}>
-                  Demo editor · Changes are stored in this browser. Sign in to
-                  save guides online and share them with real guests.
+                  {tr("Demo editor · Changes are stored in this browser. Sign in to save guides online and share them with real guests.")}
                 </div>
               )}
             </>
@@ -1009,8 +1014,8 @@ export function Dashboard({ view = "" }: { view?: string }) {
           {view === "inbox" && !live && (
             <>
               <PageHeading
-                title="A little human touch"
-                description="Your concierge takes care of the everyday. You take care of the rest."
+                title={tr("A little human touch")}
+                description={tr("Your concierge takes care of the everyday. You take care of the rest.")}
               />
               <div className="card inbox-grid">
                 <div className="thread-list">
@@ -1030,7 +1035,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                         className="pill amber"
                         style={{ width: "fit-content" }}
                       >
-                        Needs your help
+                        {tr("Needs your help")}
                       </span>
                     </button>
                   ))}
@@ -1040,13 +1045,12 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     <span className="avatar">{thread.initials}</span>
                     <div>
                       <h3>{thread.name}</h3>
-                      <small>{thread.property} · Sample conversation</small>
+                      <small>{thread.property} · {tr("Sample conversation")}</small>
                     </div>
                   </div>
                   <div className="chat-messages">
                     <div className="notice">
-                      The concierge couldn’t find this answer in the guide and
-                      passed it to you.
+                      {tr("The concierge couldn’t find this answer in the guide and passed it to you.")}
                     </div>
                     <div className="bubble">{thread.message}</div>
                     {state.replies[thread.id]?.map((r, i) => (
@@ -1070,19 +1074,17 @@ export function Dashboard({ view = "" }: { view?: string }) {
                           },
                         });
                         setReply("");
-                        notify(
-                          "Reply saved in the demo. No guest message was sent.",
-                        );
+                        notify(tr("Reply saved in the demo. No guest message was sent."));
                       }
                     }}
                   >
                     <input
-                      aria-label="Reply to guest"
-                      placeholder="A thoughtful reply…"
+                      aria-label={tr("Reply to guest")}
+                      placeholder={tr("A thoughtful reply…")}
                       value={reply}
                       onChange={(e) => setReply(e.target.value)}
                     />
-                    <button className="button" aria-label="Send demo reply">
+                    <button className="button" aria-label={tr("Send demo reply")}>
                       <Send size={16} />
                     </button>
                   </form>
@@ -1093,20 +1095,19 @@ export function Dashboard({ view = "" }: { view?: string }) {
           {view === "extras" && (
             <>
               <PageHeading
-                title="The little extras"
-                description="Thoughtful touches for guests. A little more income for you."
+                title={tr("The little extras")}
+                description={tr("Thoughtful touches for guests. A little more income for you.")}
               >
                 <button className="button" onClick={() => setModal("extra")}>
                   <Plus size={16} />
-                  Create extra
+                  {tr("Create extra")}
                 </button>
               </PageHeading>
               {live ? (
                 <LiveExtraRequests notify={notify} />
               ) : (
                 <div className="notice" style={{ marginBottom: 22 }}>
-                  Demo catalog · Sign in to receive real guest requests for your
-                  extras.
+                  {tr("Demo catalog · Sign in to receive real guest requests for your extras.")}
                 </div>
               )}
               <div className="extras-grid">
@@ -1122,20 +1123,20 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       <div className="price">
                         {money(extra.price)}{" "}
                         <small style={{ fontSize: 12 }}>
-                          per stay
+                          {tr("per stay")}
                         </small>
                       </div>
                       <span className={`pill ${extra.approval ? "amber" : ""}`}>
                         {extra.approval
-                          ? "Host approval required"
-                          : "Instant purchase"}
+                          ? tr("Host approval required")
+                          : tr("Instant purchase")}
                       </span>
                       <div style={{ marginTop: 20 }}>
                         <Link
                           className="text-link"
                           href={`/g/${p.slug}?tab=extras`}
                         >
-                          See guest experience
+                          {tr("See guest experience")}
                           <ArrowUpRight size={13} />
                         </Link>
                       </div>
@@ -1149,12 +1150,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
           {view === "analytics" && !live && (
             <>
               <PageHeading
-                title="Good stays, by the numbers"
-                description="A little insight into what makes your guests feel at home."
+                title={tr("Good stays, by the numbers")}
+                description={tr("A little insight into what makes your guests feel at home.")}
               />
               <div className="notice">
-                Sample analytics for demonstration. Live metrics will appear
-                after your Supabase project is connected.
+                {tr("Sample analytics for demonstration. Sign in to see your real numbers.")}
               </div>
               <div className="stats-grid">
                 {stats.map(({ label, value, icon: Icon }) => (
@@ -1169,23 +1169,23 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
               <div className="split" style={{ marginTop: 25 }}>
                 <div className="card panel" style={{ paddingBottom: 50 }}>
-                  <h3>Guide views this week</h3>
+                  <h3>{tr("Guide views this week")}</h3>
                   <div
                     className="chart"
-                    aria-label="Sample guide views: Monday 120, Tuesday 180, Wednesday 145, Thursday 210, Friday 265, Saturday 220, Sunday 144"
+                    aria-label={tr("Sample guide views for the week")}
                   >
                     {[45, 65, 52, 78, 98, 81, 55].map((h, i) => (
                       <div key={i} className="chart-col">
                         <div style={{ height: h + "%" }} />
                         <span>
-                          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}
+                          {tr(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i])}
                         </span>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div className="card panel">
-                  <h3>The things guests ask</h3>
+                  <h3>{tr("The things guests ask")}</h3>
                   {[
                     ["Wi-Fi & getting connected", "38%"],
                     ["Check-in & arrival", "27%"],
@@ -1193,7 +1193,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     ["Check-out details", "14%"],
                   ].map(([label, percent]) => (
                     <div className="activity-item" key={label}>
-                      <span style={{ flex: 1, fontSize: 12 }}>{label}</span>
+                      <span style={{ flex: 1, fontSize: 12 }}>{tr(label)}</span>
                       <strong>{percent}</strong>
                     </div>
                   ))}
@@ -1204,13 +1204,13 @@ export function Dashboard({ view = "" }: { view?: string }) {
           {view === "share" && property && (
             <>
               <PageHeading
-                title="A warm welcome, shared"
-                description="One little link. Everything your guests need."
+                title={tr("A warm welcome, shared")}
+                description={tr("One little link. Everything your guests need.")}
               />
               <div className="split">
                 <div className="stack no-print">
                   <label>
-                    Your property
+                    {tr("Your property")}
                     <select
                       value={property.id}
                       onChange={(e) => {
@@ -1226,17 +1226,16 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     </select>
                   </label>
                   <div className="card panel">
-                    <h3>Send a little hello</h3>
+                    <h3>{tr("Send a little hello")}</h3>
                     <p
                       className="muted"
                       style={{ fontSize: 12, margin: "12px 0" }}
                     >
-                      Add your guest guide to a welcome message or booking
-                      confirmation.
+                      {tr("Add your guest guide to a welcome message or booking confirmation.")}
                     </p>
                     <div className="row">
                       <input
-                        aria-label="Guest guide link"
+                        aria-label={tr("Guest guide link")}
                         readOnly
                         value={
                           typeof window === "undefined"
@@ -1246,15 +1245,15 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       />
                       <button
                         className="icon-button"
-                        aria-label="Copy guest link"
+                        aria-label={tr("Copy guest link")}
                         onClick={async () => {
                           try {
                             await navigator.clipboard.writeText(
                               `${window.location.origin}/g/${property.slug}`,
                             );
-                            notify("Guest link copied.");
+                            notify(tr("Guest link copied."));
                           } catch {
-                            notify("Select the link and copy it manually.");
+                            notify(tr("Select the link and copy it manually."));
                           }
                         }}
                       >
@@ -1267,35 +1266,40 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       onClick={async () => {
                         try {
                           await navigator.clipboard.writeText(
-                            `We’re looking forward to welcoming you to ${property.name}! Here’s your personal guide with everything you need for a lovely stay: ${window.location.origin}/g/${property.slug}\nSafe travels — see you soon!`,
+                            tr("We’re looking forward to welcoming you to {name}! Here’s your personal guide with everything you need for a lovely stay: {link}\nSafe travels — see you soon!", {
+                              name: property.name,
+                              link: `${window.location.origin}/g/${property.slug}`,
+                            }),
                           );
-                          notify("Welcome message copied.");
+                          notify(tr("Welcome message copied."));
                         } catch {
-                          notify("Clipboard unavailable in this browser.");
+                          notify(tr("Clipboard unavailable in this browser."));
                         }
                       }}
                     >
                       <Copy size={13} />
-                      Copy welcome message
+                      {tr("Copy welcome message")}
                     </button>
                   </div>
-                  <div className="notice">
-                    Local demo changes are visible on this device only. A QR
-                    code for a sample property works on any device.
-                  </div>
+                  {!live && (
+                    <div className="notice">
+                      {tr("Local demo changes are visible on this device only. A QR code for a sample property works on any device.")}
+                    </div>
+                  )}
                 </div>
                 <div className="qr-card">
                   <Logo />
-                  <h2>Make yourself at home.</h2>
+                  <h2>{tr("Make yourself at home.")}</h2>
                   <p>
-                    Your guide to a lovely stay at {property.name}.<br />
-                    Scan for all the little details.
+                    {tr("Your guide to a lovely stay at {name}.", { name: property.name })}
+                    <br />
+                    {tr("Scan for all the little details.")}
                   </p>
                   {qr ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={qr}
-                      alt={`QR code for ${property.name}`}
+                      alt={tr("QR code for {name}", { name: property.name })}
                     />
                   ) : (
                     <button
@@ -1315,7 +1319,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       }
                     >
                       <QrCode size={16} />
-                      Generate QR card
+                      {tr("Generate QR card")}
                     </button>
                   )}
                   <p>{property.location}</p>
@@ -1326,7 +1330,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       style={{ marginTop: 20 }}
                     >
                       <Download size={14} />
-                      Print / save PDF
+                      {tr("Print / save PDF")}
                     </button>
                   )}
                 </div>
@@ -1337,12 +1341,12 @@ export function Dashboard({ view = "" }: { view?: string }) {
           {view === "billing" && !live && (
             <>
               <PageHeading
-                title="A plan for every kind of host"
-                description="Simple, per-property pricing. More time for what you love."
+                title={tr("A plan for every kind of host")}
+                description={tr("Simple, per-property pricing. More time for what you love.")}
               />
               <div className="filter-bar">
                 <label style={{ maxWidth: 220 }}>
-                  Properties: {quantity}
+                  {tr("Properties: {n}", { n: quantity })}
                   <input
                     type="range"
                     min="1"
@@ -1356,13 +1360,13 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     className={!yearly ? "active" : ""}
                     onClick={() => setYearly(false)}
                   >
-                    Monthly
+                    {tr("Monthly")}
                   </button>
                   <button
                     className={yearly ? "active" : ""}
                     onClick={() => setYearly(true)}
                   >
-                    Yearly · 2 months free
+                    {tr("Yearly · 2 months free")}
                   </button>
                 </div>
               </div>
@@ -1372,69 +1376,72 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     className={`card pricing-card ${plan === "pro" ? "featured" : ""}`}
                     key={plan}
                   >
-                    <div className="eyebrow">{plans[plan].name}</div>
+                    <div className="eyebrow">{plan === "free" ? tr("Free") : plans[plan].name}</div>
                     <h3>
                       {plan === "free"
-                        ? "A thoughtful beginning"
+                        ? tr("A thoughtful beginning")
                         : plan === "starter"
-                          ? "For the independent host"
-                          : "Your hospitality, elevated"}
+                          ? tr("For the independent host")
+                          : tr("Your hospitality, elevated")}
                     </h3>
                     <div className="price">
                       {CURRENCY_SYMBOL}{priceFor(plan, plan === "free" ? 1 : quantity, yearly)}
                     </div>
                     <small>
-                      {yearly ? "per year" : "per month"} ·{" "}
+                      {yearly ? tr("per year") : tr("per month")} ·{" "}
                       {plan === "free"
-                        ? "1 property"
-                        : `${quantity} properties`}
+                        ? tr("1 property")
+                        : quantity === 1
+                          ? tr("1 property")
+                          : tr("{n} properties", { n: quantity })}
                     </small>
                     <ul>
                       <li>
                         <Check size={14} />
-                        {plans[plan].messages} AI messages / property / month
+                        {tr("{n} AI messages / property / month", { n: plans[plan].messages.toLocaleString() })}
                       </li>
                       <li>
                         <Check size={14} />
-                        Beautiful offline guest guides
+                        {tr("Beautiful offline guest guides")}
                       </li>
                       <li>
                         <Check size={14} />
-                        Extras store · 5% platform fee
+                        {tr("Extras store · 5% platform fee")}
                       </li>
                       {plan === "pro" && (
                         <li>
                           <Check size={14} />
-                          Priority support
+                          {tr("Priority support")}
                         </li>
                       )}
                     </ul>
                     <button
                       className="button secondary"
                       onClick={() =>
-                        notify(
-                          "This is a demo workspace. Sign in with Google to choose a plan.",
-                        )
+                        notify(tr("This is a demo workspace. Sign in with Google to choose a plan."))
                       }
                     >
                       {plan === "free"
-                        ? "Try the demo"
-                        : `Choose ${plans[plan].name}`}
+                        ? tr("Try the demo")
+                        : tr("Choose {plan}", { plan: plans[plan].name })}
                     </button>
                   </div>
                 ))}
-                <HotelPlanCard />
+                <HotelPlanCard text={siteText(locale).hotel} />
               </div>
               <div className="notice" style={{ marginTop: 20 }}>
-                Demo workspace · Sign in with Google to choose a plan. Prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}), billed securely by Stripe.
+                {tr("Demo workspace · Sign in with Google to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.", {
+                  code: CURRENCY.toUpperCase(),
+                  symbol: CURRENCY_SYMBOL,
+                })}
               </div>
             </>
           )}
           {view === "settings" && (
             <>
               <PageHeading
-                title="Make yourself at home"
-                description="Your workspace, your way."
+                title={tr("Make yourself at home.")}
+                description={tr("Your workspace, your way.")}
               />
               <div className="split">
                 <form
@@ -1446,12 +1453,12 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       hostName: String(form.get("name")),
                       organization: String(form.get("organization")),
                     });
-                    notify("Workspace preferences saved on this device.");
+                    notify(tr("Workspace preferences saved on this device."));
                   }}
                 >
-                  <h3>Your workspace</h3>
+                  <h3>{tr("Your workspace")}</h3>
                   <label>
-                    Your first name
+                    {tr("Your first name")}
                     <input
                       name="name"
                       defaultValue={state.hostName}
@@ -1460,7 +1467,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     />
                   </label>
                   <label>
-                    Organization name
+                    {tr("Organization name")}
                     <input
                       name="organization"
                       defaultValue={state.organization}
@@ -1468,10 +1475,14 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       maxLength={100}
                     />
                   </label>
-                  <button className="button">Save preferences</button>
+                  <label>
+                    {tr("Dashboard language")}
+                    <AppLanguageMenu />
+                  </label>
+                  <button className="button">{tr("Save preferences")}</button>
                 </form>
                 <div className="card panel stack">
-                  <h3>The people behind the welcome</h3>
+                  <h3>{tr("The people behind the welcome")}</h3>
                   <div className="row">
                     <span className="avatar">
                       {live && liveState.user
@@ -1481,34 +1492,36 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     <div>
                       <strong>{live && liveState.user ? liveState.user.name || liveState.user.email : `${state.hostName} Morgan`}</strong>
                       <br />
-                      <small>{live && liveState.user ? `Workspace owner · ${liveState.user.email}` : "Workspace owner · Demo"}</small>
+                      <small>{live && liveState.user ? tr("Workspace owner · {email}", { email: liveState.user.email }) : tr("Workspace owner · Demo")}</small>
                     </div>
                   </div>
                   <p className="muted" style={{ fontSize: 12 }}>
                     {live
-                      ? "Team access for co-hosts and staff is coming soon."
-                      : "This is a demo workspace saved in your browser. Sign in with Google to create your real account."}
+                      ? tr("Team access for co-hosts and staff is coming soon.")
+                      : tr("This is a demo workspace saved in your browser. Sign in with Google to create your real account.")}
                   </p>
                   <button
                     className="button secondary"
                     onClick={() => updateDemo({ dark: !state.dark })}
                   >
-                    {state.dark ? <Sun size={15} /> : <Moon size={15} />}Switch
-                    to {state.dark ? "light" : "dark"} mode
+                    {state.dark ? <Sun size={15} /> : <Moon size={15} />}
+                    {state.dark ? tr("Switch to light mode") : tr("Switch to dark mode")}
                   </button>
-                  <Link href="/login" className="text-link">
-                    Connect your account
-                    <ArrowRight size={14} />
-                  </Link>
+                  {!live && (
+                    <Link href="/login" className="text-link">
+                      {tr("Connect your account")}
+                      <ArrowRight size={14} />
+                    </Link>
+                  )}
                 </div>
               </div>
             </>
           )}
           <footer className="dashboard-footer">
-            <span>Made for thoughtful hosts. Built for memorable stays.</span>
+            <span>{tr("Made for thoughtful hosts. Built for memorable stays.")}</span>
             <span>
-              Demo data · Saved on this device{" "}
-              <Leaf size={11} style={{ display: "inline", marginLeft: 6 }} />
+              {live ? tr("Saved securely online") : tr("Demo data · Saved on this device")}{" "}
+              <Leaf size={11} style={{ display: "inline", marginInlineStart: 6 }} />
             </span>
           </footer>
         </main>
@@ -1519,8 +1532,8 @@ export function Dashboard({ view = "" }: { view?: string }) {
         </div>
       )}
       {modal === "property" && (
-        <Modal title="A new place. A new welcome." close={close}>
-          <p>Add the basics and bring your guest guide to life.</p>
+        <Modal title={tr("A new place. A new welcome.")} close={close} closeLabel={tr("Close dialog")}>
+          <p>{tr("Add the basics and bring your guest guide to life.")}</p>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -1529,26 +1542,26 @@ export function Dashboard({ view = "" }: { view?: string }) {
             className="form-grid"
           >
             <label>
-              Property name
+              {tr("Property name")}
               <input
                 name="name"
-                placeholder="e.g. The Little Olive House"
+                placeholder={tr("e.g. The Little Olive House")}
                 required
                 minLength={2}
                 maxLength={120}
               />
             </label>
             <label>
-              City, country
+              {tr("City, country")}
               <input
                 name="location"
-                placeholder="e.g. Gatlinburg, Tennessee"
+                placeholder={tr("e.g. Gatlinburg, Tennessee")}
                 required
                 minLength={2}
               />
             </label>
             <label>
-              Street address <small>Optional · used for “Open in Maps”</small>
+              {tr("Street address")} <small>{tr("Optional · used for “Open in Maps”")}</small>
               <input
                 name="address"
                 placeholder="e.g. 123 Ridge Road, Gatlinburg, TN 37738"
@@ -1557,29 +1570,29 @@ export function Dashboard({ view = "" }: { view?: string }) {
               />
             </label>
             <label>
-              Your house manual <small>Optional · Only content you own</small>
+              {tr("Your house manual")} <small>{tr("Optional · Only content you own")}</small>
               <textarea
                 name="description"
                 maxLength={12000}
-                placeholder="Paste your arrival details, house rules, and favorite local tips…"
+                placeholder={tr("Paste your arrival details, house rules, and favorite local tips…")}
               />
             </label>
             <div className="notice">
               {live && liveState.services.ai
-                ? "Our AI will organize your text into guide sections using only what you wrote."
-                : "We’ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as “WI-FI:” for best results."}
+                ? tr("Our AI will organize your text into guide sections using only what you wrote.")
+                : tr("We’ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as “WI-FI:” for best results.")}
             </div>
             {error && <p className="error-text">{error}</p>}
             <button className="button" disabled={creating}>
               <Sparkles size={16} />
-              {creating ? "Building your guide…" : "Create my guide"}
+              {creating ? tr("Building your guide…") : tr("Create my guide")}
             </button>
           </form>
         </Modal>
       )}
       {modal === "extra" && (
-        <Modal title="A thoughtful little extra" close={close}>
-          <p>Give your guests one more reason to love their stay.</p>
+        <Modal title={tr("A thoughtful little extra")} close={close} closeLabel={tr("Close dialog")}>
+          <p>{tr("Give your guests one more reason to love their stay.")}</p>
           <form
             className="form-grid"
             onSubmit={(e) => {
@@ -1604,11 +1617,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 ],
               });
               close();
-              notify("Extra added to your demo guide.");
+              notify(tr("Extra added to your demo guide."));
             }}
           >
             <label>
-              Property
+              {tr("Property")}
               <select name="property">
                 {state.properties.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -1618,20 +1631,20 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </select>
             </label>
             <label>
-              Name
+              {tr("Name")}
               <input
                 required
                 name="name"
-                placeholder="A basket of local favorites"
+                placeholder={tr("A basket of local favorites")}
                 maxLength={100}
               />
             </label>
             <label>
-              Description
+              {tr("Description")}
               <textarea required name="description" maxLength={1000} />
             </label>
             <label>
-              Price ({CURRENCY_SYMBOL})
+              {tr("Price ({symbol})", { symbol: CURRENCY_SYMBOL })}
               <input
                 required
                 type="number"
@@ -1649,11 +1662,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 name="approval"
                 defaultChecked
               />
-              Require my approval before payment
+              {tr("Require my approval before payment")}
             </label>
             <button className="button">
               <Plus size={15} />
-              Create extra
+              {tr("Create extra")}
             </button>
           </form>
         </Modal>

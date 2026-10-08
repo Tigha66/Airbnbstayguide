@@ -4,6 +4,8 @@ import { Send, Check, X, RefreshCw, CreditCard, Landmark, ExternalLink } from "l
 import { money, plans, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
 import { PageHeading } from "./ui";
 import { HotelPlanCard } from "./hotel-plan";
+import { useAppLocale } from "./app-locale";
+import { siteText } from "@/lib/site-i18n";
 
 type Thread = {
   threadId: string;
@@ -24,8 +26,8 @@ type ExtraRequest = {
   prepaid: boolean;
   createdAt: string;
 };
-const when = (iso: string) =>
-  new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const when = (iso: string, locale?: string) =>
+  new Date(iso).toLocaleString(locale, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 function usePoll<T>(url: string, ms: number) {
   const [data, setData] = useState<T | null>(null);
@@ -53,6 +55,7 @@ function usePoll<T>(url: string, ms: number) {
 }
 
 export function LiveInbox({ notify }: { notify: (m: string) => void }) {
+  const { locale, tr } = useAppLocale();
   const { data, error, reload } = usePoll<{ threads: Thread[] }>("/api/v1/inbox", 10000);
   const [selected, setSelected] = useState<string | null>(null);
   const [reply, setReply] = useState("");
@@ -61,18 +64,18 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
   const thread = threads.find((t) => t.threadId === selected) ?? threads[0];
   return (
     <>
-      <PageHeading title="A little human touch" description="Your concierge takes care of the everyday. You take care of the rest.">
+      <PageHeading title={tr("A little human touch")} description={tr("Your concierge takes care of the everyday. You take care of the rest.")}>
         <label className="row" style={{ gap: 8, fontSize: 13 }}>
           <input type="checkbox" checked={onlyEscalated} onChange={(e) => setOnlyEscalated(e.target.checked)} />
-          Needs your help only
+          {tr("Needs your help only")}
         </label>
       </PageHeading>
-      {error && <div className="notice">Couldn’t load conversations. Retrying…</div>}
-      {!data && !error && <div className="card panel">Loading conversations…</div>}
+      {error && <div className="notice">{tr("Couldn’t load conversations. Retrying…")}</div>}
+      {!data && !error && <div className="card panel">{tr("Loading conversations…")}</div>}
       {data && threads.length === 0 && (
         <div className="card panel">
-          <h3>All quiet for now</h3>
-          <p>When a guest asks something your guide doesn’t answer, the conversation appears here so you can reply.</p>
+          <h3>{tr("All quiet for now")}</h3>
+          <p>{tr("When a guest asks something your guide doesn’t answer, the conversation appears here so you can reply.")}</p>
         </div>
       )}
       {thread && (
@@ -84,11 +87,11 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
                 <button className={`thread-item ${thread.threadId === t.threadId ? "active" : ""}`} key={t.threadId} onClick={() => setSelected(t.threadId)}>
                   <div className="row">
                     <span className="avatar">G</span>
-                    <strong>Guest</strong>
+                    <strong>{tr("Guest")}</strong>
                   </div>
-                  <span>{t.propertyName} · {when(t.lastAt)}</span>
+                  <span>{t.propertyName} · {when(t.lastAt, locale)}</span>
                   <span>{firstGuest?.content}</span>
-                  {t.escalated && <span className="pill amber" style={{ width: "fit-content" }}>Needs your help</span>}
+                  {t.escalated && <span className="pill amber" style={{ width: "fit-content" }}>{tr("Needs your help")}</span>}
                 </button>
               );
             })}
@@ -97,7 +100,7 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
             <div className="row">
               <span className="avatar">G</span>
               <div>
-                <h3>Guest</h3>
+                <h3>{tr("Guest")}</h3>
                 <small>{thread.propertyName}</small>
               </div>
             </div>
@@ -105,7 +108,7 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
               {thread.messages.map((m, i) => (
                 <div key={i} className={`bubble ${m.role === "host" ? "host" : ""}`} style={m.role === "assistant" ? { opacity: 0.75 } : undefined}>
                   <small style={{ display: "block", fontSize: 10, opacity: 0.7 }}>
-                    {m.role === "guest" ? "Guest" : m.role === "host" ? "You" : "Concierge"} · {when(m.createdAt)}
+                    {m.role === "guest" ? tr("Guest") : m.role === "host" ? tr("You") : tr("Concierge")} · {when(m.createdAt, locale)}
                   </small>
                   {m.content}
                 </div>
@@ -123,13 +126,13 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
                 });
                 if (res.ok) {
                   setReply("");
-                  notify("Reply sent. The guest sees it in their guide chat.");
+                  notify(tr("Reply sent. The guest sees it in their guide chat."));
                   void reload();
-                } else notify("Couldn’t send your reply. Please try again.");
+                } else notify(tr("Couldn’t send your reply. Please try again."));
               }}
             >
-              <input aria-label="Reply to guest" placeholder="A thoughtful reply…" value={reply} onChange={(e) => setReply(e.target.value)} />
-              <button className="button" aria-label="Send reply">
+              <input aria-label={tr("Reply to guest")} placeholder={tr("A thoughtful reply…")} value={reply} onChange={(e) => setReply(e.target.value)} />
+              <button className="button" aria-label={tr("Send reply")}>
                 <Send size={16} />
               </button>
             </form>
@@ -141,6 +144,7 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
 }
 
 export function LiveExtraRequests({ notify }: { notify: (m: string) => void }) {
+  const { locale, tr } = useAppLocale();
   const { data, reload } = usePoll<{ requests: ExtraRequest[] }>("/api/v1/extra-requests", 20000);
   const act = async (id: string, status: "approved" | "declined" | "paid" | "refunded") => {
     const res = await fetch(`/api/v1/extra-requests/${id}`, {
@@ -150,47 +154,47 @@ export function LiveExtraRequests({ notify }: { notify: (m: string) => void }) {
     });
     const body = await res.json().catch(() => ({}));
     const done: Record<string, string> = {
-      paid: "Payment captured. The money is on its way to your bank.",
-      approved: "Request approved. Let your guest know how to pay.",
-      declined: "Request declined. Any card hold has been released.",
-      refunded: "Refund issued to the guest.",
+      paid: tr("Payment captured. The money is on its way to your bank."),
+      approved: tr("Request approved. Let your guest know how to pay."),
+      declined: tr("Request declined. Any card hold has been released."),
+      refunded: tr("Refund issued to the guest."),
     };
-    notify(res.ok ? done[body.status] ?? "Request updated." : body.error || "Couldn’t update the request.");
+    notify(res.ok ? done[body.status] ?? tr("Request updated.") : body.error || tr("Couldn’t update the request."));
     void reload();
   };
   const requests = data?.requests ?? [];
   return (
     <div className="card panel" style={{ marginBottom: 22 }}>
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <h3>Guest requests</h3>
-        <button className="button secondary small" onClick={() => void reload()} aria-label="Refresh requests">
+        <h3>{tr("Guest requests")}</h3>
+        <button className="button secondary small" onClick={() => void reload()} aria-label={tr("Refresh requests")}>
           <RefreshCw size={13} />
         </button>
       </div>
-      {!data && <p>Loading requests…</p>}
-      {data && requests.length === 0 && <p>No requests yet. Guests can request extras from the “Little extras” tab of your guide.</p>}
+      {!data && <p>{tr("Loading requests…")}</p>}
+      {data && requests.length === 0 && <p>{tr("No requests yet. Guests can request extras from the “Little extras” tab of your guide.")}</p>}
       {requests.map((r) => (
         <div className="activity-item" key={r.id} style={{ alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <strong>{r.extraName}</strong> · {money(r.price)}
             <div style={{ fontSize: 12, color: "var(--muted)" }}>
-              {r.propertyName} · {r.guestName} · <a href={r.guestContact.includes("@") ? `mailto:${r.guestContact}` : `tel:${r.guestContact}`}>{r.guestContact}</a> · {when(r.createdAt)}
+              {r.propertyName} · {r.guestName} · <a href={r.guestContact.includes("@") ? `mailto:${r.guestContact}` : `tel:${r.guestContact}`}>{r.guestContact}</a> · {when(r.createdAt, locale)}
             </div>
             {r.note && <div style={{ fontSize: 12, marginTop: 4 }}>“{r.note}”</div>}
           </div>
-          <span className={`pill ${r.status === "pending" ? "amber" : ""}`}>{r.status}</span>
-          {r.prepaid && r.status !== "refunded" && <span className="pill">{r.status === "pending" ? "card authorised" : "paid online"}</span>}
+          <span className={`pill ${r.status === "pending" ? "amber" : ""}`}>{tr(r.status)}</span>
+          {r.prepaid && r.status !== "refunded" && <span className="pill">{r.status === "pending" ? tr("card authorised") : tr("paid online")}</span>}
           {r.status === "pending" && (
             <div className="row" style={{ gap: 6 }}>
-              <button className="button small" onClick={() => act(r.id, "approved")}><Check size={13} /> {r.prepaid ? "Approve & charge" : "Approve"}</button>
-              <button className="button secondary small" onClick={() => act(r.id, "declined")}><X size={13} /> {r.prepaid ? "Decline & release" : "Decline"}</button>
+              <button className="button small" onClick={() => act(r.id, "approved")}><Check size={13} /> {r.prepaid ? tr("Approve & charge") : tr("Approve")}</button>
+              <button className="button secondary small" onClick={() => act(r.id, "declined")}><X size={13} /> {r.prepaid ? tr("Decline & release") : tr("Decline")}</button>
             </div>
           )}
           {r.status === "approved" && !r.prepaid && (
-            <button className="button secondary small" onClick={() => act(r.id, "paid")}>Mark as paid</button>
+            <button className="button secondary small" onClick={() => act(r.id, "paid")}>{tr("Mark as paid")}</button>
           )}
           {r.status === "paid" && r.prepaid && (
-            <button className="button secondary small" onClick={() => { if (confirm("Refund this guest in full?")) void act(r.id, "refunded"); }}>Refund</button>
+            <button className="button secondary small" onClick={() => { if (confirm(tr("Refund this guest in full?"))) void act(r.id, "refunded"); }}>{tr("Refund")}</button>
           )}
         </div>
       ))}
@@ -210,23 +214,24 @@ type Stats = {
   aiMessageLimit?: number;
 };
 export function LiveAnalytics() {
+  const { tr } = useAppLocale();
   const { data, error } = usePoll<Stats>("/api/v1/analytics", 60000);
   return (
     <>
-      <PageHeading title="Good stays, by the numbers" description="A little insight into what makes your guests feel at home." />
-      {error && <div className="notice">Couldn’t load analytics.</div>}
-      {!data && !error && <div className="card panel">Loading…</div>}
+      <PageHeading title={tr("Good stays, by the numbers")} description={tr("A little insight into what makes your guests feel at home.")} />
+      {error && <div className="notice">{tr("Couldn’t load analytics.")}</div>}
+      {!data && !error && <div className="card panel">{tr("Loading…")}</div>}
       {data && (
         <>
           <div className="stats-grid">
             {[
-              ["Guide views (all time)", data.views.toLocaleString()],
-              ["Views, last 30 days", data.views30.toLocaleString()],
-              ["Guest questions", data.questions.toLocaleString()],
-              ["Answered without you", data.questions ? `${data.resolutionRate}%` : "—"],
-              ["Extras approved", money(data.extrasRevenue)],
-              ["Extra requests", String(data.extraRequests)],
-              ["AI messages this month", data.aiMessageLimit ? `${data.aiMessagesThisMonth.toLocaleString()} / ${data.aiMessageLimit.toLocaleString()}` : String(data.aiMessagesThisMonth)],
+              [tr("Guide views (all time)"), data.views.toLocaleString()],
+              [tr("Views, last 30 days"), data.views30.toLocaleString()],
+              [tr("Guest questions"), data.questions.toLocaleString()],
+              [tr("Answered without you"), data.questions ? `${data.resolutionRate}%` : "—"],
+              [tr("Extras approved"), money(data.extrasRevenue)],
+              [tr("Extra requests"), String(data.extraRequests)],
+              [tr("AI messages this month"), data.aiMessageLimit ? `${data.aiMessagesThisMonth.toLocaleString()} / ${data.aiMessageLimit.toLocaleString()}` : String(data.aiMessagesThisMonth)],
             ].map(([label, value]) => (
               <div className="card stat-card" key={label}>
                 <div className="stat-top">{label}</div>
@@ -235,8 +240,8 @@ export function LiveAnalytics() {
             ))}
           </div>
           <div className="card panel" style={{ marginTop: 25 }}>
-            <h3>The things guests ask</h3>
-            {data.topQuestions.length === 0 && <p>Questions will appear here once guests start chatting.</p>}
+            <h3>{tr("The things guests ask")}</h3>
+            {data.topQuestions.length === 0 && <p>{tr("Questions will appear here once guests start chatting.")}</p>}
             {data.topQuestions.map((q) => (
               <div className="activity-item" key={q.question}>
                 <span style={{ flex: 1, fontSize: 12 }}>{q.question}</span>
@@ -273,7 +278,16 @@ async function postForUrl(url: string, body?: unknown) {
 }
 
 export function LiveBilling({ notify }: { notify: (m: string) => void }) {
+  const { locale, tr } = useAppLocale();
   const { data, error, reload } = usePoll<BillingState>("/api/v1/billing", 60000);
+  // Country names in the dashboard language (falls back to English names).
+  const countryName = (code: string, fallback: string) => {
+    try {
+      return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? fallback;
+    } catch {
+      return fallback;
+    }
+  };
   const [yearly, setYearly] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   // The country picker only renders after billing loads client-side, so reading navigator here is hydration-safe.
@@ -285,10 +299,10 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     const messages: Record<string, string> = {
-      "checkout=success": "Thank you! Your plan is being activated. This can take a few seconds.",
-      "checkout=cancelled": "Checkout cancelled. Nothing was charged.",
-      "payouts=done": "Payout details saved. Stripe may take a moment to verify them.",
-      "payouts=retry": "That setup link expired. Please continue payout setup.",
+      "checkout=success": tr("Thank you! Your plan is being activated. This can take a few seconds."),
+      "checkout=cancelled": tr("Checkout cancelled. Nothing was charged."),
+      "payouts=done": tr("Payout details saved. Stripe may take a moment to verify them."),
+      "payouts=retry": tr("That setup link expired. Please continue payout setup."),
     };
     for (const [k, msg] of Object.entries(messages)) {
       const [key, value] = k.split("=");
@@ -298,7 +312,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
         if (key === "checkout") setTimeout(reload, 3000);
       }
     }
-  }, [notify, reload]);
+  }, [notify, reload, tr]);
   const run = async (key: string, fn: () => Promise<void>) => {
     setBusy(key);
     try {
@@ -310,110 +324,119 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
       setBusy(null);
     }
   };
-  if (error && !data) return <div className="notice">Couldn’t load billing. Please refresh the page.</div>;
-  if (!data) return <p>Loading billing…</p>;
+  if (error && !data) return <div className="notice">{tr("Couldn’t load billing. Please refresh the page.")}</div>;
+  if (!data) return <p>{tr("Loading billing…")}</p>;
+  const hotelText = siteText(locale).hotel;
+  const planName = (plan: Plan) => (plan === "free" ? tr("Free") : plan === "hotel" ? hotelText.name : plans[plan].name);
+  const countText = (n: number) => (n === 1 ? tr("1 property") : tr("{n} properties", { n }));
   const qty = data.billableQuantity;
   return (
     <>
-      <PageHeading title="Plans & billing" description="Simple, per-property pricing. Change or cancel any time." />
-      {!data.stripe && <div className="notice" style={{ marginBottom: 16 }}>Payments are not connected on this deployment yet.</div>}
+      <PageHeading title={tr("Plans & billing")} description={tr("Simple, per-property pricing. Change or cancel any time.")} />
+      {!data.stripe && <div className="notice" style={{ marginBottom: 16 }}>{tr("Payments are not connected on this deployment yet.")}</div>}
       <div className="card panel" style={{ marginBottom: 20 }}>
         <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
-            <div className="eyebrow">Current plan</div>
+            <div className="eyebrow">{tr("Current plan")}</div>
             <h3 style={{ margin: "4px 0" }}>
-              {plans[data.plan].name}
-              {data.status && data.status !== "active" && <span className="pill amber" style={{ marginLeft: 8 }}>{data.status.replace("_", " ")}</span>}
+              {planName(data.plan)}
+              {data.status && data.status !== "active" && <span className="pill amber" style={{ marginInlineStart: 8 }}>{tr(data.status.replace("_", " "))}</span>}
             </h3>
             <small>
-              {data.propertyCount} propert{data.propertyCount === 1 ? "y" : "ies"} · up to {plans[data.plan].properties} on this plan · {plans[data.plan].messages.toLocaleString()} AI messages / property / month
+              {countText(data.propertyCount)} · {tr("up to {n} on this plan", { n: plans[data.plan].properties.toLocaleString() })} ·{" "}
+              {tr("{n} AI messages / property / month", { n: plans[data.plan].messages.toLocaleString() })}
             </small>
           </div>
           {data.subscribed && (
             <button className="button" disabled={busy !== null} onClick={() => run("portal", () => postForUrl("/api/v1/billing/portal"))}>
-              <CreditCard size={15} /> {busy === "portal" ? "Opening…" : "Manage billing"}
+              <CreditCard size={15} /> {busy === "portal" ? tr("Opening…") : tr("Manage billing")}
             </button>
           )}
         </div>
-        {data.status === "past_due" && <div className="notice" style={{ marginTop: 12 }}>Your last payment failed. Please update your card in “Manage billing” to keep your plan.</div>}
+        {data.status === "past_due" && <div className="notice" style={{ marginTop: 12 }}>{tr("Your last payment failed. Please update your card in “Manage billing” to keep your plan.")}</div>}
       </div>
 
       {data.plan === "hotel" && (
         <>
           <div className="notice" style={{ marginBottom: 16 }}>
-            Your Hotel & Multi-Unit plan is managed by StayGuide and invoiced separately. Contact us to change it.
+            {tr("Your Hotel & Multi-Unit plan is managed by StayGuide and invoiced separately. Contact us to change it.")}
           </div>
           <div className="pricing-grid">
-            <HotelPlanCard current />
+            <HotelPlanCard current text={hotelText} />
           </div>
         </>
       )}
       {!data.subscribed && data.plan !== "hotel" && (
         <>
           <div className="filter-bar">
-            <small>Billed for {qty} propert{qty === 1 ? "y" : "ies"} · updates automatically as you add or remove properties</small>
+            <small>{tr("Billed for {n} · updates automatically as you add or remove properties", { n: countText(qty) })}</small>
             <div className="tabs">
-              <button className={!yearly ? "active" : ""} onClick={() => setYearly(false)}>Monthly</button>
-              <button className={yearly ? "active" : ""} onClick={() => setYearly(true)}>Yearly · 2 months free</button>
+              <button className={!yearly ? "active" : ""} onClick={() => setYearly(false)}>{tr("Monthly")}</button>
+              <button className={yearly ? "active" : ""} onClick={() => setYearly(true)}>{tr("Yearly · 2 months free")}</button>
             </div>
           </div>
           <div className="pricing-grid">
             {(["starter", "pro"] as const).map((plan) => (
               <div className={`card pricing-card ${plan === "pro" ? "featured" : ""}`} key={plan}>
                 <div className="eyebrow">{plans[plan].name}</div>
-                <h3>{plan === "starter" ? "For the independent host" : "Your hospitality, elevated"}</h3>
+                <h3>{plan === "starter" ? tr("For the independent host") : tr("Your hospitality, elevated")}</h3>
                 <div className="price">{CURRENCY_SYMBOL}{plans[plan].monthly * qty * (yearly ? 10 : 1)}</div>
-                <small>{yearly ? "per year" : "per month"} · {CURRENCY_SYMBOL}{plans[plan].monthly}/property/month{yearly ? ", billed yearly" : ""}</small>
+                <small>
+                  {yearly ? tr("per year") : tr("per month")} · {tr("{price}/property/month", { price: `${CURRENCY_SYMBOL}${plans[plan].monthly}` })}
+                  {yearly ? tr(", billed yearly") : ""}
+                </small>
                 <ul>
-                  <li><Check size={14} /> Up to {plans[plan].properties} properties</li>
-                  <li><Check size={14} /> {plans[plan].messages} AI concierge messages / property / month</li>
-                  <li><Check size={14} /> Paid extras · 5% platform fee</li>
-                  {plan === "pro" && <li><Check size={14} /> Priority support</li>}
+                  <li><Check size={14} /> {tr("Up to {n} properties", { n: plans[plan].properties })}</li>
+                  <li><Check size={14} /> {tr("{n} AI concierge messages / property / month", { n: plans[plan].messages.toLocaleString() })}</li>
+                  <li><Check size={14} /> {tr("Paid extras · 5% platform fee")}</li>
+                  {plan === "pro" && <li><Check size={14} /> {tr("Priority support")}</li>}
                 </ul>
                 <button
                   className={`button ${plan === "pro" ? "" : "secondary"}`}
                   disabled={!data.stripe || busy !== null}
                   onClick={() => run(plan, () => postForUrl("/api/v1/billing/checkout", { plan, yearly }))}
                 >
-                  {busy === plan ? "Opening checkout…" : `Choose ${plans[plan].name}`}
+                  {busy === plan ? tr("Opening checkout…") : tr("Choose {plan}", { plan: plans[plan].name })}
                 </button>
               </div>
             ))}
-            <HotelPlanCard />
+            <HotelPlanCard text={hotelText} />
           </div>
-          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>Prices in {CURRENCY.toUpperCase()} ({CURRENCY_SYMBOL}). Secure payment by Stripe. Cancel any time from “Manage billing”.</p>
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>
+            {tr("Prices in {code} ({symbol}). Secure payment by Stripe. Cancel any time from “Manage billing”.", { code: CURRENCY.toUpperCase(), symbol: CURRENCY_SYMBOL })}
+          </p>
         </>
       )}
 
       <div className="card panel" style={{ marginTop: 24 }}>
         <div className="row" style={{ gap: 10, alignItems: "center" }}>
           <Landmark size={18} />
-          <h3 style={{ margin: 0 }}>Get paid for extras</h3>
-          {data.payouts.ready && <span className="pill">Active</span>}
+          <h3 style={{ margin: 0 }}>{tr("Get paid for extras")}</h3>
+          {data.payouts.ready && <span className="pill">{tr("Active")}</span>}
         </div>
         {data.payouts.ready ? (
           <>
-            <p>Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.</p>
+            <p>{tr("Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.")}</p>
             <button className="button secondary" disabled={busy !== null} onClick={() => run("dash", () => postForUrl("/api/v1/connect/dashboard"))}>
-              <ExternalLink size={14} /> {busy === "dash" ? "Opening…" : "Open payouts dashboard"}
+              <ExternalLink size={14} /> {busy === "dash" ? tr("Opening…") : tr("Open payouts dashboard")}
             </button>
           </>
         ) : connectBlocked ? (
-          <p>Online payments for extras are coming soon. Until then, guests send requests and you confirm how they pay.</p>
+          <p>{tr("Online payments for extras are coming soon. Until then, guests send requests and you confirm how they pay.")}</p>
         ) : (
           <>
-            <p>Connect a bank account with Stripe so guests can pay for extras online. Until then, guests send requests and you confirm payment yourself.</p>
+            <p>{tr("Connect a bank account with Stripe so guests can pay for extras online. Until then, guests send requests and you confirm payment yourself.")}</p>
             <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
               {!data.payouts.started && (
                 <label>
-                  Country of your bank account
+                  {tr("Country of your bank account")}
                   <select value={country} onChange={(e) => setCountry(e.target.value)}>
-                    {COUNTRIES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+                    {COUNTRIES.map(([code, name]) => <option key={code} value={code}>{countryName(code, name)}</option>)}
                   </select>
                 </label>
               )}
               <button className="button" disabled={!data.stripe || busy !== null} onClick={() => run("connect", () => postForUrl("/api/v1/connect", data.payouts.started ? {} : { country }))}>
-                {busy === "connect" ? "Opening Stripe…" : data.payouts.started ? "Continue payout setup" : "Set up payouts"}
+                {busy === "connect" ? tr("Opening Stripe…") : data.payouts.started ? tr("Continue payout setup") : tr("Set up payouts")}
               </button>
             </div>
           </>

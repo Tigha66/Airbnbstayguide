@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import { Login } from "@/components/login";
 import { auth, authConfigured, signIn } from "@/auth";
-export const metadata = { title: "Welcome back" };
+import { requestLocale } from "@/lib/request-locale";
+import { makeTr } from "@/lib/app-i18n";
+export async function generateMetadata() {
+  return { title: makeTr(await requestLocale())("Welcome back") };
+}
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
@@ -15,5 +19,5 @@ export default async function Page({
     "use server";
     await signIn("google", { redirectTo: "/dashboard" });
   }
-  return <Login configured={configured} error={error} googleAction={google} />;
+  return <Login configured={configured} error={error} googleAction={google} locale={await requestLocale()} />;
 }
