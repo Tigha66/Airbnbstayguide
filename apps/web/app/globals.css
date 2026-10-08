@@ -2852,3 +2852,49 @@ small {
     grid-column: auto;
   }
 }
+/* Guest guide: automatic translation note */
+.translation-note {
+  margin-top: 12px !important;
+  font-size: 11px !important;
+  color: var(--muted);
+}
+.translation-note button {
+  color: var(--teal);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* Guest guide: Arabic (right-to-left) */
+.guest-page[lang="ar"],
+.guest-page[lang="ar"] :is(h1, h2, h3, h4, p, button, input, textarea, select, small, span, strong, a) {
+  font-family: var(--font-arabic), var(--font-sans-stack);
+}
+/* Negative letter-spacing breaks the joined letters of Arabic script. */
+.guest-page[lang="ar"] * {
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+}
+.guest-page[lang="ar"] h1 {
+  line-height: 1.25;
+}
+.guest-page[dir="rtl"] .guest-section summary svg:last-child {
+  margin-left: 0;
+  margin-right: auto;
+  transform: scaleX(-1);
+}
+.guest-page[dir="rtl"] .guest-section[open] summary svg:last-child {
+  transform: rotate(90deg);
+}
+.guest-page[dir="rtl"] .lucide-chevron-right {
+  transform: scaleX(-1);
+}
+.guest-page[dir="rtl"] .bubble {
+  border-radius: 14px 14px 2px 14px;
+}
+.guest-page[dir="rtl"] .bubble.host {
+  border-radius: 14px 14px 14px 2px;
+}
+.guest-page[dir="rtl"] .markdown ul {
+  padding-left: 0;
+  padding-right: 20px;
+}
