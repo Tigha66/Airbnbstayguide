@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Noto_Sans_Arabic, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 const sans = Inter({
@@ -12,6 +12,13 @@ const display = Plus_Jakarta_Sans({
   weight: ["600", "700", "800"],
   variable: "--font-display",
   display: "swap",
+});
+// Arabic guest guides; only downloaded when Arabic text is shown.
+const arabic = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  variable: "--font-arabic",
+  display: "swap",
+  preload: false,
 });
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -40,7 +47,7 @@ export const viewport: Viewport = {
 };
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable}`}>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${arabic.variable}`}>
       <body>
         {children}
         <Analytics />

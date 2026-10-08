@@ -13,8 +13,9 @@ import {
   Download,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { demoAnswer, languages, mapsUrl, money, type Property } from "@stayguide/shared";
+import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, type GuideText, type Property } from "@stayguide/shared";
 import { useDemo } from "@/lib/demo-store";
+import { fill, guestText, isRtl } from "@/lib/guest-i18n";
 import { Logo, GuideIcon } from "./ui";
 type Message = {
   role: "assistant" | "user" | "host";
@@ -31,9 +32,17 @@ export function GuestGuide({
 }) {
   const state = useDemo();
   const liveGuide = Boolean(initial);
-  const property = initial ?? state.properties.find((p) => p.slug === slug);
+  const original = initial ?? state.properties.find((p) => p.slug === slug);
+  const sample = !liveGuide && Boolean(original && demoProperties.some((p) => p.slug === slug));
   const [tab, setTab] = useState("guide");
   const [language, setLanguage] = useState("en");
+  const [translation, setTranslation] = useState<{ language: string; text: GuideText } | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
+  const t = guestText(language);
+  const rtl = isRtl(language);
+  const translated = Boolean(translation && translation.language === language && !showOriginal);
+  const property = original && translated ? applyGuideText(original, translation!.text) : original;
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
@@ -48,6 +57,46 @@ export function GuestGuide({
     const saved = localStorage.getItem(`stayguide-thread-${slug}`);
     if (saved) queueMicrotask(() => setThreadId(saved));
   }, [liveGuide, slug]);
+  // Guide content in the guest's language: AI translation from the server, cached per guide version.
+  useEffect(() => {
+    if (!(liveGuide || sample)) return;
+    let cancelled = false;
+    const cacheKey = `stayguide-translation-${slug}-${language}`;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setShowOriginal(false);
+      try {
+        const saved = sessionStorage.getItem(cacheKey);
+        if (saved) {
+          setTranslation({ language, text: JSON.parse(saved) as GuideText });
+          return;
+        }
+      } catch {
+        /* storage unavailable */
+      }
+      setTranslating(true);
+      fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((body: { translated?: boolean; text?: GuideText } | null) => {
+          if (cancelled) return;
+          if (body?.translated && body.text) {
+            setTranslation({ language, text: body.text });
+            try {
+              sessionStorage.setItem(cacheKey, JSON.stringify(body.text));
+            } catch {
+              /* storage full */
+            }
+          } else setTranslation(null);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setTranslating(false);
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveGuide, sample, slug, language]);
   useEffect(() => {
     if (!liveGuide || !threadId) return;
     const load = async () => {
@@ -80,18 +129,16 @@ export function GuestGuide({
     if (extra === "success" || extra === "cancelled") {
       queueMicrotask(() => {
         setTab("extras");
-        setToast(
-          extra === "success"
-            ? "Thank you! Your payment is confirmed. If your host needs to approve it, you’ll only be charged once they do."
-            : "Payment cancelled. Nothing was charged.",
-        );
+        const text = guestText(localStorage.getItem("stayguide-language") || navigator.language.split("-")[0]);
+        setToast(extra === "success" ? text.paid : text.paymentCancelled);
         setTimeout(() => setToast(""), 7000);
       });
       history.replaceState(null, "", location.pathname);
     }
-    const detected = navigator.language.split("-")[0];
-    if (languages.includes(detected as (typeof languages)[number]))
-      queueMicrotask(() => setLanguage(detected));
+    // The guest's saved choice, otherwise the phone's language.
+    const preferred = localStorage.getItem("stayguide-language") || navigator.language.split("-")[0];
+    if (languages.includes(preferred as (typeof languages)[number]))
+      queueMicrotask(() => setLanguage(preferred));
     const update = () => setOffline(!navigator.onLine);
     update();
     window.addEventListener("online", update);
@@ -153,7 +200,7 @@ export function GuestGuide({
         const body = await res.json();
         if (!res.ok) {
           answer = {
-            answer: body.error || "The concierge is unavailable right now. Please contact your host.",
+            answer: body.error || t.unavailable,
             citations: [],
             escalate: false,
           };
@@ -165,7 +212,7 @@ export function GuestGuide({
           }
         }
       } else {
-        answer = demoAnswer(property, text);
+        answer = demoAnswer(property, text, language);
         await new Promise((resolve) => setTimeout(resolve, 350));
       }
       setMessages((previous) => [
@@ -183,44 +230,38 @@ export function GuestGuide({
   }
   if (!property)
     return (
-      <div className="guest-page">
+      <div className="guest-page" dir={rtl ? "rtl" : "ltr"} lang={language}>
         <div className="guest-body">
           <Logo />
           <div className="empty">
             <BookOpen size={32} />
-            <h2>This guide isn’t here yet.</h2>
-            <p>
-              Check the link with your host. A guide created in the demo is
-              available only in the browser where it was made.
-            </p>
+            <h2>{t.notFoundTitle}</h2>
+            <p>{t.notFoundBody}</p>
             <Link className="button" href="/demo">
-              Explore the sample guide
+              {t.exploreSample}
             </Link>
           </div>
         </div>
       </div>
     );
   return (
-    <div className="guest-page">
-      {offline && (
-        <div className="offline-banner">
-          You’re offline. Your saved guide is still here.
-        </div>
-      )}
+    <div className="guest-page" dir={rtl ? "rtl" : "ltr"} lang={language}>
+      {offline && <div className="offline-banner">{t.offline}</div>}
       <div className="guest-cover">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={property.image} alt={property.name} fetchPriority="high" />
         <div className="guest-top">
           <Logo light />
           <select
-            aria-label="Concierge language"
+            aria-label={t.languageLabel}
             value={language}
             onChange={(e) => {
               setLanguage(e.target.value);
-              if (e.target.value !== "en")
-                notify(
-                  "The sample guide is in English. AI translation requires a connected provider.",
-                );
+              try {
+                localStorage.setItem("stayguide-language", e.target.value);
+              } catch {
+                /* private browsing */
+              }
             }}
             className="guest-language"
           >
@@ -245,10 +286,10 @@ export function GuestGuide({
           </select>
         </div>
         <div className="guest-cover-copy">
-          <div className="eyebrow">YOUR HOME AWAY FROM HOME</div>
+          <div className="eyebrow">{t.eyebrow}</div>
           <h1>{property.name}</h1>
           <p>
-            <MapPin size={12} style={{ display: "inline", marginRight: 5 }} />
+            <MapPin size={12} style={{ display: "inline", marginInlineEnd: 5 }} />
             {property.location}
           </p>
         </div>
@@ -257,29 +298,41 @@ export function GuestGuide({
         {tab === "guide" && (
           <>
             <div className="guest-welcome">
-              <h2>Olá, make yourself at home.</h2>
+              <h2>{t.welcome}</h2>
               <p>{property.description}</p>
+              {(translating || translation?.language === language) && (
+                <p className="translation-note" role="status">
+                  {translating ? (
+                    t.translating
+                  ) : (
+                    <>
+                      {showOriginal ? null : <span>{t.translated} · </span>}
+                      <button type="button" onClick={() => setShowOriginal((v) => !v)}>
+                        {showOriginal ? t.showTranslation : t.showOriginal}
+                      </button>
+                    </>
+                  )}
+                </p>
+              )}
             </div>
             <div className="guest-quick">
               <button
                 onClick={async () => {
                   if (!property.wifiPassword) {
-                    notify("Ask your host for the Wi-Fi details.");
+                    notify(t.wifiAsk);
                     return;
                   }
                   try {
                     await navigator.clipboard.writeText(property.wifiPassword);
-                    notify(`${property.wifi} · Password copied`);
+                    notify(fill(t.wifiCopied, { network: property.wifi }));
                   } catch {
-                    notify(
-                      `Network: ${property.wifi} · Password: ${property.wifiPassword}`,
-                    );
+                    notify(fill(t.wifiShow, { network: property.wifi, password: property.wifiPassword }));
                   }
                 }}
               >
                 <Wifi size={21} />
-                <span>Wi-Fi</span>
-                <small>Tap to connect</small>
+                <span>{t.wifi}</span>
+                <small>{t.wifiTap}</small>
               </button>
               <a
                 href={mapsUrl(property)}
@@ -287,20 +340,18 @@ export function GuestGuide({
                 rel="noopener noreferrer"
               >
                 <MapPin size={21} />
-                <span>Find your way</span>
-                <small>Open in Maps</small>
+                <span>{t.findWay}</span>
+                <small>{t.openMaps}</small>
               </a>
               <button
                 onClick={() => {
                   setTab("chat");
-                  notify(
-                    "This is a demo concierge. No real host is connected.",
-                  );
+                  if (!liveGuide) notify(t.demoConcierge);
                 }}
               >
                 <MessageCircle size={21} />
-                <span>Need a hand?</span>
-                <small>We’re here for you</small>
+                <span>{t.needHand}</span>
+                <small>{t.hereForYou}</small>
               </button>
             </div>
             <div
@@ -313,20 +364,20 @@ export function GuestGuide({
               }}
             >
               <span>
-                Check-in{" "}
+                {t.checkIn}{" "}
                 <strong style={{ color: "var(--ink)" }}>
                   {property.checkIn}
                 </strong>
               </span>
               <span>
-                Check-out{" "}
+                {t.checkOut}{" "}
                 <strong style={{ color: "var(--ink)" }}>
                   {property.checkOut}
                 </strong>
               </span>
             </div>
             <div className="section-heading">
-              <h2>All the little details</h2>
+              <h2>{t.details}</h2>
               <BookOpen size={16} color="#8e9a7e" />
             </div>
             {property.sections.map((section) => (
@@ -354,18 +405,17 @@ export function GuestGuide({
                     fontSize: 23,
                   }}
                 >
-                  A little help, whenever you need.
+                  {t.helpTitle}
                 </h3>
               </div>
               <p
                 className="muted"
                 style={{ fontSize: 12, margin: "12px 0 17px" }}
               >
-                From finding the coffee to planning your checkout. Your guide
-                has the answers.
+                {t.helpBody}
               </p>
               <button className="text-link" onClick={() => setTab("chat")}>
-                Meet your concierge
+                {t.meetConcierge}
                 <ChevronRight size={14} />
               </button>
             </div>
@@ -382,7 +432,7 @@ export function GuestGuide({
                 }}
               >
                 <Download size={16} />
-                Keep this guide on your home screen
+                {t.install}
               </button>
             )}
           </>
@@ -391,30 +441,22 @@ export function GuestGuide({
           <div className="guest-chat">
             <div className="guest-chat-header">
               <Sparkles size={30} />
-              <h2>Your little local helper.</h2>
+              <h2>{t.chatTitle}</h2>
               <p>
-                Ask about your stay at {property.name}.<br />
-                I’ll find the answer in your guide.
+                {fill(t.chatIntro, { name: property.name })}
+                <br />
+                {t.chatIntro2}
               </p>
             </div>
             {!liveGuide && (
-              <div className="notice">
-                Demo concierge · Answers come from this sample guide in English.
-                No host is contacted.
-              </div>
+              <div className="notice">{t.demoNotice}</div>
             )}
             <div className="chat-messages" aria-live="polite">
               {messages.length === 0 && (
                 <>
-                  <div className="bubble">
-                    Welcome! How can I help you settle in?
-                  </div>
+                  <div className="bubble">{t.chatWelcome}</div>
                   <div className="suggestions">
-                    {[
-                      "When is checkout?",
-                      "How does the coffee machine work?",
-                      "Where can I park?",
-                    ].map((q) => (
+                    {t.suggestions.map((q) => (
                       <button key={q} onClick={() => ask(q)}>
                         {q}
                       </button>
@@ -434,26 +476,24 @@ export function GuestGuide({
                     <span className="citation" key={c}>
                       <BookOpen
                         size={10}
-                        style={{ display: "inline", marginRight: 4 }}
+                        style={{ display: "inline", marginInlineEnd: 4 }}
                       />
-                      From your guide · {c}
+                      {t.fromGuide} · {c}
                     </span>
                   ))}
                   {m.role === "host" && (
-                    <span className="citation">From your host</span>
+                    <span className="citation">{t.fromHost}</span>
                   )}
                   {m.escalate && (
                     <span className="citation">
-                      {liveGuide
-                        ? "Your host has been notified and will reply here"
-                        : "Outside the sample guide · No host has been contacted"}
+                      {liveGuide ? t.notified : t.outsideSample}
                     </span>
                   )}
                 </div>
               ))}
               {busy && (
                 <div className="bubble" role="status">
-                  Finding that little detail…
+                  {t.thinking}
                 </div>
               )}
             </div>
@@ -468,12 +508,12 @@ export function GuestGuide({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={2000}
-                aria-label="Ask your concierge"
-                placeholder="Ask about your stay…"
+                aria-label={t.askLabel}
+                placeholder={t.askPlaceholder}
               />
               <button
                 className="button"
-                aria-label="Send question"
+                aria-label={t.send}
                 disabled={busy || !message.trim()}
               >
                 <Send size={17} />
@@ -484,17 +524,18 @@ export function GuestGuide({
         {tab === "extras" && (
           <>
             <div className="guest-welcome">
-              <h2>A little something extra.</h2>
+              <h2>{t.extrasTitle}</h2>
               <p>
-                Small comforts. Thoughtful touches.
+                {t.extrasBody1}
                 <br />
-                Make this stay a little more yours.
+                {t.extrasBody2}
               </p>
             </div>
-            <div className="notice" style={{ marginBottom: 20 }}>
-              Sample extras · No payment is taken and no reservation is made in
-              this demo.
-            </div>
+            {!liveGuide && (
+              <div className="notice" style={{ marginBottom: 20 }}>
+                {t.sampleExtras}
+              </div>
+            )}
             {property.extras.length ? (
               property.extras.map((extra) => (
                 <article className="card guest-extra" key={extra.id}>
@@ -511,12 +552,10 @@ export function GuestGuide({
                         onClick={() =>
                           liveGuide
                             ? setRequesting(extra)
-                            : notify(
-                                "Demo request only — nothing was sent or charged.",
-                              )
+                            : notify(t.demoRequest)
                         }
                       >
-                        {liveGuide ? "Request" : extra.approval ? "Request extra" : "Treat yourself"}
+                        {liveGuide ? t.request : extra.approval ? t.requestExtra : t.treat}
                         <ChevronRight size={12} />
                       </button>
                     </div>
@@ -524,7 +563,7 @@ export function GuestGuide({
                       <small
                         style={{ display: "block", fontSize: 9, marginTop: 10 }}
                       >
-                        Subject to your host’s approval
+                        {t.approval}
                       </small>
                     )}
                   </div>
@@ -533,8 +572,8 @@ export function GuestGuide({
             ) : (
               <div className="empty">
                 <Gift size={30} />
-                <h3>Lovely things are on their way.</h3>
-                <p>Your host hasn’t added any extras yet.</p>
+                <h3>{t.noExtrasTitle}</h3>
+                <p>{t.noExtrasBody}</p>
               </div>
             )}
           </>
@@ -558,35 +597,35 @@ export function GuestGuide({
               });
               const body = await res.json().catch(() => ({}));
               if (res.ok && body.checkoutUrl) {
-                notify("Opening secure checkout…");
+                notify(t.openingCheckout);
                 location.assign(body.checkoutUrl);
               } else if (res.ok) {
                 setRequesting(null);
-                notify(body.note || "Request sent! Your host will confirm and explain how to pay.");
-              } else notify(body.error || "Couldn’t send your request. Please try again.");
+                notify(body.note || t.requestSent);
+              } else notify(body.error || t.requestFailed);
             }}
           >
-            <h3>Request: {requesting.name} · {money(requesting.price)}</h3>
-            <p style={{ fontSize: 12 }}>
-              If your host accepts online payment you’ll continue to secure checkout (card, Apple Pay or Google Pay).
-              Extras that need your host’s approval are only charged once they confirm.
-            </p>
+            <h3>
+              {t.requestTitle}: {(property.extras.find((e) => e.id === requesting.id) ?? requesting).name} ·{" "}
+              {money(requesting.price)}
+            </h3>
+            <p style={{ fontSize: 12 }}>{t.requestHelp}</p>
             <label style={{ display: "block", marginTop: 10 }}>
-              Your name
+              {t.yourName}
               <input name="guestName" required minLength={2} maxLength={120} autoComplete="name" />
             </label>
             <label style={{ display: "block", marginTop: 10 }}>
-              Email or phone
+              {t.contact}
               <input name="guestContact" required minLength={5} maxLength={200} autoComplete="email" />
             </label>
             <label style={{ display: "block", marginTop: 10 }}>
-              Note for your host (optional)
-              <input name="note" maxLength={1000} placeholder="e.g. We land at 9 AM" />
+              {t.note}
+              <input name="note" maxLength={1000} placeholder={t.notePlaceholder} />
             </label>
             <div className="row" style={{ gap: 8, marginTop: 14 }}>
-              <button className="button">Continue</button>
+              <button className="button">{t.continue}</button>
               <button type="button" className="button secondary" onClick={() => setRequesting(null)}>
-                Cancel
+                {t.cancel}
               </button>
             </div>
           </form>
@@ -599,17 +638,17 @@ export function GuestGuide({
             marginTop: 30,
           }}
         >
-          A thoughtful stay, brought to you by{" "}
+          {t.footer}{" "}
           <Link href="/" style={{ color: "var(--teal)" }}>
             stayguide.
           </Link>
         </p>
       </main>
-      <nav className="guest-nav" aria-label="Guest guide navigation">
+      <nav className="guest-nav" aria-label={t.navLabel}>
         {[
-          { id: "guide", label: "Your stay", Icon: BookOpen },
-          { id: "chat", label: "Concierge", Icon: Sparkles },
-          { id: "extras", label: "Little extras", Icon: Gift },
+          { id: "guide", label: t.navStay, Icon: BookOpen },
+          { id: "chat", label: t.navConcierge, Icon: Sparkles },
+          { id: "extras", label: t.navExtras, Icon: Gift },
         ].map(({ id, label, Icon }) => (
           <button
             className={tab === id ? "active" : ""}

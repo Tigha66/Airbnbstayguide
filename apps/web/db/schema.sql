@@ -78,3 +78,12 @@ ALTER TABLE extra_requests ADD CONSTRAINT extra_requests_status_check CHECK (sta
 CREATE UNIQUE INDEX IF NOT EXISTS extra_requests_checkout_idx ON extra_requests(checkout_session_id);
 -- Insertion order for chat messages (a guest question and its answer can share a timestamp)
 ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS seq bigserial;
+-- AI translations of guide content for guests, reused until the host edits the guide
+CREATE TABLE IF NOT EXISTS guide_translations (
+  property_key text NOT NULL,
+  language text NOT NULL,
+  source_hash text NOT NULL,
+  data jsonb NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (property_key, language)
+);

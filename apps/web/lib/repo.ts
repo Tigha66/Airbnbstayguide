@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { plans, sectionSchema, type Plan, type Property } from "@stayguide/shared";
+import { plans, sectionSchema, type GuideText, type Plan, type Property } from "@stayguide/shared";
 import { query } from "./db";
 import { parseManual, extractWifi, extractTime } from "./guide-parser";
 
@@ -133,6 +133,7 @@ export async function updateProperty(ownerId: string, id: string, data: z.infer<
 }
 export async function deleteProperty(ownerId: string, id: string) {
   const rows = await query(`DELETE FROM properties WHERE owner_id = $1 AND id = $2 RETURNING id`, [ownerId, id]);
+  if (rows.length) await query(`DELETE FROM guide_translations WHERE property_key = $1`, [id]);
   return rows.length > 0;
 }
 
@@ -427,4 +428,20 @@ export async function adminHosts(): Promise<AdminHostRow[]> {
       signedUp: new Date(r.created_at as string).toISOString().slice(0, 10),
     };
   });
+}
+
+/** Cached AI translation of a guide, only if it matches the guide's current text. */
+export async function getGuideTranslation(propertyKey: string, language: string, sourceHash: string) {
+  const [row] = await query<{ data: GuideText }>(
+    `SELECT data FROM guide_translations WHERE property_key = $1 AND language = $2 AND source_hash = $3`,
+    [propertyKey, language, sourceHash],
+  );
+  return row?.data ?? null;
+}
+export async function saveGuideTranslation(propertyKey: string, language: string, sourceHash: string, data: GuideText) {
+  await query(
+    `INSERT INTO guide_translations (property_key, language, source_hash, data) VALUES ($1, $2, $3, $4)
+     ON CONFLICT (property_key, language) DO UPDATE SET source_hash = EXCLUDED.source_hash, data = EXCLUDED.data, created_at = now()`,
+    [propertyKey, language, sourceHash, JSON.stringify(data)],
+  );
 }
