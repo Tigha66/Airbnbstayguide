@@ -109,7 +109,10 @@ Demo on your phone: https://www.getstayguide.com/demo
 Could I set up one of your properties for free so you can see the
 results with real guests?
 
-[Your name] · StayGuide · [Business address]
+Abdelhak Tirha, Founder, StayGuide
+hello@getstayguide.com · www.getstayguide.com
+Book a 15-min demo: {Cal.com / Calendly link}
+{Business name}, {UK postal address}, United Kingdom
 Not interested? Reply "no" and I won't email again.
 ```
 
@@ -201,7 +204,7 @@ Unverified leads to check by hand: Kona Beach Properties (44, FindRentals), AA O
 
 **Offer:** free setup of 3 properties + 3 months free (Stripe promo code `PILOT`), then $9/property/month.
 **Demo link:** https://www.getstayguide.com/g/sea-breeze-loft (or your own US demo cabin).
-**Rules:** max 10 emails/day from a new domain, one link per email, real name + postal address + opt-out (CAN-SPAM), no weekend sends (turnover days).
+**Rules:** max 10 emails/day from a new domain, one link per email, real name + a valid postal address (your UK business address is fine under CAN-SPAM) + opt-out, no weekend sends (turnover days). No US phone needed: use a Cal.com/Calendly booking link for Zoom/Google Meet demos. Send 2–5 pm UK for the East Coast, 5–8 pm UK for the West Coast.
 
 ## Email 1 — the main email (Day 1)
 ```
@@ -226,8 +229,10 @@ https://www.getstayguide.com/g/sea-breeze-loft
 Would you like me to set up 3 of your properties free for 3 months, so
 you can see the results with real guests?
 
-{Your name}
-StayGuide · {US phone} · {Postal address}
+Abdelhak Tirha, Founder, StayGuide
+hello@getstayguide.com · www.getstayguide.com
+Book a 15-min demo: {Cal.com / Calendly link}
+{Business name}, {UK postal address}, United Kingdom
 Not interested? Reply "no" and I won't email again.
 ```
 
@@ -281,7 +286,7 @@ Swap the "Quick question" paragraph for the one that fits:
 - **Cabin Rentals of Georgia:** "Gary, Lissa, Taylor and Travis — building many of the cabins yourselves shows in the details, and we'd love to help guests find those details 24/7."
 - **Oceanfront Cottage Rentals:** "You already promise 24/7 local support on Tybee — StayGuide answers the routine questions instantly so your team only handles what really needs them."
 
-## Phone script (Day 2, 10–11:30 AM or 2–4 PM their time)
+## Phone / video script (optional — via Zoom, Meet or WhatsApp call; 10–11:30 AM or 2–4 PM their time)
 > "Hi, this is {Name} from StayGuide. Who looks after guest communication for your rentals? … I'll be quick: we give each property a mobile guide with an AI concierge that answers guests' repeat questions 24/7 from your own house info — door codes, Wi-Fi, hot tubs — and sends your team only what it can't answer. I'm offering a few managers in {Area} a free setup of 3 properties. Could I send you a 1-minute demo link?"
 
 ## Contact-form version (for companies with no published email)
@@ -291,5 +296,5 @@ guest guide with a 24/7 AI concierge that answers guests from your house
 info, in their own language, and passes anything else to your team. I'd
 like to set up 3 of your properties free for 3 months so you can test it
 with real guests. Demo: https://www.getstayguide.com/g/sea-breeze-loft
-Who's the best person to talk to? {email} · {phone}
+Who's the best person to talk to? hello@getstayguide.com · {Cal.com / Calendly link}
 ```
