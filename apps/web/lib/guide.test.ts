@@ -51,3 +51,13 @@ describe("extractJson", () => {
     expect(extractJson('[{"x":1}] trailing')).toEqual([{ x: 1 }]);
   });
 });
+
+describe("parseManual headings match whole words", () => {
+  it("keeps cabin, outdoors, fireplace and beach headings as their own sections", () => {
+    const sections = parseManual(
+      "THE CABIN: Two bedrooms.\nOUTDOORS: Deck and grill.\nFIREPLACE: Gas only.\nBEACH: Chairs from March.\nBINS: Blue for recycling.",
+    );
+    expect(sections.map((s) => s.type)).toEqual(["custom", "custom", "custom", "custom", "trash"]);
+    expect(sections.map((s) => s.title)).toEqual(["The Cabin", "Outdoors", "Fireplace", "Beach", "Trash & recycling"]);
+  });
+});

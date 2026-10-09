@@ -1,14 +1,17 @@
 import type { Section } from "@stayguide/shared";
+// Matched at the start of a word, so "CABIN" isn't read as "bin", "OUTDOORS" as "door",
+// "FIREPLACE" as "fire" or "CARD" as "car". Headings like "BEACH:" or "HOT TUB:" that match nothing
+// stay as their own section instead of being merged into another one.
 const kinds: [RegExp, string, string, string][] = [
-  [/arriv|check.?in|access|entry|door|key/i, "arrival", "A lovely arrival", "key"],
-  [/wi.?fi|internet|network/i, "wifi", "Wi-Fi", "wifi"],
-  [/rule/i, "rules", "House rules", "heart"],
-  [/applian|kitchen|coffee|washing|heating|air.?con|tv/i, "appliances", "Appliances", "coffee"],
-  [/park|car/i, "parking", "Parking", "car"],
-  [/trash|rubbish|garbage|recycl|bin/i, "trash", "Trash & recycling", "leaf"],
-  [/check.?out|departure|leaving/i, "checkout", "Checkout", "sun"],
-  [/emergenc|safety|first.?aid|fire|hospital/i, "emergency", "Emergency", "shield"],
-  [/local|tip|restaurant|food|beach|explore|recommend/i, "local", "Local tips", "map"],
+  [/\b(arriv|check.?in|access\b|entry\b|entrance|doors?\b|keys?\b)/i, "arrival", "A lovely arrival", "key"],
+  [/\b(wi.?fi|internet|network)/i, "wifi", "Wi-Fi", "wifi"],
+  [/\brules?\b/i, "rules", "House rules", "heart"],
+  [/\b(applian|kitchen|coffee|washing|heating|air.?con|tv\b)/i, "appliances", "Appliances", "coffee"],
+  [/\b(parking|park\b|cars?\b)/i, "parking", "Parking", "car"],
+  [/\b(trash|rubbish|garbage|recycl|bins?\b)/i, "trash", "Trash & recycling", "leaf"],
+  [/\b(check.?out|departure|leaving)/i, "checkout", "Checkout", "sun"],
+  [/\b(emergenc|safety|first.?aid|fire\b|hospital)/i, "emergency", "Emergency", "shield"],
+  [/\b(local|tips?\b|restaurants?|food|explore|recommend)/i, "local", "Local tips", "map"],
 ];
 function classify(label: string) {
   // Checkout must win over the generic check-in/arrival pattern.
