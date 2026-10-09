@@ -42,6 +42,13 @@ describe("repository (Neon schema on PGlite)", () => {
     expect(await repo.consumeRateLimit("t", 2, 60)).toBe(true);
     expect(await repo.consumeRateLimit("t", 2, 60)).toBe(false);
   });
+  it("cleans up rate limit windows older than a day", async () => {
+    await query(`INSERT INTO rate_limits (bucket, window_start, count) VALUES ('old', now() - interval '2 days', 3)`);
+    await repo.consumeRateLimit("fresh", 5, 60);
+    await repo.cleanupRateLimits();
+    const rows = await query<{ bucket: string }>(`SELECT bucket FROM rate_limits WHERE bucket IN ('old', 'fresh')`);
+    expect(rows.map((r) => r.bucket)).toEqual(["fresh"]);
+  });
   it("stores chats, shows escalations in the owner inbox and accepts host replies", async () => {
     const [p] = await repo.listProperties(a.id);
     const thread = crypto.randomUUID();

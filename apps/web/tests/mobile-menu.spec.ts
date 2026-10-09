@@ -22,3 +22,24 @@ test("desktop shows the full menu without a menu button", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Open menu" })).toBeHidden();
   await expect(page.locator("#site-menu").getByRole("link", { name: "Pricing" })).toBeVisible();
 });
+
+test("dashboard pages never scroll sideways on a 390px phone", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/dashboard", "/dashboard/inbox", "/dashboard/extras", "/dashboard/billing", "/dashboard/settings"]) {
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+    const { scroll, client } = await page.evaluate(() => ({
+      scroll: document.documentElement.scrollWidth,
+      client: document.documentElement.clientWidth,
+    }));
+    expect(scroll, path).toBe(client);
+  }
+});
+
+test("status health check reports configuration without secrets", async ({ request }) => {
+  const res = await request.get("/api/v1/status");
+  expect(res.ok()).toBe(true);
+  const body = await res.json();
+  expect(body.services.map((s: { key: string }) => s.key)).toEqual(["database", "accounts", "ai", "payments", "email", "monitoring"]);
+  expect(JSON.stringify(body)).not.toMatch(/sk_(live|test)_|whsec_|re_[A-Za-z0-9]{8}|hf_[A-Za-z0-9]{8}|postgres(ql)?:\/\//);
+});

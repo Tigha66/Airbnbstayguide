@@ -1,4 +1,5 @@
-import { aiConfigured } from "./ai";
+import { aiConfigured, aiProviderInfo } from "./ai";
+import { reportError } from "./monitoring";
 import { consumeRateLimit, inCooldown, refundAiUsage, reserveAiUsage, startCooldown } from "./repo";
 
 /** How long AI is skipped after the provider reports no credit, rate limiting or an outage. */
@@ -51,7 +52,9 @@ export async function runWithAllowance<T>(ownerId: string, units: number, call: 
 /** Logs an AI failure and, for provider outages, starts the cooldown. */
 export async function noteAiFailure(error: unknown) {
   const status = providerStatus(error);
-  console.error("[ai] call failed", status ?? "", error);
+  const { provider, model } = aiProviderInfo();
+  console.error("[ai] call failed", provider, model, status ?? "", error);
+  await reportError(error, { area: "ai", provider, model, status: String(status ?? "none") });
   if (isProviderOutage(error)) await startCooldown(COOLDOWN, AI_COOLDOWN_SECONDS).catch(() => {});
 }
 

@@ -79,7 +79,15 @@ vercel --prod
 
 Use environment settings for credentials. `NEXT_PUBLIC_APP_URL` must match the production origin; rebuild after changing browser-exposed settings. Set `NEXT_PUBLIC_VERCEL_ANALYTICS=1` only after switching on Web Analytics in the Vercel project.
 
-**Preview deployments must not use the production database.** Database changes run during production builds; on Preview builds they're skipped unless `MIGRATE_ON_PREVIEW=1`. Give the Preview environment its own `DATABASE_URL` (e.g. a Neon branch) in Vercel → Settings → Environment Variables. Configure Git integration in Vercel once GitHub access is available. The token used for deployment is excluded from source control.
+**Preview deployments never use the production database.** On Vercel Preview (`VERCEL_ENV=preview`) the app and the migration script only use `PREVIEW_DATABASE_URL` (e.g. a Neon branch); without it a preview runs as the browser-only demo and migrations are skipped. Production builds migrate `DATABASE_URL`. The token used for deployment is excluded from source control.
+
+## Production hardening
+
+- Security headers on every response: Content-Security-Policy (production), `Permissions-Policy` (camera, microphone, geolocation, payment, USB and topics off), `X-Frame-Options: DENY`, `nosniff`, a strict referrer policy and HSTS.
+- Google sign-in only accepts accounts whose email Google reports as verified.
+- Error monitoring with Sentry when `SENTRY_DSN` (server) / `NEXT_PUBLIC_SENTRY_DSN` (browser) are set; no cookies, headers, bodies, query strings or user details are sent. AI failures are tagged with provider and model.
+- Old rate-limit windows (over 25 hours) are cleaned up automatically.
+- Health check: `GET /api/v1/status` (and the `/status` page) reports whether the database, Google sign-in, AI, Stripe, email and Sentry are configured. It never returns secret values.
 
 ## Verification
 

@@ -1,10 +1,12 @@
 import { authConfigured } from "@/auth";
 import { aiConfigured } from "@/lib/ai";
 import { dbConfigured, query } from "@/lib/db";
+import { emailConfigured } from "@/lib/email";
 
 export type ServiceStatus = { key: string; label: string; ok: boolean; detail: string };
 
 /** Reports which live services are connected. Never exposes secret values. */
+/** Health check for /status and /api/v1/status. Reports configuration only, never secret values. */
 export async function serviceStatus(): Promise<ServiceStatus[]> {
   let dbOk = false;
   let dbDetail = "DATABASE_URL is not set: running in browser-only demo mode.";
@@ -39,6 +41,18 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       label: "Payments (Stripe)",
       ok: stripe,
       detail: stripe ? `Stripe connected (${mode} mode): subscriptions and paid extras are on.` : "Not connected yet: needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET.",
+    },
+    {
+      key: "email",
+      label: "Email notifications (Resend)",
+      ok: emailConfigured(),
+      detail: emailConfigured() ? "Hosts get emails for escalations and extra requests." : "Not connected: needs RESEND_API_KEY and EMAIL_FROM. Hosts still see everything in the dashboard.",
+    },
+    {
+      key: "monitoring",
+      label: "Error monitoring (Sentry)",
+      ok: Boolean(process.env.SENTRY_DSN),
+      detail: process.env.SENTRY_DSN ? "Server errors are reported." : "Optional: set SENTRY_DSN to report server errors.",
     },
   ];
 }

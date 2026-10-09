@@ -1,15 +1,16 @@
-// Applies db/schema.sql to DATABASE_URL (Neon). Idempotent; runs during Vercel builds.
+// Applies db/schema.sql to the database (Neon). Idempotent; runs during Vercel builds.
+// Preview deployments never touch production: they migrate PREVIEW_DATABASE_URL if it's set and
+// skip otherwise (the app uses the same rule at runtime, see lib/db.ts).
 import { readFileSync } from "node:fs";
 import { neon } from "@neondatabase/serverless";
-const url = process.env.DATABASE_URL;
+const preview = process.env.VERCEL_ENV === "preview";
+const url = preview ? process.env.PREVIEW_DATABASE_URL : process.env.DATABASE_URL;
 if (!url) {
-  console.log("[migrate] DATABASE_URL not set; skipping (demo mode).");
-  process.exit(0);
-}
-// Preview deployments (pull requests, branches) must not change the production database.
-// Give Preview its own DATABASE_URL in Vercel and set MIGRATE_ON_PREVIEW=1 to migrate it.
-if (process.env.VERCEL_ENV === "preview" && process.env.MIGRATE_ON_PREVIEW !== "1") {
-  console.log("[migrate] Vercel Preview build: skipping database changes (set MIGRATE_ON_PREVIEW=1 if Preview has its own database).");
+  console.log(
+    preview
+      ? "[migrate] Vercel Preview build without PREVIEW_DATABASE_URL: skipping (previews never use the production database)."
+      : "[migrate] DATABASE_URL not set; skipping (demo mode).",
+  );
   process.exit(0);
 }
 const sql = neon(url);

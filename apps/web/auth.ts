@@ -12,8 +12,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 },
   pages: { signIn: "/login", error: "/login" },
   callbacks: {
-    async signIn({ user }) {
-      return Boolean(user.email && dbConfigured());
+    // Only Google accounts whose email Google has verified (accounts are keyed by email).
+    async signIn({ user, account, profile }) {
+      if (!user.email || !dbConfigured()) return false;
+      if (account?.provider === "google") return profile?.email_verified === true;
+      return true;
     },
     async jwt({ token, user }) {
       if (user?.email) {

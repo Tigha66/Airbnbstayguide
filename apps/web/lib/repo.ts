@@ -158,8 +158,14 @@ export async function deleteProperty(ownerId: string, id: string) {
   return rows.length > 0;
 }
 
+/** Removes rate-limit and cooldown rows older than a day (all windows are at most 24 hours). */
+export async function cleanupRateLimits() {
+  await query(`DELETE FROM rate_limits WHERE window_start < now() - interval '25 hours'`);
+}
 /** Fixed-window rate limit stored in Postgres. Returns true when the request is allowed. */
 export async function consumeRateLimit(bucket: string, max: number, windowSeconds: number) {
+  // About once every 100 calls, clear out expired rows so the table doesn't grow forever.
+  if (Math.random() < 0.01) await cleanupRateLimits().catch(() => {});
   const [row] = await query<{ count: number }>(
     `INSERT INTO rate_limits (bucket, window_start, count) VALUES ($1, now(), 1)
      ON CONFLICT (bucket) DO UPDATE SET

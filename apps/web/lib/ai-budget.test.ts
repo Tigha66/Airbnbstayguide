@@ -8,7 +8,7 @@ const repo = {
   startCooldown: vi.fn(async () => {}),
 };
 vi.mock("./repo", () => repo);
-vi.mock("./ai", () => ({ aiConfigured: () => true }));
+vi.mock("./ai", () => ({ aiConfigured: () => true, aiProviderInfo: () => ({ provider: "test", model: "m" }) }));
 
 const { buildSectionsWithBudget, isProviderOutage, providerStatus, runWithAllowance } = await import("./ai-budget");
 

@@ -26,6 +26,11 @@ export function aiConfigured() {
       return false;
   }
 }
+/** Provider and model names, for logs and error reports (never secrets). */
+export function aiProviderInfo() {
+  const p = provider() || "none";
+  return { provider: p, model: p === "huggingface" ? process.env.AI_MODEL || DEFAULT_HF_MODEL : process.env.AI_MODEL || "" };
+}
 export function aiModel() {
   const p = provider();
   if (p === "huggingface")
