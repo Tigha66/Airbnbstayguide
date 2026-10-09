@@ -139,4 +139,9 @@ test("menu links work offline and never rely on Next.js data requests", async ({
     await expect(page).toHaveTitle(title, { timeout: 15000 });
   }
   expect(dataRequests).toEqual([]);
+  // On the offline screen for Log in: an honest message, a way home and the saved pages.
+  await expect(page.getByText("need an internet connection")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Pricing" })).toBeVisible();
+  await page.getByRole("link", { name: "Back to home" }).click();
+  await expect(page.locator("h1").first()).toContainText("Less managing", { timeout: 15000 });
 });

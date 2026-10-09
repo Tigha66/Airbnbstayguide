@@ -146,7 +146,7 @@ self.addEventListener("activate", (event) => {
 });
 
 const worker = new Serwist({
-  precacheEntries: [{ url: "/offline.html", revision: "7" }],
+  precacheEntries: [{ url: "/offline.html", revision: "8" }],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: false,
