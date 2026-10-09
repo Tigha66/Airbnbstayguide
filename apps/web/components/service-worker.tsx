@@ -3,11 +3,41 @@ import { useEffect } from "react";
 
 const PRIVATE = ["/dashboard", "/admin", "/login", "/api", "/status"];
 
-/** Saves the page a visitor is on, its code, fonts and photos, so it reopens offline. */
+const isPrivate = (path: string) => PRIVATE.some((p) => path === p || path.startsWith(`${p}/`));
+const LOCALES = ["fr", "es", "de", "ar"];
+
+/** Saves a page and the code/styles it needs (read from its HTML), so it reopens offline. */
+async function savePage(path: string) {
+  try {
+    const res = await fetch(path, { headers: { Accept: "text/html" } });
+    if (!res.ok || res.redirected) return;
+    const html = await res.text();
+    const assets = new Set(html.match(/\/_next\/static\/[^"'\s)]+/g) ?? []);
+    await Promise.all([...assets].map((url) => fetch(url).catch(() => {})));
+  } catch {
+    /* offline or blocked: try again on the next visit */
+  }
+}
+
+/**
+ * Saves the page a visitor is on, its code, fonts and photos, plus the main website pages in
+ * their language, so the site (and a home-screen app, which starts at "/") reopens offline.
+ */
 function warmCache() {
   const path = location.pathname;
-  if (!PRIVATE.some((p) => path === p || path.startsWith(`${p}/`)))
-    void fetch(path, { headers: { Accept: "text/html" } }).catch(() => {});
+  if (!isPrivate(path)) void savePage(path);
+  let savedThisSession = false;
+  try {
+    savedThisSession = sessionStorage.getItem("stayguide-pages-saved") === "1";
+    sessionStorage.setItem("stayguide-pages-saved", "1");
+  } catch {
+    /* storage unavailable */
+  }
+  if (!savedThisSession && !path.startsWith("/g/") && !isPrivate(path)) {
+    const first = path.split("/")[1];
+    const base = LOCALES.includes(first) ? `/${first}` : "";
+    for (const page of [base || "/", `${base}/pricing`, "/demo"]) if (page !== path) void savePage(page);
+  }
   const seen = new Set<string>();
   for (const entry of performance.getEntriesByType("resource") as PerformanceResourceTiming[]) {
     const url = entry.name;

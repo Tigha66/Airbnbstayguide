@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Offline check · StayGuide</title>
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f8f9f5;color:#111;padding:20px;font-size:15px}
+  h1{font-size:22px;margin:0 0 4px}
+  p.small{color:#555;margin:0 0 16px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}
+  td{padding:10px 12px;border-bottom:1px solid #e7e8e4;vertical-align:top;word-break:break-word}
+  td:first-child{font-weight:600;width:42%}
+  .ok{color:#0f766e;font-weight:700}.bad{color:#b42318;font-weight:700}
+  button{display:block;width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;font-size:16px;font-weight:600;background:#0F766E;color:#fff}
+  button.secondary{background:#fff;color:#0F766E;border:1px solid #d8ded6}
+</style>
+</head>
+<body>
+<h1>StayGuide offline check</h1>
+<p class="small">Take a screenshot of this page and send it to support.</p>
+<table id="out"><tr><td>Checking…</td><td></td></tr></table>
+<button id="save" type="button">Save main pages for offline now</button>
+<button id="repair" type="button" class="secondary">Repair offline support</button>
+<script>
+(function () {
+  var out = document.getElementById("out");
+  var rows = [];
+  function row(label, value, good) {
+    var cls = good === true ? "ok" : good === false ? "bad" : "";
+    rows.push("<tr><td>" + label + "</td><td class='" + cls + "'>" + String(value).replace(/</g, "&lt;") + "</td></tr>");
+  }
+  function show() { out.innerHTML = rows.join(""); }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  async function check() {
+    rows = [];
+    row("Time", new Date().toLocaleString());
+    row("Address", location.href, location.protocol === "https:");
+    row("Online now", navigator.onLine ? "yes" : "no");
+    var standalone = window.navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+    row("Opened as", standalone ? "Home Screen app" : "Browser tab");
+    row("Phone language", (navigator.languages || [navigator.language]).join(", "));
+    row("Offline support available", "serviceWorker" in navigator ? "yes" : "no (Private Browsing or Lockdown Mode?)", "serviceWorker" in navigator);
+    if ("serviceWorker" in navigator) {
+      var regs = await navigator.serviceWorker.getRegistrations();
+      row("Installed", regs.length ? regs.map(function (r) {
+        var w = r.active || r.waiting || r.installing;
+        return r.scope.replace(location.origin, "") + " (" + (r.active ? "active" : r.waiting ? "waiting" : r.installing ? "installing" : "none") + ")";
+      }).join(", ") : "not installed", regs.some(function (r) { return r.active && new URL(r.scope).pathname === "/"; }));
+      row("This page controlled", navigator.serviceWorker.controller ? "yes" : "no — reload once", !!navigator.serviceWorker.controller);
+    }
+    if ("caches" in window) {
+      var names = await caches.keys();
+      var pages = [];
+      var offlineScreen = "missing";
+      for (var i = 0; i < names.length; i++) {
+        var keys = await (await caches.open(names[i])).keys();
+        keys.forEach(function (k) {
+          var u = new URL(k.url);
+          if (u.pathname === "/offline.html") offlineScreen = "saved (" + (u.searchParams.get("__WB_REVISION__") || "?") + ")";
+          if (/site-pages|public-guides/.test(names[i])) pages.push(u.pathname);
+        });
+        row("Saved: " + names[i].replace("stayguide-", "").replace(/-v\d+$/, ""), keys.length + " items");
+      }
+      row("Offline screen", offlineScreen, offlineScreen !== "missing");
+      row("Pages saved for offline", pages.length ? pages.join(", ") : "none", pages.length > 0);
+    } else row("Storage", "not available", false);
+    if (navigator.storage && navigator.storage.estimate) {
+      var e = await navigator.storage.estimate();
+      row("Storage used", Math.round((e.usage || 0) / 1024) + " KB of " + Math.round((e.quota || 0) / 1048576) + " MB");
+    }
+    row("Browser", navigator.userAgent);
+    show();
+  }
+
+  async function savePage(path) {
+    try {
+      var res = await fetch(path, { headers: { Accept: "text/html" } });
+      if (!res.ok || res.redirected) return;
+      var html = await res.text();
+      var assets = html.match(/\/_next\/static\/[^"'\s)]+/g) || [];
+      await Promise.all(assets.map(function (u) { return fetch(u).catch(function () {}); }));
+    } catch (e) {}
+  }
+  function langBase() {
+    var lang = (localStorage.getItem("stayguide-language") || navigator.language || "en").slice(0, 2);
+    return ["fr", "es", "de", "ar"].indexOf(lang) >= 0 ? "/" + lang : "";
+  }
+
+  document.getElementById("save").onclick = async function () {
+    this.textContent = "Saving…";
+    var base = langBase();
+    await Promise.all([base || "/", base + "/pricing", "/demo"].map(savePage));
+    this.textContent = "Saved — turn on Airplane mode to test";
+    check();
+  };
+  document.getElementById("repair").onclick = async function () {
+    this.textContent = "Repairing…";
+    try {
+      for (var r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await navigator.serviceWorker.ready;
+      await wait(1000);
+    } catch (e) {}
+    location.reload();
+  };
+  check();
+})();
+</script>
+</body>
+</html>

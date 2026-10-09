@@ -33,8 +33,57 @@ const ignoreQuery: SerwistPlugin = {
   },
 };
 
+// Safari refuses a saved page that was reached through a redirect ("Response served by service
+// worker has redirections") and shows its own "not connected" error. Never save redirected
+// responses, and rebuild any older saved copy that still carries the redirect flag.
+const safariSafe: SerwistPlugin = {
+  cacheWillUpdate: async ({ response }) =>
+    response.status === 200 && !response.redirected ? response : null,
+  cachedResponseWillBeUsed: async ({ cachedResponse }) =>
+    cachedResponse?.redirected
+      ? new Response(cachedResponse.body, {
+          status: cachedResponse.status,
+          statusText: cachedResponse.statusText,
+          headers: cachedResponse.headers,
+        })
+      : cachedResponse,
+};
+
+// "/" and "/pricing" redirect phones in French, Spanish, German or Arabic to "/fr", "/fr/pricing"…,
+// so only the translated page gets saved. A home-screen app always starts at "/", so offline
+// we open the saved translation (the phone's language first, then any saved one).
+const SITE_LOCALES = ["en", "fr", "es", "de", "ar"];
+const LANGUAGE_REDIRECTED = ["/", "/pricing"];
+const savedTranslation: SerwistPlugin = {
+  handlerDidError: async ({ request }) => {
+    const url = new URL(request.url);
+    // Serwist skips its offline-screen fallback for strategies with their own handlerDidError,
+    // so this plugin ends with the offline screen itself.
+    const offlineScreen = async () =>
+      request.destination === "document" ? worker.matchPrecache("/offline.html") : undefined;
+    if (!LANGUAGE_REDIRECTED.includes(url.pathname)) return offlineScreen();
+    const phone = (self.navigator.languages ?? [self.navigator.language])
+      .map((tag) => tag.toLowerCase().split("-")[0])
+      .filter((lang) => SITE_LOCALES.includes(lang));
+    const order = [...new Set([...phone, ...SITE_LOCALES])];
+    const cache = await caches.open("stayguide-site-pages-v1");
+    for (const lang of order) {
+      const path = lang === "en" ? url.pathname : `/${lang}${url.pathname === "/" ? "" : url.pathname}`;
+      const saved = await cache.match(new URL(path, url.origin).href, { ignoreVary: true });
+      // Rebuild the response so Safari accepts it for a navigation to a different URL.
+      if (saved)
+        return new Response(saved.body, {
+          status: saved.status,
+          statusText: saved.statusText,
+          headers: saved.headers,
+        });
+    }
+    return offlineScreen();
+  },
+};
+
 const worker = new Serwist({
-  precacheEntries: [{ url: "/offline.html", revision: "3" }],
+  precacheEntries: [{ url: "/offline.html", revision: "5" }],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
@@ -51,6 +100,7 @@ const worker = new Serwist({
         networkTimeoutSeconds: 3,
         matchOptions: { ignoreVary: true },
         plugins: [
+          safariSafe,
           ignoreQuery,
           new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 2592000 }),
         ],
@@ -68,6 +118,8 @@ const worker = new Serwist({
         networkTimeoutSeconds: 3,
         matchOptions: { ignoreVary: true },
         plugins: [
+          savedTranslation,
+          safariSafe,
           ignoreQuery,
           new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 604800 }),
         ],
