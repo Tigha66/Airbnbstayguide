@@ -39,7 +39,7 @@ WI-FI: Complimentary high-speed Wi-Fi, good for streaming and remote work. The n
 
 HOUSE RULES: Maximum 6 guests.
 Strictly no smoking, inside or outside.
-No fires of any kind: outdoor fire pits are illegal in Estes Park vacation homes, and charcoal BBQs are banned. The gas grill on the deck is fine.
+No fires of any kind. Outdoor fire pits are illegal in Estes Park vacation homes, and charcoal BBQs are banned. The gas grill on the deck is fine.
 Do NOT leave food in your car. Bears are often in this area and can break into cars.
 Give wildlife space, especially elk with calves in spring and during the fall rut. Watch from a distance.
 Solitude is a quiet, family-friendly community. Please keep noise down in the evenings.
