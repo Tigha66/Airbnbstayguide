@@ -69,3 +69,15 @@ test("private dashboard pages are never saved for offline", async ({ page }) => 
   });
   expect(saved).toEqual([]);
 });
+
+test.describe("phone in French", () => {
+  test.use({ locale: "fr-FR" });
+  test("home screen app (which starts at /) opens offline on a non-English phone", async ({ page, context }) => {
+    // "/" redirects French phones to "/fr", so only "/fr" is saved.
+    await saveForOffline(page, "/fr", "stayguide-site-pages-v1");
+    await context.setOffline(true);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "You're offline" })).toHaveCount(0);
+    await expect(page.locator("h1").first()).toContainText("Moins de gestion");
+  });
+});
