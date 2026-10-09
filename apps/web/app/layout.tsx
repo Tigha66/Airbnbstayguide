@@ -54,7 +54,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en" className={`${sans.variable} ${display.variable} ${arabic.variable}`}>
       <body>
         {children}
-        <Analytics />
+        {/* Only once Web Analytics is switched on in the Vercel project (otherwise its script 404s). */}
+        {process.env.NEXT_PUBLIC_VERCEL_ANALYTICS === "1" && <Analytics />}
         <ServiceWorker />
       </body>
     </html>

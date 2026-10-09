@@ -252,7 +252,9 @@ export async function inbox(ownerId: string): Promise<InboxThread[]> {
   const threads = new Map<string, InboxThread>();
   for (const r of rows) {
     const t = threads.get(r.thread_id) ?? { threadId: r.thread_id, propertyId: r.property_id, propertyName: r.name, escalated: false, lastAt: String(r.created_at), messages: [] };
-    t.escalated ||= r.escalated;
+    // "Needs your help" until the host replies; a later unanswered question raises it again.
+    if (r.role === "host") t.escalated = false;
+    else if (r.escalated) t.escalated = true;
     t.lastAt = new Date(r.created_at).toISOString();
     t.messages.push({ role: r.role, content: r.content, createdAt: new Date(r.created_at).toISOString() });
     threads.set(r.thread_id, t);
@@ -468,16 +470,19 @@ export async function adminHosts(): Promise<AdminHostRow[]> {
 /** Cached AI translation of a guide, only if it matches the guide's current text. */
 export async function getGuideTranslation(propertyKey: string, language: string, sourceHash: string) {
   const [row] = await query<{ data: GuideText }>(
-    `SELECT data FROM guide_translations WHERE property_key = $1 AND language = $2 AND source_hash = $3`,
+    // A complete translation is reused until the host edits the guide; a partial one for 6 hours.
+    `SELECT data FROM guide_translations WHERE property_key = $1 AND language = $2 AND source_hash = $3
+       AND (complete OR created_at > now() - interval '6 hours')`,
     [propertyKey, language, sourceHash],
   );
   return row?.data ?? null;
 }
-export async function saveGuideTranslation(propertyKey: string, language: string, sourceHash: string, data: GuideText) {
+export async function saveGuideTranslation(propertyKey: string, language: string, sourceHash: string, data: GuideText, complete = true) {
   await query(
-    `INSERT INTO guide_translations (property_key, language, source_hash, data) VALUES ($1, $2, $3, $4)
-     ON CONFLICT (property_key, language) DO UPDATE SET source_hash = EXCLUDED.source_hash, data = EXCLUDED.data, created_at = now()`,
-    [propertyKey, language, sourceHash, JSON.stringify(data)],
+    `INSERT INTO guide_translations (property_key, language, source_hash, data, complete) VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (property_key, language) DO UPDATE SET source_hash = EXCLUDED.source_hash, data = EXCLUDED.data,
+       complete = EXCLUDED.complete, created_at = now()`,
+    [propertyKey, language, sourceHash, JSON.stringify(data), complete],
   );
 }
 

@@ -195,8 +195,29 @@ export function GuestGuide({
           }
         }
       } else {
-        answer = demoAnswer(property, text, language);
-        await new Promise((resolve) => setTimeout(resolve, 350));
+        // Sample guides ask the real AI concierge when online; the built-in demo answers are the
+        // fallback (offline, over the demo's daily limit, or locally without AI).
+        let fromServer: typeof answer | null = null;
+        if (sample && navigator.onLine) {
+          const history = messages
+            .filter((m) => m.role === "user" || m.role === "assistant")
+            .slice(-6)
+            .map((m) => ({ role: m.role === "user" ? "guest" : "assistant", content: m.content.slice(0, 2000) }));
+          const res = await fetch(`/api/v1/guides/${slug}/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text, language, history }),
+          }).catch(() => null);
+          if (res?.ok) {
+            const body = await res.json().catch(() => null);
+            if (body?.mode === "ai" && body.answer) fromServer = body;
+          }
+        }
+        if (fromServer) answer = fromServer;
+        else {
+          answer = demoAnswer(property, text, language);
+          await new Promise((resolve) => setTimeout(resolve, 350));
+        }
       }
       setMessages((previous) => [
         ...previous,

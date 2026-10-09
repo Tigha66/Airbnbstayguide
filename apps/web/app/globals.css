@@ -3227,3 +3227,45 @@ small {
     font-size: 15px;
   }
 }
+
+/* Phones: the dashboard top bar must fit the screen (it used to push the page 90px sideways). */
+@media (max-width: 640px) {
+  .topbar {
+    padding: 0 14px;
+    gap: 10px;
+  }
+  .breadcrumb {
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  /* Keep the menu button and the page title; "Workspace ›" is redundant on a phone. */
+  .breadcrumb > span:not(:last-child),
+  .breadcrumb > svg {
+    display: none;
+  }
+  .breadcrumb > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .topbar-right {
+    gap: 10px;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .topbar-right > a[href="/demo"] {
+    display: none;
+  }
+  .topbar-right .demo-badge {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* Decorative phone mock-up: hidden on phones, where it hung off the right edge. */
+  .mini-phone {
+    display: none;
+  }
+}

@@ -93,3 +93,5 @@ CREATE TABLE IF NOT EXISTS guide_translations (
 -- simultaneous "create" requests can't take the same slot (the loser re-checks the limit).
 ALTER TABLE properties ADD COLUMN IF NOT EXISTS slot integer;
 CREATE UNIQUE INDEX IF NOT EXISTS properties_owner_slot_idx ON properties(owner_id, slot);
+-- Partial translations (some text kept in the original language) are retried after a few hours.
+ALTER TABLE guide_translations ADD COLUMN IF NOT EXISTS complete boolean NOT NULL DEFAULT true;

@@ -67,22 +67,41 @@ const tokensFor = (text: string) => Math.min(4000, Math.ceil(text.length / 2) + 
  * change a code or number, keeps its original text.
  */
 export async function translateGuide(text: GuideText, language: string): Promise<GuideText> {
+  return (await translateGuideWithStatus(text, language)).text;
+}
+
+/** Like translateGuide, and also says whether every part was translated (partial results are retried later). */
+export async function translateGuideWithStatus(text: GuideText, language: string): Promise<{ text: GuideText; complete: boolean }> {
   const target = languageNames[language] ?? "English";
+  let complete = true;
+  const translateSection = async (s: GuideText["sections"][number], strict: boolean) => {
+    const tokens = [...new Set([...protectedTokens(s.title), ...protectedTokens(s.body)])];
+    // Second try: name the exact values that must survive (e.g. "3:00 PM" must not become "午後3時").
+    const strictRule = strict && tokens.length
+      ? `\n- These exact strings MUST appear unchanged in your translation, character for character: ${JSON.stringify(tokens)}. Write times exactly as in the source (for example "3:00 PM"), not in the local time format.`
+      : "";
+    const out = sectionSchema.parse(
+      await generateJson(
+        `Translate this holiday-rental guide section into ${target}.\n${RULES}${strictRule}\nRespond with JSON only: {"title":"...","body":"..."}`,
+        JSON.stringify({ title: s.title, body: s.body }),
+        tokensFor(s.title + s.body),
+        30000,
+      ),
+    );
+    if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title)) return null;
+    return { id: s.id, title: out.title.trim() || s.title, body: out.body };
+  };
   const sections = await inBatches(text.sections, 4, async (s) => {
-    try {
-      const out = sectionSchema.parse(
-        await generateJson(
-          `Translate this holiday-rental guide section into ${target}.\n${RULES}\nRespond with JSON only: {"title":"...","body":"..."}`,
-          JSON.stringify({ title: s.title, body: s.body }),
-          tokensFor(s.title + s.body),
-          30000,
-        ),
-      );
-      if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title)) return s;
-      return { id: s.id, title: out.title.trim() || s.title, body: out.body };
-    } catch {
-      return s;
+    for (const strict of [false, true]) {
+      try {
+        const out = await translateSection(s, strict);
+        if (out) return out;
+      } catch {
+        /* try again strictly, then keep the original */
+      }
     }
+    complete = false;
+    return s;
   });
   let description = text.description;
   let extras = text.extras;
@@ -96,14 +115,16 @@ export async function translateGuide(text: GuideText, language: string): Promise
       ),
     );
     if (out.description.trim() && keepsProtected(text.description, out.description)) description = out.description;
+    else if (text.description.trim()) complete = false;
     extras = text.extras.map((e) => {
       const t = out.extras.find((x) => x.id === e.id);
-      return t && t.name.trim() && keepsProtected(e.name + " " + e.description, t.name + " " + t.description)
-        ? { id: e.id, name: t.name, description: t.description }
-        : e;
+      if (t && t.name.trim() && keepsProtected(e.name + " " + e.description, t.name + " " + t.description))
+        return { id: e.id, name: t.name, description: t.description };
+      complete = false;
+      return e;
     });
   } catch {
-    /* keep originals */
+    complete = false; /* keep originals */
   }
-  return { description, sections, extras };
+  return { text: { description, sections, extras }, complete };
 }

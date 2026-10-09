@@ -79,6 +79,7 @@ const events: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
   "customer.subscription.updated",
   "customer.subscription.deleted",
   "invoice.payment_failed",
+  "invoice.upcoming",
 ];
 const endpoints = await stripe.webhookEndpoints.list({ limit: 100 });
 const existing = endpoints.data.find((e) => e.url === url);

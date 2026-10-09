@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MarketingNav, MarketingFooter } from "@/components/marketing";
 export function generateStaticParams() {
   return [{ page: "terms" }, { page: "privacy" }];
+}
+export async function generateMetadata({ params }: { params: Promise<{ page: string }> }): Promise<Metadata> {
+  const { page } = await params;
+  return page === "privacy"
+    ? { title: "Privacy policy", description: "How StayGuide collects, uses and protects personal data." }
+    : { title: "Terms of service", description: "The terms for using StayGuide." };
 }
 export default async function Page({
   params,

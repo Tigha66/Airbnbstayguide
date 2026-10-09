@@ -56,6 +56,11 @@ export const chatSchema = z.object({
   language: z.enum(languages).default("en"),
   accessCode: z.string().max(100).optional(),
   threadId: z.uuid().optional(),
+  /** Sample guides only (they have no saved conversation): the last few turns, for follow-ups. */
+  history: z
+    .array(z.object({ role: z.enum(["guest", "assistant"]), content: z.string().max(2000) }))
+    .max(6)
+    .optional(),
 });
 export const sectionSchema = z.object({
   id: z.string(),

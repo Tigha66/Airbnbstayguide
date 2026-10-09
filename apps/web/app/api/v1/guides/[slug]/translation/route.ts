@@ -5,7 +5,7 @@ import { dbConfigured } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
 import { unavailable } from "@/lib/api";
 import { consumeRateLimit, getGuideTranslation, getPublishedProperty, saveGuideTranslation } from "@/lib/repo";
-import { guideHash, guideLanguage, guideText, translateGuide } from "@/lib/translate";
+import { guideHash, guideLanguage, guideText, translateGuideWithStatus } from "@/lib/translate";
 
 export const dynamic = "force-dynamic";
 // Translating a whole guide can take a little while the first time; afterwards it's cached.
@@ -37,8 +37,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     if (!(await consumeRateLimit(bucket, 20, 3600)))
       return NextResponse.json({ error: "Please try again later." }, { status: 429 });
   }
-  const translated = await translateGuide(text, language);
+  const { text: translated, complete } = await translateGuideWithStatus(text, language);
   const changed = JSON.stringify(translated) !== JSON.stringify(text);
-  if (changed && dbConfigured()) await saveGuideTranslation(key, language, hash, translated).catch(() => {});
+  if (changed && dbConfigured()) await saveGuideTranslation(key, language, hash, translated, complete).catch(() => {});
   return NextResponse.json({ translated: changed, text: changed ? translated : undefined });
 }

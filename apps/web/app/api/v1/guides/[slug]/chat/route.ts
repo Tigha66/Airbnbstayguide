@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
-import { chatSchema } from "@stayguide/shared";
+import { chatSchema, demoProperties } from "@stayguide/shared";
 import { dbConfigured } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
 import { parseJson, unavailable } from "@/lib/api";
@@ -20,6 +20,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const bucket = createHash("sha256").update(`${process.env.AUTH_SECRET ?? "stayguide"}:${ip}:${slug}`).digest("hex");
   if (!(await consumeRateLimit(bucket, 15, 60)))
     return NextResponse.json({ error: "Please wait a moment before asking again." }, { status: 429 });
+  // Public sample guides (the website's "Guest demo") answer with the real AI too, within a
+  // per-visitor limit and a global daily cap; nothing is saved because they have no owner.
+  const sample = demoProperties.find((p) => p.slug === slug);
+  if (sample) {
+    const language = detectLanguage(body.message) ?? body.language;
+    const useAi =
+      aiConfigured() &&
+      (await consumeRateLimit(`ai-visitor:${bucket}`, 10, 86400)) &&
+      (await consumeRateLimit("ai-demo-global", 300, 86400));
+    let answer: ConciergeAnswer;
+    let mode: "ai" | "keyword" = "keyword";
+    try {
+      if (!useAi) throw new Error("AI not available for this demo request");
+      answer = await aiAnswer(sample, body.message, language, body.history ?? []);
+      mode = "ai";
+    } catch {
+      answer = keywordAnswer(sample, body.message, language);
+    }
+    if (!answer.answer) answer = unknownAnswer(language);
+    return NextResponse.json({ ...answer, mode, language, sample: true });
+  }
   const found = await getPublishedProperty(slug);
   if (!found) return NextResponse.json({ error: "Guide not found" }, { status: 404 });
   const existingThread = Boolean(body.threadId && (await threadBelongsTo(body.threadId, found.property.id)));

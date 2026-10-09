@@ -85,6 +85,27 @@ describe("translateGuide", () => {
     expect(out.sections[1].body).toBe("Network SmokyRidge_Guest, password bearden2026.");
     expect(out.extras[0].name).toBe("Late checkout");
   });
+  it("retries strictly when a time is rewritten (3:00 PM → 午後3時) and reports partial results", async () => {
+    const { translateGuideWithStatus } = await import("./translate");
+    const timed = { ...guideText(property), sections: [{ id: "arrival", title: "Arrival", body: "Check-in is from 3:00 PM." }] };
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      const strict = String(args[0]).includes("MUST appear unchanged");
+      if (input.body) return strict ? { title: "到着", body: "チェックインは3:00 PMからです。" } : { title: "到着", body: "チェックインは午後3時からです。" };
+      return { description: "キャビンへようこそ。", extras: [{ id: "late", name: "レイトチェックアウト", description: "2 PMに出発。" }] };
+    });
+    const ok = await translateGuideWithStatus(timed, "ja");
+    expect(ok.text.sections[0].body).toBe("チェックインは3:00 PMからです。");
+    expect(ok.complete).toBe(true);
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      if (input.body) return { title: "到着", body: "チェックインは午後3時からです。" }; // wrong both times
+      return { description: "キャビンへようこそ。", extras: [{ id: "late", name: "レイトチェックアウト", description: "2 PMに出発。" }] };
+    });
+    const partial = await translateGuideWithStatus(timed, "ja");
+    expect(partial.text.sections[0].body).toBe("Check-in is from 3:00 PM.");
+    expect(partial.complete).toBe(false);
+  });
   it("detects the guide's language and changes the cache key when the host edits", () => {
     const text = guideText(property);
     expect(guideLanguage({ ...text, sections: [{ id: "a", title: "Arrival", body: "Where is the key? The code is in the box and you can park on the street." }] })).toBe("en");

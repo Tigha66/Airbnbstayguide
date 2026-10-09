@@ -1,6 +1,6 @@
 # StayGuide
 
-A warm, premium digital guest guide and host workspace. **Current release: a functional demo and integration foundation, not a launch-ready paid SaaS.** No fake live payments, AI responses, or guest messages are presented as real.
+A warm, premium digital guest guide and host workspace: hosts sign in with Google, build guides from a pasted house manual, and guests get a mobile guide (installable, works offline) with an AI concierge and paid extras. Subscriptions and extras payments run on Stripe. **Status: in pilot.** Run the full authenticated journey (sign-in → property → guest AI chat → host reply → subscription → paid extra → refund → cancel) once with a dedicated test account before charging customers.
 
 ## Run locally
 
@@ -12,10 +12,9 @@ pnpm --filter @stayguide/web dev
 # http://localhost:3000 — marketing
 # http://localhost:3000/dashboard — host demo
 # http://localhost:3000/demo — guest guide
-pnpm --filter @stayguide/mobile dev
 ```
 
-Copy `apps/web/.env.example` to `.env.local` in the same directory when connecting services. Copy `apps/mobile/.env.example` to `.env` there. No credentials are required for the demo. Never place server secrets in `NEXT_PUBLIC_*` or `EXPO_PUBLIC_*` variables.
+Copy `apps/web/.env.example` to `.env.local` in the same directory when connecting services. No credentials are required for the demo. Never place server secrets in `NEXT_PUBLIC_*` variables.
 
 ## Architecture
 
@@ -23,7 +22,8 @@ Copy `apps/web/.env.example` to `.env.local` in the same directory when connecti
   - **Database:** Neon serverless Postgres (`@neondatabase/serverless`), schema in `apps/web/db/schema.sql`, applied automatically before every build.
   - **Accounts:** Auth.js (NextAuth v5) with Google sign-in, JWT sessions. Every host query is scoped by `owner_id` in `lib/repo.ts`.
   - **AI:** Vercel AI SDK against Hugging Face Inference Providers (OpenAI-compatible router) by default; any OpenAI-compatible API, OpenAI or Anthropic also work.
-- `apps/mobile`: Expo SDK 57 native host app (still uses the earlier Supabase auth adapter; migration to the Neon API is pending).
+  - **Payments:** Stripe Billing (per-property subscriptions) and Stripe Connect (guests pay hosts for extras; StayGuide keeps a 5% fee). Code in `lib/stripe.ts`, `lib/billing.ts`, `lib/stripe-events.ts`, routes under `/api/v1/billing`, `/api/v1/connect`, `/api/stripe/webhook`.
+- There is **no native mobile app** in this repository. Hosts use the web dashboard; guests can add their guide (or the website) to the home screen, where it opens full-screen and works offline.
 - `packages/shared`: Zod validation, demo guides, plan limits, concierge prompt, fee calculations.
 
 ## Free-tier setup (Neon + Google + Hugging Face)
@@ -36,20 +36,32 @@ Without these variables the site runs as the browser-only demo. With them, hosts
 
 ### What works with live services
 
-- Google sign-in/out, per-host data isolation, plan property limits, account deletion (cascades all data).
+- Google sign-in/out, per-host data isolation, plan property limits (enforced atomically), account deletion via the API (cancels the Stripe subscription first, then removes all data; there's no button in the dashboard yet).
 - Create properties from a pasted house manual (AI-structured, or parsed from `LABEL:` lines / headings), edit sections, extras, publish/unpublish, delete; autosave with status indicator.
 - Guest links work on any device; views are counted; the guest PWA caches published guides offline.
 - Concierge: answers only from the guide, cites sections, answers in the guest's language (AI mode), escalates unknown questions to the host inbox; host replies appear in the guest's chat. Per-plan monthly AI limits and Postgres rate limiting on public endpoints.
-- Extras: guests send a request (name, contact, note); hosts approve/decline/mark paid in the dashboard. Payment is arranged by the host for now.
+- Extras: guests pay online by card when the host has connected Stripe payouts (or send a request to pay in person); hosts approve/capture, decline/release or refund in the dashboard.
+- Billing: Starter/Pro subscriptions billed per property; the quantity follows the number of properties and is re-checked on every renewal.
 - Analytics from real data: views, questions, resolution rate, approved extras revenue, top questions, AI usage.
 
 ## Working demo
 
-Without accounts configured, the dashboard and guest guides run entirely in the browser (local storage), with sample properties `/g/casa-serena` and `/g/olive-grove`. Custom demo guides are visible only in the browser where they were made.
+Without accounts configured, the dashboard and guest guides run entirely in the browser (local storage), with sample properties `/g/casa-serena` and `/g/olive-grove`. Custom demo guides are visible only in the browser where they were made. On the live site the sample guides' concierge uses the real AI (10 answers per visitor per day, 300 per day in total), falling back to built-in answers.
 
-## Stripe (not wired yet)
+## Stripe
 
-Stripe billing and Connect payouts were built against the earlier Supabase schema and are disabled until moved to Neon. The webhook routes return 503 so Stripe retries rather than dropping events. `lib/webhook.ts` and the shared 5% fee helper remain tested.
+1. Set `STRIPE_SECRET_KEY` (live or test key).
+2. Run `STRIPE_SECRET_KEY=sk_... APP_URL=https://www.getstayguide.com pnpm --filter @stayguide/web stripe:setup` once. It creates the products and prices, the Customer Portal configuration and the webhook endpoint `/api/stripe/webhook`, and prints `STRIPE_WEBHOOK_SECRET` (set it in Vercel). Re-running it is safe and updates the webhook's events.
+3. Webhook events used: `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.created`/`updated`/`deleted`, `invoice.payment_failed`, `invoice.upcoming` (re-checks the billed property count before each renewal).
+4. Hosts connect payouts (Stripe Connect Express) from the dashboard before guests can pay for extras online.
+
+Without `STRIPE_SECRET_KEY`, billing routes return 503 and the dashboard says payments aren't available.
+
+## Cost and abuse limits
+
+- Guest chat: 15 messages per minute per visitor; at most 10 AI answers per visitor per guide per day (then free keyword answers); each host's plan has a monthly AI allowance, and failed AI calls aren't counted.
+- Guide builder and property creation: the plan's property limit is checked before any AI call; AI organising is limited to 20 per host per hour.
+- Translations: 20 new translations per visitor per hour; results are cached per guide version (partial ones are retried after 6 hours).
 
 ## Deploy to Vercel
 
@@ -60,21 +72,9 @@ vercel link --scope hajabdelhak66 --project stayguide
 vercel --prod
 ```
 
-Use environment settings for credentials. `NEXT_PUBLIC_APP_URL` must match the production origin; rebuild after changing browser-exposed settings. Configure Git integration in Vercel once GitHub access is available. The token used for deployment is excluded from source control.
+Use environment settings for credentials. `NEXT_PUBLIC_APP_URL` must match the production origin; rebuild after changing browser-exposed settings. Set `NEXT_PUBLIC_VERCEL_ANALYTICS=1` only after switching on Web Analytics in the Vercel project.
 
-## Native iOS
-
-```bash
-cd apps/mobile
-npx eas-cli login
-npx eas-cli init
-# Set EXPO_PUBLIC_API_URL, Supabase values, and EXPO_PUBLIC_EAS_PROJECT_ID.
-npx eas-cli build -p ios --profile development
-npx eas-cli build -p ios --profile production --non-interactive
-npx eas-cli submit -p ios --latest
-```
-
-Bundle ID: `com.tigha66.stayguide`. EAS profiles cover development, simulator preview, and production. Production signing needs an Apple Developer team. Submission needs App Store Connect access/API key. Native export is a JavaScript bundle, **not a signed IPA or a TestFlight release**. Validate entitlements, push, biometrics, camera, and Apple sign-in on hardware. Session lock is optional and does not yet auto-lock on app background. The app contains no host subscription purchase button or subscription payment link.
+**Preview deployments must not use the production database.** Database changes run during production builds; on Preview builds they're skipped unless `MIGRATE_ON_PREVIEW=1`. Give the Preview environment its own `DATABASE_URL` (e.g. a Neon branch) in Vercel → Settings → Environment Variables. Configure Git integration in Vercel once GitHub access is available. The token used for deployment is excluded from source control.
 
 ## Verification
 
@@ -88,6 +88,6 @@ pnpm --filter @stayguide/web exec playwright install chromium
 pnpm test:e2e
 ```
 
-GitHub Actions runs lint, type checks, unit tests, and web/native export. Browser tests target the demo and deliberately check that unavailable payment integrations fail closed. A real signup → AI → Stripe purchase E2E needs test credentials and remaining integration implementation. Lighthouse ≥90 has not been certified. Logs from sandbox checks are kept in `/tmp/logs`.
+The CI workflow is kept at `docs/ci.workflow.yml`; copy it to `.github/workflows/ci.yml` (from the GitHub website) to run lint, type checks, unit tests and the build on every push. Browser tests run against the demo (no credentials). A real signup → AI → Stripe purchase test needs a dedicated test account. Lighthouse ≥90 has not been certified. Logs from sandbox checks are kept in `/tmp/logs`.
 
 See [launch plan and App Store draft](docs/LAUNCH.md).

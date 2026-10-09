@@ -31,7 +31,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       console.error("[extras] payment update failed", error);
       return NextResponse.json({ error: "Stripe couldn’t process this. The hold may have expired; please contact the guest." }, { status: 502 });
     }
-  } else if (status === "refunded") return NextResponse.json({ error: "Only online payments can be refunded here." }, { status: 409 });
+  } else {
+    // Paid outside Stripe (cash, transfer…): only sensible moves. A declined request can't become paid.
+    const allowed: Record<string, string[]> = {
+      pending: ["approved", "declined", "paid"],
+      approved: ["paid", "declined"],
+      paid: [],
+      declined: [],
+      refunded: [],
+    };
+    if (status === "refunded") return NextResponse.json({ error: "Only online payments can be refunded here." }, { status: 409 });
+    if (!(allowed[req.status] ?? []).includes(status))
+      return NextResponse.json({ error: `A ${req.status} request can't be marked ${status}.` }, { status: 409 });
+  }
   await setExtraRequestStatus(host.user.id, id, status);
   return NextResponse.json({ status });
 }
