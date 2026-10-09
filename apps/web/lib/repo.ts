@@ -50,6 +50,44 @@ export async function deleteUser(id: string) {
   await query(`DELETE FROM users WHERE id = $1`, [id]);
 }
 
+/**
+ * Everything StayGuide stores about a host, for "Download my data". Every query is scoped to the
+ * host's own id; payment card details are never stored by StayGuide (they stay with Stripe).
+ */
+export async function exportUserData(id: string) {
+  const [account] = await query(
+    `SELECT id, email, name, plan, subscription_status AS "subscriptionStatus", payouts_ready AS "payoutsReady",
+            notify_email AS "notifyEmail", created_at AS "createdAt"
+       FROM users WHERE id = $1`,
+    [id],
+  );
+  if (!account) return null;
+  const properties = await query(
+    `SELECT id, slug, status, data, created_at AS "createdAt" FROM properties WHERE owner_id = $1 ORDER BY created_at`,
+    [id],
+  );
+  const guestMessages = await query(
+    `SELECT m.property_id AS "propertyId", m.thread_id AS "threadId", m.role, m.content, m.language, m.escalated, m.created_at AS "createdAt"
+       FROM chat_messages m JOIN properties p ON p.id = m.property_id
+      WHERE p.owner_id = $1 ORDER BY m.created_at, m.seq`,
+    [id],
+  );
+  const extraRequests = await query(
+    `SELECT r.id, r.property_id AS "propertyId", r.extra_name AS "extraName", r.price, r.guest_name AS "guestName",
+            r.guest_contact AS "guestContact", r.note, r.status, r.created_at AS "createdAt"
+       FROM extra_requests r JOIN properties p ON p.id = r.property_id
+      WHERE p.owner_id = $1 ORDER BY r.created_at`,
+    [id],
+  );
+  const guideViews = await query(
+    `SELECT v.property_id AS "propertyId", v.day, v.views FROM guide_views v JOIN properties p ON p.id = v.property_id
+      WHERE p.owner_id = $1 ORDER BY v.day`,
+    [id],
+  );
+  const aiUsage = await query(`SELECT month, messages FROM usage_counters WHERE owner_id = $1 ORDER BY month`, [id]);
+  return { exportedAt: new Date().toISOString(), account, properties, guestMessages, extraRequests, guideViews, aiUsage };
+}
+
 type PropertyRow = { id: string; slug: string; status: string; data: Property };
 const toProperty = (r: PropertyRow): Property => ({ ...r.data, id: r.id, slug: r.slug, status: r.status as Property["status"] });
 

@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Send, Check, X, RefreshCw, CreditCard, Landmark, ExternalLink } from "lucide-react";
 import { money, plans, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
 import { PageHeading } from "./ui";
@@ -178,7 +179,15 @@ export function LiveExtraRequests({ notify }: { notify: (m: string) => void }) {
           <div style={{ flex: 1, minWidth: 200 }}>
             <strong>{r.extraName}</strong> · {money(r.price)}
             <div style={{ fontSize: 12, color: "var(--muted)" }}>
-              {r.propertyName} · {r.guestName} · <a href={r.guestContact.includes("@") ? `mailto:${r.guestContact}` : `tel:${r.guestContact}`}>{r.guestContact}</a> · {when(r.createdAt, locale)}
+              {r.propertyName} ·{" "}
+              {r.guestContact ? (
+                <>
+                  {r.guestName} · <a href={r.guestContact.includes("@") ? `mailto:${r.guestContact}` : `tel:${r.guestContact}`}>{r.guestContact}</a>
+                </>
+              ) : (
+                tr("Guest details removed after 6 months")
+              )}{" "}
+              · {when(r.createdAt, locale)}
             </div>
             {r.note && <div style={{ fontSize: 12, marginTop: 4 }}>“{r.note}”</div>}
           </div>
@@ -489,6 +498,43 @@ export function LiveNotifications({ notify }: { notify: (m: string) => void }) {
         </span>
       </label>
       {!emailReady && <p className="muted" style={{ fontSize: 12 }}>{tr("Email sending isn’t set up on this StayGuide server yet, so no emails are sent for now.")}</p>}
+    </div>
+  );
+}
+
+/** Settings → Your data: download everything as JSON, or delete the account. */
+export function LiveAccountData({ notify }: { notify: (m: string) => void }) {
+  const { tr } = useAppLocale();
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+  async function remove() {
+    if (!window.confirm(tr("Delete your StayGuide account? Your guides, guest messages and extra requests are deleted for good and your subscription is cancelled. This can’t be undone."))) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/v1/account", { method: "DELETE" });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(body.error);
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      notify(error instanceof Error && error.message ? error.message : tr("Couldn’t delete your account. Please try again."));
+      setDeleting(false);
+    }
+  }
+  return (
+    <div className="card panel stack">
+      <h3>{tr("Your data")}</h3>
+      <p className="muted" style={{ fontSize: 13 }}>
+        {tr("Guest chats are deleted after 12 months, and guest names and contact details on extra requests after 6 months.")}
+      </p>
+      <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+        <a className="button secondary" href="/api/v1/account/export" download>
+          {tr("Download my data")}
+        </a>
+        <button className="button danger" disabled={deleting} onClick={() => void remove()}>
+          {deleting ? tr("Deleting…") : tr("Delete account")}
+        </button>
+      </div>
     </div>
   );
 }

@@ -89,6 +89,12 @@ Use environment settings for credentials. `NEXT_PUBLIC_APP_URL` must match the p
 - Old rate-limit windows (over 25 hours) are cleaned up automatically.
 - Health check: `GET /api/v1/status` (and the `/status` page) reports whether the database, Google sign-in, AI, Stripe, email and Sentry are configured. It never returns secret values.
 
+## Data retention and legal
+
+- A daily Vercel cron (`apps/web/vercel.json` → `GET /api/cron/retention`, protected by `Authorization: Bearer $CRON_SECRET`) deletes guest chat messages older than 12 months, clears guest names, contact details and notes on extra requests older than 6 months, and forgets processed Stripe webhook ids after 90 days. Without `CRON_SECRET` the route refuses to run.
+- Hosts can download everything stored about them as JSON (Settings → Your data → Download my data, `GET /api/v1/account/export`) and delete their account (which cancels the subscription first).
+- The privacy policy and terms live in `apps/web/lib/legal.ts` (English only). Fill in the four `LEGAL_DETAILS` values (company name, address, contact email, governing law) before launch; they show in [BRACKETS] until then.
+
 ## Verification
 
 ```bash
