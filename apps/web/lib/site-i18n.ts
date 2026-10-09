@@ -26,7 +26,7 @@ const en = {
     description: "Digital guest guides with a 24/7 AI concierge that answers your guests in their own language, and paid extras that pay for it.",
     pricingTitle: "Simple per-property pricing",
   },
-  nav: { howItWorks: "How it works", pricing: "Pricing", demo: "Guest demo", login: "Log in", explore: "Explore StayGuide", language: "Language" },
+  nav: { howItWorks: "How it works", pricing: "Pricing", demo: "Guest demo", login: "Log in", explore: "Explore StayGuide", language: "Language", openMenu: "Open menu", closeMenu: "Close menu" },
   footer: { tagline: "Made for thoughtful hosts.", journal: "Journal", privacy: "Privacy", terms: "Terms" },
   hero: {
     eyebrow: "A WARMER WELCOME. A LIGHTER WORKLOAD.",
@@ -140,7 +140,7 @@ const fr: SiteText = {
     description: "Des livrets d’accueil digitaux avec un concierge IA 24h/24 qui répond à vos voyageurs dans leur langue, et des extras payants qui le rentabilisent.",
     pricingTitle: "Des tarifs simples, par logement",
   },
-  nav: { howItWorks: "Comment ça marche", pricing: "Tarifs", demo: "Démo voyageur", login: "Connexion", explore: "Découvrir StayGuide", language: "Langue" },
+  nav: { howItWorks: "Comment ça marche", pricing: "Tarifs", demo: "Démo voyageur", login: "Connexion", explore: "Découvrir StayGuide", language: "Langue", openMenu: "Ouvrir le menu", closeMenu: "Fermer le menu" },
   footer: { tagline: "Conçu pour les hôtes attentionnés.", journal: "Journal", privacy: "Confidentialité", terms: "Conditions" },
   hero: {
     eyebrow: "UN ACCUEIL PLUS CHALEUREUX. MOINS DE TRAVAIL.",
@@ -253,7 +253,7 @@ const es: SiteText = {
     description: "Guías digitales para huéspedes con un conserje IA 24/7 que responde en su idioma, y extras de pago que lo rentabilizan.",
     pricingTitle: "Precios sencillos por alojamiento",
   },
-  nav: { howItWorks: "Cómo funciona", pricing: "Precios", demo: "Demo para huéspedes", login: "Iniciar sesión", explore: "Descubrir StayGuide", language: "Idioma" },
+  nav: { howItWorks: "Cómo funciona", pricing: "Precios", demo: "Demo para huéspedes", login: "Iniciar sesión", explore: "Descubrir StayGuide", language: "Idioma", openMenu: "Abrir menú", closeMenu: "Cerrar menú" },
   footer: { tagline: "Hecho para anfitriones atentos.", journal: "Blog", privacy: "Privacidad", terms: "Términos" },
   hero: {
     eyebrow: "UNA BIENVENIDA MÁS CÁLIDA. MENOS TRABAJO.",
@@ -366,7 +366,7 @@ const de: SiteText = {
     description: "Digitale Gästemappen mit einem KI-Concierge, der Ihren Gästen rund um die Uhr in ihrer Sprache antwortet, und bezahlten Extras, die ihn finanzieren.",
     pricingTitle: "Einfache Preise pro Unterkunft",
   },
-  nav: { howItWorks: "So funktioniert’s", pricing: "Preise", demo: "Gäste-Demo", login: "Anmelden", explore: "StayGuide entdecken", language: "Sprache" },
+  nav: { howItWorks: "So funktioniert’s", pricing: "Preise", demo: "Gäste-Demo", login: "Anmelden", explore: "StayGuide entdecken", language: "Sprache", openMenu: "Menü öffnen", closeMenu: "Menü schließen" },
   footer: { tagline: "Für aufmerksame Gastgeber gemacht.", journal: "Blog", privacy: "Datenschutz", terms: "AGB" },
   hero: {
     eyebrow: "EIN HERZLICHERER EMPFANG. WENIGER ARBEIT.",
@@ -479,7 +479,7 @@ const ar: SiteText = {
     description: "أدلة رقمية للضيوف مع مساعد ذكي يعمل على مدار الساعة ويجيب ضيوفك بلغتهم، وإضافات مدفوعة تغطي تكلفته.",
     pricingTitle: "أسعار بسيطة لكل عقار",
   },
-  nav: { howItWorks: "كيف يعمل", pricing: "الأسعار", demo: "تجربة الضيف", login: "تسجيل الدخول", explore: "اكتشف StayGuide", language: "اللغة" },
+  nav: { howItWorks: "كيف يعمل", pricing: "الأسعار", demo: "تجربة الضيف", login: "تسجيل الدخول", explore: "اكتشف StayGuide", language: "اللغة", openMenu: "فتح القائمة", closeMenu: "إغلاق القائمة" },
   footer: { tagline: "صُمّم للمضيفين المهتمين بالتفاصيل.", journal: "المدونة", privacy: "الخصوصية", terms: "الشروط" },
   hero: {
     eyebrow: "ترحيب أدفأ. عمل أقل.",

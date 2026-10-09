@@ -66,7 +66,7 @@ export function GuestGuide({
       if (cancelled) return;
       setShowOriginal(false);
       try {
-        const saved = sessionStorage.getItem(cacheKey);
+        const saved = localStorage.getItem(cacheKey);
         if (saved) {
           setTranslation({ language, text: JSON.parse(saved) as GuideText });
           return;
@@ -82,7 +82,7 @@ export function GuestGuide({
           if (body?.translated && body.text) {
             setTranslation({ language, text: body.text });
             try {
-              sessionStorage.setItem(cacheKey, JSON.stringify(body.text));
+              localStorage.setItem(cacheKey, JSON.stringify(body.text));
             } catch {
               /* storage full */
             }
@@ -148,32 +148,6 @@ export function GuestGuide({
       setDeferredInstall(event);
     };
     window.addEventListener("beforeinstallprompt", install);
-    if ("serviceWorker" in navigator)
-      navigator.serviceWorker
-        .register("/sw.js", { scope: "/g/" })
-        .then(async () => {
-          await navigator.serviceWorker.ready;
-          const warm = () => {
-            void fetch(location.pathname, { headers: { Accept: "text/html" } });
-            for (const asset of performance.getEntriesByType("resource")) {
-              if (
-                asset.name.includes("/_next/static/") ||
-                asset.name.includes("images.unsplash.com")
-              )
-                void fetch(asset.name, {
-                  mode: asset.name.includes("images.unsplash.com")
-                    ? "no-cors"
-                    : "same-origin",
-                }).catch(() => {});
-            }
-          };
-          if (navigator.serviceWorker.controller) warm();
-          else
-            navigator.serviceWorker.addEventListener("controllerchange", warm, {
-              once: true,
-            });
-        })
-        .catch(() => {});
     return () => {
       window.removeEventListener("online", update);
       window.removeEventListener("offline", update);
@@ -191,7 +165,9 @@ export function GuestGuide({
     setBusy(true);
     try {
       let answer: { answer: string; citations: string[]; escalate: boolean };
-      if (liveGuide) {
+      if (liveGuide && !navigator.onLine) {
+        answer = { answer: t.chatOffline, citations: [], escalate: false };
+      } else if (liveGuide) {
         const res = await fetch(`/api/v1/guides/${slug}/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -222,6 +198,17 @@ export function GuestGuide({
           content: answer.answer,
           citations: answer.citations,
           escalate: answer.escalate,
+        },
+      ]);
+    } catch {
+      // Lost connection mid-question: say so instead of leaving the guest waiting.
+      setMessages((previous) => [
+        ...previous,
+        {
+          role: "assistant",
+          content: navigator.onLine ? t.unavailable : t.chatOffline,
+          citations: [],
+          escalate: false,
         },
       ]);
     } finally {

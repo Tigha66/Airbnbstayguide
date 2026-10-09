@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0F766E">
+<title>You're offline · StayGuide</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22%3E%3Crect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22%230F766E%22/%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f8f9f5;color:#111;padding:24px}
+  main{max-width:420px;width:100%;text-align:center}
+  .logo{width:56px;height:56px;display:block;margin:0 auto}
+  h1{font-size:24px;margin:16px 0 8px}
+  p{color:#555;line-height:1.5;margin:0 0 20px}
+  button,a.guide{display:block;width:100%;padding:14px 16px;border-radius:12px;font-size:16px;
+    font-weight:600;text-decoration:none;border:0;cursor:pointer}
+  button{background:#0F766E;color:#fff}
+  #guides{margin-top:24px;text-align:left}
+  #guides h2{font-size:15px;color:#555;margin:0 0 8px}
+  a.guide{background:#fff;color:#0F766E;border:1px solid #d8ded6;margin-bottom:8px}
+</style>
+</head>
+<body>
+<main>
+  <svg class="logo" role="img" aria-label="StayGuide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0F766E"/><path d="M136 151c55-15 91-2 120 25 29-27 65-40 120-25v200c-55-15-91-2-120 25-29-27-65-40-120-25z" fill="none" stroke="#f6f7eb" stroke-width="19" stroke-linejoin="round"/><path d="M256 177v198" fill="none" stroke="#f6f7eb" stroke-width="16"/><circle cx="371" cy="124" r="22" fill="#d9ddb2"/></svg>
+  <h1 id="title">You're offline</h1>
+  <p id="body">This page hasn't been saved on this phone yet. Connect to Wi-Fi or mobile data and try again.</p>
+  <button id="retry" type="button" onclick="location.reload()">Try again</button>
+  <div id="guides" hidden>
+    <h2 id="saved">Guides saved on this phone</h2>
+    <div id="list"></div>
+  </div>
+</main>
+<script>
+(function () {
+  var t = {
+    fr: ["Vous êtes hors ligne", "Cette page n'est pas encore enregistrée sur ce téléphone. Connectez-vous au Wi-Fi ou aux données mobiles et réessayez.", "Réessayer", "Guides enregistrés sur ce téléphone"],
+    es: ["Estás sin conexión", "Esta página aún no está guardada en este teléfono. Conéctate al Wi-Fi o a los datos móviles e inténtalo de nuevo.", "Reintentar", "Guías guardadas en este teléfono"],
+    de: ["Sie sind offline", "Diese Seite ist auf diesem Telefon noch nicht gespeichert. Verbinden Sie sich mit WLAN oder mobilen Daten und versuchen Sie es erneut.", "Erneut versuchen", "Auf diesem Telefon gespeicherte Gästemappen"],
+    ar: ["أنت غير متصل بالإنترنت", "لم يتم حفظ هذه الصفحة على هذا الهاتف بعد. اتصل بشبكة Wi-Fi أو بيانات الجوال وحاول مرة أخرى.", "حاول مرة أخرى", "الأدلة المحفوظة على هذا الهاتف"]
+  };
+  var lang = "en";
+  try { lang = localStorage.getItem("stayguide-language") || navigator.language.split("-")[0]; } catch (e) {}
+  var s = t[lang];
+  if (s) {
+    document.documentElement.lang = lang;
+    if (lang === "ar") document.documentElement.dir = "rtl";
+    document.getElementById("title").textContent = s[0];
+    document.getElementById("body").textContent = s[1];
+    document.getElementById("retry").textContent = s[2];
+    document.getElementById("saved").textContent = s[3];
+  }
+  // When the connection comes back, retry this page, but never while the guest is
+  // already opening something else (browsers can fire "online" mid-navigation,
+  // and reloading then would pull them back to this screen).
+  var leaving = false;
+  window.addEventListener("beforeunload", function () { leaving = true; });
+  window.addEventListener("pagehide", function () { leaving = true; });
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.closest && e.target.closest("a")) leaving = true;
+  });
+  window.addEventListener("online", function () {
+    setTimeout(function () {
+      if (!leaving && navigator.onLine && document.visibilityState === "visible") location.reload();
+    }, 1500);
+  });
+  // Offer the guest guides already saved on this phone.
+  if (!("caches" in window)) return;
+  // Name each guide from the title saved with it ("Casa Serena — Your guest guide").
+  function guideName(cache, request, path) {
+    var slug = decodeURIComponent(path.slice(3)).replace(/-/g, " ");
+    var fallback = slug.charAt(0).toUpperCase() + slug.slice(1);
+    return cache.match(request, { ignoreVary: true }).then(function (response) {
+      return response ? response.text() : "";
+    }).then(function (html) {
+      var m = /<title>([^<]*)<\/title>/i.exec(html);
+      if (!m) return fallback;
+      var el = document.createElement("textarea");
+      el.innerHTML = m[1];
+      return el.value.split(" — ")[0].trim() || fallback;
+    }).catch(function () { return fallback; });
+  }
+  caches.open("stayguide-public-guides-v1").then(function (cache) {
+    return cache.keys().then(function (requests) {
+      var seen = {};
+      var found = [];
+      requests.forEach(function (request) {
+        var path = new URL(request.url).pathname;
+        if (seen[path] || !/^\/g\/[^/]+$/.test(path)) return;
+        seen[path] = true;
+        found.push(guideName(cache, request, path).then(function (name) { return [path, name]; }));
+      });
+      return Promise.all(found);
+    });
+  }).then(function (guides) {
+    var list = document.getElementById("list");
+    guides.forEach(function (guide) {
+      var link = document.createElement("a");
+      link.className = "guide";
+      link.href = guide[0];
+      link.textContent = guide[1];
+      list.appendChild(link);
+    });
+    if (guides.length) document.getElementById("guides").hidden = false;
+  }).catch(function () {});
+})();
+</script>
+</body>
+</html>

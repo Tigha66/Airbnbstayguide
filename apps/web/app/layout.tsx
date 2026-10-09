@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Arabic, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
+import { ServiceWorker } from "@/components/service-worker";
 const sans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -51,6 +52,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <Analytics />
+        <ServiceWorker />
       </body>
     </html>
   );

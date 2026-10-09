@@ -109,7 +109,10 @@ Demo on your phone: https://www.getstayguide.com/demo
 Could I set up one of your properties for free so you can see the
 results with real guests?
 
-[Your name] · StayGuide · [Business address]
+Abdelhak Tirha, Founder, StayGuide
+hello@getstayguide.com · www.getstayguide.com
+Book a 15-min demo: https://cal.com/abdelhak-tirha-ovnocv/demo
+{Business name}, {UK postal address}, United Kingdom
 Not interested? Reply "no" and I won't email again.
 ```
 
@@ -118,3 +121,180 @@ Florida: beachcondosindestin.com, foreverdestinbeachrentals.com, beachretreatsfl
 Tennessee/Carolinas: bearcampcabins.com, yoursmokymountainescape.com, heartlandrentals.com, coastncurrentsobx.com, poprentals.com, bellflowermanagement.com, beachsidegetaway.com, destinationvacationhhi.com, booerealty.com, findrentals.com.
 Texas/Arizona: visitporta.com, kvrgalveston.com, bonitaislarentals.com, hillcountrypremier.com, bachbrosproperties.com, flagstaffvacationproperties.com, zoominfo.com, vacayaz.com, houseandhomevacations.com, spirentals.com, visitgalveston.com.
 Mountain/West: estesparkvacationrental.com, riverridgerentals.com, casestudies.com (Breezeway), condosinsteamboat.com, coloradodirectory.com, vailmanagement.com, vacationrentalsparkcity.com, townlift.com, bearadise.com, grizzlyvacationrentals.com, homesteadmodern.com, tahoeaccommodations.com, tahoe.com.
+
+---
+
+# Round 2 — 33 more US managers (new regions, October 2026)
+
+Same rules: independent, ~10–150 properties, verified on the company's site or a named directory, published contacts only. **Re-check before contacting.**
+
+## Top 12 from round 2
+| # | Company | Area | Properties | Contact | Hook for the first line |
+|---|---|---|---|---|---|
+| 1 | Your Lake Vacation | Osage Beach, MO (Lake of the Ozarks) | 125+ (site) | rentals@yourlakevacation.com · 573-365-3367 | Markets "Paperless, keyless, stress-less" — StayGuide is the next step |
+| 2 | Cascade Vacation Rentals | Lutsen, MN (North Shore) | 124 (FindRentals) | (877) 415-8974 · web form | Claims the largest selection on the North Shore |
+| 3 | Jekyll Realty | Jekyll Island, GA | 130+ (site) | (912) 635-3301 · contact page | Staff help guests with restaurant picks — the concierge can do that 24/7 |
+| 4 | MVP Vacation Homes | McCall, ID (+ Sun Valley, Tamarack) | 100+ (site) | office@mvpvacationhomes.com · (800) 674-9435 | Multi-resort Idaho operator |
+| 5 | Nauset Rental | Orleans, MA (Cape Cod) | 92 (Wheelhouse blog) | (774) 316-6287 · form | Claims a 70% direct-booking rate |
+| 6 | Abode Vacation | Taos, NM | 92 (FindRentals) | reservations@abodevacation.com · 575-224-6032 | Ski + international guests; locally owned, living-wage employer |
+| 7 | Oceanfront Cottage Rentals | Tybee Island, GA | 100+ (site) | info@oceanfrontcottage.com · (800) 786-5889 | Promises 24/7 local support (has its own guest portal — pitch the AI + extras) |
+| 8 | Glacier Getaways | Whitefish, MT | 61 (FindRentals) | info@glacier-getaways.com · +1 406 200 8512 | Already sells grocery delivery, chefs, spa — perfect for paid extras |
+| 9 | NW Comfy Cabins | Leavenworth, WA | 55+ (site) | (509) 763-0180 · contact page | Brought housekeeping in-house "If our name is on the experience…" |
+| 10 | OC Beachfront Rentals | Ocean City, MD | not stated | reservations@ocbeachfrontrentals.com · 410.344.5701 | 4.85 rating across 20,000+ Airbnb/Vrbo reviews — heavy messaging volume |
+| 11 | Kona Vacation Rentals | Kailua-Kona, HI | not stated | 808-334-1199 · contact page | Many international guests — multilingual concierge |
+| 12 | Cabin Rentals of Georgia | Blue Ridge, GA | 30+ (site) | 706-432-2140 · contact page | Knight family (Gary, Lissa, Taylor, Travis); offers personal chef and massage |
+
+## Full list — round 2
+
+### Alabama Gulf Coast & Georgia
+| Company | Area | Properties | Booking | Guide tool | Contact |
+|---|---|---|---|---|---|
+| Dauphin Island Beach Rentals | Dauphin Island, AL | not stated | Direct (TrackHS) | TrackHS guest portal | info@dauphinislandbeachrentals.com · (800) 771-1480 (text OK) |
+| Alabama Gulf Coast Vacation Rentals | Gulf Shores, AL | 12 (FindRentals) | Direct | none seen | Greg@ALVacationRentals.com · 251-504-8170 |
+| Cabin Rentals of Georgia | Blue Ridge, GA | 30+ (site) | Direct (Streamline) | none seen | cabin-rentals-of-georgia.com/contact-us · 706-432-2140 |
+| Nevaeh Cabin Rentals | Blue Ridge, GA | 19 (FindRentals) | Direct | none seen | 706-258-2460 · contact form (Greg & Mary Jo Towe) |
+| Oceanfront Cottage Rentals | Tybee Island, GA | 100+ (site) | Direct (Streamline) | own guest guide portal | info@oceanfrontcottage.com · (800) 786-5889 (owner Stacye C. Jarrell) |
+| Lilmar Properties | St. Simons Island, GA | not stated | Direct + Vrbo | none seen | info@lilmarproperties.com · 912-771-8099 |
+| Jekyll Realty | Jekyll Island, GA | 130+ (site) | Direct | none seen | (912) 635-3301 · contact page |
+| Southern Belle Vacation Rentals | Tybee & Savannah, GA | not stated (may be >150) | Direct | none seen | (912) 786-8155 · contact page |
+| *Stretch:* Harris Vacations | Gulf Shores area, AL | 180+ (site) | — | — | 877-446-4853 (owner Brian Harris) |
+
+### New England & Mid-Atlantic
+| Company | Area | Properties | Booking | Guide tool | Contact |
+|---|---|---|---|---|---|
+| Nauset Rental | Orleans, MA | 92 (Wheelhouse blog) | Mostly direct | none seen | (774) 316-6287 · contact form |
+| Pretty Picky Properties | Brewster & Chatham, MA | not stated | Direct | own "ROAM Concierge" | (508) 896-3241 · contact page |
+| Seagrass Property Rentals | Kennebunkport, ME | not stated | Direct (Hostfully) + Airbnb | **uses Hostfully** | info@seagrasspropertyrentals.com · (207) 337-6105 (founder Emily) |
+| Ogunquit Rental Properties | Ogunquit, ME | not stated | Direct | none seen | marathonre@outlook.com · (207) 646-1500 |
+| Stowe Country Homes | Stowe, VT | not stated (may be ~200) | Direct (Streamline) | none seen | info@stowecountryhomes.com · (802) 253-8132 |
+| Blue Heron Property Management | Millsboro, DE | not stated | via Fairly platform | none seen | info@blueheronpm.com · 302-339-1148 |
+| OC Beachfront Rentals | Ocean City, MD | not stated | Direct + Airbnb + Vrbo | none seen | reservations@ocbeachfrontrentals.com · 410.344.5701 |
+| Island Getaways | Chincoteague, VA | not stated | Direct | none seen | igetaway@igetaway.net · 757-336-1236 |
+| Harbour Rentals | Chincoteague, VA | not stated | Direct (Escapia) | none seen | harbourvacations@gmail.com · 1-800-221-5059 (Gladys Baczek & Anita Merritt) |
+
+### Midwest lakes & Ozarks
+| Company | Area | Properties | Booking | Guide tool | Contact |
+|---|---|---|---|---|---|
+| Your Lake Vacation | Osage Beach, MO | 125+ (site) | Direct + Vrbo | none seen | rentals@yourlakevacation.com · 573-365-3367 |
+| Lake Days Rentals | Gravois Mills, MO | not stated | Direct | none seen | hello@lakedays.rentals (Lake Expo) · 573-836-6566 (Quinn family) |
+| Shores Vacation Rentals | South Haven, MI | not stated | Direct (Guesty) | none seen | reservations@shoresofsouthhaven.com · 269.637.8770 |
+| Cascade Vacation Rentals | Lutsen, MN | 124 (FindRentals) | not verified | not verified | (877) 415-8974 · web form |
+| True North Property Management | Traverse City, MI | not stated | Airbnb, Vrbo, Expedia | not verified | 231-237-8899 |
+| Geneva Lakes Vacations | Lake Geneva, WI | 20+ (Visit Lake Geneva) | Direct | not verified | (262) 248-1735 |
+| Lake Geneva Rentals | Lake Geneva, WI | not stated | not verified | not verified | (262) 426-1195 |
+| Alpen Properties | Egg Harbor, WI | not stated (may be <10) | not verified | not verified | 920-868-1530 (Bob & Liz Dickson) |
+
+### Mountain West, New Mexico & Pacific
+| Company | Area | Properties | Booking | Guide tool | Contact |
+|---|---|---|---|---|---|
+| NW Comfy Cabins | Leavenworth, WA | 55+ (site) | Direct | none seen | (509) 763-0180 · contact page |
+| Glacier Getaways | Whitefish, MT | 61 (FindRentals) | Direct | none seen | info@glacier-getaways.com · +1 406 200 8512 |
+| MVP Vacation Homes | McCall, ID | 100+ (site) | Direct | none seen | office@mvpvacationhomes.com · (800) 674-9435 |
+| Abode Vacation | Taos, NM | 92 (FindRentals) | Direct | none seen | reservations@abodevacation.com · 575-224-6032 |
+| Cannon Beach Property Management | Cannon Beach, OR | not stated (35+ shown) | Direct | none seen | tfcb@cbpm.com · (503) 436-2021 |
+| Cannon Beach Vacation Rentals | Cannon Beach, OR | 80+ (Visit the Oregon Coast) | not verified | not verified | 503-436-0940 |
+| San Juan Property Management | Friday Harbor, WA | not stated | Direct (Escapia) | none seen | info@sanjuanpm.com · 360-378-2070 |
+| Kona Vacation Rentals | Kailua-Kona, HI | not stated | Direct | none seen | 808-334-1199 · contact page |
+
+Unverified leads to check by hand: Kona Beach Properties (44, FindRentals), AA Oceanfront Rentals (93, FindRentals), DoorCo / Lundquist / JR Vacation Rentals (Door County, WI), Lakecation Vacations (Lake of the Ozarks), Rent Branson.
+
+---
+
+# Outreach playbook for US managers
+
+**Offer:** free setup of 3 properties + 3 months free (Stripe promo code `PILOT`), then $9/property/month.
+**Demo link:** https://www.getstayguide.com/g/sea-breeze-loft (or your own US demo cabin).
+**Rules:** max 10 emails/day from a new domain, one link per email, real name + a valid postal address (your UK business address is fine under CAN-SPAM) + opt-out, no weekend sends (turnover days). No US phone needed: use a Cal.com/Calendly booking link for Zoom/Google Meet demos. Send 2–5 pm UK for the East Coast, 5–8 pm UK for the West Coast.
+
+## Email 1 — the main email (Day 1)
+```
+Subject: After-hours guest questions at {Company}
+
+Hi {First name},
+
+{Personal hook — one specific sentence from their website.}
+
+Quick question: how many messages a week are the same things — door
+codes, Wi-Fi, hot tub, parking, checkout time?
+
+StayGuide gives each of your properties a mobile guide with a 24/7 AI
+concierge. Guests open one link (no app, no login) and get answers
+instantly, in their own language, using only your house info. Anything
+it can't answer goes straight to your team. It also sells extras like
+early check-in and late checkout, so it usually pays for itself.
+
+Try it on your phone — ask it anything:
+https://www.getstayguide.com/g/sea-breeze-loft
+
+Would you like me to set up 3 of your properties free for 3 months, so
+you can see the results with real guests?
+
+Abdelhak Tirha, Founder, StayGuide
+hello@getstayguide.com · www.getstayguide.com
+Book a 15-min demo: https://cal.com/abdelhak-tirha-ovnocv/demo
+{Business name}, {UK postal address}, United Kingdom
+Not interested? Reply "no" and I won't email again.
+```
+
+## Email 2 — follow-up (Day 4, same thread)
+```
+Hi {First name}, just floating this up.
+
+One number that usually surprises managers: in most guides, Wi-Fi,
+check-in and checkout make up well over half of guest questions — the
+exact ones the concierge answers on its own, at 11 PM, in Spanish if
+needed.
+
+Happy to set up your first 3 properties this week — it takes me about
+20 minutes per property with your existing house info.
+```
+
+## Email 3 — last one (Day 9)
+```
+Hi {First name}, last note from me.
+
+If guest messages get heavy this season, the free pilot stands. And one
+idea you can use either way: offering a $35 late checkout in your
+booking confirmation is one of the easiest add-ons managers sell.
+
+Wishing you a great season!
+```
+
+## Segment versions of the first paragraph
+Swap the "Quick question" paragraph for the one that fits:
+
+- **Cabins / mountains (Blue Ridge, Whitefish, Leavenworth, Taos, McCall):**
+  "Steep driveways in snow, hot tubs, wood stoves, bear-proof bins — cabin guests ask the same questions every stay, often late at night after a long drive."
+- **Beach (Tybee, Jekyll, Cape Cod, Ocean City, Cannon Beach, Gulf Shores):**
+  "Beach gear, parking passes, trash days, checkout steps — beach guests ask the same things every week, and Saturdays turn your phones into a call center."
+- **Lakes (Lake of the Ozarks, Lake Geneva, North Shore, Traverse City):**
+  "Boat docks, lake rules, grills, Wi-Fi and late arrivals — lake guests ask the same questions all season long."
+- **International guests (Hawaii, Taos ski, Whitefish/Glacier, Cape Cod):**
+  "A lot of your guests travel from abroad. StayGuide answers them in their own language — Spanish, French, German, Japanese and more — and translates your whole guide automatically, without ever changing a door code."
+
+## Personal hooks for the top prospects (first line of Email 1)
+- **Your Lake Vacation:** "I saw you've been 'paperless, keyless, stress-less' since bringing in keyless entry — StayGuide is the natural next step: answer-less guests."
+- **Cascade Vacation Rentals:** "With the largest selection of homes on the North Shore, I imagine your team hears the same arrival questions dozens of times a week."
+- **Jekyll Realty:** "I love that your team helps guests pick restaurants — imagine that help available at 10 PM on a Saturday, too."
+- **MVP Vacation Homes:** "Managing homes from McCall to Sun Valley and Tamarack means a lot of different check-in instructions to keep straight for guests."
+- **Nauset Rental:** "A 70% direct-booking rate is impressive — those direct guests are exactly the ones who message you instead of Airbnb."
+- **Abode Vacation:** "With Taos Ski Valley drawing so many international skiers, a concierge that answers in their own language could save your team a lot of calls."
+- **Glacier Getaways:** "You already arrange grocery delivery, chefs and spa visits — StayGuide lets guests book and pay for those extras themselves."
+- **NW Comfy Cabins:** "'If our name is on the experience…' — that line on your site is exactly why we built StayGuide."
+- **OC Beachfront Rentals:** "A 4.85 rating across 20,000+ reviews means a lot of happy guests — and a lot of guest messages."
+- **Kona Vacation Rentals:** "Kona sees so many visitors from Japan, Canada and Europe — StayGuide answers each of them in their own language."
+- **Cabin Rentals of Georgia:** "Gary, Lissa, Taylor and Travis — building many of the cabins yourselves shows in the details, and we'd love to help guests find those details 24/7."
+- **Oceanfront Cottage Rentals:** "You already promise 24/7 local support on Tybee — StayGuide answers the routine questions instantly so your team only handles what really needs them."
+
+## Phone / video script (optional — via Zoom, Meet or WhatsApp call; 10–11:30 AM or 2–4 PM their time)
+> "Hi, this is {Name} from StayGuide. Who looks after guest communication for your rentals? … I'll be quick: we give each property a mobile guide with an AI concierge that answers guests' repeat questions 24/7 from your own house info — door codes, Wi-Fi, hot tubs — and sends your team only what it can't answer. I'm offering a few managers in {Area} a free setup of 3 properties. Could I send you a 1-minute demo link?"
+
+## Contact-form version (for companies with no published email)
+```
+Hi, I'm {Name} from StayGuide. We give each of your properties a mobile
+guest guide with a 24/7 AI concierge that answers guests from your house
+info, in their own language, and passes anything else to your team. I'd
+like to set up 3 of your properties free for 3 months so you can test it
+with real guests. Demo: https://www.getstayguide.com/g/sea-breeze-loft
+Who's the best person to talk to? hello@getstayguide.com · https://cal.com/abdelhak-tirha-ovnocv/demo
+```
