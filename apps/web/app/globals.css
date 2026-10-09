@@ -3170,3 +3170,60 @@ small {
 .app-shell[lang="ar"] :is(h1, .welcome-title, .hero-banner h2) {
   line-height: 1.35;
 }
+
+/* Phones: every menu link lives behind a menu button instead of being hidden. */
+.marketing-nav .menu-toggle {
+  display: none;
+}
+@media (max-width: 640px) {
+  .marketing-nav .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-inline-start: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .marketing-nav nav {
+    display: none;
+  }
+  .marketing-nav.menu-open nav {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 12px 22px 22px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 18px 30px rgb(0 0 0 / 0.08);
+    font-size: 17px;
+  }
+  .marketing-nav.menu-open nav > a:not(.button) {
+    display: block;
+    padding: 13px 4px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+  }
+  .marketing-nav.menu-open nav .language-menu {
+    display: inline-flex;
+    margin: 12px 0 4px;
+    height: 44px;
+    align-self: flex-start;
+  }
+  .marketing-nav.menu-open nav > a.button {
+    display: inline-flex;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+}

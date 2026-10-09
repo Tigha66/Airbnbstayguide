@@ -34,7 +34,7 @@ const ignoreQuery: SerwistPlugin = {
 };
 
 const worker = new Serwist({
-  precacheEntries: [{ url: "/offline.html", revision: "2" }],
+  precacheEntries: [{ url: "/offline.html", revision: "3" }],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,

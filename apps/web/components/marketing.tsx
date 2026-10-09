@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, ArrowUpRight, Check, Globe } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, Globe, Menu, X } from "lucide-react";
 import { plans, priceFor, selfServePlans, CURRENCY, CURRENCY_SYMBOL } from "@stayguide/shared";
 import {
   fillSite,
@@ -61,20 +61,43 @@ export function LanguageMenu({ locale }: { locale: SiteLocale }) {
 export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
   const t = siteText(locale).nav;
   const base = localeBase(locale);
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  // Close the phone menu after navigating, and with the Escape key.
+  useEffect(() => {
+    queueMicrotask(() => setOpen(false));
+  }, [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+  const close = () => setOpen(false);
   return (
-    <header className="marketing-nav">
+    <header className={`marketing-nav${open ? " menu-open" : ""}`}>
       <Logo href={base || "/"} />
-      <nav>
-        <Link href={`${base}/#how-it-works`}>{t.howItWorks}</Link>
-        <Link href={`${base}/pricing`}>{t.pricing}</Link>
-        <Link href="/demo">{t.demo}</Link>
-        <Link href="/login">{t.login}</Link>
+      <nav id="site-menu">
+        <Link href={`${base}/#how-it-works`} onClick={close}>{t.howItWorks}</Link>
+        <Link href={`${base}/pricing`} onClick={close}>{t.pricing}</Link>
+        <Link href="/demo" onClick={close}>{t.demo}</Link>
+        <Link href="/login" onClick={close}>{t.login}</Link>
         <LanguageMenu locale={locale} />
-        <Link href="/dashboard" className="button">
+        <Link href="/dashboard" className="button" onClick={close}>
           {t.explore}
           <ArrowUpRight size={14} />
         </Link>
       </nav>
+      <button
+        type="button"
+        className="menu-toggle"
+        aria-expanded={open}
+        aria-controls="site-menu"
+        aria-label={open ? t.closeMenu : t.openMenu}
+        onClick={() => setOpen((value) => !value)}
+      >
+        {open ? <X size={22} /> : <Menu size={22} />}
+      </button>
     </header>
   );
 }
