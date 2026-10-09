@@ -1,5 +1,6 @@
 import { z } from "zod";
-import type { Property } from "@stayguide/shared";
+import type { GuideText, Property } from "@stayguide/shared";
+import { applyGuideText } from "@stayguide/shared";
 import { conciergeSystemPrompt } from "@stayguide/shared";
 import { generateJson } from "./ai";
 import { guideContext, retrieve } from "./retrieval";
@@ -21,6 +22,27 @@ const unknownText: Record<string, string> = {
   ko: "가이드에 해당 정보가 없어 호스트에게 질문을 전달했습니다. 곧 여기에서 답변을 받으실 수 있습니다.",
   hi: "यह जानकारी गाइड में नहीं है, इसलिए मैंने आपका प्रश्न आपके होस्ट को भेज दिया है। वे जल्द ही यहाँ जवाब देंगे।",
 };
+// Sample guides have no real host: questions they don't cover get this fixed message instead.
+const demoEscalationText: Record<string, string> = {
+  en: "That isn’t covered in this sample guide. In a real StayGuide, your question would go straight to the host, who replies right here.",
+  fr: "Ce n’est pas indiqué dans ce guide d’exemple. Dans un vrai StayGuide, votre question serait transmise directement à l’hôte, qui répond ici.",
+  es: "Eso no aparece en esta guía de ejemplo. En un StayGuide real, tu pregunta llegaría directamente al anfitrión, que responde aquí mismo.",
+  de: "Das steht nicht in diesem Beispielleitfaden. In einem echten StayGuide ginge Ihre Frage direkt an den Gastgeber, der Ihnen hier antwortet.",
+  it: "Questo non è indicato in questa guida di esempio. In un vero StayGuide la tua domanda arriverebbe direttamente all’host, che risponde qui.",
+  pt: "Isso não consta deste guia de exemplo. Num StayGuide real, a sua pergunta iria diretamente para o anfitrião, que responde aqui.",
+  nl: "Dat staat niet in deze voorbeeldgids. In een echte StayGuide gaat je vraag direct naar de host, die hier antwoordt.",
+  ar: "هذه المعلومة غير موجودة في هذا الدليل التجريبي. في StayGuide حقيقي، يصل سؤالك مباشرة إلى المضيف الذي يرد عليك هنا.",
+  ja: "このサンプルガイドには記載がありません。実際のStayGuideでは、ご質問はそのままホストに届き、ここで返信されます。",
+  zh: "这份示例指南中没有相关信息。在真实的 StayGuide 中，您的问题会直接发送给房东，房东会在这里回复。",
+  ko: "이 샘플 가이드에는 해당 내용이 없습니다. 실제 StayGuide에서는 질문이 바로 호스트에게 전달되고, 호스트가 여기에서 답변합니다.",
+  hi: "यह जानकारी इस नमूना गाइड में नहीं है। असली StayGuide में आपका प्रश्न सीधे होस्ट के पास जाता है, जो यहीं जवाब देते हैं।",
+};
+/** The fixed "Demo" hand-over for sample guides (no host is emailed, nothing is saved). */
+export const demoEscalation = (language: string): ConciergeAnswer => ({
+  answer: demoEscalationText[language] ?? demoEscalationText.en,
+  citations: [],
+  escalate: true,
+});
 export const unknownAnswer = (language: string): ConciergeAnswer => ({
   answer: unknownText[language] ?? unknownText.en,
   citations: [],
@@ -37,6 +59,18 @@ function guideFor(property: Property) {
 const addressQuestion =
   /\b(address|located|where is the (house|property|cabin|apartment|home|place)|adresse|direccion|ubicacion|indirizzo|endereco|morada|adres|anschrift)\b/;
 const addressLabel: Record<string, string> = { en: "The address is", fr: "L’adresse est", es: "La dirección es", de: "Die Adresse lautet", it: "L’indirizzo è", pt: "A morada é", nl: "Het adres is" };
+/**
+ * Keyword answer that prefers the guide's translation in the guest's language (when one is cached),
+ * so a guest writing in French gets the French section and matches French words. Falls back to the
+ * original guide.
+ */
+export function keywordAnswerTranslated(property: Property, translation: GuideText | null, question: string, language: string): ConciergeAnswer {
+  if (translation) {
+    const answer = keywordAnswer(applyGuideText(property, translation), question, language);
+    if (!answer.escalate) return answer;
+  }
+  return keywordAnswer(property, question, language);
+}
 export function keywordAnswer(property: Property, question: string, language: string): ConciergeAnswer {
   const plain = question.toLowerCase().normalize("NFKD").replace(/\p{M}/gu, "");
   if (property.address?.trim() && addressQuestion.test(plain))

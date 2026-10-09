@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { applyGuideText, demoAnswer, demoProperties } from "@stayguide/shared";
+import { applyGuideText, demoAnswer, demoProperties, languages } from "@stayguide/shared";
 import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
 
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
@@ -8,8 +8,9 @@ import { guideHash, guideLanguage, guideText, keepsProtected, protectedTokens, t
 const mockedAi = vi.mocked(generateJson);
 
 describe("guest interface translations", () => {
-  it("has every text in English, French, Spanish, German and Arabic", () => {
-    expect(guestUiLanguages).toEqual(["en", "fr", "es", "de", "ar"]);
+  it("has every text in all 12 guide languages", () => {
+    expect(guestUiLanguages).toEqual(["en", "fr", "es", "de", "ar", "it", "pt", "nl", "ja", "zh", "ko", "hi"]);
+    expect([...guestUiLanguages].sort()).toEqual([...languages].sort());
     const keys = Object.keys(guestText("en")).sort();
     for (const lang of guestUiLanguages) {
       const t = guestText(lang);
@@ -23,7 +24,8 @@ describe("guest interface translations", () => {
     expect(guestText("ar").navStay).toBe("إقامتك");
   });
   it("falls back to English for other languages and marks Arabic as right-to-left", () => {
-    expect(guestText("it")).toBe(guestText("en"));
+    expect(guestText("sv")).toBe(guestText("en"));
+    expect(guestText("ja").navStay).toBe("ご滞在");
     expect(guestText("de").welcome).toBe("Willkommen, fühlen Sie sich wie zu Hause.");
     expect(isRtl("ar")).toBe(true);
     expect(isRtl("fr")).toBe(false);
@@ -40,7 +42,15 @@ describe("guide translation safety", () => {
     const src = "The lockbox code is 4821 and checkout is 11:00 AM.";
     expect(keepsProtected(src, "Le code de la boîte à clés est 4821 et le départ est à 11:00 AM.")).toBe(true);
     expect(keepsProtected(src, "Le code est 4812 et le départ est à 11:00.")).toBe(false);
-    expect(keepsProtected(src, "الرمز هو ٤٨٢١")).toBe(false); // Arabic-Indic digits are not accepted
+    expect(keepsProtected(src, "الرمز هو ٤٨٢١")).toBe(false); // the checkout time was dropped
+  });
+  it("normalises digit styles and time formats, but not codes or different times", () => {
+    expect(keepsProtected("Code 4821, checkout 11:00 AM.", "الرمز ٤٨٢١، المغادرة ١١:٠٠ صباحًا.")).toBe(true);
+    expect(keepsProtected("Check-in from 3:00 PM.", "チェックインは午後3時から。")).toBe(true);
+    expect(keepsProtected("Check-in from 3:00 PM.", "Arrivée dès 15h00.")).toBe(true);
+    expect(keepsProtected("Check-in from 3:00 PM.", "체크인은 오후 3시부터.")).toBe(true);
+    expect(keepsProtected("Check-in from 3:00 PM.", "Check-in ab 14:00 Uhr.")).toBe(false);
+    expect(keepsProtected("Late checkout €3.50 an hour.", "Départ tardif 3,50 € de l’heure.")).toBe(true);
   });
 });
 
@@ -85,26 +95,41 @@ describe("translateGuide", () => {
     expect(out.sections[1].body).toBe("Network SmokyRidge_Guest, password bearden2026.");
     expect(out.extras[0].name).toBe("Late checkout");
   });
-  it("retries strictly when a time is rewritten (3:00 PM → 午後3時) and reports partial results", async () => {
+  it("accepts the same time in local format, retries a wrong time strictly, and reports partial results", async () => {
     const { translateGuideWithStatus } = await import("./translate");
     const timed = { ...guideText(property), sections: [{ id: "arrival", title: "Arrival", body: "Check-in is from 3:00 PM." }] };
-    mockedAi.mockImplementation(async (...args: unknown[]) => {
-      const input = JSON.parse(String(args[1]));
-      const strict = String(args[0]).includes("MUST appear unchanged");
-      if (input.body) return strict ? { title: "到着", body: "チェックインは3:00 PMからです。" } : { title: "到着", body: "チェックインは午後3時からです。" };
-      return { description: "キャビンへようこそ。", extras: [{ id: "late", name: "レイトチェックアウト", description: "2 PMに出発。" }] };
-    });
+    const extrasOk = { description: "キャビンへようこそ。", extras: [{ id: "late", name: "レイトチェックアウト", description: "午後2時に出発。" }] };
+    // 3:00 PM written as 午後3時 is the same time: accepted on the first try.
+    mockedAi.mockImplementation(async (...args: unknown[]) => (JSON.parse(String(args[1])).body ? { title: "到着", body: "チェックインは午後3時からです。" } : extrasOk));
     const ok = await translateGuideWithStatus(timed, "ja");
-    expect(ok.text.sections[0].body).toBe("チェックインは3:00 PMからです。");
+    expect(ok.text.sections[0].body).toBe("チェックインは午後3時からです。");
     expect(ok.complete).toBe(true);
+    // A different time (午後4時) is rejected, retried strictly, then accepted when it's right.
     mockedAi.mockImplementation(async (...args: unknown[]) => {
-      const input = JSON.parse(String(args[1]));
-      if (input.body) return { title: "到着", body: "チェックインは午後3時からです。" }; // wrong both times
-      return { description: "キャビンへようこそ。", extras: [{ id: "late", name: "レイトチェックアウト", description: "2 PMに出発。" }] };
+      if (!JSON.parse(String(args[1])).body) return extrasOk;
+      return String(args[0]).includes("MUST appear unchanged") ? { title: "到着", body: "チェックインは15:00からです。" } : { title: "到着", body: "チェックインは午後4時からです。" };
     });
+    expect((await translateGuideWithStatus(timed, "ja")).text.sections[0].body).toBe("チェックインは15:00からです。");
+    // Wrong both times: the original is kept and the result is partial (so it isn't cached).
+    mockedAi.mockImplementation(async (...args: unknown[]) => (JSON.parse(String(args[1])).body ? { title: "到着", body: "チェックインは午後4時からです。" } : extrasOk));
     const partial = await translateGuideWithStatus(timed, "ja");
     expect(partial.text.sections[0].body).toBe("Check-in is from 3:00 PM.");
     expect(partial.complete).toBe(false);
+  });
+  it("retries when the answer comes back in the wrong language", async () => {
+    const { translateGuideWithStatus } = await import("./translate");
+    const text = { ...guideText(property), sections: [{ id: "parking", title: "Parking", body: "You can park on the street in front of the house, and there is a free car park nearby." }] };
+    let calls = 0;
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      if (!JSON.parse(String(args[1])).body) return { description: "Bienvenue au chalet.", extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }] };
+      calls++;
+      return calls === 1
+        ? { title: "Parking", body: "You can park on the street in front of the house, and there is a free car park nearby." }
+        : { title: "Stationnement", body: "Vous pouvez vous garer dans la rue devant la maison, et il y a un parking gratuit à proximité." };
+    });
+    const out = await translateGuideWithStatus(text, "fr");
+    expect(calls).toBe(2);
+    expect(out.text.sections[0].title).toBe("Stationnement");
   });
   it("detects the guide's language and changes the cache key when the host edits", () => {
     const text = guideText(property);
@@ -116,7 +141,7 @@ describe("translateGuide", () => {
 describe("sample guide answers", () => {
   const p = demoProperties[0];
   it("understands the translated suggestion questions", () => {
-    for (const lang of ["en", "fr", "es", "de", "ar"])
+    for (const lang of guestUiLanguages)
       for (const q of guestText(lang).suggestions) expect(demoAnswer(p, q, lang).escalate, `${lang}: ${q}`).toBe(false);
   });
   it("replies in the guest's language when the sample guide has no answer", () => {

@@ -268,20 +268,27 @@ const demoUnknown: Record<string, string> = {
   es: "No tengo esa información en esta guía. En un alojamiento conectado, enviaría tu pregunta a tu anfitrión. Esto es una demo, así que no se ha enviado ningún mensaje.",
   de: "Diese Information steht nicht in dieser Gästemappe. In einer verbundenen Unterkunft würde ich Ihre Frage an Ihren Gastgeber weiterleiten. Dies ist eine Demo, daher wurde keine Nachricht gesendet.",
   ar: "هذه المعلومة غير موجودة في هذا الدليل. في عقار متصل، كنت سأرسل سؤالك إلى مضيفك. هذه نسخة تجريبية، لذلك لم تُرسل أي رسالة.",
+  it: "Non ho questa informazione in questa guida. In un alloggio collegato, inoltrerei la tua domanda al tuo host. Questa è una demo, quindi non è stato inviato alcun messaggio.",
+  pt: "Não tenho essa informação neste guia. Num alojamento ligado, enviaria a sua pergunta ao seu anfitrião. Isto é uma demonstração, por isso nenhuma mensagem foi enviada.",
+  nl: "Die informatie staat niet in deze gids. Bij een gekoppelde accommodatie zou ik je vraag doorsturen naar je host. Dit is een demo, dus er is geen bericht verstuurd.",
+  ja: "その情報はこのガイドに記載されていません。実際の宿泊施設では、ご質問をホストに転送します。これはデモのため、メッセージは送信されていません。",
+  zh: "这份指南中没有这方面的信息。在已连接的房源中，我会把您的问题转给房东。这是演示，所以没有发送任何消息。",
+  ko: "이 가이드에는 해당 정보가 없습니다. 연결된 숙소라면 질문을 호스트에게 전달했을 것입니다. 데모이므로 메시지는 전송되지 않았습니다.",
+  hi: "यह जानकारी इस गाइड में नहीं है। किसी जुड़ी हुई प्रॉपर्टी में मैं आपका प्रश्न आपके होस्ट को भेज देता। यह एक डेमो है, इसलिए कोई संदेश नहीं भेजा गया।",
 };
 export function demoAnswer(property: Property, message: string, language = "en") {
   const terms = message.toLowerCase();
   const rules: [RegExp, string][] = [
-    // English plus common French, Spanish, German, Italian, Portuguese, Dutch and Arabic words.
-    [/wifi|wi-fi|wlan|internet|password|mot de passe|contraseña|passwort|senha|wachtwoord|واي ?فاي|الإنترنت|كلمة (ال)?مرور|كلمة السر/, "wifi"],
-    [/check.?out|leave|leaving|départ|depart|partir|salida|abreise|partenza|saída|vertrek|المغادرة|مغادرة|الخروج/, "checkout"],
-    [/check.?in|arriv|door|key|clé|porte|llave|puerta|llegada|schlüssel|tür|ankunft|chiav|chave|chegada|sleutel|aankomst|الوصول|المفتاح|مفتاح|الباب|الدخول/, "arrival"],
-    [/park|car space|garer|stationnement|aparcar|estacion|parcheggi|parkeren|ركن|موقف|السيارة|سيارة/, "parking"],
-    [/coffee|washer|wash|air con|appliance|machine|lave|cafetière|cafetera|kaffee|lavadora|waschmaschine|lavatrice|máquina|القهوة|قهوة|الغسالة|غسالة|المكيف|آلة/, "appliances"],
-    [/trash|rubbish|recycl|bin|poubelle|déchet|basura|müll|spazzatura|rifiuti|lixo|afval|القمامة|النفايات|الزبالة/, "trash"],
-    [/quiet|rule|smok|\bpets?\b|party|règle|fumer|fête|bruit|regla|fumar|fiesta|regel|rauchen|regol|fumare|festa|roken|قواعد|القواعد|التدخين|تدخين|حفلة|حيوان/, "rules"],
-    [/emergency|first.?aid|fire|urgence|médecin|hôpital|urgencia|notfall|emergenza|emergência|noodgeval|طوارئ|الطوارئ|إسعاف|مستشفى|طبيب/, "emergency"],
-    [/restaurant|cafe|café|local|visit|manger|comer|essen|mangiare|eten|visiter|ristorante|restaurante|مطعم|مطاعم|زيارة|نصائح/, "local"],
+    // Common words in all 12 guide languages.
+    [/wifi|wi-fi|wlan|internet|password|mot de passe|contraseña|passwort|senha|wachtwoord|واي ?فاي|الإنترنت|كلمة (ال)?مرور|كلمة السر|ワイファイ|パスワード|密码|无线|와이파이|비밀번호|वाई-?फ़ाई|पासवर्ड/, "wifi"],
+    [/check.?out|leave|leaving|départ|depart|partir|salida|abreise|partenza|saída|vertrek|uitcheck|المغادرة|مغادرة|الخروج|チェックアウト|退房|체크아웃|चेक-?आउट/, "checkout"],
+    [/check.?in|arriv|door|key|clé|porte|llave|puerta|llegada|schlüssel|tür|ankunft|chiav|chave|chegada|sleutel|aankomst|الوصول|المفتاح|مفتاح|الباب|الدخول|チェックイン|鍵|入住|钥匙|체크인|열쇠|चेक-?इन|चाबी/, "arrival"],
+    [/park|car space|garer|stationnement|aparcar|estacion|parcheggi|parkeren|ركن|موقف|السيارة|سيارة|駐車|停车|주차|पार्क/, "parking"],
+    [/coffee|washer|wash|air con|appliance|machine|lave|cafetière|cafetera|kaffee|lavadora|waschmaschine|lavatrice|máquina|caffè|macchina|koffie|القهوة|قهوة|الغسالة|غسالة|المكيف|آلة|コーヒー|咖啡|커피|कॉफ़ी|洗濯|洗衣|세탁/, "appliances"],
+    [/trash|rubbish|recycl|bin|poubelle|déchet|basura|müll|spazzatura|rifiuti|lixo|afval|القمامة|النفايات|الزبالة|ゴミ|ごみ|垃圾|쓰레기|कचरा/, "trash"],
+    [/quiet|rule|smok|\bpets?\b|party|règle|fumer|fête|bruit|regla|fumar|fiesta|regel|rauchen|regol|fumare|festa|roken|قواعد|القواعد|التدخين|تدخين|حفلة|حيوان|ルール|禁煙|规则|吸烟|규칙|흡연|नियम|धूम्रपान/, "rules"],
+    [/emergency|first.?aid|fire|urgence|médecin|hôpital|urgencia|notfall|emergenza|emergência|noodgeval|طوارئ|الطوارئ|إسعاف|مستشفى|طبيب|緊急|病院|紧急|医院|응급|병원|आपात|अस्पताल/, "emergency"],
+    [/restaurant|cafe|café|local|visit|manger|comer|essen|mangiare|eten|visiter|ristorante|restaurante|مطعم|مطاعم|زيارة|نصائح|レストラン|餐厅|식당|रेस्टोरेंट/, "local"],
   ];
   const section = property.sections.find(
     (s) => s.id === rules.find(([pattern]) => pattern.test(terms))?.[1],

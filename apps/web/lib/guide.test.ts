@@ -81,3 +81,19 @@ describe("concierge follow-up questions", () => {
     expect(withHistory("Hello?")).toBe("Hello?");
   });
 });
+
+describe("keyword answers in the guest's language", () => {
+  it("answers from the cached translation when there is one", async () => {
+    const { keywordAnswerTranslated } = await import("./concierge");
+    const property = {
+      ...demoProperties[0],
+      sections: [{ id: "parking", type: "parking", title: "Parking", body: "Park in the garage, space 12.", icon: "car" }],
+    };
+    const fr = { description: "", extras: [], sections: [{ id: "parking", title: "Stationnement", body: "Garez-vous dans le garage, place 12." }] };
+    const answer = keywordAnswerTranslated(property, fr, "Où puis-je garer la voiture ? stationnement", "fr");
+    expect(answer.citations).toEqual(["Stationnement"]);
+    expect(answer.answer).toContain("place 12");
+    // No translation cached: the original guide answers.
+    expect(keywordAnswerTranslated(property, null, "Where can I park?", "en").citations).toEqual(["Parking"]);
+  });
+});

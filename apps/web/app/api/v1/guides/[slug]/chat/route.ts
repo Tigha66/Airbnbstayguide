@@ -4,10 +4,11 @@ import { chatSchema, demoProperties, plans } from "@stayguide/shared";
 import { dbConfigured } from "@/lib/db";
 import { aiAvailable, noteAiFailure, runWithAllowance } from "@/lib/ai-budget";
 import { parseJson, unavailable } from "@/lib/api";
-import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
+import { aiAnswer, demoEscalation, keywordAnswer, keywordAnswerTranslated, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
+import { guideHash, guideLanguage, guideText } from "@/lib/translate";
 import { detectLanguage } from "@/lib/language";
 import { notifyEscalation } from "@/lib/notify";
-import { consumeRateLimit, getPublishedProperty, ownerPlan, saveMessages, threadBelongsTo, threadMessages } from "@/lib/repo";
+import { consumeRateLimit, getGuideTranslation, getPublishedProperty, ownerPlan, saveMessages, threadBelongsTo, threadMessages } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Live concierge");
   const { slug } = await params;
@@ -42,8 +43,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       }
     }
     answer ??= keywordAnswer(sample, body.message, language);
-    if (!answer.answer) answer = unknownAnswer(language);
-    return NextResponse.json({ ...answer, mode, language, sample: true });
+    // No real host behind a sample guide: a fixed demo hand-over, no email, nothing saved.
+    if (answer.escalate || !answer.answer) answer = demoEscalation(language);
+    return NextResponse.json({ ...answer, mode, language, sample: true, hostNotified: false });
   }
   const found = await getPublishedProperty(slug);
   if (!found) return NextResponse.json({ error: "Guide not found" }, { status: 404 });
@@ -72,7 +74,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       }
     }
   }
-  answer ??= keywordAnswer(found.property, body.message, language);
+  if (!answer) {
+    // Free keyword answer, from the guide's cached translation in the guest's language if there is one.
+    const text = guideText(found.property);
+    const translation =
+      guideLanguage(text) === language ? null : await getGuideTranslation(found.property.id, language, guideHash(text)).catch(() => null);
+    answer = keywordAnswerTranslated(found.property, translation, body.message, language);
+  }
   if (!answer.answer) answer = unknownAnswer(language);
   await saveMessages(found.property.id, threadId, [
     { role: "guest", content: body.message, language },

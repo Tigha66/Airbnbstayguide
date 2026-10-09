@@ -38,8 +38,64 @@ export function protectedTokens(text: string) {
     found.add(m[0].replace(/[.,;:!?)]+$/, ""));
   return [...found].filter(Boolean);
 }
+/** Arabic-Indic, Persian and full-width digits → 0-9 (a code is the same code in any digit style). */
+export function westernDigits(text: string) {
+  return text.replace(/[٠-٩۰-۹０-９]/g, (d) => {
+    const c = d.charCodeAt(0);
+    if (c >= 0x0660 && c <= 0x0669) return String(c - 0x0660);
+    if (c >= 0x06f0 && c <= 0x06f9) return String(c - 0x06f0);
+    return String(c - 0xff10);
+  });
+}
+
+const PM = /^(?:pm|p\.m\.?|午後|오후|下午|晚上|傍晚|夜)$/i;
+const AM = /^(?:am|a\.m\.?|午前|오전|上午|早上|凌晨)$/i;
+const toMinutes = (hour: number, minute: number, period?: string) => {
+  let h = hour;
+  if (period && PM.test(period) && h < 12) h += 12;
+  if (period && AM.test(period) && h === 12) h = 0;
+  return h >= 0 && h < 24 && minute >= 0 && minute < 60 ? h * 60 + minute : null;
+};
+// "3:00 PM", "15:00", "15h00", "15.00 Uhr", "3 PM", "午後3時", "15時30分", "오후 3시", "下午3点30分"…
+// ("." only before "Uhr", so a price like "€3.50" isn't read as a time.)
+const timePatterns: RegExp[] = [
+  /(午前|午後|오전|오후|上午|下午|早上|晚上|傍晚|凌晨)\s*(\d{1,2})\s*(?:[時시点點](?:\s*(\d{1,2})\s*[分분])?|[:：](\d{2}))/g,
+  /(\d{1,2})\s*[時시点點]\s*(?:(\d{1,2})\s*[分분])?/g,
+  /\b(\d{1,2})\s*(?:[:h]|\.(?=\d{2}\s*Uhr))\s*(\d{2})\b\s*(a\.?m\.?|p\.?m\.?)?/gi,
+  /\b(\d{1,2})\s*(a\.?m\.?|p\.?m\.?)(?![a-z])/gi,
+];
+/** Times written in a text, as minutes after midnight, with the text spans they came from. */
+export function timesIn(text: string) {
+  const t = westernDigits(text);
+  const found: { minutes: number; start: number; end: number }[] = [];
+  const taken = (start: number, end: number) => found.some((f) => start < f.end && end > f.start);
+  const add = (m: RegExpMatchArray, minutes: number | null) => {
+    const start = m.index ?? 0;
+    const end = start + m[0].length;
+    if (minutes !== null && !taken(start, end)) found.push({ minutes, start, end });
+  };
+  for (const m of t.matchAll(timePatterns[0])) add(m, toMinutes(Number(m[2]), Number(m[3] ?? m[4] ?? 0), m[1]));
+  for (const m of t.matchAll(timePatterns[1])) add(m, toMinutes(Number(m[1]), Number(m[2] ?? 0)));
+  for (const m of t.matchAll(timePatterns[2])) add(m, toMinutes(Number(m[1]), Number(m[2]), m[3]?.replace(/\./g, "")));
+  for (const m of t.matchAll(timePatterns[3])) add(m, toMinutes(Number(m[1]), 0, m[2].replace(/\./g, "")));
+  return found;
+}
+
+/**
+ * True when a translation keeps every protected value of the source. Codes, passwords, network
+ * names, prices, phone numbers, emails and links must appear exactly (digit style aside); times may
+ * be rewritten in the target language's format ("3:00 PM" → "15:00" or "午後3時") as long as they
+ * are the same time.
+ */
 export function keepsProtected(source: string, translated: string) {
-  return protectedTokens(source).every((token) => translated.includes(token));
+  const out = westernDigits(translated);
+  const sourceTimes = timesIn(source);
+  const outMinutes = new Set(timesIn(out).map((t) => t.minutes));
+  if (!sourceTimes.every((t) => outMinutes.has(t.minutes))) return false;
+  // Blank out the times, then every other protected token must survive literally.
+  let rest = westernDigits(source);
+  for (const t of [...sourceTimes].sort((a, b) => b.start - a.start)) rest = rest.slice(0, t.start) + " ".repeat(t.end - t.start) + rest.slice(t.end);
+  return protectedTokens(rest).every((token) => out.includes(token));
 }
 
 const RULES = `Rules:
@@ -93,6 +149,11 @@ export async function translateGuideWithStatus(
       ),
     );
     if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title)) return null;
+    // Answered in the wrong language (e.g. returned the English unchanged): try again.
+    if (out.body.length > 40) {
+      const detected = detectLanguage(out.body);
+      if (detected && detected !== language) return null;
+    }
     return { id: s.id, title: out.title.trim() || s.title, body: out.body };
   };
   const sections = await inBatches(text.sections, 4, async (s) => {
