@@ -87,7 +87,12 @@ test("main website pages are saved even if the visitor only opened one page", as
   await page.waitForFunction(
     async () => {
       const cache = await caches.open("stayguide-site-pages-v1");
-      return Boolean((await cache.match("/", { ignoreVary: true })) && (await cache.match("/demo", { ignoreVary: true })));
+      const guides = await caches.open("stayguide-public-guides-v1");
+      return Boolean(
+        (await cache.match("/", { ignoreVary: true })) &&
+          (await cache.match("/demo", { ignoreVary: true })) &&
+          (await guides.match("/g/casa-serena", { ignoreVary: true })),
+      );
     },
     null,
     { timeout: 20000 },
@@ -96,6 +101,9 @@ test("main website pages are saved even if the visitor only opened one page", as
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "You're offline" })).toHaveCount(0);
   await expect(page.locator("h1").first()).toContainText("Less managing");
+  // "Guest demo" forwards to the sample guide, which was saved too.
+  await page.goto("/demo");
+  await expect(page.getByRole("heading", { name: "Casa Serena", exact: true })).toBeVisible({ timeout: 15000 });
 });
 
 test("offline check page reports the installed offline support", async ({ page }) => {
