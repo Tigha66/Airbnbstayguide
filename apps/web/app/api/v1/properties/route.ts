@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { propertySchema } from "@stayguide/shared";
 import { requireHost } from "@/lib/session";
-import { createProperty, listProperties, LimitError } from "@/lib/repo";
+import { consumeRateLimit, createProperty, listProperties, LimitError, propertyLimitReached } from "@/lib/repo";
 import { syncSubscriptionQuantity } from "@/lib/billing";
 import { safeOrigin, parseJson } from "@/lib/api";
 import { aiConfigured } from "@/lib/ai";
@@ -21,8 +21,13 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "Please check the property name and location." }, { status: 400 });
   }
+  // Check the plan's limit before spending anything on AI.
+  if (await propertyLimitReached(host.user))
+    return NextResponse.json({ error: "You've reached your plan's property limit. Upgrade to add more." }, { status: 403 });
   let sections: Awaited<ReturnType<typeof buildSectionsWithAi>> | undefined;
-  if (input.description.trim().length > 40 && aiConfigured()) {
+  // AI organising is limited per host (shared with the guide builder); past the limit the
+  // built-in parser still creates the guide.
+  if (input.description.trim().length > 40 && aiConfigured() && (await consumeRateLimit(`ai-build:${host.user.id}`, 20, 3600))) {
     try {
       sections = await buildSectionsWithAi(input.description);
     } catch {

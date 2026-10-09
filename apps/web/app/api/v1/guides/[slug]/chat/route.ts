@@ -6,7 +6,7 @@ import { aiConfigured } from "@/lib/ai";
 import { parseJson, unavailable } from "@/lib/api";
 import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
 import { detectLanguage } from "@/lib/language";
-import { consumeAiUsage, consumeRateLimit, getPublishedProperty, saveMessages, threadBelongsTo, threadMessages } from "@/lib/repo";
+import { consumeAiUsage, consumeRateLimit, getPublishedProperty, refundAiUsage, saveMessages, threadBelongsTo, threadMessages } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Live concierge");
   const { slug } = await params;
@@ -30,13 +30,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const language = detectLanguage(body.message) ?? body.language;
   let answer: ConciergeAnswer;
   let mode: "ai" | "keyword" = "keyword";
-  if (aiConfigured() && (await consumeAiUsage(found.ownerId))) {
+  // One visitor can't use up a host's monthly AI allowance: at most 10 AI answers per visitor per
+  // guide per day (after that, answers come from the keyword search, which costs nothing).
+  const visitorHasAi = aiConfigured() && (await consumeRateLimit(`ai-visitor:${bucket}`, 10, 86400));
+  if (visitorHasAi && (await consumeAiUsage(found.ownerId))) {
     try {
       answer = await aiAnswer(found.property, body.message, language, history);
       mode = "ai";
     } catch (error) {
-      // Visible in Vercel → Logs; the guest still gets an answer from the keyword search.
+      // Visible in Vercel → Logs; the guest still gets an answer from the keyword search, and the
+      // failed AI call doesn't count against the host's allowance.
       console.error("[concierge] AI answer failed; using keyword search", error);
+      await refundAiUsage(found.ownerId).catch(() => {});
       answer = keywordAnswer(found.property, body.message, language);
     }
   } else answer = keywordAnswer(found.property, body.message, language);

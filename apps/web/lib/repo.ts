@@ -45,6 +45,8 @@ export async function getUser(id: string) {
   return user ?? null;
 }
 export async function deleteUser(id: string) {
+  // Translations are keyed by property id without a foreign key, so remove them explicitly.
+  await query(`DELETE FROM guide_translations WHERE property_key IN (SELECT id FROM properties WHERE owner_id = $1)`, [id]);
   await query(`DELETE FROM users WHERE id = $1`, [id]);
 }
 
@@ -87,12 +89,8 @@ export async function createProperty(
   input: { name: string; location: string; address?: string; description: string },
   aiSections?: Property["sections"],
 ) {
-  const [{ count }] = await query<{ count: string | number }>(
-    `SELECT count(*) AS count FROM properties WHERE owner_id = $1`,
-    [owner.id],
-  );
-  const limit = plans[owner.plan]?.properties ?? 1;
-  if (Number(count) >= limit) throw new LimitError(`Your ${plans[owner.plan].name} plan includes ${limit} propert${limit === 1 ? "y" : "ies"}.`);
+  const limit = propertyLimit(owner);
+  if (await propertyLimitReached(owner)) throw limitError(owner);
   const manual = input.description.trim();
   const sections = aiSections?.length ? aiSections : manual ? parseManual(manual) : [];
   const wifi = extractWifi(manual);
@@ -115,11 +113,34 @@ export async function createProperty(
     sections,
     extras: [],
   };
-  await query(
-    `INSERT INTO properties (id, owner_id, slug, status, data) VALUES ($1, $2, $3, $4, $5)`,
-    [id, owner.id, slug, property.status, JSON.stringify(property)],
-  );
-  return property;
+  // Count and insert in one statement; the unique (owner, slot) index makes simultaneous
+  // requests collide instead of both slipping under the plan's limit.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const rows = await query(
+        `INSERT INTO properties (id, owner_id, slug, status, data, slot)
+         SELECT $1, $2, $3, $4, $5, COALESCE(MAX(slot), 0) + 1 FROM properties WHERE owner_id = $2
+         HAVING count(*) < $6
+         RETURNING id`,
+        [id, owner.id, slug, property.status, JSON.stringify(property), limit],
+      );
+      if (!rows.length) throw limitError(owner);
+      return property;
+    } catch (error) {
+      if (!String((error as { constraint?: string; message?: string })?.constraint ?? (error as Error)?.message).includes("properties_owner_slot_idx")) throw error;
+    }
+  }
+  throw limitError(owner);
+}
+const propertyLimit = (owner: User) => plans[owner.plan]?.properties ?? 1;
+const limitError = (owner: User) => {
+  const limit = propertyLimit(owner);
+  return new LimitError(`Your ${plans[owner.plan]?.name ?? "current"} plan includes ${limit} propert${limit === 1 ? "y" : "ies"}.`);
+};
+/** True when the host can't add another property on their plan (checked before any AI work). */
+export async function propertyLimitReached(owner: User) {
+  const [{ count }] = await query<{ count: string | number }>(`SELECT count(*) AS count FROM properties WHERE owner_id = $1`, [owner.id]);
+  return Number(count) >= propertyLimit(owner);
 }
 export async function updateProperty(ownerId: string, id: string, data: z.infer<typeof propertyDataSchema>) {
   const existing = await getOwnedProperty(ownerId, id);
@@ -171,6 +192,13 @@ export async function consumeAiUsage(ownerId: string) {
     [ownerId, monthKey()],
   );
   return Number(row.messages) <= limit;
+}
+/** Gives back an AI message that was counted but never answered (e.g. the AI provider failed). */
+export async function refundAiUsage(ownerId: string) {
+  await query(
+    `UPDATE usage_counters SET messages = GREATEST(messages - 1, 0) WHERE owner_id = $1 AND month = $2`,
+    [ownerId, monthKey()],
+  );
 }
 
 export async function recordView(propertyId: string) {

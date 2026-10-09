@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
-import { setQueryOverride, splitStatements } from "./db";
+import { query, setQueryOverride, splitStatements } from "./db";
 import * as repo from "./repo";
 
 let a: repo.User;
@@ -120,5 +120,34 @@ describe("repository (Neon schema on PGlite)", () => {
   it("deletes the account and all data", async () => {
     await repo.deleteUser(a.id);
     expect(await repo.listProperties(a.id)).toEqual([]);
+  });
+});
+
+describe("plan limits and AI allowance under load", () => {
+  it("lets only one of several simultaneous creates through on a 1-property plan", async () => {
+    const c = { ...(await repo.upsertUser("race@example.com", "Racer")), plan: "free" as const };
+    const results = await Promise.allSettled(
+      ["A", "B", "C", "D"].map((n) => repo.createProperty(c, { name: `Race ${n}`, location: "Lisbon", description: "" })),
+    );
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((r) => r.status === "rejected").every((r) => (r as PromiseRejectedResult).reason instanceof repo.LimitError)).toBe(true);
+    expect(await repo.listProperties(c.id)).toHaveLength(1);
+    expect(await repo.propertyLimitReached(c)).toBe(true);
+  });
+  it("can add again after deleting, without slot clashes", async () => {
+    const d = { ...(await repo.upsertUser("slots@example.com", "Slots")), plan: "starter" as const };
+    const one = await repo.createProperty(d, { name: "Slot One", location: "Lisbon", description: "" });
+    await repo.createProperty(d, { name: "Slot Two", location: "Lisbon", description: "" });
+    await repo.deleteProperty(d.id, one.id);
+    await expect(repo.createProperty(d, { name: "Slot Three", location: "Lisbon", description: "" })).resolves.toBeTruthy();
+    expect(await repo.listProperties(d.id)).toHaveLength(2);
+  });
+  it("gives back an AI message when the AI call failed", async () => {
+    const e = await repo.upsertUser("refund@example.com", "Refund");
+    await repo.consumeAiUsage(e.id);
+    await repo.consumeAiUsage(e.id);
+    await repo.refundAiUsage(e.id);
+    const [row] = await query<{ messages: number }>(`SELECT messages FROM usage_counters WHERE owner_id = $1`, [e.id]);
+    expect(Number(row.messages)).toBe(1);
   });
 });

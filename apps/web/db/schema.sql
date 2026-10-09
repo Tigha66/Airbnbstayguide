@@ -88,3 +88,8 @@ CREATE TABLE IF NOT EXISTS guide_translations (
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (property_key, language)
 );
+
+-- Property limit enforced atomically: each host's properties get a slot number, and two
+-- simultaneous "create" requests can't take the same slot (the loser re-checks the limit).
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS slot integer;
+CREATE UNIQUE INDEX IF NOT EXISTS properties_owner_slot_idx ON properties(owner_id, slot);
