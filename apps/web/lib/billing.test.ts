@@ -48,8 +48,8 @@ describe("plans", () => {
     expect(planFromSubscription(sub("active", "someone_else_pro"))).toBe("free");
   });
   it("recognises current-currency prices and the original un-suffixed ones", () => {
-    expect(lookupKey("starter", false)).toBe("stayguide_starter_monthly_usd");
-    expect(lookupKey("pro", true)).toBe("stayguide_pro_yearly_usd");
+    expect(lookupKey("starter", false)).toBe("stayguide_starter_monthly");
+    expect(lookupKey("pro", true)).toBe("stayguide_pro_yearly");
     expect(planFromSubscription(sub("active", "stayguide_starter_monthly_usd"))).toBe("starter");
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly_usd"))).toBe("pro");
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly_gbp_extra"))).toBe("free");

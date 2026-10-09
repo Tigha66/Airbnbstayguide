@@ -12,12 +12,13 @@ export const appUrl = (request?: Request) =>
   (process.env.NEXT_PUBLIC_APP_URL || (request ? new URL(request.url).origin : "http://localhost:3000")).replace(/\/$/, "");
 
 /**
- * Plan prices are found by lookup key, e.g. stayguide_pro_yearly_usd, and created on first use if
- * missing (scripts/stripe-setup.mts creates the same ones). Older keys without a currency suffix
- * (the original USD prices) are still recognised for existing subscriptions.
+ * Plan prices are found by lookup key, e.g. stayguide_pro_yearly — the same keys as the original live
+ * Stripe prices (USD: Starter $9, Pro $19 per property / month, yearly = 10 months), so existing
+ * prices and subscriptions are reused, never duplicated. Created on first use only if missing
+ * (scripts/stripe-setup.mts creates the same ones). Keys with a currency suffix are still recognised.
  */
 export const lookupKey = (plan: "starter" | "pro", yearly: boolean) =>
-  `stayguide_${plan}_${yearly ? "yearly" : "monthly"}_${CURRENCY}`;
+  `stayguide_${plan}_${yearly ? "yearly" : "monthly"}`;
 const priceCache = new Map<string, string>();
 async function planProduct(plan: "starter" | "pro") {
   const stripe = stripeClient();
@@ -52,7 +53,7 @@ export async function priceId(plan: "starter" | "pro", yearly: boolean) {
   let id = await find();
   if (!id) {
     try {
-      const monthly = plans[plan].monthly * 100; // pence
+      const monthly = plans[plan].monthly * 100; // cents
       const price = await stripe.prices.create({
         product: await planProduct(plan),
         currency: CURRENCY,

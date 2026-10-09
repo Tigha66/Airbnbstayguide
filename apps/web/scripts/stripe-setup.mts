@@ -30,8 +30,8 @@ for (const p of PLANS) {
   productIds.push(product.id);
   priceIdsByProduct[product.id] = [];
   for (const [interval, amount] of [["month", p.monthly], ["year", p.monthly * 10]] as const) {
-    // Prices are in USD (cents); the app also creates these on first use.
-    const lookup = `stayguide_${p.plan}_${interval === "month" ? "monthly" : "yearly"}_usd`;
+    // Prices are in USD (cents). Same lookup keys as the original live prices; the app also creates these on first use.
+    const lookup = `stayguide_${p.plan}_${interval === "month" ? "monthly" : "yearly"}`;
     const existing = await stripe.prices.list({ lookup_keys: [lookup], active: true });
     const price =
       existing.data[0] ??
