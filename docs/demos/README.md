@@ -71,8 +71,119 @@ read as a new section heading. Use a full stop instead.
 
 ---
 
-## Index of demo kits
+## Index of demo kits (70)
 
-| Market | Kit | Property used |
-|---|---|---|
-| US | [The Wolf Rentals](us/wolf-rentals-solitude.md) | Solitude Cabins, Estes Park |
+Each kit names the property used, where its facts came from, what wasn't published (marked **Confirm**), the extras, test questions with expected answers, and the message to send.
+
+### 🇺🇸 United States (42)
+
+| Kit | Property and place |
+|---|---|
+| [30A Escapes](us/30a-escapes-four-waves.md) | Four Waves (Seacrest Beach, FL) |
+| [Abode Vacation](us/abode-vacation-snow-bear.md) | Treetop Lodge at The Snow Bear (Taos Ski Valley, NM) |
+| [Beach Condos in Destin](us/beach-condos-in-destin-maravilla.md) | Maravilla 1207 (Miramar Beach, FL) |
+| [Beach Retreats](us/beach-retreats-sunshine-and-good-times.md) | Sunshine and Good Times (Holmes Beach, FL) |
+| [Beachside Getaway](us/beachside-getaway-springwood-villas.md) | Springwood Villas (Hilton Head Island, SC) |
+| [Booe Realty](us/booe-realty-a-place-at-the-beach.md) | A Place at the Beach (Myrtle Beach, SC) |
+| [Breathe Easy Rentals](us/breathe-easy-rentals-beach-manor-shell-seeker.md) | Beach Manor 702 "Shell Seeker" at Tops'l (Miramar Beach, FL) |
+| [Cabin Rentals of Georgia](us/cabin-rentals-of-georgia-high-hopes.md) | High Hopes (Blue Ridge, GA) |
+| [Cactus Vacation Rentals](us/cactus-vacation-rentals-old-town-condo.md) | Heated Pool 1-Bedroom Condo in Old Town (Scottsdale, AZ) |
+| [Cascade Vacation Rentals](us/cascade-vacation-rentals-lutsen-log-cabins.md) | Lutsen Log Cabins (Lutsen, MN) |
+| [Coast 'N Currents Realty](us/coast-n-currents-captains-cove.md) | Captain's Cove (Nags Head, NC) |
+| [Condos-In-Steamboat](us/condos-in-steamboat-storm-meadows-club-a-212.md) | Storm Meadows Club A 212 (Steamboat Springs, CO) |
+| [Dry Heat Resorts](us/dry-heat-resorts-haven-house.md) | Haven House at Andreas Hills (Palm Springs, CA) |
+| [Flagstaff Vacation Properties](us/flagstaff-vacation-properties-rural-escape-snowbowl.md) | Rural Escape Near Snowbowl (Flagstaff, AZ) |
+| [Forever Destin Beach Rentals](us/forever-destin-jade-east-1640.md) | Jade East 1640 (Destin, FL) |
+| [Glacier Getaways](us/glacier-getaways-granite-peak-at-the-quarry.md) | Granite Peak at the Quarry (Whitefish, MT) |
+| [Haven Vacation Rentals](us/haven-vacation-rentals-valley-view-cabin.md) | Valley View Cabin at Starr Crest Resort (Pigeon Forge, TN) |
+| [Heartland Cabin Rentals](us/heartland-cabin-rentals-barefoot-dreams.md) | Barefoot Dreams (Pigeon Forge, TN) |
+| [Hocking Hills Premier Cabins](us/hocking-hills-premier-cabins-high-point-lodge.md) | High Point Lodge (Rockbridge, OH) |
+| [Homestead Modern](us/homestead-modern-hawk-and-mesa.md) | Hawk & Mesa (Pioneertown, CA) |
+| [Jekyll Realty](us/jekyll-realty-villas-by-the-sea.md) | Villas by the Sea (Jekyll Island, GA) |
+| [Lucky Savannah](us/lucky-savannah-mcintosh-house.md) | General Lachlan McIntosh House (Savannah, GA) |
+| [Marigny Management](us/marigny-management-mid-city-3br.md) | Mid-City 3BR by the Streetcar (New Orleans, LA) |
+| [Maui Vision Rentals](us/maui-vision-rentals-kihei-akahi-c313.md) | Kihei Akahi C313 (Kihei, Maui, HI) |
+| [MVP Vacation Homes](us/mvp-vacation-homes-snowcreek.md) | The Slopeview at Snowcreek (Sun Valley, ID) |
+| [Myrtle Beach Destinations](us/myrtle-beach-destinations-caravelle-resort.md) | Caravelle Resort 745 (Myrtle Beach, SC) |
+| [Myrtle Stays](us/myrtle-stays-beach-cove-resort.md) | Beach Cove Resort (North Myrtle Beach, SC) |
+| [Nauset Rental](us/nauset-rental-nauset-winds.md) | Nauset Winds (Orleans, MA) |
+| [NW Comfy Cabins](us/nw-comfy-cabins-bavarian-mountain-suite.md) | Bavarian Mountain Suite (Leavenworth, WA) |
+| [OC Beachfront Rentals](us/oc-beachfront-rentals-belmont-towers-607.md) | Belmont Towers 607 (Ocean City, MD) |
+| [Oceanfront Cottage Rentals](us/oceanfront-cottage-rentals-brass-rail-208.md) | Brass Rail 208 (Tybee Island, GA) |
+| [Orlando Regional Property Management](us/orlando-regional-property-management-windsor-at-westside.md) | 8887 Geneve Ct (Kissimmee, FL) |
+| [Orlando Short Term Rentals](us/orlando-short-term-rentals-fairy-tales-storey-lake.md) | Fairy Tales at Storey Lake (Kissimmee, FL) |
+| [Port A Beach House Company](us/port-a-beach-house-sunrise-villas.md) | Sunrise Villas (Port Aransas, TX) |
+| [Roadrunner Escapes](us/roadrunner-escapes-scottsdale-casita-villa.md) | 5-Bedroom Villa with Private Casita (Scottsdale, AZ) |
+| [Sedona Premier](us/sedona-premier-sunrise-cliffs.md) | Sunrise Cliffs (Sedona, AZ) |
+| [Smoky Mountain Escapes](us/smoky-mountain-escapes-whispering-pines.md) | Whispering Pines (Pigeon Forge, TN) |
+| [Smoky Woods Retreats](us/smoky-woods-retreats-trailhead-lodges.md) | Trailhead Lodges (Cosby, TN) |
+| [Stay Montana](us/stay-montana-saddle-ridge-slopeside.md) | Saddle Ridge Slopeside Retreat (Big Sky, MT) |
+| [Vunique Vacations](us/vunique-vacations-the-oasis.md) | The Oasis (Siesta Key, FL) |
+| [The Wolf Rentals](us/wolf-rentals-solitude.md) | Solitude Cabins (Estes Park, CO) |
+| [Your Lake Vacation](us/your-lake-vacation-knolls-resort.md) | The Knolls Resort (Osage Beach, MO) |
+
+### 🇬🇧 United Kingdom (6)
+
+| Kit | Property and place |
+|---|---|
+| [The Coppermines Lakes Cottages](uk/coppermines-lakes-cottages-beckside-cottage.md) | Beckside Cottage (Coniston, Lake District) |
+| [Host My Property](uk/host-my-property-22a-royal-crescent.md) | 22A The Royal Crescent (Bath) |
+| [North Wales Holiday Cottages](uk/north-wales-holiday-cottages-sandbanks-deganwy.md) | Sandbanks (Deganwy, North Wales) |
+| [The Cornish Way](uk/the-cornish-way-lillies-lookout.md) | Lillie's Lookout (St Just, West Cornwall) |
+| [York Boutique Lets](uk/york-boutique-lets-minsters-keep.md) | Minster's Keep (York) |
+| [Your Devon Escape](uk/your-devon-escape-hawkins-dartmouth.md) | Hawkins (Dartmouth, Devon) |
+
+### 🇦🇪 Dubai (7)
+
+| Kit | Property and place |
+|---|---|
+| [Bespoke Residences & Holiday Homes](dubai/bespoke-residences-north-residence-palm.md) | North Residence (Palm Jumeirah) |
+| [Daniels Holiday Homes](dubai/daniels-holiday-homes-liv-marina.md) | Daniels 2BR Liv Marina (Dubai Marina) |
+| [Elite LUX Holiday Homes](dubai/elite-lux-holiday-homes-manchester-tower.md) | Chic Studio in Manchester Tower (Dubai Marina) |
+| [Livbnb](dubai/livbnb-marina-wharf-2.md) | Marina Wharf High Floor with Open View (Dubai Marina) |
+| [One Perfect Stay](dubai/one-perfect-stay-al-majara.md) | Dubai Marina 1BR Waterfront in Al Majara (Dubai Marina) |
+| [StayBetterDXB](dubai/staybetterdxb-ocean-heights.md) | Large Marina 2BR in Ocean Heights (Dubai Marina) |
+| [Vacay Lettings](dubai/vacay-lettings-iris-blue.md) | Amazing Palm Marina Views 2BR in Iris Blue (Dubai Marina) |
+
+### 🇪🇸 Spain (Costa del Sol) (7)
+
+| Kit | Property and place |
+|---|---|
+| [Andaluz Apartments](spain/andaluz-apartments-mdn06.md) | Apartment MDN06 (Nerja, Spain) |
+| [Easy Rent Málaga](spain/easy-rent-malaga-atico-rincon-de-la-victoria.md) | Magnífico ático frente al mar (Rincón de la Victoria, Spain) |
+| [IVI Real Estate](spain/ivi-real-estate-neptune-502.md) | Neptune 502 (Torremolinos / Benalmádena Costa, Spain) |
+| [Living4Malaga](spain/living4malaga-seafront-duplex.md) | Seafront Duplex (Pedregalejo, Málaga, Spain) |
+| [Málaga Sun Apartments](spain/malaga-sun-apartments-central-rooftop-pool.md) | Central Free Parking Rooftop Pool (Málaga, Spain) |
+| [Marbella in Style](spain/marbella-in-style-villa-panda.md) | Villa Panda (Sierra Blanca, Marbella, Spain) |
+| [Vacation Marbella](spain/vacation-marbella-puerto-banus-sea-front.md) | Puerto Banús Sea Front (Marbella, Spain) |
+
+### 🇵🇹 Portugal (4)
+
+| Kit | Property and place |
+|---|---|
+| [Algarve Retreats](portugal/algarve-retreats-villa-caldeira.md) | Villa Caldeira (Lagos, Algarve) |
+| [Clever Details](portugal/clever-details-villa-milou.md) | Villa Milou (Vilamoura, Algarve) |
+| [Smartavillas](portugal/smartavillas-casa-achada.md) | Casa Achada (Fonte Salgada, Tavira) |
+| [YOUROPO Apartments](portugal/youropo-ribeira-porto-1.md) | Ribeira Porto 1 (Porto) |
+
+### 🇬🇷 Greece (4)
+
+| Kit | Property and place |
+|---|---|
+| [Naxos Vacation Rentals](greece/naxos-vacation-rentals-villa-elaia.md) | Villa Elaia (Kastraki, Naxos) |
+| [Prestige Villas of Corfu](greece/prestige-villas-of-corfu-villa-calypso.md) | Villa Calypso (Kassiopi, Corfu) |
+| [Rental Property Management Corfu](greece/rental-property-management-corfu-villa-pyrgos.md) | Villa Pyrgos (Liapades, Corfu) |
+| [Straycats BnB](greece/straycats-bnb-acropolis-junior-suite.md) | Acropolis Junior Suite (Koukaki, Athens) |
+
+### Not built (no usable public guest pages)
+| Company | Why |
+|---|---|
+| Kona Vacation Rentals (US) | Website wouldn't load during research |
+| Tinies in the Smokies (US) | Site is for property owners only; no guest listings |
+| Coastal Rentals and Property Management (US) | Site is for property owners only |
+| ZiZibreeZi (UK) | Site is for property owners only |
+| Brighton Air (UK) | Site is for property owners only; listings are under owners' own Airbnb accounts |
+| SuperHost Vacation Homes (Dubai) | Booking site down |
+| SunnyCoast HomeStays (Spain) | Site is for property owners only |
+
+For these, send the normal outreach email from the prospects docs instead.
