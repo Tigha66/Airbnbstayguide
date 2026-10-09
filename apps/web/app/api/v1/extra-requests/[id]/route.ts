@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { notifyExtraDecision } from "@/lib/notify";
 import { requireHost } from "@/lib/session";
 import { getOwnedExtraRequest, setExtraRequestStatus } from "@/lib/repo";
 import { parseJson, safeOrigin } from "@/lib/api";
@@ -45,5 +46,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ error: `A ${req.status} request can't be marked ${status}.` }, { status: 409 });
   }
   await setExtraRequestStatus(host.user.id, id, status);
+  // Let the guest know (if they left an email address) when the host approves or declines.
+  if (req.status === "pending" && (status === "approved" || status === "declined" || (status === "paid" && req.payment_intent_id)))
+    await notifyExtraDecision(host.user.id, id, status !== "declined").catch(() => false);
   return NextResponse.json({ status });
 }

@@ -95,3 +95,5 @@ ALTER TABLE properties ADD COLUMN IF NOT EXISTS slot integer;
 CREATE UNIQUE INDEX IF NOT EXISTS properties_owner_slot_idx ON properties(owner_id, slot);
 -- Partial translations (some text kept in the original language) are retried after a few hours.
 ALTER TABLE guide_translations ADD COLUMN IF NOT EXISTS complete boolean NOT NULL DEFAULT true;
+-- Host email notifications (escalated questions, extra requests); on by default, off in Settings.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_email boolean NOT NULL DEFAULT true;

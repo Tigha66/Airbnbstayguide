@@ -22,6 +22,8 @@ type Message = {
   content: string;
   citations?: string[];
   escalate?: boolean;
+  /** For escalated questions: whether the host was notified by email. */
+  hostNotified?: boolean;
 };
 export function GuestGuide({
   slug,
@@ -173,7 +175,7 @@ export function GuestGuide({
     setMessage("");
     setBusy(true);
     try {
-      let answer: { answer: string; citations: string[]; escalate: boolean };
+      let answer: { answer: string; citations: string[]; escalate: boolean; hostNotified?: boolean };
       if (liveGuide && !navigator.onLine) {
         answer = { answer: t.chatOffline, citations: [], escalate: false };
       } else if (liveGuide) {
@@ -228,6 +230,7 @@ export function GuestGuide({
           content: answer.answer,
           citations: answer.citations,
           escalate: answer.escalate,
+          hostNotified: answer.hostNotified,
         },
       ]);
     } catch {
@@ -503,7 +506,7 @@ export function GuestGuide({
                   )}
                   {m.escalate && (
                     <span className="citation">
-                      {liveGuide ? t.notified : t.outsideSample}
+                      {liveGuide ? (m.hostNotified ? t.notified : t.sentToHost) : t.outsideSample}
                     </span>
                   )}
                 </div>

@@ -8,6 +8,14 @@ import type { SiteLocale } from "./site-i18n";
 type Dict = Record<string, string>;
 
 const fr: Dict = {
+  // Settings → Notifications
+  "Notifications": "Notifications",
+  "Email me when a guest needs me": "M’envoyer un e-mail quand un voyageur a besoin de moi",
+  "When the concierge passes a question to you, or a guest requests an extra. Sent to {email}.": "Quand le concierge vous transmet une question ou qu’un voyageur demande un extra. Envoyé à {email}.",
+  "Email sending isn’t set up on this StayGuide server yet, so no emails are sent for now.": "L’envoi d’e-mails n’est pas encore configuré sur ce serveur StayGuide : aucun e-mail n’est envoyé pour l’instant.",
+  "Email notifications are on.": "Les notifications par e-mail sont activées.",
+  "Email notifications are off.": "Les notifications par e-mail sont désactivées.",
+  "Couldn’t save. Please try again.": "Impossible d’enregistrer. Veuillez réessayer.",
   "Sample guide views for the week": "Vues du guide de la semaine (exemple)",
   // Navigation & frame
   "Overview": "Vue d’ensemble",
@@ -376,6 +384,14 @@ const fr: Dict = {
 };
 
 const es: Dict = {
+  // Settings → Notifications
+  "Notifications": "Notificaciones",
+  "Email me when a guest needs me": "Avisarme por correo cuando un huésped me necesite",
+  "When the concierge passes a question to you, or a guest requests an extra. Sent to {email}.": "Cuando el conserje te pase una pregunta o un huésped pida un extra. Se envía a {email}.",
+  "Email sending isn’t set up on this StayGuide server yet, so no emails are sent for now.": "El envío de correos aún no está configurado en este servidor de StayGuide, así que por ahora no se envía ninguno.",
+  "Email notifications are on.": "Las notificaciones por correo están activadas.",
+  "Email notifications are off.": "Las notificaciones por correo están desactivadas.",
+  "Couldn’t save. Please try again.": "No se pudo guardar. Inténtalo de nuevo.",
   "Sample guide views for the week": "Vistas de la guía de la semana (ejemplo)",
   "Overview": "Resumen",
   "Properties": "Alojamientos",
@@ -732,6 +748,14 @@ const es: Dict = {
 };
 
 const de: Dict = {
+  // Settings → Notifications
+  "Notifications": "Benachrichtigungen",
+  "Email me when a guest needs me": "Mir eine E-Mail senden, wenn ein Gast mich braucht",
+  "When the concierge passes a question to you, or a guest requests an extra. Sent to {email}.": "Wenn der Concierge eine Frage an Sie weitergibt oder ein Gast ein Extra anfragt. Gesendet an {email}.",
+  "Email sending isn’t set up on this StayGuide server yet, so no emails are sent for now.": "Der E-Mail-Versand ist auf diesem StayGuide-Server noch nicht eingerichtet, daher werden vorerst keine E-Mails gesendet.",
+  "Email notifications are on.": "E-Mail-Benachrichtigungen sind aktiviert.",
+  "Email notifications are off.": "E-Mail-Benachrichtigungen sind deaktiviert.",
+  "Couldn’t save. Please try again.": "Speichern fehlgeschlagen. Bitte versuchen Sie es erneut.",
   "Sample guide views for the week": "Aufrufe der Woche (Beispiel)",
   "Overview": "Übersicht",
   "Properties": "Unterkünfte",
@@ -1088,6 +1112,14 @@ const de: Dict = {
 };
 
 const ar: Dict = {
+  // Settings → Notifications
+  "Notifications": "الإشعارات",
+  "Email me when a guest needs me": "أرسل لي بريدًا إلكترونيًا عندما يحتاجني ضيف",
+  "When the concierge passes a question to you, or a guest requests an extra. Sent to {email}.": "عندما يحيل إليك المساعد سؤالًا أو يطلب ضيف خدمة إضافية. يُرسل إلى {email}.",
+  "Email sending isn’t set up on this StayGuide server yet, so no emails are sent for now.": "لم يتم إعداد إرسال البريد الإلكتروني على خادم StayGuide هذا بعد، لذلك لا تُرسل أي رسائل حاليًا.",
+  "Email notifications are on.": "إشعارات البريد الإلكتروني مفعّلة.",
+  "Email notifications are off.": "إشعارات البريد الإلكتروني متوقفة.",
+  "Couldn’t save. Please try again.": "تعذّر الحفظ. يرجى المحاولة مرة أخرى.",
   "Sample guide views for the week": "مشاهدات الدليل لهذا الأسبوع (مثال)",
   "Overview": "نظرة عامة",
   "Properties": "العقارات",

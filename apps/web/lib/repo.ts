@@ -29,7 +29,7 @@ export const propertyDataSchema = z.object({
   extras: z.array(extraSchema).max(40),
 });
 
-export type User = { id: string; email: string; name: string | null; plan: Plan };
+export type User = { id: string; email: string; name: string | null; plan: Plan; notifyEmail?: boolean };
 
 export async function upsertUser(email: string, name?: string | null, image?: string | null) {
   const [user] = await query<User>(
@@ -41,7 +41,7 @@ export async function upsertUser(email: string, name?: string | null, image?: st
   return user;
 }
 export async function getUser(id: string) {
-  const [user] = await query<User>(`SELECT id, email, name, plan FROM users WHERE id = $1`, [id]);
+  const [user] = await query<User>(`SELECT id, email, name, plan, notify_email AS "notifyEmail" FROM users WHERE id = $1`, [id]);
   return user ?? null;
 }
 export async function deleteUser(id: string) {
@@ -329,6 +329,17 @@ export async function settleExtraCheckout(sessionId: string, status: "pending" |
   );
   return rows.length > 0;
 }
+/** An extra request paid through a Checkout session, with what's needed to email its host. */
+export async function extraRequestBySession(sessionId: string) {
+  const [row] = await query<{ owner_id: string; property_name: string; extra_name: string; guest_name: string; guest_contact: string; note: string }>(
+    `SELECT p.owner_id, p.data->>'name' AS property_name, r.extra_name, r.guest_name, r.guest_contact, r.note
+       FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE r.checkout_session_id = $1`,
+    [sessionId],
+  );
+  return row
+    ? { ownerId: row.owner_id, propertyName: row.property_name, extraName: row.extra_name, guestName: row.guest_name, guestContact: row.guest_contact, note: row.note }
+    : null;
+}
 export async function getOwnedExtraRequest(ownerId: string, id: string) {
   const [row] = await query<{ id: string; status: string; payment_intent_id: string | null }>(
     `SELECT r.id, r.status, r.payment_intent_id FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE r.id = $2 AND p.owner_id = $1`,
@@ -431,6 +442,28 @@ export async function applySubscription(input: { customerId: string; userId?: st
 export async function userIdForCustomer(customerId: string) {
   const [r] = await query<{ id: string }>(`SELECT id FROM users WHERE stripe_customer_id = $1`, [customerId]);
   return r?.id ?? null;
+}
+/** Who to notify about a host's guests, and whether they want emails. */
+export async function hostContact(ownerId: string) {
+  const [row] = await query<{ email: string; name: string | null; notify_email: boolean }>(
+    `SELECT email, name, notify_email FROM users WHERE id = $1`,
+    [ownerId],
+  );
+  return row ? { email: row.email, name: row.name, notifyEmail: Boolean(row.notify_email) } : null;
+}
+export async function setNotifyEmail(userId: string, on: boolean) {
+  await query(`UPDATE users SET notify_email = $2 WHERE id = $1`, [userId, on]);
+}
+/** Details of a host's extra request, for emails to the guest. */
+export async function extraRequestDetails(ownerId: string, id: string) {
+  const [row] = await query<{ guest_name: string; guest_contact: string; extra_name: string; property_name: string; slug: string }>(
+    `SELECT r.guest_name, r.guest_contact, r.extra_name, p.data->>'name' AS property_name, p.slug
+       FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE r.id = $2 AND p.owner_id = $1`,
+    [ownerId, id],
+  );
+  return row
+    ? { guestName: row.guest_name, guestContact: row.guest_contact, extraName: row.extra_name, propertyName: row.property_name, slug: row.slug }
+    : null;
 }
 /** Host who owns the given published property: used to route extras payments to their Connect account. */
 export async function getPayoutAccount(ownerId: string) {

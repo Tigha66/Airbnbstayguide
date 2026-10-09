@@ -6,6 +6,7 @@ import { aiAvailable, noteAiFailure, runWithAllowance } from "@/lib/ai-budget";
 import { parseJson, unavailable } from "@/lib/api";
 import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
 import { detectLanguage } from "@/lib/language";
+import { notifyEscalation } from "@/lib/notify";
 import { consumeRateLimit, getPublishedProperty, ownerPlan, saveMessages, threadBelongsTo, threadMessages } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Live concierge");
@@ -77,5 +78,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     { role: "guest", content: body.message, language },
     { role: "assistant", content: answer.answer, language, citations: answer.citations, escalated: answer.escalate },
   ]);
-  return NextResponse.json({ ...answer, threadId, mode, language });
+  // Handed over to the host: email them (at most once per conversation per 10 minutes). The guest
+  // is told "your host has been notified" only when the host actually gets emails.
+  const hostNotified = answer.escalate
+    ? await notifyEscalation({ ownerId: found.ownerId, threadId, propertyName: found.property.name, question: body.message, language }).catch(() => false)
+    : false;
+  return NextResponse.json({ ...answer, threadId, mode, language, hostNotified });
 }

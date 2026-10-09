@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { planFromSubscription, stripeClient } from "./stripe";
-import { applySubscription, settleExtraCheckout, userIdForCustomer } from "./repo";
+import { applySubscription, extraRequestBySession, settleExtraCheckout, userIdForCustomer } from "./repo";
+import { notifyExtraRequest } from "./notify";
 import { syncSubscriptionQuantity } from "./billing";
 
 const customerId = (c: string | { id: string } | null) => (typeof c === "string" ? c : (c?.id ?? null));
@@ -35,7 +36,11 @@ export async function handleStripeEvent(event: Stripe.Event) {
         const pi = await stripeClient().paymentIntents.retrieve(piId);
         const status = pi.status === "succeeded" ? "paid" : pi.status === "requires_capture" ? "pending" : null;
         if (!status) return "ignored";
-        await settleExtraCheckout(session.id, status, piId);
+        // Only the first delivery of this event changes the request (and emails the host).
+        if (await settleExtraCheckout(session.id, status, piId)) {
+          const request = await extraRequestBySession(session.id);
+          if (request) await notifyExtraRequest({ ...request, paidOnline: true });
+        }
         return `extra:${status}`;
       }
       if (session.mode === "subscription" && session.subscription) {

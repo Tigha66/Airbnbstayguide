@@ -5,6 +5,7 @@ import { dbConfigured } from "@/lib/db";
 import { parseJson, unavailable } from "@/lib/api";
 import { attachExtraCheckout, consumeRateLimit, createExtraRequest, getPayoutAccount, getPublishedProperty, setExtraRequestStatusById } from "@/lib/repo";
 import { appUrl, extraCheckoutParams, stripeClient, stripeConfigured } from "@/lib/stripe";
+import { notifyExtraRequest } from "@/lib/notify";
 const schema = z.object({
   extraId: z.string().min(1).max(80),
   guestName: z.string().trim().min(2).max(120),
@@ -25,8 +26,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const guest = { name: parsed.data.guestName, contact: parsed.data.guestContact, note: parsed.data.note };
   // Hosts with a ready Stripe Connect account get paid online; others confirm requests manually.
   const destination = stripeConfigured() && extra.price > 0 ? await getPayoutAccount(found.ownerId) : null;
+  const notifyHost = (paidOnline: boolean) =>
+    notifyExtraRequest({
+      ownerId: found.ownerId,
+      propertyName: found.property.name,
+      extraName: extra.name,
+      guestName: guest.name,
+      guestContact: guest.contact,
+      note: guest.note,
+      paidOnline,
+    }).catch(() => false);
   if (!destination) {
     const id = await createExtraRequest(found.property.id, extra, guest);
+    await notifyHost(false);
     return NextResponse.json({ id, status: "pending" }, { status: 201 });
   }
   const id = await createExtraRequest(found.property.id, extra, guest, "awaiting_payment");
@@ -47,6 +59,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   } catch (error) {
     console.error("[extras] checkout failed", error);
     await setExtraRequestStatusById(id, "pending");
+    await notifyHost(false);
     return NextResponse.json({ id, status: "pending", note: "Online payment is unavailable right now; your host will confirm how to pay." }, { status: 201 });
   }
 }

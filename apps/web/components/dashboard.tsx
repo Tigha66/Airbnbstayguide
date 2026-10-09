@@ -67,7 +67,7 @@ import {
   deleteLiveProperty,
 } from "@/lib/demo-store";
 import { parseManual, extractWifi, extractTime } from "@/lib/guide-parser";
-import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling } from "./live";
+import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling, LiveNotifications } from "./live";
 import { HotelPlanCard } from "./hotel-plan";
 import { AppLanguageMenu, useAppLocale } from "./app-locale";
 import { siteDir, siteText } from "@/lib/site-i18n";
@@ -1515,6 +1515,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   )}
                 </div>
               </div>
+              {live && (
+                <div style={{ marginTop: 18 }}>
+                  <LiveNotifications notify={notify} />
+                </div>
+              )}
             </>
           )}
           <footer className="dashboard-footer">

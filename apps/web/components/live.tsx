@@ -445,3 +445,48 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
     </>
   );
 }
+
+type MeState = { services: { email?: boolean }; user: { email: string; notifyEmail?: boolean } | null };
+
+/** Settings → Notifications: email the host when a guest needs them or requests an extra. */
+export function LiveNotifications({ notify }: { notify: (m: string) => void }) {
+  const { tr } = useAppLocale();
+  const { data, reload } = usePoll<MeState>("/api/v1/me", 600000);
+  const [saving, setSaving] = useState(false);
+  if (!data?.user) return null;
+  const on = data.user.notifyEmail ?? true;
+  const emailReady = Boolean(data.services.email);
+  async function toggle(next: boolean) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/v1/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notifyEmail: next }),
+      });
+      if (!res.ok) throw new Error();
+      notify(next ? tr("Email notifications are on.") : tr("Email notifications are off."));
+      await reload();
+    } catch {
+      notify(tr("Couldn’t save. Please try again."));
+    } finally {
+      setSaving(false);
+    }
+  }
+  return (
+    <div className="card panel stack">
+      <h3>{tr("Notifications")}</h3>
+      <label className="row" style={{ gap: 10, alignItems: "flex-start" }}>
+        <input type="checkbox" checked={on} disabled={saving} onChange={(e) => void toggle(e.target.checked)} style={{ marginTop: 3 }} />
+        <span>
+          <strong>{tr("Email me when a guest needs me")}</strong>
+          <br />
+          <small className="muted">
+            {tr("When the concierge passes a question to you, or a guest requests an extra. Sent to {email}.", { email: data.user.email })}
+          </small>
+        </span>
+      </label>
+      {!emailReady && <p className="muted" style={{ fontSize: 12 }}>{tr("Email sending isn’t set up on this StayGuide server yet, so no emails are sent for now.")}</p>}
+    </div>
+  );
+}
