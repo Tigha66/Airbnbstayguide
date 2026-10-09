@@ -46,7 +46,7 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
                 <div className="eyebrow" style={{ marginBottom: 8 }}>
                   {t.hero.overlayEyebrow}
                 </div>
-                <h3>{t.hero.overlayTitle}</h3>
+                <p className="overlay-title">{t.hero.overlayTitle}</p>
                 <p>{t.hero.overlayBody}</p>
               </div>
               <Link href="/demo" className="icon-button" aria-label={t.hero.secondary}>

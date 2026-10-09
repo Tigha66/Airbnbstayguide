@@ -6,10 +6,37 @@ const PRIVATE = ["/dashboard", "/admin", "/login", "/api", "/status"];
 const isPrivate = (path: string) => PRIVATE.some((p) => path === p || path.startsWith(`${p}/`));
 const LOCALES = ["fr", "es", "de", "ar"];
 
+/**
+ * Background fetches for the offline copy go through a small queue (4 at a time), so they never
+ * compete with the page itself; hundreds of parallel requests exhaust the browser's connections.
+ */
+const queue: (() => Promise<unknown>)[] = [];
+let running = 0;
+function pump() {
+  while (running < 4 && queue.length) {
+    const job = queue.shift()!;
+    running++;
+    void job()
+      .catch(() => {})
+      .finally(() => {
+        running--;
+        pump();
+      });
+  }
+}
+function background<T>(job: () => Promise<T>): Promise<T | undefined> {
+  return new Promise((resolve) => {
+    queue.push(() => job().then(resolve, () => resolve(undefined)));
+    pump();
+  });
+}
+const save = (url: string, init?: RequestInit) => background(() => fetch(url, init));
+
 /** Saves a page and the code/styles it needs (read from its HTML), so it reopens offline. */
 async function savePage(path: string) {
   try {
-    const res = await fetch(path, { headers: { Accept: "text/html" } });
+    const res = await background(() => fetch(path, { headers: { Accept: "text/html" } }));
+    if (!res) return;
     if (!res.ok || res.redirected) return;
     const html = await res.text();
     const assets = new Set(html.match(/\/_next\/static\/[^"'\s)]+/g) ?? []);
@@ -18,8 +45,8 @@ async function savePage(path: string) {
       [...html.matchAll(/<img[^>]+src="(https?:\/\/[^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, "&")),
     );
     await Promise.all([
-      ...[...assets].map((url) => fetch(url).catch(() => {})),
-      ...[...photos].map((url) => fetch(url, { mode: "no-cors" }).catch(() => {})),
+      ...[...assets].map((url) => save(url)),
+      ...[...photos].map((url) => save(url, { mode: "no-cors" })),
     ]);
   } catch {
     /* offline or blocked: try again on the next visit */
@@ -56,7 +83,7 @@ function warmCache() {
     const asset = sameOrigin && (url.includes("/_next/static/") || url.includes("/icons/"));
     const image = entry.initiatorType === "img" || url.includes("images.unsplash.com");
     if (!asset && !image) continue;
-    void fetch(url, { mode: sameOrigin ? "same-origin" : "no-cors" }).catch(() => {});
+    void save(url, { mode: sameOrigin ? "same-origin" : "no-cors" });
   }
 }
 
@@ -97,9 +124,16 @@ export function ServiceWorker() {
         await navigator.serviceWorker.register("/sw.js", { scope: "/" });
         await navigator.serviceWorker.ready;
         if (cancelled) return;
-        if (navigator.serviceWorker.controller) warmCache();
+        // Save for offline only once the page has finished loading and the browser is idle.
+        const warmWhenIdle = () => {
+          const idle = window.requestIdleCallback ?? ((fn: () => void) => window.setTimeout(fn, 1500));
+          const start = () => idle(() => warmCache(), { timeout: 5000 });
+          if (document.readyState === "complete") start();
+          else window.addEventListener("load", start, { once: true });
+        };
+        if (navigator.serviceWorker.controller) warmWhenIdle();
         else
-          navigator.serviceWorker.addEventListener("controllerchange", warmCache, {
+          navigator.serviceWorker.addEventListener("controllerchange", warmWhenIdle, {
             once: true,
           });
       } catch {

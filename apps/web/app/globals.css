@@ -1327,10 +1327,11 @@ small {
   justify-content: space-between;
   align-items: center;
 }
-.marketing-overlay h3 {
+.marketing-overlay p.overlay-title {
   font-family: var(--serif);
   font-size: 26px;
   font-weight: 400;
+  margin: 0;
 }
 .marketing-overlay p {
   font-size: 11px;
@@ -1418,12 +1419,14 @@ small {
   text-align: left;
 }
 .faq details {
-  padding: 22px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--line);
 }
 .faq summary {
   font-size: 15px;
   cursor: pointer;
+  /* Comfortable tap target: 12px extra above and below (the details padding shrinks to match). */
+  padding: 12px 0;
 }
 .faq p {
   font-size: 13px;
@@ -1868,7 +1871,7 @@ small {
   border-radius: 20px;
   box-shadow: var(--shadow-md);
 }
-.marketing-overlay h3 {
+.marketing-overlay p.overlay-title {
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.03em;

@@ -10,3 +10,4 @@ out
 test-results
 playwright-report
 .vercel
+e2e-host*.json

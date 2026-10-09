@@ -20,12 +20,15 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const p = (await loadProperty(slug)) ?? demoProperties.find((p) => p.slug === slug);
+  const sample = demoProperties.find((p) => p.slug === slug);
+  const p = (await loadProperty(slug)) ?? sample;
   return {
     title: p ? `${p.name} — Your guest guide` : "Your guest guide",
     description: p?.description,
     manifest: `/g/${slug}/manifest.webmanifest`,
-    robots: { index: false, follow: false },
+    // Hosts' guides are private links; only the sample guides (public demos) may be indexed.
+    robots: sample ? { index: true, follow: true } : { index: false, follow: false },
+    ...(sample ? { alternates: { canonical: `/g/${slug}` } } : {}),
   };
 }
 export default async function Page({
