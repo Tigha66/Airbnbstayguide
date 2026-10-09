@@ -71,7 +71,11 @@ export async function translateGuide(text: GuideText, language: string): Promise
 }
 
 /** Like translateGuide, and also says whether every part was translated (partial results are retried later). */
-export async function translateGuideWithStatus(text: GuideText, language: string): Promise<{ text: GuideText; complete: boolean }> {
+export async function translateGuideWithStatus(
+  text: GuideText,
+  language: string,
+  onError?: (error: unknown) => void,
+): Promise<{ text: GuideText; complete: boolean }> {
   const target = languageNames[language] ?? "English";
   let complete = true;
   const translateSection = async (s: GuideText["sections"][number], strict: boolean) => {
@@ -96,8 +100,8 @@ export async function translateGuideWithStatus(text: GuideText, language: string
       try {
         const out = await translateSection(s, strict);
         if (out) return out;
-      } catch {
-        /* try again strictly, then keep the original */
+      } catch (error) {
+        onError?.(error); /* try again strictly, then keep the original */
       }
     }
     complete = false;
@@ -123,7 +127,8 @@ export async function translateGuideWithStatus(text: GuideText, language: string
       complete = false;
       return e;
     });
-  } catch {
+  } catch (error) {
+    onError?.(error);
     complete = false; /* keep originals */
   }
   return { text: { description, sections, extras }, complete };

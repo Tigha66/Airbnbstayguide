@@ -91,7 +91,8 @@ describe("repository (Neon schema on PGlite)", () => {
     const ana = hosts.find((h) => h.email === "host@example.com");
     expect(hosts).toHaveLength(2);
     expect(ana).toMatchObject({ plan: "free", properties: 1, published: 1, aiMessagesThisMonth: 1, aiMessageLimit: 25 });
-    expect(hosts.find((h) => h.email === "other@example.com")).toMatchObject({ aiMessagesThisMonth: 26, aiMessageLimit: 25 });
+    // The counter stops at the limit (it used to show 26/25).
+    expect(hosts.find((h) => h.email === "other@example.com")).toMatchObject({ aiMessagesThisMonth: 25, aiMessageLimit: 25 });
   });
   it("lets the owner switch an account to the Hotel plan and keeps it across deploys", async () => {
     const h = await repo.upsertUser("hotel@example.com", "Grand Hotel");
@@ -149,5 +150,32 @@ describe("plan limits and AI allowance under load", () => {
     await repo.refundAiUsage(e.id);
     const [row] = await query<{ messages: number }>(`SELECT messages FROM usage_counters WHERE owner_id = $1`, [e.id]);
     expect(Number(row.messages)).toBe(1);
+  });
+});
+
+describe("AI allowance never passes its limit", () => {
+  it("bases the allowance on at most the plan's property count", () => {
+    expect(repo.aiMessageLimit("free", 0)).toBe(25);
+    expect(repo.aiMessageLimit("free", 5)).toBe(25); // free plan covers 1 property
+    expect(repo.aiMessageLimit("starter", 3)).toBe(900);
+    expect(repo.aiMessageLimit("starter", 50)).toBe(300 * 20);
+  });
+  it("reserves atomically and stops exactly at the limit", async () => {
+    const u = await repo.upsertUser("allowance@example.com", "Allowance");
+    expect(await repo.reserveAiUsage(u.id, 20)).toBe(true);
+    expect(await repo.reserveAiUsage(u.id, 10)).toBe(false); // 30 > 25: refused, counter unchanged
+    const results = await Promise.all(Array.from({ length: 8 }, () => repo.consumeAiUsage(u.id)));
+    expect(results.filter(Boolean)).toHaveLength(5);
+    const [row] = await query<{ messages: number }>(`SELECT messages FROM usage_counters WHERE owner_id = $1`, [u.id]);
+    expect(Number(row.messages)).toBe(25);
+    await repo.refundAiUsage(u.id, 3);
+    expect(await repo.reserveAiUsage(u.id, 3)).toBe(true);
+  });
+  it("runs a cooldown for its duration", async () => {
+    expect(await repo.inCooldown("test-provider")).toBe(false);
+    await repo.startCooldown("test-provider", 300);
+    expect(await repo.inCooldown("test-provider")).toBe(true);
+    await repo.startCooldown("test-provider", 0);
+    expect(await repo.inCooldown("test-provider")).toBe(false);
   });
 });

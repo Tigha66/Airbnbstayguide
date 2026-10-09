@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { demoProperties, languages } from "@stayguide/shared";
 import { dbConfigured } from "@/lib/db";
-import { aiConfigured } from "@/lib/ai";
+import { aiAvailable, isProviderOutage, noteAiFailure } from "@/lib/ai-budget";
 import { unavailable } from "@/lib/api";
-import { consumeRateLimit, getGuideTranslation, getPublishedProperty, saveGuideTranslation } from "@/lib/repo";
+import { consumeRateLimit, getGuideTranslation, getPublishedProperty, refundAiUsage, reserveAiUsage, saveGuideTranslation } from "@/lib/repo";
 import { guideHash, guideLanguage, guideText, translateGuideWithStatus } from "@/lib/translate";
 
 export const dynamic = "force-dynamic";
@@ -25,20 +25,34 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const text = guideText(property);
   // Already in the requested language: nothing to translate.
   if (guideLanguage(text) === language) return NextResponse.json({ translated: false });
-  if (!aiConfigured()) return unavailable("Translation");
+  // Needs the database for caching and budgets, and an AI provider that isn't paused.
+  if (!dbConfigured() || !(await aiAvailable())) return unavailable("Translation");
 
   const key = sample ? `sample:${slug}` : property.id;
   const hash = guideHash(text);
-  if (dbConfigured()) {
-    const cached = await getGuideTranslation(key, language, hash).catch(() => null);
-    if (cached) return NextResponse.json({ translated: true, cached: true, text: cached });
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const bucket = createHash("sha256").update(`translate:${ip}`).digest("hex");
-    if (!(await consumeRateLimit(bucket, 20, 3600)))
-      return NextResponse.json({ error: "Please try again later." }, { status: 429 });
+  const cached = await getGuideTranslation(key, language, hash).catch(() => null);
+  if (cached) return NextResponse.json({ translated: true, cached: true, text: cached });
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const bucket = createHash("sha256").update(`translate:${ip}`).digest("hex");
+  if (!(await consumeRateLimit(bucket, 20, 3600))) return NextResponse.json({ error: "Please try again later." }, { status: 429 });
+
+  // A translation costs one AI call per section plus one for the welcome text and extras. Real
+  // guides are billed to the host's monthly AI allowance; sample guides share a global daily cap.
+  const units = text.sections.length + 1;
+  if (sample) {
+    if (!(await consumeRateLimit("ai-demo-translate-global", 60, 86400))) return unavailable("Translation");
+  } else if (!(await reserveAiUsage(found!.ownerId, units))) {
+    return NextResponse.json({ translated: false, reason: "allowance" });
   }
-  const { text: translated, complete } = await translateGuideWithStatus(text, language);
+  let outage: unknown = null;
+  const { text: translated, complete } = await translateGuideWithStatus(text, language, (error) => {
+    if (!outage && isProviderOutage(error)) outage = error;
+  });
+  if (outage) await noteAiFailure(outage);
   const changed = JSON.stringify(translated) !== JSON.stringify(text);
-  if (changed && dbConfigured()) await saveGuideTranslation(key, language, hash, translated, complete).catch(() => {});
-  return NextResponse.json({ translated: changed, text: changed ? translated : undefined });
+  // Nothing translated at all (provider down): don't charge the host.
+  if (!changed && !sample) await refundAiUsage(found!.ownerId, units).catch(() => {});
+  // Only complete translations are cached; a partial one is shown now and retried next time.
+  if (changed && complete) await saveGuideTranslation(key, language, hash, translated, true).catch(() => {});
+  return NextResponse.json({ translated: changed, complete, text: changed ? translated : undefined });
 }

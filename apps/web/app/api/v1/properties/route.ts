@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { propertySchema } from "@stayguide/shared";
 import { requireHost } from "@/lib/session";
-import { consumeRateLimit, createProperty, listProperties, LimitError, propertyLimitReached } from "@/lib/repo";
+import { createProperty, listProperties, LimitError, propertyLimitReached } from "@/lib/repo";
 import { syncSubscriptionQuantity } from "@/lib/billing";
 import { safeOrigin, parseJson } from "@/lib/api";
-import { aiConfigured } from "@/lib/ai";
+import { buildSectionsWithBudget } from "@/lib/ai-budget";
 import { buildSectionsWithAi } from "@/lib/guide-builder";
 export async function GET() {
   const host = await requireHost();
@@ -24,16 +24,10 @@ export async function POST(request: Request) {
   // Check the plan's limit before spending anything on AI.
   if (await propertyLimitReached(host.user))
     return NextResponse.json({ error: "You've reached your plan's property limit. Upgrade to add more." }, { status: 403 });
-  let sections: Awaited<ReturnType<typeof buildSectionsWithAi>> | undefined;
-  // AI organising is limited per host (shared with the guide builder); past the limit the
-  // built-in parser still creates the guide.
-  if (input.description.trim().length > 40 && aiConfigured() && (await consumeRateLimit(`ai-build:${host.user.id}`, 20, 3600))) {
-    try {
-      sections = await buildSectionsWithAi(input.description);
-    } catch {
-      sections = undefined; // Falls back to the built-in manual parser.
-    }
-  }
+  // AI organising (10 per host per hour, counted against the monthly AI allowance); otherwise the
+  // built-in parser creates the guide.
+  const manual = input.description.trim();
+  const sections = manual.length > 40 ? await buildSectionsWithBudget(host.user.id, () => buildSectionsWithAi(manual)) : undefined;
   try {
     const property = await createProperty(host.user, input, sections);
     await syncSubscriptionQuantity(host.user.id);

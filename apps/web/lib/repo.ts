@@ -171,9 +171,13 @@ export async function consumeRateLimit(bucket: string, max: number, windowSecond
   return Number(row.count) <= max;
 }
 export const monthKey = (d = new Date()) => d.toISOString().slice(0, 7);
-/** Monthly AI concierge allowance: the plan's messages per property (at least one property). */
+/**
+ * Monthly AI allowance: the plan's messages per property, for at most the plan's property count
+ * (at least one property). Shared by the concierge, the guide builder and guide translation.
+ */
 export function aiMessageLimit(plan: Plan, propertyCount: number) {
-  return (plans[plan]?.messages ?? plans.free.messages) * Math.max(1, propertyCount);
+  const p = plans[plan] ?? plans.free;
+  return p.messages * Math.min(Math.max(1, propertyCount), p.properties);
 }
 async function ownerAiLimit(ownerId: string) {
   const [row] = await query<{ plan: Plan; properties: string | number }>(
@@ -182,23 +186,54 @@ async function ownerAiLimit(ownerId: string) {
   );
   return aiMessageLimit(row?.plan ?? "free", Number(row?.properties ?? 0));
 }
-/** Counts one concierge message against the owner's monthly allowance (plan messages × properties). */
-export async function consumeAiUsage(ownerId: string) {
-  const limit = await ownerAiLimit(ownerId);
-  const [row] = await query<{ messages: number }>(
-    `INSERT INTO usage_counters (owner_id, month, messages) VALUES ($1, $2, 1)
-     ON CONFLICT (owner_id, month) DO UPDATE SET messages = usage_counters.messages + 1
-     RETURNING messages`,
-    [ownerId, monthKey()],
-  );
-  return Number(row.messages) <= limit;
+/** The host's plan (for per-guide daily caps). */
+export async function ownerPlan(ownerId: string): Promise<Plan> {
+  const [row] = await query<{ plan: Plan }>(`SELECT plan FROM users WHERE id = $1`, [ownerId]);
+  return row?.plan ?? "free";
 }
-/** Gives back an AI message that was counted but never answered (e.g. the AI provider failed). */
-export async function refundAiUsage(ownerId: string) {
-  await query(
-    `UPDATE usage_counters SET messages = GREATEST(messages - 1, 0) WHERE owner_id = $1 AND month = $2`,
-    [ownerId, monthKey()],
+/**
+ * Reserves `units` AI calls from the owner's monthly allowance. Atomic and conditional, so the
+ * counter never goes past the limit (analytics can't show 1,240/1,000). Returns false when the
+ * allowance is used up. Give units back with refundAiUsage if the AI call then fails.
+ */
+export async function reserveAiUsage(ownerId: string, units = 1) {
+  const limit = await ownerAiLimit(ownerId);
+  if (units > limit) return false;
+  const rows = await query(
+    `INSERT INTO usage_counters (owner_id, month, messages) VALUES ($1, $2, $3)
+     ON CONFLICT (owner_id, month) DO UPDATE SET messages = usage_counters.messages + EXCLUDED.messages
+       WHERE usage_counters.messages + EXCLUDED.messages <= $4
+     RETURNING messages`,
+    [ownerId, monthKey(), units, limit],
   );
+  return rows.length > 0;
+}
+/** Counts one concierge message against the owner's monthly allowance; false when it's used up. */
+export async function consumeAiUsage(ownerId: string) {
+  return reserveAiUsage(ownerId, 1);
+}
+/** Gives back AI calls that were reserved but never answered (e.g. the AI provider failed). */
+export async function refundAiUsage(ownerId: string, units = 1) {
+  await query(
+    `UPDATE usage_counters SET messages = GREATEST(messages - $3, 0) WHERE owner_id = $1 AND month = $2`,
+    [ownerId, monthKey(), units],
+  );
+}
+/** Starts a named cooldown (e.g. after the AI provider says it's out of credit). */
+export async function startCooldown(name: string, seconds: number) {
+  await query(
+    `INSERT INTO rate_limits (bucket, window_start, count) VALUES ($1, now(), $2)
+     ON CONFLICT (bucket) DO UPDATE SET window_start = now(), count = EXCLUDED.count`,
+    [`cooldown:${name}`, seconds],
+  );
+}
+/** True while a cooldown started by startCooldown is still running. */
+export async function inCooldown(name: string) {
+  const rows = await query(
+    `SELECT 1 FROM rate_limits WHERE bucket = $1 AND window_start + make_interval(secs => count) > now()`,
+    [`cooldown:${name}`],
+  );
+  return rows.length > 0;
 }
 
 export async function recordView(propertyId: string) {

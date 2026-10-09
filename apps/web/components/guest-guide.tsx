@@ -81,10 +81,12 @@ export function GuestGuide({
       setTranslating(true);
       fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
         .then((res) => (res.ok ? res.json() : null))
-        .then((body: { translated?: boolean; text?: GuideText } | null) => {
+        .then((body: { translated?: boolean; complete?: boolean; text?: GuideText } | null) => {
           if (cancelled) return;
           if (body?.translated && body.text) {
             setTranslation({ language, text: body.text });
+            // A partial translation is shown but not kept, so the next visit asks again.
+            if (body.complete === false) return;
             try {
               // Drop translations of older versions of this guide, then save this one.
               for (const key of Object.keys(localStorage))

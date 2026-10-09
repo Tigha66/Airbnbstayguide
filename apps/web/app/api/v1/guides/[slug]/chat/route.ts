@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
-import { chatSchema, demoProperties } from "@stayguide/shared";
+import { chatSchema, demoProperties, plans } from "@stayguide/shared";
 import { dbConfigured } from "@/lib/db";
-import { aiConfigured } from "@/lib/ai";
+import { aiAvailable, noteAiFailure, runWithAllowance } from "@/lib/ai-budget";
 import { parseJson, unavailable } from "@/lib/api";
 import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
 import { detectLanguage } from "@/lib/language";
-import { consumeAiUsage, consumeRateLimit, getPublishedProperty, refundAiUsage, saveMessages, threadBelongsTo, threadMessages } from "@/lib/repo";
+import { consumeRateLimit, getPublishedProperty, ownerPlan, saveMessages, threadBelongsTo, threadMessages } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Live concierge");
   const { slug } = await params;
@@ -18,7 +18,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   }
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const bucket = createHash("sha256").update(`${process.env.AUTH_SECRET ?? "stayguide"}:${ip}:${slug}`).digest("hex");
-  if (!(await consumeRateLimit(bucket, 15, 60)))
+  // Burst limit (15 a minute) and a daily cap per visitor per guide (60 a day).
+  if (!(await consumeRateLimit(bucket, 15, 60)) || !(await consumeRateLimit(`day:${bucket}`, 60, 86400)))
     return NextResponse.json({ error: "Please wait a moment before asking again." }, { status: 429 });
   // Public sample guides (the website's "Guest demo") answer with the real AI too, within a
   // per-visitor limit and a global daily cap; nothing is saved because they have no owner.
@@ -26,18 +27,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   if (sample) {
     const language = detectLanguage(body.message) ?? body.language;
     const useAi =
-      aiConfigured() &&
+      (await aiAvailable()) &&
       (await consumeRateLimit(`ai-visitor:${bucket}`, 10, 86400)) &&
       (await consumeRateLimit("ai-demo-global", 300, 86400));
-    let answer: ConciergeAnswer;
+    let answer: ConciergeAnswer | null = null;
     let mode: "ai" | "keyword" = "keyword";
-    try {
-      if (!useAi) throw new Error("AI not available for this demo request");
-      answer = await aiAnswer(sample, body.message, language, body.history ?? []);
-      mode = "ai";
-    } catch {
-      answer = keywordAnswer(sample, body.message, language);
+    if (useAi) {
+      try {
+        answer = await aiAnswer(sample, body.message, language, body.history ?? []);
+        mode = "ai";
+      } catch (error) {
+        await noteAiFailure(error);
+      }
     }
+    answer ??= keywordAnswer(sample, body.message, language);
     if (!answer.answer) answer = unknownAnswer(language);
     return NextResponse.json({ ...answer, mode, language, sample: true });
   }
@@ -49,23 +52,26 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const history = existingThread ? await threadMessages(found.property.id, threadId).catch(() => []) : [];
   // Reply in the language the guest actually wrote in; the guide's language menu is only a fallback.
   const language = detectLanguage(body.message) ?? body.language;
-  let answer: ConciergeAnswer;
+  let answer: ConciergeAnswer | null = null;
   let mode: "ai" | "keyword" = "keyword";
-  // One visitor can't use up a host's monthly AI allowance: at most 10 AI answers per visitor per
-  // guide per day (after that, answers come from the keyword search, which costs nothing).
-  const visitorHasAi = aiConfigured() && (await consumeRateLimit(`ai-visitor:${bucket}`, 10, 86400));
-  if (visitorHasAi && (await consumeAiUsage(found.ownerId))) {
-    try {
-      answer = await aiAnswer(found.property, body.message, language, history);
-      mode = "ai";
-    } catch (error) {
-      // Visible in Vercel → Logs; the guest still gets an answer from the keyword search, and the
-      // failed AI call doesn't count against the host's allowance.
-      console.error("[concierge] AI answer failed; using keyword search", error);
-      await refundAiUsage(found.ownerId).catch(() => {});
-      answer = keywordAnswer(found.property, body.message, language);
+  // Nobody can drain a host's monthly allowance: at most 10 AI answers per visitor per guide per
+  // day, and per guide per day a tenth of the plan's monthly messages. Past either cap, or while the
+  // provider is paused, answers come from the keyword search, which costs the host nothing.
+  if (await aiAvailable()) {
+    const perGuideDaily = Math.max(1, Math.ceil(plans[await ownerPlan(found.ownerId)].messages / 10));
+    const withinCaps =
+      (await consumeRateLimit(`ai-visitor:${bucket}`, 10, 86400)) &&
+      (await consumeRateLimit(`ai-guide:${found.property.id}`, perGuideDaily, 86400));
+    if (withinCaps) {
+      // Charged only when the AI actually answers (a failed call is given back).
+      const run = await runWithAllowance(found.ownerId, 1, () => aiAnswer(found.property, body.message, language, history));
+      if (run.ok) {
+        answer = run.value;
+        mode = "ai";
+      }
     }
-  } else answer = keywordAnswer(found.property, body.message, language);
+  }
+  answer ??= keywordAnswer(found.property, body.message, language);
   if (!answer.answer) answer = unknownAnswer(language);
   await saveMessages(found.property.id, threadId, [
     { role: "guest", content: body.message, language },

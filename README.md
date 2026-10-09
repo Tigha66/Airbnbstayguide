@@ -59,9 +59,13 @@ Without `STRIPE_SECRET_KEY`, billing routes return 503 and the dashboard says pa
 
 ## Cost and abuse limits
 
-- Guest chat: 15 messages per minute per visitor; at most 10 AI answers per visitor per guide per day (then free keyword answers); each host's plan has a monthly AI allowance, and failed AI calls aren't counted.
-- Guide builder and property creation: the plan's property limit is checked before any AI call; AI organising is limited to 20 per host per hour.
-- Translations: 20 new translations per visitor per hour; results are cached per guide version (partial ones are retried after 6 hours).
+One monthly **AI allowance** per host (plan messages × properties, counting at most the plan's property limit) covers the concierge, AI guide building and guide translation. Usage is reserved atomically, so the counter never passes the limit, and failed AI calls are given back.
+
+- Guest chat: 15 messages per minute and 60 per day per visitor per guide; at most 10 AI answers per visitor per guide per day, and per guide per day a tenth of the plan's monthly messages. Past these, answers come from the free keyword search.
+- AI guide building (guide builder and property creation): the plan's property limit is checked first; at most 10 per host per hour; 1 unit of allowance each.
+- Translations: 20 new translations per visitor per hour; one unit per section (+1) from the host's allowance; sample guides share a global daily cap; only complete translations are cached.
+- If the AI provider answers 402/429/5xx (no credit, rate limited, outage), AI is paused for 5 minutes and the keyword search answers without charging anyone.
+- Sample guides (`/g/casa-serena`, `/g/olive-grove`): 10 AI answers per visitor per day and 300 per day in total.
 
 ## Deploy to Vercel
 
