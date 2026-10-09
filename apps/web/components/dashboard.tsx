@@ -127,7 +127,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const [reply, setReply] = useState("");
   const [qr, setQr] = useState("");
   const [yearly, setYearly] = useState(false);
-  const [quantity, setQuantity] = useState(2);
+  const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState("");
   const property =
     state.properties.find((p) => p.id === selected) || state.properties[0];
