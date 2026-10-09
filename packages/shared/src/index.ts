@@ -119,6 +119,10 @@ export type Property = {
    *  hostPhone are withheld from the public guide and the concierge until a guest enters
    *  it (see toPublicProperty / guides/[slug]/unlock). Never sent to guest clients. */
   accessCode?: string;
+  /** Set by enforcePlanLimit when a plan downgrade/cancellation forced this property out of
+   *  publication because it exceeded the new plan's property limit. Cleared automatically the
+   *  next time the host successfully republishes it. Host-only; never sent to guests. */
+  autoUnpublished?: boolean;
   sections: Section[];
   extras: Extra[];
 };
@@ -175,7 +179,9 @@ export function toGroundedProperty(property: Property, unlocked: boolean): Prope
   if (!property.accessCode || unlocked) return property;
   return { ...property, wifiPassword: "", hostPhone: "" };
 }
-export const ALL_PROPERTY_FIELDS = [...PUBLIC_PROPERTY_FIELDS, ...GATED_PROPERTY_FIELDS, "accessCode"] as const;
+/** Host-only metadata: never exposed to guests, excluded from toPublicProperty by omission. */
+const HOST_ONLY_PROPERTY_FIELDS = ["accessCode", "autoUnpublished"] as const satisfies readonly (keyof Property)[];
+export const ALL_PROPERTY_FIELDS = [...PUBLIC_PROPERTY_FIELDS, ...GATED_PROPERTY_FIELDS, ...HOST_ONLY_PROPERTY_FIELDS] as const;
 export const sections: Section[] = [
   {
     id: "arrival",

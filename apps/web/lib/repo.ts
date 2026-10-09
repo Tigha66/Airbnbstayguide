@@ -26,6 +26,7 @@ export const propertyDataSchema = z.object({
   wifiPassword: z.string().max(120),
   hostPhone: z.string().max(40),
   accessCode: z.string().trim().max(40).optional(),
+  autoUnpublished: z.boolean().optional(),
   sections: z.array(sectionSchema).max(60),
   extras: z.array(extraSchema).max(40),
 });
@@ -126,11 +127,46 @@ export async function updateProperty(ownerId: string, id: string, data: z.infer<
   const existing = await getOwnedProperty(ownerId, id);
   if (!existing) return null;
   const next: Property = { ...data, id, slug: existing.slug };
+  // A successful republish resolves the "plan change forced this offline" state.
+  if (next.status === "published") delete next.autoUnpublished;
   await query(
     `UPDATE properties SET data = $3, status = $4, updated_at = now() WHERE owner_id = $1 AND id = $2`,
     [ownerId, id, JSON.stringify(next), next.status],
   );
   return next;
+}
+/**
+ * When a host's plan drops (downgrade, cancellation, or a failed-payment plan reset), their
+ * published properties might exceed the new plan's limit. Keeps the plan's limit worth of
+ * most-recently-edited published properties and unpublishes the rest, marking each with
+ * autoUnpublished so the dashboard can explain why instead of silently hiding them. Safe to
+ * call any time (e.g. on every billing/property fetch, not just right after a webhook) —
+ * it's a no-op whenever the host is already within their limit.
+ */
+export async function enforcePlanLimit(ownerId: string): Promise<string[]> {
+  const [owner] = await query<{ plan: Plan }>(`SELECT plan FROM users WHERE id = $1`, [ownerId]);
+  if (!owner) return [];
+  const limit = plans[owner.plan]?.properties ?? plans.free.properties;
+  const excess = await query<{ id: string; data: Property }>(
+    `SELECT id, data FROM properties WHERE owner_id = $1 AND status = 'published'
+       ORDER BY updated_at DESC OFFSET $2`,
+    [ownerId, limit],
+  );
+  if (!excess.length) return [];
+  const ids: string[] = [];
+  for (const row of excess) {
+    const marked: Property = { ...row.data, autoUnpublished: true };
+    // Deliberately not touching updated_at: this keeps the "most recently edited" ranking
+    // stable across repeated enforcement calls instead of the just-unpublished row jumping
+    // to the top next time.
+    await query(`UPDATE properties SET status = 'draft', data = $3 WHERE id = $1 AND owner_id = $2`, [
+      row.id,
+      ownerId,
+      JSON.stringify(marked),
+    ]);
+    ids.push(row.id);
+  }
+  return ids;
 }
 export async function deleteProperty(ownerId: string, id: string) {
   const rows = await query(`DELETE FROM properties WHERE owner_id = $1 AND id = $2 RETURNING id`, [ownerId, id]);
@@ -350,6 +386,10 @@ export async function getBilling(userId: string): Promise<Billing | null> {
 }
 export async function setStripeCustomer(userId: string, customerId: string) {
   await query(`UPDATE users SET stripe_customer_id = $2 WHERE id = $1`, [userId, customerId]);
+}
+export async function getUserIdByStripeCustomer(customerId: string): Promise<string | null> {
+  const [row] = await query<{ id: string }>(`SELECT id FROM users WHERE stripe_customer_id = $1`, [customerId]);
+  return row?.id ?? null;
 }
 export async function setStripeAccount(userId: string, accountId: string, ready: boolean) {
   await query(`UPDATE users SET stripe_account_id = $2, payouts_ready = $3 WHERE id = $1`, [userId, accountId, ready]);

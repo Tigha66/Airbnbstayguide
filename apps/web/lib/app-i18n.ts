@@ -140,6 +140,10 @@ const fr: Dict = {
   "Private stay code (optional)": "Code de séjour privé (facultatif)",
   "When set, guests must enter this code before the Wi-Fi password and your phone number are shown.":
     "Si défini, les voyageurs doivent saisir ce code avant que le mot de passe Wi-Fi et votre numéro de téléphone ne soient affichés.",
+  "Your plan changed and no longer covers every property, so we moved {n} of them to drafts (the most recently edited ones stayed published). Upgrade your plan or republish the ones you want live from each property's editor.":
+    "Votre forfait a changé et ne couvre plus toutes vos propriétés : {n} d’entre elles sont repassées en brouillon (les plus récemment modifiées sont restées publiées). Changez de forfait ou republiez celles que vous voulez depuis leur éditeur.",
+  "This guide was moved to draft because your plan no longer covers it. Republish it below once you’ve upgraded or freed up a slot.":
+    "Ce guide est repassé en brouillon car votre forfait ne le couvre plus. Republiez-le ci-dessous une fois votre forfait mis à niveau ou une place libérée.",
   "A new little detail": "Un nouveau petit détail",
   "Add section": "Ajouter une section",
   "Make it feel like you.": "Faites-le à votre image.",
@@ -507,6 +511,10 @@ const es: Dict = {
   "Private stay code (optional)": "Código de estancia privado (opcional)",
   "When set, guests must enter this code before the Wi-Fi password and your phone number are shown.":
     "Si se establece, los huéspedes deben introducir este código antes de que se muestren la contraseña del Wi-Fi y tu número de teléfono.",
+  "Your plan changed and no longer covers every property, so we moved {n} of them to drafts (the most recently edited ones stayed published). Upgrade your plan or republish the ones you want live from each property's editor.":
+    "Tu plan cambió y ya no cubre todas tus propiedades, así que movimos {n} de ellas a borrador (las editadas más recientemente siguieron publicadas). Mejora tu plan o vuelve a publicar las que quieras desde el editor de cada una.",
+  "This guide was moved to draft because your plan no longer covers it. Republish it below once you’ve upgraded or freed up a slot.":
+    "Esta guía pasó a borrador porque tu plan ya no la cubre. Vuelve a publicarla abajo una vez que hayas mejorado tu plan o liberado una plaza.",
   "A new little detail": "Un nuevo detalle",
   "Add section": "Añadir sección",
   "Make it feel like you.": "Dale tu toque personal.",
@@ -866,6 +874,10 @@ const de: Dict = {
   "Private stay code (optional)": "Privater Aufenthaltscode (optional)",
   "When set, guests must enter this code before the Wi-Fi password and your phone number are shown.":
     "Wenn festgelegt, müssen Gäste diesen Code eingeben, bevor das WLAN-Passwort und Ihre Telefonnummer angezeigt werden.",
+  "Your plan changed and no longer covers every property, so we moved {n} of them to drafts (the most recently edited ones stayed published). Upgrade your plan or republish the ones you want live from each property's editor.":
+    "Ihr Tarif hat sich geändert und deckt nicht mehr alle Unterkünfte ab, daher haben wir {n} davon in Entwürfe verschoben (die zuletzt bearbeiteten blieben veröffentlicht). Upgraden Sie Ihren Tarif oder veröffentlichen Sie die gewünschten erneut im jeweiligen Editor.",
+  "This guide was moved to draft because your plan no longer covers it. Republish it below once you’ve upgraded or freed up a slot.":
+    "Dieser Leitfaden wurde in einen Entwurf verschoben, da Ihr Tarif ihn nicht mehr abdeckt. Veröffentlichen Sie ihn unten erneut, sobald Sie upgraden oder einen Platz freigeben.",
   "A new little detail": "Ein neues Detail",
   "Add section": "Abschnitt hinzufügen",
   "Make it feel like you.": "Geben Sie ihr Ihre persönliche Note.",
@@ -1225,6 +1237,10 @@ const ar: Dict = {
   "Private stay code (optional)": "رمز إقامة خاص (اختياري)",
   "When set, guests must enter this code before the Wi-Fi password and your phone number are shown.":
     "عند تعيينه، يجب على الضيوف إدخال هذا الرمز قبل إظهار كلمة مرور الواي فاي ورقم هاتفك.",
+  "Your plan changed and no longer covers every property, so we moved {n} of them to drafts (the most recently edited ones stayed published). Upgrade your plan or republish the ones you want live from each property's editor.":
+    "تغيرت خطتك ولم تعد تغطي جميع العقارات، لذا نقلنا {n} منها إلى المسودات (بقيت الأحدث تعديلاً منشورة). قم بترقية خطتك أو أعد نشر ما تريده من محرر كل عقار.",
+  "This guide was moved to draft because your plan no longer covers it. Republish it below once you’ve upgraded or freed up a slot.":
+    "تم نقل هذا الدليل إلى المسودات لأن خطتك لم تعد تغطيه. أعد نشره أدناه بعد ترقية خطتك أو تحرير مكان متاح.",
   "A new little detail": "تفصيل جديد",
   "Add section": "إضافة قسم",
   "Make it feel like you.": "اجعله يعبّر عنك.",

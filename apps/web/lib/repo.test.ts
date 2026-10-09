@@ -117,6 +117,32 @@ describe("repository (Neon schema on PGlite)", () => {
     expect(await repo.setManagedPlan("nobody@example.com", "hotel")).toBe(false);
     await repo.deleteUser(s.id);
   });
+  it("unpublishes excess properties on a plan downgrade, keeping the most recently edited", async () => {
+    const c = await repo.upsertUser("multi@example.com", "Carla");
+    await repo.applySubscription({ customerId: "cus_multi", userId: c.id, subscriptionId: "sub_multi", status: "active", plan: "starter" });
+    const owner = { ...c, plan: "starter" as const };
+    const p1 = await repo.createProperty(owner, { name: "One", location: "Lisbon", description: "" });
+    const p2 = await repo.createProperty(owner, { name: "Two", location: "Lisbon", description: "" });
+    const p3 = await repo.createProperty(owner, { name: "Three", location: "Lisbon", description: "" });
+    // Touch p3 last so it's unambiguously the most recently edited of the three.
+    await repo.updateProperty(c.id, p3.id, repo.propertyDataSchema.parse({ ...p3, description: "Updated" }));
+    // Simulate a downgrade webhook: starter (20 properties) → free (1 property).
+    await repo.applySubscription({ customerId: "cus_multi", userId: c.id, subscriptionId: null, status: "canceled", plan: "free" });
+    const unpublishedIds = [...(await repo.enforcePlanLimit(c.id))].sort();
+    expect(unpublishedIds).toEqual([p1.id, p2.id].sort());
+    const byId = Object.fromEntries((await repo.listProperties(c.id)).map((p) => [p.id, p]));
+    expect(byId[p1.id].status).toBe("draft");
+    expect(byId[p1.id].autoUnpublished).toBe(true);
+    expect(byId[p2.id].status).toBe("draft");
+    expect(byId[p3.id].status).toBe("published");
+    expect(byId[p3.id].autoUnpublished).toBeUndefined();
+    // Calling it again with nothing newly over the limit is a no-op.
+    expect(await repo.enforcePlanLimit(c.id)).toEqual([]);
+    // Republishing resolves the auto-unpublished marker.
+    const republished = await repo.updateProperty(c.id, p1.id, repo.propertyDataSchema.parse({ ...byId[p1.id], status: "published" }));
+    expect(republished?.autoUnpublished).toBeUndefined();
+    await repo.deleteUser(c.id);
+  });
   it("deletes the account and all data", async () => {
     await repo.deleteUser(a.id);
     expect(await repo.listProperties(a.id)).toEqual([]);

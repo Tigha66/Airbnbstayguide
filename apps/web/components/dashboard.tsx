@@ -677,6 +677,14 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   {tr("Add property")}
                 </button>
               </PageHeading>
+              {state.properties.some((p) => p.autoUnpublished) && (
+                <div className="notice" style={{ marginBottom: 16 }}>
+                  {tr(
+                    "Your plan changed and no longer covers every property, so we moved {n} of them to drafts (the most recently edited ones stayed published). Upgrade your plan or republish the ones you want live from each property's editor.",
+                    { n: state.properties.filter((p) => p.autoUnpublished).length },
+                  )}
+                </div>
+              )}
               <div className="filter-bar">
                 <div className="search-field">
                   <Search size={16} />
@@ -744,6 +752,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   </button>
                 )}
               </PageHeading>
+              {property.autoUnpublished && (
+                <div className="notice" style={{ marginBottom: 16 }}>
+                  {tr("This guide was moved to draft because your plan no longer covers it. Republish it below once you’ve upgraded or freed up a slot.")}
+                </div>
+              )}
               <div className="filter-bar">
                 <select
                   aria-label={tr("Select property to edit")}

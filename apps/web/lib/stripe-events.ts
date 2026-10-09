@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import { planFromSubscription, stripeClient } from "./stripe";
-import { applySubscription, settleExtraCheckout } from "./repo";
+import { applySubscription, enforcePlanLimit, getUserIdByStripeCustomer, settleExtraCheckout } from "./repo";
 
 const customerId = (c: string | { id: string } | null) => (typeof c === "string" ? c : (c?.id ?? null));
 
@@ -14,6 +14,12 @@ async function syncSubscription(sub: Stripe.Subscription, deleted = false) {
     status: deleted ? "canceled" : sub.status,
     plan: deleted ? "free" : planFromSubscription(sub),
   });
+  // App-side reaction to the plan Stripe just told us about, not a Stripe call: a downgrade
+  // or cancellation can drop the host below their published property count, so reconcile
+  // immediately instead of leaving excess properties publicly live until something else
+  // happens to notice.
+  const ownerId = sub.metadata?.user_id || (await getUserIdByStripeCustomer(customer));
+  if (ownerId) await enforcePlanLimit(ownerId);
 }
 
 /** Applies a verified Stripe event. Unrelated events (e.g. other products on the same account) are ignored. */
