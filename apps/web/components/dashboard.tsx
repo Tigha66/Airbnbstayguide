@@ -808,10 +808,16 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       ["wifi", "Wi-Fi network", "e.g. SmokyRidge_Guest", 120],
                       ["wifiPassword", "Wi-Fi password", "e.g. bearden2026", 120],
                       ["hostPhone", "Host phone", "e.g. +1 865 555 0100", 40],
+                      ["accessCode", "Private stay code (optional)", "e.g. 4821", 40],
                     ] as const
                   ).map(([field, label, placeholder, max]) => (
                     <label key={field} className={field === "address" ? "wide" : ""}>
                       {tr(label)}
+                      {field === "accessCode" && (
+                        <small className="muted" style={{ display: "block", fontWeight: 400 }}>
+                          {tr("When set, guests must enter this code before the Wi-Fi password and your phone number are shown.")}
+                        </small>
+                      )}
                       <input
                         value={property[field] ?? ""}
                         placeholder={placeholder}

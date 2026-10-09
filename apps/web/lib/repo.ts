@@ -25,6 +25,7 @@ export const propertyDataSchema = z.object({
   wifi: z.string().max(120),
   wifiPassword: z.string().max(120),
   hostPhone: z.string().max(40),
+  accessCode: z.string().trim().max(40).optional(),
   sections: z.array(sectionSchema).max(60),
   extras: z.array(extraSchema).max(40),
 });

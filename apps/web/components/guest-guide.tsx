@@ -13,7 +13,7 @@ import {
   Download,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, type GuideText, type Property } from "@stayguide/shared";
+import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, type GuideText, type Property, type PublicProperty } from "@stayguide/shared";
 import { useDemo } from "@/lib/demo-store";
 import { fill, guestText, isRtl } from "@/lib/guest-i18n";
 import { Logo, GuideIcon } from "./ui";
@@ -28,7 +28,7 @@ export function GuestGuide({
   initial,
 }: {
   slug: string;
-  initial?: Property | null;
+  initial?: PublicProperty | null;
 }) {
   const state = useDemo();
   const liveGuide = Boolean(initial);
@@ -42,7 +42,14 @@ export function GuestGuide({
   const t = guestText(language);
   const rtl = isRtl(language);
   const translated = Boolean(translation && translation.language === language && !showOriginal);
-  const property = original && translated ? applyGuideText(original, translation!.text) : original;
+  const base = original && translated ? applyGuideText(original, translation!.text) : original;
+  // Host set a stay code and we haven't unlocked wifiPassword/hostPhone for this device yet.
+  const locked = Boolean(base && "locked" in base && base.locked);
+  const [unlocked, setUnlocked] = useState<{ code: string; wifiPassword: string; hostPhone: string } | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState("");
+  const property = base && unlocked ? { ...base, wifiPassword: unlocked.wifiPassword, hostPhone: unlocked.hostPhone } : base;
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
@@ -57,6 +64,45 @@ export function GuestGuide({
     const saved = localStorage.getItem(`stayguide-thread-${slug}`);
     if (saved) queueMicrotask(() => setThreadId(saved));
   }, [liveGuide, slug]);
+  // Re-apply a previously entered stay code so a returning guest isn't asked again mid-stay.
+  useEffect(() => {
+    if (!liveGuide) return;
+    try {
+      const saved = localStorage.getItem(`stayguide-unlock-${slug}`);
+      if (saved) queueMicrotask(() => setUnlocked(JSON.parse(saved)));
+    } catch {
+      /* storage unavailable */
+    }
+  }, [liveGuide, slug]);
+  async function unlock(code: string) {
+    if (!code.trim() || unlocking) return;
+    setUnlocking(true);
+    setUnlockError("");
+    try {
+      const res = await fetch(`/api/v1/guides/${slug}/unlock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setUnlockError(t.unlockError);
+        return;
+      }
+      const fields = { code: code.trim(), wifiPassword: body.wifiPassword as string, hostPhone: body.hostPhone as string };
+      setUnlocked(fields);
+      setCodeInput("");
+      try {
+        localStorage.setItem(`stayguide-unlock-${slug}`, JSON.stringify(fields));
+      } catch {
+        /* storage full */
+      }
+    } catch {
+      setUnlockError(t.unavailable);
+    } finally {
+      setUnlocking(false);
+    }
+  }
   // Guide content in the guest's language: AI translation from the server, cached per guide version.
   useEffect(() => {
     if (!(liveGuide || sample)) return;
@@ -171,7 +217,7 @@ export function GuestGuide({
         const res = await fetch(`/api/v1/guides/${slug}/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, language, ...(threadId ? { threadId } : {}) }),
+          body: JSON.stringify({ message: text, language, ...(threadId ? { threadId } : {}), ...(unlocked ? { accessCode: unlocked.code } : {}) }),
         });
         const body = await res.json();
         if (!res.ok) {
@@ -305,6 +351,10 @@ export function GuestGuide({
             <div className="guest-quick">
               <button
                 onClick={async () => {
+                  if (locked) {
+                    notify(t.unlockTitle);
+                    return;
+                  }
                   if (!property.wifiPassword) {
                     notify(t.wifiAsk);
                     return;
@@ -341,6 +391,36 @@ export function GuestGuide({
                 <small>{t.hereForYou}</small>
               </button>
             </div>
+            {locked && (
+              <div className="card" style={{ margin: "0 20px 20px" }}>
+                <strong style={{ display: "block", marginBottom: 4 }}>{t.unlockTitle}</strong>
+                <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 10px" }}>{t.unlockBody}</p>
+                <form
+                  className="row"
+                  style={{ gap: 8 }}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void unlock(codeInput);
+                  }}
+                >
+                  <input
+                    value={codeInput}
+                    onChange={(e) => setCodeInput(e.target.value)}
+                    placeholder={t.unlockPlaceholder}
+                    maxLength={40}
+                    style={{ flex: 1 }}
+                  />
+                  <button className="button" type="submit" disabled={unlocking || !codeInput.trim()}>
+                    {t.unlockButton}
+                  </button>
+                </form>
+                {unlockError && (
+                  <p className="notice" style={{ marginTop: 8 }} role="alert">
+                    {unlockError}
+                  </p>
+                )}
+              </div>
+            )}
             <div
               className="row"
               style={{

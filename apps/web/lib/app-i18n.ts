@@ -137,6 +137,9 @@ const fr: Dict = {
   "Wi-Fi network": "Réseau Wi-Fi",
   "Wi-Fi password": "Mot de passe Wi-Fi",
   "Host phone": "Téléphone de l’hôte",
+  "Private stay code (optional)": "Code de séjour privé (facultatif)",
+  "When set, guests must enter this code before the Wi-Fi password and your phone number are shown.":
+    "Si défini, les voyageurs doivent saisir ce code avant que le mot de passe Wi-Fi et votre numéro de téléphone ne soient affichés.",
   "A new little detail": "Un nouveau petit détail",
   "Add section": "Ajouter une section",
   "Make it feel like you.": "Faites-le à votre image.",
@@ -501,6 +504,9 @@ const es: Dict = {
   "Wi-Fi network": "Red wifi",
   "Wi-Fi password": "Contraseña del wifi",
   "Host phone": "Teléfono del anfitrión",
+  "Private stay code (optional)": "Código de estancia privado (opcional)",
+  "When set, guests must enter this code before the Wi-Fi password and your phone number are shown.":
+    "Si se establece, los huéspedes deben introducir este código antes de que se muestren la contraseña del Wi-Fi y tu número de teléfono.",
   "A new little detail": "Un nuevo detalle",
   "Add section": "Añadir sección",
   "Make it feel like you.": "Dale tu toque personal.",
@@ -857,6 +863,9 @@ const de: Dict = {
   "Wi-Fi network": "WLAN-Netzwerk",
   "Wi-Fi password": "WLAN-Passwort",
   "Host phone": "Telefon des Gastgebers",
+  "Private stay code (optional)": "Privater Aufenthaltscode (optional)",
+  "When set, guests must enter this code before the Wi-Fi password and your phone number are shown.":
+    "Wenn festgelegt, müssen Gäste diesen Code eingeben, bevor das WLAN-Passwort und Ihre Telefonnummer angezeigt werden.",
   "A new little detail": "Ein neues Detail",
   "Add section": "Abschnitt hinzufügen",
   "Make it feel like you.": "Geben Sie ihr Ihre persönliche Note.",
@@ -1213,6 +1222,9 @@ const ar: Dict = {
   "Wi-Fi network": "شبكة الواي فاي",
   "Wi-Fi password": "كلمة مرور الواي فاي",
   "Host phone": "هاتف المضيف",
+  "Private stay code (optional)": "رمز إقامة خاص (اختياري)",
+  "When set, guests must enter this code before the Wi-Fi password and your phone number are shown.":
+    "عند تعيينه، يجب على الضيوف إدخال هذا الرمز قبل إظهار كلمة مرور الواي فاي ورقم هاتفك.",
   "A new little detail": "تفصيل جديد",
   "Add section": "إضافة قسم",
   "Make it feel like you.": "اجعله يعبّر عنك.",

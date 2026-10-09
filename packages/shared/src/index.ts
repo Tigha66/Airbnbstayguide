@@ -115,9 +115,67 @@ export type Property = {
   wifi: string;
   wifiPassword: string;
   hostPhone: string;
+  /** Optional PIN the host shares with guests at booking. When set, wifiPassword and
+   *  hostPhone are withheld from the public guide and the concierge until a guest enters
+   *  it (see toPublicProperty / guides/[slug]/unlock). Never sent to guest clients. */
+  accessCode?: string;
   sections: Section[];
   extras: Extra[];
 };
+
+/**
+ * Fields safe to send to anyone who has a guide link. Deliberately an allowlist, not a
+ * blocklist: a new Property field is excluded by default until someone decides it belongs
+ * here. wifiPassword/hostPhone/accessCode must never be added to this list — they go
+ * through the locked/unlocked path in toPublicProperty instead.
+ */
+const PUBLIC_PROPERTY_FIELDS = [
+  "id",
+  "name",
+  "slug",
+  "location",
+  "address",
+  "image",
+  "status",
+  "description",
+  "checkIn",
+  "checkOut",
+  "wifi",
+  "sections",
+  "extras",
+] as const satisfies readonly (keyof Property)[];
+/** The two fields gated behind a per-stay access code when the host has set one. */
+const GATED_PROPERTY_FIELDS = ["wifiPassword", "hostPhone"] as const satisfies readonly (keyof Property)[];
+
+export type PublicProperty = Pick<Property, (typeof PUBLIC_PROPERTY_FIELDS)[number]> & {
+  /** True when the host set an access code and it hasn't been unlocked for this view. */
+  locked: boolean;
+  wifiPassword: string;
+  hostPhone: string;
+};
+
+/**
+ * Strips everything that isn't explicitly public. Pass `unlocked: true` only after a
+ * guest has proven they know the host's access code (see guides/[slug]/unlock); the
+ * accessCode itself is never included in the result either way.
+ */
+export function toPublicProperty(property: Property, unlocked = false): PublicProperty {
+  const base = {} as Pick<Property, (typeof PUBLIC_PROPERTY_FIELDS)[number]>;
+  for (const key of PUBLIC_PROPERTY_FIELDS) (base as Record<string, unknown>)[key] = property[key];
+  const locked = Boolean(property.accessCode) && !unlocked;
+  return {
+    ...base,
+    locked,
+    wifiPassword: locked ? "" : property.wifiPassword,
+    hostPhone: locked ? "" : property.hostPhone,
+  };
+}
+/** Same redaction, for what the AI concierge is allowed to ground answers on. */
+export function toGroundedProperty(property: Property, unlocked: boolean): Property {
+  if (!property.accessCode || unlocked) return property;
+  return { ...property, wifiPassword: "", hostPhone: "" };
+}
+export const ALL_PROPERTY_FIELDS = [...PUBLIC_PROPERTY_FIELDS, ...GATED_PROPERTY_FIELDS, "accessCode"] as const;
 export const sections: Section[] = [
   {
     id: "arrival",

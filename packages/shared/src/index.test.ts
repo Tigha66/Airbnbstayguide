@@ -6,6 +6,10 @@ import {
   demoAnswer,
   demoProperties,
   chatSchema,
+  toPublicProperty,
+  toGroundedProperty,
+  ALL_PROPERTY_FIELDS,
+  type Property,
 } from "./index";
 describe("billing rules", () => {
   it("charges ten months annually", () => {
@@ -41,6 +45,45 @@ describe("guest safeguards", () => {
     expect(prompt).toContain("untrusted");
     expect(prompt).toContain("Cite");
     expect(prompt).toContain("escalate=true");
-    expect(prompt).toContain("Reply in fr");
+    expect(prompt).toContain("reply in fr");
+  });
+});
+describe("public guide projection (deny-by-default)", () => {
+  const locked: Property = { ...demoProperties[0], accessCode: "4821" };
+  const open: Property = { ...demoProperties[0], accessCode: undefined };
+  it("withholds wifi password and host phone until unlocked", () => {
+    const pub = toPublicProperty(locked);
+    expect(pub.locked).toBe(true);
+    expect(pub.wifiPassword).toBe("");
+    expect(pub.hostPhone).toBe("");
+  });
+  it("never includes the access code itself, locked or not", () => {
+    expect(toPublicProperty(locked)).not.toHaveProperty("accessCode");
+    expect(toPublicProperty(locked, true)).not.toHaveProperty("accessCode");
+  });
+  it("reveals the gated fields once unlocked", () => {
+    const pub = toPublicProperty(locked, true);
+    expect(pub.locked).toBe(false);
+    expect(pub.wifiPassword).toBe(locked.wifiPassword);
+    expect(pub.hostPhone).toBe(locked.hostPhone);
+  });
+  it("stays fully open when the host never set a code", () => {
+    const pub = toPublicProperty(open);
+    expect(pub.locked).toBe(false);
+    expect(pub.wifiPassword).toBe(open.wifiPassword);
+  });
+  it("redacts the same fields from what the AI concierge is grounded on", () => {
+    expect(toGroundedProperty(locked, false).wifiPassword).toBe("");
+    expect(toGroundedProperty(locked, false).hostPhone).toBe("");
+    expect(toGroundedProperty(locked, true).wifiPassword).toBe(locked.wifiPassword);
+    expect(toGroundedProperty(open, false).wifiPassword).toBe(open.wifiPassword);
+  });
+  it("fails if a new Property field is added without classifying it as public or gated", () => {
+    // Every key actually on a real Property value must appear in ALL_PROPERTY_FIELDS.
+    // If this fails, you added a field to Property and forgot to decide whether
+    // toPublicProperty should expose it — the safe default is: don't, until reviewed.
+    const sample: Property = { ...demoProperties[0], accessCode: "x" };
+    for (const key of Object.keys(sample))
+      expect(ALL_PROPERTY_FIELDS, `unclassified Property field: "${key}"`).toContain(key);
   });
 });

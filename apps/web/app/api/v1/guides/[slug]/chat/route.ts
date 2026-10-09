@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
-import { chatSchema } from "@stayguide/shared";
+import { chatSchema, toGroundedProperty } from "@stayguide/shared";
 import { dbConfigured } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
 import { parseJson, unavailable } from "@/lib/api";
@@ -25,18 +25,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const threadId = body.threadId && (await threadBelongsTo(body.threadId, found.property.id)) ? body.threadId : crypto.randomUUID();
   // Reply in the language the guest actually wrote in; the guide's language menu is only a fallback.
   const language = detectLanguage(body.message) ?? body.language;
+  // Same deny-by-default rule as the public guide page: if the host set an access code, the
+  // concierge can't hand the guest the wifi password / host phone through chat either unless
+  // the right code came with this request.
+  const unlocked = Boolean(found.property.accessCode) && body.accessCode === found.property.accessCode;
+  const grounded = toGroundedProperty(found.property, unlocked);
   let answer: ConciergeAnswer;
   let mode: "ai" | "keyword" = "keyword";
   if (aiConfigured() && (await consumeAiUsage(found.ownerId))) {
     try {
-      answer = await aiAnswer(found.property, body.message, language);
+      answer = await aiAnswer(grounded, body.message, language);
       mode = "ai";
     } catch (error) {
       // Visible in Vercel → Logs; the guest still gets an answer from the keyword search.
       console.error("[concierge] AI answer failed; using keyword search", error);
-      answer = keywordAnswer(found.property, body.message, language);
+      answer = keywordAnswer(grounded, body.message, language);
     }
-  } else answer = keywordAnswer(found.property, body.message, language);
+  } else answer = keywordAnswer(grounded, body.message, language);
   if (!answer.answer) answer = unknownAnswer(language);
   await saveMessages(found.property.id, threadId, [
     { role: "guest", content: body.message, language },

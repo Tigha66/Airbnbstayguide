@@ -15,7 +15,7 @@ function usedKeys() {
 // Keys passed to tr() through variables (navigation labels, field labels, days, statuses).
 const dynamicKeys = [
   "Overview", "Properties", "Guest inbox", "Extras & upsells", "Analytics", "Share kit", "Plans & billing", "Settings", "Guide editor",
-  "Street address", "City, country", "Check-in time", "Checkout time", "Wi-Fi network", "Wi-Fi password", "Host phone",
+  "Street address", "City, country", "Check-in time", "Checkout time", "Wi-Fi network", "Wi-Fi password", "Host phone", "Private stay code (optional)",
   "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
   "Wi-Fi & getting connected", "Check-in & arrival", "Local recommendations", "Check-out details",
   "pending", "approved", "declined", "paid", "refunded",

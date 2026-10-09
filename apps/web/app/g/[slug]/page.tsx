@@ -1,15 +1,19 @@
 import { GuestGuide } from "@/components/guest-guide";
-import { demoProperties, type Property } from "@stayguide/shared";
+import { demoProperties, toPublicProperty, type PublicProperty } from "@stayguide/shared";
 import type { Metadata } from "next";
 import { dbConfigured } from "@/lib/db";
 import { getPublishedProperty } from "@/lib/repo";
 import { cache } from "react";
 
-// Real guides are read from Neon on each request; sample guides stay static.
-const loadProperty = cache(async (slug: string): Promise<Property | null> => {
+// Real guides are read from Neon on each request; sample guides stay static. Never pass the
+// raw DB property to the client here — toPublicProperty withholds the wifi password/host phone
+// whenever the host set an access code, so they never land in the HTML, the RSC payload, or
+// the offline service-worker cache. The guest unlocks them client-side via /unlock instead.
+const loadProperty = cache(async (slug: string): Promise<PublicProperty | null> => {
   if (demoProperties.some((p) => p.slug === slug) || !dbConfigured()) return null;
   try {
-    return (await getPublishedProperty(slug))?.property ?? null;
+    const found = await getPublishedProperty(slug);
+    return found ? toPublicProperty(found.property) : null;
   } catch {
     return null;
   }
