@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     "Beautiful digital guidebooks, a thoughtful AI concierge, and little extras that make every stay extraordinary.",
   applicationName: "StayGuide",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "StayGuide" },
+  // Next.js now writes only "mobile-web-app-capable"; older iPhones need Apple's own tag to open
+  // a home-screen icon as an app rather than a Safari tab.
+  other: { "apple-mobile-web-app-capable": "yes" },
   icons: { icon: "/icon.svg", apple: "/icons/apple-touch-icon.png" },
   openGraph: {
     title: "StayGuide — Less managing. More hosting.",
