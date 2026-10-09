@@ -1839,10 +1839,10 @@ small {
   letter-spacing: 0.12em;
 }
 .marketing-hero h1 {
-  font-size: 78px;
+  font-size: 62px;
   font-weight: 800;
   letter-spacing: -0.045em;
-  line-height: 1;
+  line-height: 1.03;
   color: var(--ink);
 }
 .marketing-hero h1 em,
@@ -1879,6 +1879,73 @@ small {
 .marketing-band {
   background: #f2f3ef;
   border-block: 1px solid var(--line);
+}
+.try-page-shell,
+.try-inline {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 44px 38px 70px;
+}
+.try-inline {
+  padding-top: 0;
+}
+.try-builder {
+  display: grid;
+  gap: 18px;
+  max-width: 780px;
+}
+.try-builder h1 {
+  font-family: var(--serif);
+  font-size: 42px;
+  line-height: 1.1;
+}
+.try-builder > p {
+  max-width: 660px;
+  color: var(--muted);
+  line-height: 1.75;
+}
+.try-form {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+.try-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.try-form textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+.try-preview {
+  margin-top: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.try-publish-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  backdrop-filter: blur(10px);
+}
+.try-publish-bar span {
+  color: var(--muted);
+  font-size: 12px;
+  margin-inline-end: auto;
 }
 .marketing-section h2 {
   font-size: 50px;
@@ -3166,6 +3233,26 @@ small {
   font-size: 12px;
 }
 @media (max-width: 640px) {
+  .try-page-shell,
+  .try-inline {
+    padding: 26px 18px 46px;
+  }
+  .try-builder h1 {
+    font-size: 31px;
+  }
+  .try-form {
+    padding: 16px;
+  }
+  .try-publish-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .try-publish-bar span {
+    margin-inline-end: 0;
+  }
+  .try-publish-bar .button {
+    width: 100%;
+  }
   .topbar-right .language-menu select {
     font-size: 16px;
   }

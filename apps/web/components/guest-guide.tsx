@@ -28,12 +28,14 @@ type Message = {
 export function GuestGuide({
   slug,
   initial,
+  preview = false,
 }: {
   slug: string;
   initial?: Property | null;
+  preview?: boolean;
 }) {
   const state = useDemo();
-  const liveGuide = Boolean(initial);
+  const liveGuide = Boolean(initial && !preview);
   const original = initial ?? state.properties.find((p) => p.slug === slug);
   const sample = !liveGuide && Boolean(original && demoProperties.some((p) => p.slug === slug));
   const [tab, setTab] = useState("guide");

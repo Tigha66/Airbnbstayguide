@@ -10,6 +10,7 @@ Requires Node 22 and pnpm 10.32.1 (`corepack enable`, or use `npx pnpm@10.32.1`)
 pnpm install --frozen-lockfile
 pnpm --filter @stayguide/web dev
 # http://localhost:3000 — marketing
+# http://localhost:3000/try — paste notes or a listing URL and preview a draft guide
 # http://localhost:3000/dashboard — host demo
 # http://localhost:3000/demo — guest guide
 ```
@@ -37,6 +38,7 @@ Without these variables the site runs as the browser-only demo. With them, hosts
 ### What works with live services
 
 - Google sign-in/out, per-host data isolation, plan property limits (enforced atomically), account deletion via the API (cancels the Stripe subscription first, then removes all data; there's no button in the dashboard yet).
+- Public `/try` flow: visitors can paste a house manual or supported listing URL, preview a generated guide before sign-in, and carry the draft into the dashboard via session storage.
 - Create properties from a pasted house manual (AI-structured, or parsed from `LABEL:` lines / headings), edit sections, extras, publish/unpublish, delete; autosave with status indicator.
 - Guest links work on any device; views are counted; the guest PWA caches published guides offline.
 - Concierge: answers only from the guide, cites sections, answers in the guest's language (AI mode), escalates unknown questions to the host inbox; host replies appear in the guest's chat. Per-plan monthly AI limits and Postgres rate limiting on public endpoints.
@@ -64,6 +66,7 @@ One monthly **AI allowance** per host (plan messages × properties, counting at 
 
 - Guest chat: 15 messages per minute and 60 per day per visitor per guide; at most 10 AI answers per visitor per guide per day, and per guide per day a tenth of the plan's monthly messages. Past these, answers come from the free keyword search.
 - AI guide building (guide builder and property creation): the plan's property limit is checked first; at most 10 per host per hour; 1 unit of allowance each.
+- Public `/try` previews: 3 per IP per hour, input capped at 12,000 characters; they are not saved until the visitor enters the dashboard.
 - Translations: 20 new translations per visitor per hour; one unit per section (+1) from the host's allowance; sample guides share a global daily cap; only complete translations are cached.
 - If the AI provider answers 402/429/5xx (no credit, rate limited, outage), AI is paused for 5 minutes and the keyword search answers without charging anyone.
 - Sample guides (`/g/casa-serena`, `/g/olive-grove`): 10 AI answers per visitor per day and 300 per day in total.

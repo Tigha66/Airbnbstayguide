@@ -5,6 +5,7 @@ _Kept up to date with the code. If something here disagrees with the code, the c
 ## Working (with production credentials)
 
 - Marketing site in 5 languages; guest guide PWA (installable, works offline); Google sign-in; Neon Postgres.
+- Public `/try` page builds an unsaved guide preview from pasted notes or a readable listing URL, then carries the draft into the dashboard.
 - Host dashboard: properties from a pasted house manual (AI-organised or parsed), editing, publishing, share kit/QR,
   inbox with host replies, extras, analytics, billing.
 - AI concierge: answers only from the guide, in the guest's language, cites sections, escalates unknown questions.

@@ -1,6 +1,6 @@
 "use client";
 /* Demo data is deliberately isolated from authenticated production APIs. */
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -110,17 +110,15 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const liveState = useLive();
   const live = liveState.live;
   const router = useRouter();
+  const importingDraft = useRef(false);
   const [creating, setCreating] = useState(false);
-  useEffect(() => {
-    void initLive();
-  }, []);
   const [mobile, setMobile] = useState(false);
   const [modal, setModal] = useState<"property" | "extra" | null>(null);
   const [toast, setToast] = useState("");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const selected = state.selectedProperty;
-  const setSelected = (id: string) => updateDemo({ selectedProperty: id });
+  const setSelected = useCallback((id: string) => updateDemo({ selectedProperty: id }), []);
   const [sectionId, setSectionId] = useState("arrival");
   const [editPreview, setEditPreview] = useState(false);
   const [thread, setThread] = useState(threads[0]);
@@ -131,14 +129,61 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const [error, setError] = useState("");
   const property =
     state.properties.find((p) => p.id === selected) || state.properties[0];
-  const notify = (message: string) => {
+  const notify = useCallback((message: string) => {
     setToast(message);
     setTimeout(() => setToast(""), 4000);
-  };
+  }, []);
   const close = useCallback(() => {
     setModal(null);
     setError("");
-  }, []);
+  }, [setError, setModal]);
+  useEffect(() => {
+    let cancelled = false;
+    void initLive().then(async (current) => {
+      if (cancelled || importingDraft.current) return;
+      let draft: Property | null = null;
+      try {
+        const raw = sessionStorage.getItem("stayguide-draft-property");
+        draft = raw ? (JSON.parse(raw) as Property) : null;
+      } catch {
+        draft = null;
+      }
+      if (!draft) return;
+      importingDraft.current = true;
+      try {
+        sessionStorage.removeItem("stayguide-draft-property");
+        if (current.live) {
+          const { property: created } = await createLiveProperty({
+            name: draft.name,
+            location: draft.location,
+            address: draft.address,
+            description: draft.description,
+          });
+          saveProperty({
+            ...created,
+            image: draft.image || created.image,
+            checkIn: draft.checkIn,
+            checkOut: draft.checkOut,
+            wifi: draft.wifi,
+            wifiPassword: draft.wifiPassword,
+            sections: draft.sections,
+            extras: draft.extras,
+          });
+        } else {
+          const demoDraft = { ...draft, id: crypto.randomUUID(), slug: `${draft.slug}-demo` };
+          saveProperty(demoDraft);
+          setSelected(demoDraft.id);
+        }
+        notify(tr("Draft imported. Your guide is ready to edit."));
+        router.push("/dashboard/editor");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : tr("Could not create the property."));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [notify, router, setSelected, tr]);
   const title =
     tr([...nav, ...secondNav].find((n) => n[0] === view)?.[1] || "Guide editor");
   const currentSection =

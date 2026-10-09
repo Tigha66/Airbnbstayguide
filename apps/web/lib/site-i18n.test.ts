@@ -23,7 +23,7 @@ describe("website translations", () => {
       expect(shape(siteText(locale)), locale).toEqual(english);
       for (const s of strings(siteText(locale))) expect(s.trim(), locale).not.toBe("");
     }
-    expect(siteText("fr").hero.title1).toBe("Moins de gestion.");
+    expect(siteText("fr").hero.title1).toBe("Votre guide voyageur en 60 secondes. Vos voyageurs aidés 24h/24.");
     expect(siteText("de").nav.pricing).toBe("Preise");
     expect(siteText("ar").faq.items).toHaveLength(6);
   });

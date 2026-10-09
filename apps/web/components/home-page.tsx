@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, BookOpen, Languages, Leaf, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { demoProperties } from "@stayguide/shared";
 import { MarketingNav, MarketingFooter, Pricing, RoiCalculator } from "./marketing";
+import { TryGuide } from "./try-guide";
 import { guestLanguageChips, siteDir, siteText, type SiteLocale } from "@/lib/site-i18n";
 
 const pointIcons = [BookOpen, MessageCircle, ShieldCheck];
@@ -16,15 +17,10 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
         <section className="marketing-hero">
           <div>
             <div className="eyebrow">{t.hero.eyebrow}</div>
-            <h1>
-              {t.hero.title1}
-              <br />
-              {t.hero.title2}
-              <em>{t.hero.title2em}</em>
-            </h1>
+            <h1>{t.hero.title1}</h1>
             <p>{t.hero.body}</p>
             <div className="row">
-              <Link className="button" href="/dashboard">
+              <Link className="button" href="/try">
                 {t.hero.primary}
                 <ArrowRight size={16} />
               </Link>
@@ -55,6 +51,8 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
             </div>
           </div>
         </section>
+
+        <TryGuide title={t.try.title} body={t.try.body} compact />
 
         <div className="marketing-band">
           <section className="marketing-section center" id="how-it-works">
