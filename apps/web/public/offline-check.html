@@ -81,7 +81,10 @@
       if (!res.ok || res.redirected) return;
       var html = await res.text();
       var assets = html.match(/\/_next\/static\/[^"'\s)]+/g) || [];
-      await Promise.all(assets.map(function (u) { return fetch(u).catch(function () {}); }));
+      var photos = [];
+      html.replace(/<img[^>]+src="(https?:\/\/[^"]+)"/g, function (_, u) { photos.push(u.replace(/&amp;/g, "&")); });
+      await Promise.all(assets.map(function (u) { return fetch(u).catch(function () {}); })
+        .concat(photos.map(function (u) { return fetch(u, { mode: "no-cors" }).catch(function () {}); })));
     } catch (e) {}
   }
   function langBase() {
@@ -92,7 +95,7 @@
   document.getElementById("save").onclick = async function () {
     this.textContent = "Saving…";
     var base = langBase();
-    await Promise.all([base || "/", base + "/pricing", "/demo"].map(savePage));
+    await Promise.all([base || "/", base + "/pricing", "/demo", "/g/casa-serena"].map(savePage));
     this.textContent = "Saved — turn on Airplane mode to test";
     check();
   };

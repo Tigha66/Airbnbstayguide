@@ -13,7 +13,14 @@ async function savePage(path: string) {
     if (!res.ok || res.redirected) return;
     const html = await res.text();
     const assets = new Set(html.match(/\/_next\/static\/[^"'\s)]+/g) ?? []);
-    await Promise.all([...assets].map((url) => fetch(url).catch(() => {})));
+    // Photos shown on the page (e.g. a guide's cover), which may be on another site.
+    const photos = new Set(
+      [...html.matchAll(/<img[^>]+src="(https?:\/\/[^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, "&")),
+    );
+    await Promise.all([
+      ...[...assets].map((url) => fetch(url).catch(() => {})),
+      ...[...photos].map((url) => fetch(url, { mode: "no-cors" }).catch(() => {})),
+    ]);
   } catch {
     /* offline or blocked: try again on the next visit */
   }
@@ -36,7 +43,9 @@ function warmCache() {
   if (!savedThisSession && !path.startsWith("/g/") && !isPrivate(path)) {
     const first = path.split("/")[1];
     const base = LOCALES.includes(first) ? `/${first}` : "";
-    for (const page of [base || "/", `${base}/pricing`, "/demo"]) if (page !== path) void savePage(page);
+    // "/demo" forwards to the sample guide, so save that guide too.
+    for (const page of [base || "/", `${base}/pricing`, "/demo", "/g/casa-serena"])
+      if (page !== path) void savePage(page);
   }
   const seen = new Set<string>();
   for (const entry of performance.getEntriesByType("resource") as PerformanceResourceTiming[]) {
