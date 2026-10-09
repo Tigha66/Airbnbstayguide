@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { planFromSubscription, stripeClient } from "./stripe";
-import { applySubscription, settleExtraCheckout } from "./repo";
+import { applySubscription, settleExtraCheckout, userIdForCustomer } from "./repo";
+import { syncSubscriptionQuantity } from "./billing";
 
 const customerId = (c: string | { id: string } | null) => (typeof c === "string" ? c : (c?.id ?? null));
 
@@ -14,6 +15,12 @@ async function syncSubscription(sub: Stripe.Subscription, deleted = false) {
     status: deleted ? "canceled" : sub.status,
     plan: deleted ? "free" : planFromSubscription(sub),
   });
+}
+
+async function resyncQuantity(customer: string | null) {
+  const userId = customer ? await userIdForCustomer(customer) : null;
+  if (userId) await syncSubscriptionQuantity(userId);
+  return Boolean(userId);
 }
 
 /** Applies a verified Stripe event. Unrelated events (e.g. other products on the same account) are ignored. */
@@ -51,7 +58,15 @@ export async function handleStripeEvent(event: Stripe.Event) {
       const isOurs = sub.metadata?.app === "stayguide" || sub.items.data.some((i) => i.price?.lookup_key?.startsWith("stayguide_"));
       if (!isOurs) return "ignored";
       await syncSubscription(sub, event.type === "customer.subscription.deleted");
+      // Self-heal: if an earlier quantity update failed, renewals and plan changes fix it here.
+      if (event.type === "customer.subscription.updated") await resyncQuantity(customerId(sub.customer));
       return "subscription";
+    }
+    case "invoice.upcoming": {
+      // Sent a few days before each renewal (enable it on the webhook in Stripe): last chance to
+      // make sure the next invoice charges for the right number of properties.
+      const invoice = event.data.object as Stripe.Invoice;
+      return (await resyncQuantity(customerId(invoice.customer))) ? "quantity" : "ignored";
     }
     default:
       return "ignored";

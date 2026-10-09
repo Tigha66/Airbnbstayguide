@@ -46,13 +46,30 @@ export function keywordAnswer(property: Property, question: string, language: st
   return { answer: best.body, citations: [best.title], escalate: false };
 }
 const schema = z.object({ answer: z.string().min(1), citations: z.array(z.string()).default([]), escalate: z.boolean().default(false) });
-export async function aiAnswer(property: Property, question: string, language: string): Promise<ConciergeAnswer> {
+export type ChatTurn = { role: string; content: string };
+
+/**
+ * The guest's message, preceded by the last few turns of the conversation so follow-ups
+ * ("and the pool?", "what about Sunday?") are understood. Earlier turns are context only:
+ * answers must still come from the guide.
+ */
+export function withHistory(question: string, history: ChatTurn[] = []) {
+  const recent = history
+    .filter((m) => m.role === "guest" || m.role === "assistant" || m.role === "host")
+    .slice(-6)
+    .map((m) => `${m.role === "guest" ? "Guest" : m.role === "host" ? "Host" : "Concierge"}: ${m.content.slice(0, 500)}`);
+  return recent.length ? `Earlier in this conversation:\n${recent.join("\n")}\n\nGuest's new message: ${question}` : question;
+}
+
+export async function aiAnswer(property: Property, question: string, language: string, history: ChatTurn[] = []): Promise<ConciergeAnswer> {
   const { sections, facts } = guideFor(property);
-  const { context } = guideContext(sections, question);
+  // Retrieve with the previous guest message too, so a short follow-up still finds the right section.
+  const lastGuest = [...history].reverse().find((m) => m.role === "guest")?.content ?? "";
+  const { context } = guideContext(sections, `${lastGuest} ${question}`.trim());
   const json = await generateJson(
     conciergeSystemPrompt(`${facts}\n\n${context}`, languageNames[language] ?? "English") +
       `\nValid citation titles: ${JSON.stringify(["Stay details", ...sections.map((s) => s.title)])}.\nRespond with JSON only, for example {"answer":"...","citations":["Checkout"],"escalate":false}.`,
-    question,
+    withHistory(question, history),
     700,
     // Guests are waiting: fall back to the keyword search rather than leave them hanging.
     CONCIERGE_AI_TIMEOUT_MS,

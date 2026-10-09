@@ -61,3 +61,23 @@ describe("parseManual headings match whole words", () => {
     expect(sections.map((s) => s.title)).toEqual(["The Cabin", "Outdoors", "Fireplace", "Beach", "Trash & recycling"]);
   });
 });
+
+describe("concierge follow-up questions", () => {
+  it("sends the recent conversation with the new question", async () => {
+    const { withHistory } = await import("./concierge");
+    const prompt = withHistory("And on Sunday?", [
+      { role: "guest", content: "What time does the pool close?" },
+      { role: "assistant", content: "The pool closes at 9 PM." },
+    ]);
+    expect(prompt).toContain("Guest: What time does the pool close?");
+    expect(prompt).toContain("Concierge: The pool closes at 9 PM.");
+    expect(prompt.endsWith("Guest's new message: And on Sunday?")).toBe(true);
+  });
+  it("keeps only the last 6 turns and sends a first question unchanged", async () => {
+    const { withHistory } = await import("./concierge");
+    const many = Array.from({ length: 10 }, (_, i) => ({ role: "guest", content: `q${i}` }));
+    expect(withHistory("next", many)).not.toContain("q3");
+    expect(withHistory("next", many)).toContain("q4");
+    expect(withHistory("Hello?")).toBe("Hello?");
+  });
+});

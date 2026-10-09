@@ -6,7 +6,7 @@ import { aiConfigured } from "@/lib/ai";
 import { parseJson, unavailable } from "@/lib/api";
 import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
 import { detectLanguage } from "@/lib/language";
-import { consumeAiUsage, consumeRateLimit, getPublishedProperty, saveMessages, threadBelongsTo } from "@/lib/repo";
+import { consumeAiUsage, consumeRateLimit, getPublishedProperty, saveMessages, threadBelongsTo, threadMessages } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Live concierge");
   const { slug } = await params;
@@ -22,14 +22,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: "Please wait a moment before asking again." }, { status: 429 });
   const found = await getPublishedProperty(slug);
   if (!found) return NextResponse.json({ error: "Guide not found" }, { status: 404 });
-  const threadId = body.threadId && (await threadBelongsTo(body.threadId, found.property.id)) ? body.threadId : crypto.randomUUID();
+  const existingThread = Boolean(body.threadId && (await threadBelongsTo(body.threadId, found.property.id)));
+  const threadId = existingThread ? body.threadId! : crypto.randomUUID();
+  // The conversation so far, so the concierge understands follow-up questions.
+  const history = existingThread ? await threadMessages(found.property.id, threadId).catch(() => []) : [];
   // Reply in the language the guest actually wrote in; the guide's language menu is only a fallback.
   const language = detectLanguage(body.message) ?? body.language;
   let answer: ConciergeAnswer;
   let mode: "ai" | "keyword" = "keyword";
   if (aiConfigured() && (await consumeAiUsage(found.ownerId))) {
     try {
-      answer = await aiAnswer(found.property, body.message, language);
+      answer = await aiAnswer(found.property, body.message, language, history);
       mode = "ai";
     } catch (error) {
       // Visible in Vercel → Logs; the guest still gets an answer from the keyword search.

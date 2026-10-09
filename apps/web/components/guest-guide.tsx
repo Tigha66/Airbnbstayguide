@@ -57,11 +57,15 @@ export function GuestGuide({
     const saved = localStorage.getItem(`stayguide-thread-${slug}`);
     if (saved) queueMicrotask(() => setThreadId(saved));
   }, [liveGuide, slug]);
+  // The saved translation is tied to this exact version of the guide: when the host edits the
+  // guide, the version changes and the old translation is never shown again.
+  const guideVersion = original ? textVersion(original) : "";
   // Guide content in the guest's language: AI translation from the server, cached per guide version.
   useEffect(() => {
     if (!(liveGuide || sample)) return;
     let cancelled = false;
-    const cacheKey = `stayguide-translation-${slug}-${language}`;
+    const prefix = `stayguide-translation-${slug}-`;
+    const cacheKey = `${prefix}${guideVersion}-${language}`;
     queueMicrotask(() => {
       if (cancelled) return;
       setShowOriginal(false);
@@ -82,6 +86,9 @@ export function GuestGuide({
           if (body?.translated && body.text) {
             setTranslation({ language, text: body.text });
             try {
+              // Drop translations of older versions of this guide, then save this one.
+              for (const key of Object.keys(localStorage))
+                if (key.startsWith(prefix) && !key.startsWith(`${prefix}${guideVersion}-`)) localStorage.removeItem(key);
               localStorage.setItem(cacheKey, JSON.stringify(body.text));
             } catch {
               /* storage full */
@@ -96,7 +103,7 @@ export function GuestGuide({
     return () => {
       cancelled = true;
     };
-  }, [liveGuide, sample, slug, language]);
+  }, [liveGuide, sample, slug, language, guideVersion]);
   useEffect(() => {
     if (!liveGuide || !threadId) return;
     const load = async () => {
@@ -657,4 +664,16 @@ export function GuestGuide({
       )}
     </div>
   );
+}
+
+/** Short fingerprint of the guide's translatable text (changes whenever the host edits it). */
+function textVersion(property: Property) {
+  const text = JSON.stringify([
+    property.description,
+    property.sections.map((s) => [s.id, s.title, s.body]),
+    property.extras.map((e) => [e.id, e.name, e.description]),
+  ]);
+  let hash = 5381;
+  for (let i = 0; i < text.length; i++) hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
+  return (hash >>> 0).toString(36);
 }

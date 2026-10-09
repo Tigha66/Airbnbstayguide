@@ -362,6 +362,11 @@ export async function applySubscription(input: { customerId: string; userId?: st
   );
   return rows.length > 0;
 }
+/** The host linked to a Stripe customer (used to re-check billing from webhooks). */
+export async function userIdForCustomer(customerId: string) {
+  const [r] = await query<{ id: string }>(`SELECT id FROM users WHERE stripe_customer_id = $1`, [customerId]);
+  return r?.id ?? null;
+}
 /** Host who owns the given published property: used to route extras payments to their Connect account. */
 export async function getPayoutAccount(ownerId: string) {
   const [r] = await query<{ stripe_account_id: string | null; payouts_ready: boolean }>(
