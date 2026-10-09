@@ -60,8 +60,32 @@ function warmCache() {
   }
 }
 
+/**
+ * Offline, Next.js links fetch a data file for the next page instead of the page itself; that
+ * fails (iPhone home-screen apps then do nothing). While offline, make same-site links load the
+ * whole page, which the service worker serves from the saved copy or the offline screen.
+ */
+function loadWholePagesWhileOffline(event: MouseEvent) {
+  if (navigator.onLine || event.defaultPrevented || event.button !== 0) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const link = (event.target as Element | null)?.closest?.("a");
+  if (!link || !link.href || link.target === "_blank" || link.hasAttribute("download")) return;
+  const url = new URL(link.href);
+  if (url.origin !== location.origin) return;
+  // Jumping within the same page (e.g. "/#how-it-works" from "/") needs no network.
+  if (url.pathname === location.pathname && url.hash) return;
+  event.preventDefault();
+  event.stopPropagation();
+  location.assign(url.href);
+}
+
 /** Registers the offline service worker for the whole public site and guest guides. */
 export function ServiceWorker() {
+  useEffect(() => {
+    // Capture phase, so it runs before Next.js handles the link.
+    document.addEventListener("click", loadWholePagesWhileOffline, true);
+    return () => document.removeEventListener("click", loadWholePagesWhileOffline, true);
+  }, []);
   useEffect(() => {
     if (!("serviceWorker" in navigator) || process.env.NODE_ENV === "test") return;
     let cancelled = false;
