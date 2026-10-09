@@ -33,6 +33,22 @@ const ignoreQuery: SerwistPlugin = {
   },
 };
 
+// Safari refuses a saved page that was reached through a redirect ("Response served by service
+// worker has redirections") and shows its own "not connected" error. Never save redirected
+// responses, and rebuild any older saved copy that still carries the redirect flag.
+const safariSafe: SerwistPlugin = {
+  cacheWillUpdate: async ({ response }) =>
+    response.status === 200 && !response.redirected ? response : null,
+  cachedResponseWillBeUsed: async ({ cachedResponse }) =>
+    cachedResponse?.redirected
+      ? new Response(cachedResponse.body, {
+          status: cachedResponse.status,
+          statusText: cachedResponse.statusText,
+          headers: cachedResponse.headers,
+        })
+      : cachedResponse,
+};
+
 // "/" and "/pricing" redirect phones in French, Spanish, German or Arabic to "/fr", "/fr/pricing"…,
 // so only the translated page gets saved. A home-screen app always starts at "/", so offline
 // we open the saved translation (the phone's language first, then any saved one).
@@ -67,7 +83,7 @@ const savedTranslation: SerwistPlugin = {
 };
 
 const worker = new Serwist({
-  precacheEntries: [{ url: "/offline.html", revision: "4" }],
+  precacheEntries: [{ url: "/offline.html", revision: "5" }],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
@@ -84,6 +100,7 @@ const worker = new Serwist({
         networkTimeoutSeconds: 3,
         matchOptions: { ignoreVary: true },
         plugins: [
+          safariSafe,
           ignoreQuery,
           new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 2592000 }),
         ],
@@ -102,6 +119,7 @@ const worker = new Serwist({
         matchOptions: { ignoreVary: true },
         plugins: [
           savedTranslation,
+          safariSafe,
           ignoreQuery,
           new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 604800 }),
         ],

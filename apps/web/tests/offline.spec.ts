@@ -81,3 +81,26 @@ test.describe("phone in French", () => {
     await expect(page.locator("h1").first()).toContainText("Moins de gestion");
   });
 });
+
+test("main website pages are saved even if the visitor only opened one page", async ({ page, context }) => {
+  await saveForOffline(page, "/pricing", "stayguide-site-pages-v1");
+  await page.waitForFunction(
+    async () => {
+      const cache = await caches.open("stayguide-site-pages-v1");
+      return Boolean((await cache.match("/", { ignoreVary: true })) && (await cache.match("/demo", { ignoreVary: true })));
+    },
+    null,
+    { timeout: 20000 },
+  );
+  await context.setOffline(true);
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "You're offline" })).toHaveCount(0);
+  await expect(page.locator("h1").first()).toContainText("Less managing");
+});
+
+test("offline check page reports the installed offline support", async ({ page }) => {
+  await saveForOffline(page, "/g/casa-serena", "stayguide-public-guides-v1");
+  await page.goto("/offline-check.html");
+  await expect(page.getByText("Pages saved for offline")).toBeVisible();
+  await expect(page.locator("td", { hasText: "/g/casa-serena" })).toBeVisible();
+});
