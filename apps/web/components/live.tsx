@@ -348,7 +348,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
             </small>
           </div>
           {data.subscribed && (
-            <button className="button" disabled={busy !== null} onClick={() => run("portal", () => postForUrl("/api/v1/billing/portal"))}>
+            <button className="button" disabled={!data.stripe || busy !== null} onClick={() => run("portal", () => postForUrl("/api/v1/billing/portal"))}>
               <CreditCard size={15} /> {busy === "portal" ? tr("Opening…") : tr("Manage billing")}
             </button>
           )}
@@ -417,7 +417,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
         {data.payouts.ready ? (
           <>
             <p>{tr("Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.")}</p>
-            <button className="button secondary" disabled={busy !== null} onClick={() => run("dash", () => postForUrl("/api/v1/connect/dashboard"))}>
+            <button className="button secondary" disabled={!data.stripe || busy !== null} onClick={() => run("dash", () => postForUrl("/api/v1/connect/dashboard"))}>
               <ExternalLink size={14} /> {busy === "dash" ? tr("Opening…") : tr("Open payouts dashboard")}
             </button>
           </>
