@@ -2,7 +2,9 @@
 
 Launch only after the production work in STATUS.md is complete and validated. Do not market the preview as a functioning paid service.
 
-## App Store draft
+## App Store draft (planned)
+
+> **Planned, not built.** There is no iOS app in this repository yet. This section is a draft for when one exists.
 
 **Name:** StayGuide — Host Companion
 

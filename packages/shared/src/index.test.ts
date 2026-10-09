@@ -41,6 +41,7 @@ describe("guest safeguards", () => {
     expect(prompt).toContain("untrusted");
     expect(prompt).toContain("Cite");
     expect(prompt).toContain("escalate=true");
-    expect(prompt).toContain("Reply in fr");
+    expect(prompt).toContain("same language as the guest's question");
+    expect(prompt).toContain("reply in fr");
   });
 });

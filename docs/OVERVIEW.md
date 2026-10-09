@@ -81,7 +81,7 @@
 - **Monorepo:** Turborepo + pnpm
   - `apps/web`: Next.js 16 (App Router), TypeScript strict, React 19, custom CSS design system, lucide icons
   - `packages/shared`: plans/pricing, Zod schemas, types, i18n language list, concierge system prompt, demo data, utilities
-  - `apps/mobile` (Expo iOS host app): **not present**. It was lost in a sandbox crash and needs rebuilding.
+  - `apps/mobile` (iOS host app): **planned, not in the repo.** Hosts use the web dashboard; guests can add a guide to their home screen.
 - **Hosting:** Vercel (root directory `apps/web`); the build runs the DB migration, then the service-worker build, then `next build`
 - **Database:** Neon Postgres (serverless driver). Schema in `apps/web/db/schema.sql` (idempotent, applied on every deploy). Tables: `users`, `properties` (guide stored as JSONB), `chat_messages`, `extra_requests`, `guide_views`, `usage_counters`, `rate_limits`. Access control is enforced in the API layer (every host query is scoped by `owner_id`).
 - **Auth:** Auth.js (NextAuth v5) with the Google provider, JWT sessions
@@ -116,7 +116,7 @@ Deploy: the Vercel CLI from a git-free copy (`git archive HEAD`), because Vercel
 **Not done yet / known gaps:**
 1. **Stripe Connect live activation** (owner action in the Stripe dashboard). Until then online payment for extras is off and extras fall back to manual requests. The paid-extras flow has unit tests but no end-to-end run yet.
 2. **Emails** (Resend: welcome, payment failed, extra purchased, escalated chat) and **push notifications**: not built.
-3. **iOS host app** (Expo/EAS, TestFlight): needs rebuilding.
+3. **iOS host app:** planned; no code exists yet.
 4. **Custom domain** (e.g. stayguide.app), real legal text review, analytics/monitoring (PostHog, Sentry).
 5. Per-stay access codes for door codes/Wi-Fi, photo uploads, map with nearby places, team members: not built.
 6. CI workflow is stored at `docs/ci.workflow.yml`; move it to `.github/workflows/ci.yml` via the GitHub web UI (the agent's GitHub app lacks the `workflow` scope).
