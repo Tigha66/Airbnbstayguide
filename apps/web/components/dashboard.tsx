@@ -1430,10 +1430,15 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 <HotelPlanCard text={siteText(locale).hotel} />
               </div>
               <div className="notice" style={{ marginTop: 20 }}>
-                {tr("Demo workspace · Sign in with Google to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.", {
-                  code: CURRENCY.toUpperCase(),
-                  symbol: CURRENCY_SYMBOL,
-                })}
+                {liveState.services.stripe
+                  ? tr("Demo workspace · Sign in with Google to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.", {
+                      code: CURRENCY.toUpperCase(),
+                      symbol: CURRENCY_SYMBOL,
+                    })
+                  : tr("Demo workspace · Prices in {code} ({symbol}). Payments coming soon.", {
+                      code: CURRENCY.toUpperCase(),
+                      symbol: CURRENCY_SYMBOL,
+                    })}
               </div>
             </>
           )}

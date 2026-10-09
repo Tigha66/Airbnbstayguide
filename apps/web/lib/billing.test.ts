@@ -115,3 +115,26 @@ describe("billing persistence (PGlite)", () => {
     expect((await repo.getOwnedExtraRequest(host.id, paid))?.payment_intent_id).toBe("pi_1");
   });
 });
+
+describe("webhook idempotency", () => {
+  it("processes each Stripe event id once, and again only after a failed attempt is released", async () => {
+    expect(await repo.claimStripeEvent("evt_dup", "invoice.upcoming")).toBe(true);
+    expect(await repo.claimStripeEvent("evt_dup", "invoice.upcoming")).toBe(false);
+    await repo.releaseStripeEvent("evt_dup");
+    expect(await repo.claimStripeEvent("evt_dup", "invoice.upcoming")).toBe(true);
+  });
+});
+
+describe("optional price-id overrides", () => {
+  it("maps an override price to its plan, and lookup keys still work", async () => {
+    const { planFromSubscription: planOf, priceOverride } = await import("./stripe");
+    process.env.STRIPE_PRICE_PRO_YEARLY = "price_pro_y";
+    try {
+      expect(priceOverride("pro", true)).toBe("price_pro_y");
+      expect(planOf({ status: "active", items: { data: [{ price: { id: "price_pro_y", lookup_key: null } }] } } as unknown as Stripe.Subscription)).toBe("pro");
+      expect(planOf({ status: "active", items: { data: [{ price: { id: "price_other", lookup_key: "stayguide_starter_monthly_usd" } }] } } as unknown as Stripe.Subscription)).toBe("starter");
+    } finally {
+      delete process.env.STRIPE_PRICE_PRO_YEARLY;
+    }
+  });
+});

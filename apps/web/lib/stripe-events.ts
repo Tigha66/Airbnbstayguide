@@ -1,10 +1,12 @@
 import type Stripe from "stripe";
-import { planFromSubscription, stripeClient } from "./stripe";
+import { planFromSubscription, priceOverride, stripeClient } from "./stripe";
 import { applySubscription, extraRequestBySession, settleExtraCheckout, userIdForCustomer } from "./repo";
-import { notifyExtraRequest } from "./notify";
+import { notifyExtraRequest, notifyPaymentFailed } from "./notify";
 import { syncSubscriptionQuantity } from "./billing";
 
 const customerId = (c: string | { id: string } | null) => (typeof c === "string" ? c : (c?.id ?? null));
+const isOverridePrice = (id?: string) =>
+  Boolean(id) && (["starter", "pro"] as const).some((p) => priceOverride(p, false) === id || priceOverride(p, true) === id);
 
 async function syncSubscription(sub: Stripe.Subscription, deleted = false) {
   const customer = customerId(sub.customer);
@@ -60,12 +62,26 @@ export async function handleStripeEvent(event: Stripe.Event) {
     case "customer.subscription.updated":
     case "customer.subscription.deleted": {
       const sub = event.data.object as Stripe.Subscription;
-      const isOurs = sub.metadata?.app === "stayguide" || sub.items.data.some((i) => i.price?.lookup_key?.startsWith("stayguide_"));
+      const isOurs = sub.metadata?.app === "stayguide" || sub.items.data.some((i) => i.price?.lookup_key?.startsWith("stayguide_") || isOverridePrice(i.price?.id));
       if (!isOurs) return "ignored";
       await syncSubscription(sub, event.type === "customer.subscription.deleted");
       // Self-heal: if an earlier quantity update failed, renewals and plan changes fix it here.
       if (event.type === "customer.subscription.updated") await resyncQuantity(customerId(sub.customer));
       return "subscription";
+    }
+    case "invoice.payment_failed": {
+      // Refresh the plan status (e.g. past_due) from Stripe and ask the host to update their card.
+      const invoice = event.data.object as Stripe.Invoice & { subscription?: string | { id: string } | null; parent?: { subscription_details?: { subscription?: string | { id: string } } } | null };
+      const subRef = invoice.parent?.subscription_details?.subscription ?? invoice.subscription ?? null;
+      const subId = typeof subRef === "string" ? subRef : subRef?.id;
+      if (!subId) return "ignored";
+      const sub = await stripeClient().subscriptions.retrieve(subId);
+      const isOurs = sub.metadata?.app === "stayguide" || sub.items.data.some((i) => i.price?.lookup_key?.startsWith("stayguide_") || isOverridePrice(i.price?.id));
+      if (!isOurs) return "ignored";
+      await syncSubscription(sub);
+      const userId = await userIdForCustomer(customerId(sub.customer) ?? "");
+      if (userId) await notifyPaymentFailed(userId);
+      return "payment_failed";
     }
     case "invoice.upcoming": {
       // Sent a few days before each renewal (enable it on the webhook in Stripe): last chance to

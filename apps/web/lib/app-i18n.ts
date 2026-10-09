@@ -8,6 +8,10 @@ import type { SiteLocale } from "./site-i18n";
 type Dict = Record<string, string>;
 
 const fr: Dict = {
+  // Billing when Stripe isn't connected
+  "Payments coming soon. Plans can't be purchased online yet; your current plan keeps working.": "Paiements bientôt disponibles. Les offres ne peuvent pas encore être achetées en ligne ; votre offre actuelle continue de fonctionner.",
+  "Prices in {code} ({symbol}). Online payment is coming soon.": "Prix en {code} ({symbol}). Le paiement en ligne arrive bientôt.",
+  "Demo workspace · Prices in {code} ({symbol}). Payments coming soon.": "Espace de démonstration · Prix en {code} ({symbol}). Paiements bientôt disponibles.",
   // Settings → Notifications
   "Notifications": "Notifications",
   "Email me when a guest needs me": "M’envoyer un e-mail quand un voyageur a besoin de moi",
@@ -384,6 +388,10 @@ const fr: Dict = {
 };
 
 const es: Dict = {
+  // Billing when Stripe isn't connected
+  "Payments coming soon. Plans can't be purchased online yet; your current plan keeps working.": "Pagos próximamente. Aún no se pueden comprar planes en línea; tu plan actual sigue funcionando.",
+  "Prices in {code} ({symbol}). Online payment is coming soon.": "Precios en {code} ({symbol}). El pago en línea llegará pronto.",
+  "Demo workspace · Prices in {code} ({symbol}). Payments coming soon.": "Espacio de demostración · Precios en {code} ({symbol}). Pagos próximamente.",
   // Settings → Notifications
   "Notifications": "Notificaciones",
   "Email me when a guest needs me": "Avisarme por correo cuando un huésped me necesite",
@@ -748,6 +756,10 @@ const es: Dict = {
 };
 
 const de: Dict = {
+  // Billing when Stripe isn't connected
+  "Payments coming soon. Plans can't be purchased online yet; your current plan keeps working.": "Zahlungen folgen in Kürze. Tarife können noch nicht online gekauft werden; Ihr aktueller Tarif läuft weiter.",
+  "Prices in {code} ({symbol}). Online payment is coming soon.": "Preise in {code} ({symbol}). Online-Zahlung folgt in Kürze.",
+  "Demo workspace · Prices in {code} ({symbol}). Payments coming soon.": "Demo-Arbeitsbereich · Preise in {code} ({symbol}). Zahlungen folgen in Kürze.",
   // Settings → Notifications
   "Notifications": "Benachrichtigungen",
   "Email me when a guest needs me": "Mir eine E-Mail senden, wenn ein Gast mich braucht",
@@ -1112,6 +1124,10 @@ const de: Dict = {
 };
 
 const ar: Dict = {
+  // Billing when Stripe isn't connected
+  "Payments coming soon. Plans can't be purchased online yet; your current plan keeps working.": "الدفع قريبًا. لا يمكن شراء الخطط عبر الإنترنت بعد؛ تستمر خطتك الحالية في العمل.",
+  "Prices in {code} ({symbol}). Online payment is coming soon.": "الأسعار بـ {code} ({symbol}). الدفع عبر الإنترنت قريبًا.",
+  "Demo workspace · Prices in {code} ({symbol}). Payments coming soon.": "مساحة تجريبية · الأسعار بـ {code} ({symbol}). الدفع قريبًا.",
   // Settings → Notifications
   "Notifications": "الإشعارات",
   "Email me when a guest needs me": "أرسل لي بريدًا إلكترونيًا عندما يحتاجني ضيف",

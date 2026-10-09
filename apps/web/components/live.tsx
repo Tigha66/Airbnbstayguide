@@ -333,7 +333,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
   return (
     <>
       <PageHeading title={tr("Plans & billing")} description={tr("Simple, per-property pricing. Change or cancel any time.")} />
-      {!data.stripe && <div className="notice" style={{ marginBottom: 16 }}>{tr("Payments are not connected on this deployment yet.")}</div>}
+      {!data.stripe && <div className="notice" style={{ marginBottom: 16 }}>{tr("Payments coming soon. Plans can't be purchased online yet; your current plan keeps working.")}</div>}
       <div className="card panel" style={{ marginBottom: 20 }}>
         <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
@@ -403,7 +403,9 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
             <HotelPlanCard text={hotelText} />
           </div>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>
-            {tr("Prices in {code} ({symbol}). Secure payment by Stripe. Cancel any time from “Manage billing”.", { code: CURRENCY.toUpperCase(), symbol: CURRENCY_SYMBOL })}
+            {data.stripe
+              ? tr("Prices in {code} ({symbol}). Secure payment by Stripe. Cancel any time from “Manage billing”.", { code: CURRENCY.toUpperCase(), symbol: CURRENCY_SYMBOL })
+              : tr("Prices in {code} ({symbol}). Online payment is coming soon.", { code: CURRENCY.toUpperCase(), symbol: CURRENCY_SYMBOL })}
           </p>
         </>
       )}
@@ -421,7 +423,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
               <ExternalLink size={14} /> {busy === "dash" ? tr("Opening…") : tr("Open payouts dashboard")}
             </button>
           </>
-        ) : connectBlocked ? (
+        ) : connectBlocked || !data.stripe ? (
           <p>{tr("Online payments for extras are coming soon. Until then, guests send requests and you confirm how they pay.")}</p>
         ) : (
           <>

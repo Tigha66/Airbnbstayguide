@@ -48,3 +48,13 @@ describe("host notifications", () => {
     expect(send).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("billing emails", () => {
+  it("emails the host about a failed payment even with notifications off", async () => {
+    const { notifyPaymentFailed } = await import("./notify");
+    repo.hostContact.mockResolvedValueOnce({ email: "host@example.com", name: "Ana", notifyEmail: false });
+    expect(await notifyPaymentFailed("o1")).toBe(true);
+    await flush();
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ to: "host@example.com", subject: expect.stringContaining("payment") }));
+  });
+});

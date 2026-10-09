@@ -52,10 +52,11 @@ Without accounts configured, the dashboard and guest guides run entirely in the 
 
 1. Set `STRIPE_SECRET_KEY` (live or test key).
 2. Run `STRIPE_SECRET_KEY=sk_... APP_URL=https://www.getstayguide.com pnpm --filter @stayguide/web stripe:setup` once. It creates the products and prices, the Customer Portal configuration and the webhook endpoint `/api/stripe/webhook`, and prints `STRIPE_WEBHOOK_SECRET` (set it in Vercel). Re-running it is safe and updates the webhook's events.
-3. Webhook events used: `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.created`/`updated`/`deleted`, `invoice.payment_failed`, `invoice.upcoming` (re-checks the billed property count before each renewal).
-4. Hosts connect payouts (Stripe Connect Express) from the dashboard before guests can pay for extras online.
+3. Webhook events used: `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.created`/`updated`/`deleted`, `invoice.payment_failed` (refreshes the plan status and emails the host to update their card), `invoice.upcoming` (re-checks the billed property count before each renewal). The webhook verifies Stripe's signature and handles each event id once (`stripe_events` table).
+4. Plan prices are found by lookup key (`stayguide_<plan>_<monthly|yearly>_usd`) and created if missing. Optionally pin them with `STRIPE_PRICE_STARTER_MONTHLY`/`_YEARLY` and `STRIPE_PRICE_PRO_MONTHLY`/`_YEARLY`.
+5. Hosts connect payouts (Stripe Connect Express) from the dashboard before guests can pay for extras online; StayGuide keeps a 5% fee.
 
-Without `STRIPE_SECRET_KEY`, billing routes return 503 and the dashboard says payments aren't available.
+Without `STRIPE_SECRET_KEY`, billing routes return 503 and the dashboard shows "Payments coming soon" (no Stripe wording).
 
 ## Cost and abuse limits
 

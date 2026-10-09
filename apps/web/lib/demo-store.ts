@@ -85,7 +85,7 @@ type LiveState = {
   checked: boolean;
   live: boolean;
   user: LiveUser | null;
-  services: { accounts: boolean; ai: boolean };
+  services: { accounts: boolean; ai: boolean; stripe?: boolean; email?: boolean };
   sync: SyncState;
 };
 let live: LiveState = { checked: false, live: false, user: null, services: { accounts: false, ai: false }, sync: "idle" };

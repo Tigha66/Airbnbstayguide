@@ -97,3 +97,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS properties_owner_slot_idx ON properties(owner_
 ALTER TABLE guide_translations ADD COLUMN IF NOT EXISTS complete boolean NOT NULL DEFAULT true;
 -- Host email notifications (escalated questions, extra requests); on by default, off in Settings.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_email boolean NOT NULL DEFAULT true;
+-- Stripe webhook idempotency: each event id is processed once (removed again if handling fails, so Stripe's retry works).
+CREATE TABLE IF NOT EXISTS stripe_events (
+  id text PRIMARY KEY,
+  type text NOT NULL,
+  received_at timestamptz NOT NULL DEFAULT now()
+);

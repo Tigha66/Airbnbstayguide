@@ -33,7 +33,17 @@ async function planProduct(plan: "starter" | "pro") {
     ).id
   );
 }
+/** Optional explicit price ids (STRIPE_PRICE_STARTER_MONTHLY …); without them prices are found by lookup key. */
+export const priceOverride = (plan: "starter" | "pro", yearly: boolean) =>
+  process.env[`STRIPE_PRICE_${plan.toUpperCase()}_${yearly ? "YEARLY" : "MONTHLY"}`]?.trim() || undefined;
+function planForPriceOverride(price: string | undefined): Plan | null {
+  if (!price) return null;
+  for (const plan of ["starter", "pro"] as const) for (const yearly of [false, true]) if (priceOverride(plan, yearly) === price) return plan;
+  return null;
+}
 export async function priceId(plan: "starter" | "pro", yearly: boolean) {
+  const override = priceOverride(plan, yearly);
+  if (override) return override;
   const key = lookupKey(plan, yearly);
   const cached = priceCache.get(key);
   if (cached) return cached;
@@ -101,8 +111,10 @@ export async function portalConfigurationId() {
 /** Maps a Stripe subscription to the plan the host should have right now. */
 export function planFromSubscription(sub: Pick<Stripe.Subscription, "status" | "items">): Plan {
   if (!["active", "trialing", "past_due"].includes(sub.status)) return "free";
-  const key = sub.items.data[0]?.price?.lookup_key ?? "";
-  const match = /^stayguide_(starter|pro)_(monthly|yearly)(?:_[a-z]{3})?$/.exec(key);
+  const price = sub.items.data[0]?.price;
+  const fromOverride = planForPriceOverride(price?.id);
+  if (fromOverride) return fromOverride;
+  const match = /^stayguide_(starter|pro)_(monthly|yearly)(?:_[a-z]{3})?$/.exec(price?.lookup_key ?? "");
   return match ? (match[1] as Plan) : "free";
 }
 /** Subscriptions are billed per property; never below one. */

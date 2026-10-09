@@ -1,5 +1,5 @@
 import { after } from "next/server";
-import { emailConfigured, escalationEmail, extraDecisionEmail, extraRequestEmail, looksLikeEmail, sendEmail, siteUrl } from "./email";
+import { emailConfigured, escalationEmail, extraDecisionEmail, extraRequestEmail, looksLikeEmail, paymentFailedEmail, sendEmail, siteUrl } from "./email";
 import { consumeRateLimit, extraRequestDetails, hostContact } from "./repo";
 
 /** At most one escalation email per conversation in this many seconds. */
@@ -71,5 +71,14 @@ export async function notifyExtraDecision(ownerId: string, requestId: string, ap
       }),
     ),
   );
+  return true;
+}
+
+/** Emails the host when a subscription payment fails (billing emails go out regardless of the notification switch). */
+export async function notifyPaymentFailed(ownerId: string) {
+  if (!emailConfigured()) return false;
+  const host = await hostContact(ownerId).catch(() => null);
+  if (!host) return false;
+  inBackground(() => sendEmail(paymentFailedEmail({ to: host.email, hostName: host.name })));
   return true;
 }

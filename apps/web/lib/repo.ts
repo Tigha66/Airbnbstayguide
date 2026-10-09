@@ -465,6 +465,15 @@ export async function extraRequestDetails(ownerId: string, id: string) {
     ? { guestName: row.guest_name, guestContact: row.guest_contact, extraName: row.extra_name, propertyName: row.property_name, slug: row.slug }
     : null;
 }
+/** Records a Stripe event id; false when it was already processed (a duplicate delivery). */
+export async function claimStripeEvent(id: string, type: string) {
+  const rows = await query(`INSERT INTO stripe_events (id, type) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING RETURNING id`, [id, type]);
+  return rows.length > 0;
+}
+/** Forgets a Stripe event so Stripe's retry is processed (handling failed). */
+export async function releaseStripeEvent(id: string) {
+  await query(`DELETE FROM stripe_events WHERE id = $1`, [id]);
+}
 /** Host who owns the given published property: used to route extras payments to their Connect account. */
 export async function getPayoutAccount(ownerId: string) {
   const [r] = await query<{ stripe_account_id: string | null; payouts_ready: boolean }>(

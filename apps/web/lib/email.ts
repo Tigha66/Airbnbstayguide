@@ -132,3 +132,16 @@ export function extraDecisionEmail(input: { to: string; guestName: string; prope
     html: layout(subject, [escape(`Hi ${input.guestName},`), escape(line)], { label: "Open your guide", url: input.guideUrl }, "Sent by StayGuide on behalf of your host."),
   };
 }
+
+export function paymentFailedEmail(input: { to: string; hostName?: string | null }): Email {
+  const billing = `${siteUrl()}/dashboard/billing`;
+  const subject = "Your StayGuide payment didn't go through";
+  const greeting = input.hostName ? `Hi ${input.hostName.split(" ")[0]},` : "Hi,";
+  const line = "We couldn't take your latest StayGuide payment. Your guides keep working for now; please update your card so your plan stays active.";
+  return {
+    to: input.to,
+    subject,
+    text: `${greeting}\n\n${line}\n\nUpdate your payment details: ${billing} (Manage billing)`,
+    html: layout(subject, [escape(greeting), escape(line)], { label: "Update payment details", url: billing }, "Sent by StayGuide about your subscription."),
+  };
+}
