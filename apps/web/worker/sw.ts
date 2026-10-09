@@ -130,7 +130,13 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.mode !== "navigate" || request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || isPrivate(url.pathname)) return;
+  if (url.origin !== self.location.origin) return;
+  // Login, dashboard and admin are never saved, but offline they show the StayGuide offline
+  // screen instead of the browser's error page (which strands a home-screen app).
+  if (isPrivate(url.pathname)) {
+    event.respondWith(fetch(request).catch(() => offlineScreen()));
+    return;
+  }
   event.respondWith(handleNavigation(request, url));
 });
 
@@ -140,7 +146,7 @@ self.addEventListener("activate", (event) => {
 });
 
 const worker = new Serwist({
-  precacheEntries: [{ url: "/offline.html", revision: "6" }],
+  precacheEntries: [{ url: "/offline.html", revision: "7" }],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: false,

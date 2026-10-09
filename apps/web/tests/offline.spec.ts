@@ -112,3 +112,31 @@ test("offline check page reports the installed offline support", async ({ page }
   await expect(page.getByText("Pages saved for offline")).toBeVisible();
   await expect(page.locator("td", { hasText: "/g/casa-serena" })).toBeVisible();
 });
+
+test("menu links work offline and never rely on Next.js data requests", async ({ page, context }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await saveForOffline(page, "/", "stayguide-site-pages-v1");
+  await page.waitForFunction(
+    async () => Boolean(await (await caches.open("stayguide-site-pages-v1")).match("/pricing", { ignoreVary: true })),
+    null,
+    { timeout: 20000 },
+  );
+  await context.setOffline(true);
+  const dataRequests: string[] = [];
+  page.on("request", (r) => {
+    const h = r.headers();
+    // Background prefetches of visible links are harmless; count only navigation data requests.
+    if (h["next-router-prefetch"] || h["next-router-segment-prefetch"]) return;
+    if (r.url().includes("_rsc=") || h["rsc"]) dataRequests.push(r.url());
+  });
+  for (const [name, title] of [
+    ["Pricing", /pricing/i],
+    ["Log in", /offline/i],
+  ] as const) {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await page.locator("#site-menu").getByRole("link", { name }).click();
+    await expect(page).toHaveTitle(title, { timeout: 15000 });
+  }
+  expect(dataRequests).toEqual([]);
+});
