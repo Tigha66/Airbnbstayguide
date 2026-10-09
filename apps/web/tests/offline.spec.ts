@@ -50,7 +50,8 @@ test("a page never opened online shows the offline screen with saved guides", as
   await context.setOffline(true);
   await page.goto("/legal/privacy");
   await expect(page.getByRole("heading", { name: "You're offline" })).toBeVisible();
-  await page.getByRole("link", { name: "Casa serena" }).click();
+  await expect(page.getByRole("img", { name: "StayGuide" })).toBeVisible();
+  await page.getByRole("link", { name: "Casa Serena", exact: true }).click();
   await page.waitForURL("**/g/casa-serena", { waitUntil: "commit" });
   await expect(page.getByRole("heading", { name: "Casa Serena", exact: true })).toBeVisible({ timeout: 15000 });
 });
