@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireHost } from "@/lib/session";
 import { clearStripeAccount, getBilling, setStripeAccount } from "@/lib/repo";
 import { appUrl, isMissing, stripeClient, stripeConfigured } from "@/lib/stripe";
-import { parseJson, safeOrigin, unavailable } from "@/lib/api";
+import { parseJsonOrNull, safeOrigin, unavailable } from "@/lib/api";
 const schema = z.object({ country: z.string().regex(/^[A-Z]{2}$/).optional() });
 /** Starts (or resumes) Stripe Express onboarding so the host can receive payments for extras. */
 export async function POST(request: Request) {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   if (!stripeConfigured()) return unavailable("Payouts");
   const host = await requireHost();
   if ("response" in host) return host.response;
-  const parsed = schema.safeParse(parseJson((await request.text()) || "{}"));
+  const parsed = schema.safeParse(parseJsonOrNull((await request.text()) || "{}"));
   if (!parsed.success) return NextResponse.json({ error: "Choose a country" }, { status: 400 });
   const stripe = stripeClient();
   try {

@@ -16,8 +16,21 @@ export function safeOrigin(request: Request) {
     origin === (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin)
   );
 }
-export function parseJson(raw: string) {
-  if (new TextEncoder().encode(raw).length > 24000)
-    throw new Error("Request too large");
+/** Body size limit for JSON requests (24 KB). */
+export const JSON_LIMIT = 24_000;
+/** A whole guide (all sections and extras) is larger: the one exception, used by the guide editor. */
+export const GUIDE_JSON_LIMIT = 200_000;
+export class RequestTooLarge extends Error {}
+/** Like parseJson, but returns null for malformed or oversized bodies (validation then answers 400). */
+export function parseJsonOrNull(raw: string, limit = JSON_LIMIT): unknown {
+  try {
+    return parseJson(raw, limit);
+  } catch {
+    return null;
+  }
+}
+/** Parses a JSON request body within a size limit. Throws RequestTooLarge, or SyntaxError for bad JSON. */
+export function parseJson(raw: string, limit = JSON_LIMIT) {
+  if (new TextEncoder().encode(raw).length > limit) throw new RequestTooLarge("Request too large");
   return JSON.parse(raw);
 }

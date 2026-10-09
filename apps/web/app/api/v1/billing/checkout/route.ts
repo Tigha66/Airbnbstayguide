@@ -4,14 +4,14 @@ import { requireHost } from "@/lib/session";
 import { clearStripeCustomer, getBilling } from "@/lib/repo";
 import { ensureCustomer } from "@/lib/billing";
 import { appUrl, billableQuantity, isMissing, priceId, stripeClient, stripeConfigured } from "@/lib/stripe";
-import { parseJson, safeOrigin, unavailable } from "@/lib/api";
+import { parseJsonOrNull, safeOrigin, unavailable } from "@/lib/api";
 const schema = z.object({ plan: z.enum(["starter", "pro"]), yearly: z.boolean().default(false) });
 export async function POST(request: Request) {
   if (!safeOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   if (!stripeConfigured()) return unavailable("Billing");
   const host = await requireHost();
   if ("response" in host) return host.response;
-  const parsed = schema.safeParse(parseJson(await request.text()));
+  const parsed = schema.safeParse(parseJsonOrNull(await request.text()));
   if (!parsed.success) return NextResponse.json({ error: "Choose a plan" }, { status: 400 });
   const billing = await getBilling(host.user.id);
   let subscribed = Boolean(billing?.stripeSubscriptionId && billing.subscriptionStatus !== "canceled");

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auth, authConfigured } from "@/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { getUser, setManagedPlan } from "@/lib/repo";
-import { parseJson, safeOrigin } from "@/lib/api";
+import { parseJsonOrNull, safeOrigin } from "@/lib/api";
 
 const schema = z.object({ email: z.email(), plan: z.enum(["hotel", "free"]) });
 
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const session = await auth();
   const me = session?.user?.id ? await getUser(session.user.id) : null;
   if (!me || !isAdminEmail(me.email)) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const parsed = schema.safeParse(parseJson(await request.text()));
+  const parsed = schema.safeParse(parseJsonOrNull(await request.text()));
   if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   const ok = await setManagedPlan(parsed.data.email, parsed.data.plan);
   if (!ok)

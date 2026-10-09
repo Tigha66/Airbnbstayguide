@@ -179,3 +179,32 @@ describe("AI allowance never passes its limit", () => {
     expect(await repo.inCooldown("test-provider")).toBe(false);
   });
 });
+
+describe("inbox and account clean-up", () => {
+  it("shows 'Needs your help' only while an escalation is newer than the host's last reply", async () => {
+    const h = await repo.upsertUser("inbox@example.com", "Inbox");
+    const p = await repo.createProperty({ ...h, plan: "starter" }, { name: "Inbox Villa", location: "Lisbon", description: "" });
+    const thread = crypto.randomUUID();
+    await repo.saveMessages(p.id, thread, [
+      { role: "guest", content: "Can I bring a dog?", language: "en" },
+      { role: "assistant", content: "I've passed this to your host.", language: "en", escalated: true },
+    ]);
+    const find = async () => (await repo.inbox(h.id)).find((t) => t.threadId === thread)!;
+    expect((await find()).escalated).toBe(true);
+    await repo.hostReply(h.id, thread, "Yes, small dogs are welcome.");
+    expect((await find()).escalated).toBe(false);
+    await repo.saveMessages(p.id, thread, [
+      { role: "guest", content: "Is there a pool?", language: "en" },
+      { role: "assistant", content: "I've passed this to your host.", language: "en", escalated: true },
+    ]);
+    expect((await find()).escalated).toBe(true);
+  });
+  it("deletes the account's guide translations too", async () => {
+    const h = await repo.upsertUser("translations@example.com", "Trans");
+    const p = await repo.createProperty({ ...h, plan: "free" }, { name: "Trans House", location: "Lisbon", description: "" });
+    await repo.saveGuideTranslation(p.id, "fr", "hash", { description: "Bonjour", sections: [], extras: [] });
+    await repo.deleteUser(h.id);
+    const rows = await query(`SELECT 1 FROM guide_translations WHERE property_key = $1`, [p.id]);
+    expect(rows).toHaveLength(0);
+  });
+});

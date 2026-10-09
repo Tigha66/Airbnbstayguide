@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { notifyExtraDecision } from "@/lib/notify";
+import { canChangeManualExtra } from "@/lib/extras";
 import { requireHost } from "@/lib/session";
 import { getOwnedExtraRequest, setExtraRequestStatus } from "@/lib/repo";
-import { parseJson, safeOrigin } from "@/lib/api";
+import { parseJsonOrNull, safeOrigin } from "@/lib/api";
 import { stripeClient } from "@/lib/stripe";
 const schema = z.object({ status: z.enum(["approved", "declined", "paid", "refunded"]) });
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -11,7 +12,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const host = await requireHost();
   if ("response" in host) return host.response;
   const { id } = await params;
-  const parsed = schema.safeParse(parseJson(await request.text()));
+  const parsed = schema.safeParse(parseJsonOrNull(await request.text()));
   if (!parsed.success || !z.uuid().safeParse(id).success) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   const req = await getOwnedExtraRequest(host.user.id, id);
   if (!req) return NextResponse.json({ error: "Request not found" }, { status: 404 });
@@ -33,16 +34,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Stripe couldn’t process this. The hold may have expired; please contact the guest." }, { status: 502 });
     }
   } else {
-    // Paid outside Stripe (cash, transfer…): only sensible moves. A declined request can't become paid.
-    const allowed: Record<string, string[]> = {
-      pending: ["approved", "declined", "paid"],
-      approved: ["paid", "declined"],
-      paid: [],
-      declined: [],
-      refunded: [],
-    };
+    // Paid outside Stripe (cash, transfer…): pending → approved | declined, approved → paid.
     if (status === "refunded") return NextResponse.json({ error: "Only online payments can be refunded here." }, { status: 409 });
-    if (!(allowed[req.status] ?? []).includes(status))
+    if (!canChangeManualExtra(req.status, status))
       return NextResponse.json({ error: `A ${req.status} request can't be marked ${status}.` }, { status: 409 });
   }
   await setExtraRequestStatus(host.user.id, id, status);

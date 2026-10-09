@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { dbConfigured } from "@/lib/db";
-import { parseJson, unavailable } from "@/lib/api";
+import { parseJsonOrNull, unavailable } from "@/lib/api";
 import { attachExtraCheckout, consumeRateLimit, createExtraRequest, getPayoutAccount, getPublishedProperty, setExtraRequestStatusById } from "@/lib/repo";
 import { appUrl, extraCheckoutParams, stripeClient, stripeConfigured } from "@/lib/stripe";
 import { notifyExtraRequest } from "@/lib/notify";
@@ -15,7 +15,7 @@ const schema = z.object({
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Extras");
   const { slug } = await params;
-  const parsed = schema.safeParse(parseJson(await request.text()));
+  const parsed = schema.safeParse(parseJsonOrNull(await request.text()));
   if (!parsed.success) return NextResponse.json({ error: "Please add your name and an email or phone number." }, { status: 400 });
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (!(await consumeRateLimit(createHash("sha256").update(`extra:${ip}:${slug}`).digest("hex"), 5, 3600)))
