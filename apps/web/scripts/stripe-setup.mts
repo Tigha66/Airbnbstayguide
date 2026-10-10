@@ -1,7 +1,7 @@
 /**
  * Creates (or reuses) StayGuide's Stripe products, prices, Customer Portal
  * configuration and webhook endpoint. Safe to re-run.
- *   STRIPE_SECRET_KEY=sk_... APP_URL=https://stayguide-gamma.vercel.app npx tsx scripts/stripe-setup.mts
+ *   STRIPE_SECRET_KEY=sk_... APP_URL=https://www.getstayguide.com npx tsx scripts/stripe-setup.mts
  * Prints STRIPE_WEBHOOK_SECRET when a new endpoint is created. Everything is tagged metadata.app=stayguide.
  */
 import Stripe from "stripe";

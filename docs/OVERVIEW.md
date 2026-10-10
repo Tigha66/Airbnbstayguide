@@ -9,17 +9,17 @@
 
 | What | URL |
 |---|---|
-| Production app | https://stayguide-gamma.vercel.app |
-| Service status (what's connected) | https://stayguide-gamma.vercel.app/status |
-| Live AI demo guide (database-backed, real AI) | https://stayguide-gamma.vercel.app/g/sea-breeze-loft |
-| Static sample guides (offline demo, keyword answers) | https://stayguide-gamma.vercel.app/g/casa-serena · https://stayguide-gamma.vercel.app/g/olive-grove |
-| Public demo page | https://stayguide-gamma.vercel.app/demo |
-| Host login (Google) | https://stayguide-gamma.vercel.app/login |
-| Host dashboard | https://stayguide-gamma.vercel.app/dashboard |
-| Plans & billing (in dashboard) | https://stayguide-gamma.vercel.app/dashboard/billing |
-| Pricing | https://stayguide-gamma.vercel.app/pricing |
-| Blog (3 SEO posts) | https://stayguide-gamma.vercel.app/blog |
-| Terms / Privacy | https://stayguide-gamma.vercel.app/legal/terms · https://stayguide-gamma.vercel.app/legal/privacy |
+| Production app | https://www.getstayguide.com |
+| Service status (what's connected) | https://www.getstayguide.com/status |
+| Live AI demo guide (database-backed, real AI) | https://www.getstayguide.com/g/sea-breeze-loft |
+| Static sample guides (offline demo, keyword answers) | https://www.getstayguide.com/g/casa-serena · https://www.getstayguide.com/g/olive-grove |
+| Public demo page | https://www.getstayguide.com/demo |
+| Host login (Google) | https://www.getstayguide.com/login |
+| Host dashboard | https://www.getstayguide.com/dashboard |
+| Plans & billing (in dashboard) | https://www.getstayguide.com/dashboard/billing |
+| Pricing | https://www.getstayguide.com/pricing |
+| Blog (3 SEO posts) | https://www.getstayguide.com/blog |
+| Terms / Privacy | https://www.getstayguide.com/legal/terms · https://www.getstayguide.com/legal/privacy |
 | GitHub repo (private) | https://github.com/Tigha66/Airbnbstayguide (working branch `agent/storm-sharp-34j0`) |
 | Hosting | Vercel project `stayguide`, team `hajabdelhak66` |
 
@@ -117,7 +117,7 @@ Deploy: the Vercel CLI from a git-free copy (`git archive HEAD`), because Vercel
 1. **Stripe Connect live activation** (owner action in the Stripe dashboard). Until then online payment for extras is off and extras fall back to manual requests. The paid-extras flow has unit tests but no end-to-end run yet.
 2. **Emails** (Resend: welcome, payment failed, extra purchased, escalated chat) and **push notifications**: not built.
 3. **iOS host app** (Expo/EAS, TestFlight): needs rebuilding.
-4. **Custom domain** (e.g. stayguide.app), real legal text review, analytics/monitoring (PostHog, Sentry).
+4. Real legal text review and analytics/monitoring (PostHog, Sentry) for `www.getstayguide.com`.
 5. Per-stay access codes for door codes/Wi-Fi, photo uploads, map with nearby places, team members: not built.
 6. CI workflow is stored at `docs/ci.workflow.yml`; move it to `.github/workflows/ci.yml` via the GitHub web UI (the agent's GitHub app lacks the `workflow` scope).
 7. Hugging Face free credits are small; add credit or switch provider before real traffic.
