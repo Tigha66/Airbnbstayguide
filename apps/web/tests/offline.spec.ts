@@ -1,5 +1,20 @@
 import { test, expect, type Page } from "@playwright/test";
 
+async function waitForSavedPage(page: Page, path: string, cache: string) {
+  await expect.poll(() => page.evaluate(async ({ cache, path }) => {
+    const response = await (await caches.open(cache)).match(path, { ignoreVary: true });
+    if (!response) return false;
+    const html = new DOMParser().parseFromString(await response.text(), "text/html");
+    const assets = [...html.querySelectorAll("script[src], link[href]")]
+      .map((el) => new URL(el.getAttribute("src") ?? el.getAttribute("href")!, location.origin))
+      .filter((url) => url.pathname.startsWith("/_next/static/"));
+    for (const script of html.querySelectorAll("script:not([src])"))
+      for (const asset of script.textContent.match(/\/_next\/static\/[^"'\\\s<>]+/g) ?? [])
+        assets.push(new URL(asset, location.origin));
+    return (await Promise.all(assets.map((url) => caches.match(url.href, { ignoreVary: true })))).every(Boolean);
+  }, { cache, path }), { timeout: 20000 }).toBe(true);
+}
+
 /** Visit a page online and wait until the service worker controls it and has saved it. */
 async function saveForOffline(page: Page, path: string, cache: string) {
   await page.goto(path);
@@ -10,11 +25,7 @@ async function saveForOffline(page: Page, path: string, cache: string) {
         navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }),
       );
   });
-  await page.waitForFunction(
-    async ({ cache, path }) => Boolean(await (await caches.open(cache)).match(path)),
-    { cache, path: new URL(path, "http://x").pathname },
-    { timeout: 20000 },
-  );
+  await waitForSavedPage(page, path, cache);
 }
 
 test("guest guide opens offline, including from a QR link with extra parameters", async ({ page, context }) => {
@@ -27,9 +38,9 @@ test("guest guide opens offline, including from a QR link with extra parameters"
 
 test("guest guide cover photo is still shown offline", async ({ page, context }) => {
   await saveForOffline(page, "/g/casa-serena", "stayguide-public-guides-v1");
-  await page.waitForFunction(async () => (await (await caches.open("stayguide-photos-v1")).keys()).length > 0, null, {
+  await expect.poll(() => page.evaluate(async () => (await (await caches.open("stayguide-photos-v1")).keys()).length > 0), {
     timeout: 20000,
-  });
+  }).toBe(true);
   await context.setOffline(true);
   await page.reload();
   const cover = page.getByRole("img", { name: "Casa Serena" }).first();
@@ -43,6 +54,18 @@ test("website pages visited online open offline", async ({ page, context }) => {
   await page.reload();
   await expect(page.getByRole("heading", { name: "You're offline" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Guest demo" }).first()).toBeVisible();
+});
+
+test("a page reached through client navigation is saved for offline", async ({ page, context }) => {
+  await saveForOffline(page, "/", "stayguide-site-pages-v1");
+  await page.locator('a[href="/legal/privacy"]').first().click();
+  await page.waitForURL("**/legal/privacy");
+  await waitForSavedPage(page, "/legal/privacy", "stayguide-site-pages-v1");
+  const title = await page.title();
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page).toHaveTitle(title);
+  await expect(page.getByRole("heading", { name: "You're offline" })).toHaveCount(0);
 });
 
 test("a page never opened online shows the offline screen with saved guides", async ({ page, context }) => {
@@ -84,19 +107,9 @@ test.describe("phone in French", () => {
 
 test("main website pages are saved even if the visitor only opened one page", async ({ page, context }) => {
   await saveForOffline(page, "/pricing", "stayguide-site-pages-v1");
-  await page.waitForFunction(
-    async () => {
-      const cache = await caches.open("stayguide-site-pages-v1");
-      const guides = await caches.open("stayguide-public-guides-v1");
-      return Boolean(
-        (await cache.match("/", { ignoreVary: true })) &&
-          (await cache.match("/demo", { ignoreVary: true })) &&
-          (await guides.match("/g/casa-serena", { ignoreVary: true })),
-      );
-    },
-    null,
-    { timeout: 20000 },
-  );
+  await waitForSavedPage(page, "/", "stayguide-site-pages-v1");
+  await waitForSavedPage(page, "/demo", "stayguide-site-pages-v1");
+  await waitForSavedPage(page, "/g/casa-serena", "stayguide-public-guides-v1");
   await context.setOffline(true);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "You're offline" })).toHaveCount(0);
@@ -116,11 +129,7 @@ test("offline check page reports the installed offline support", async ({ page }
 test("menu links work offline and never rely on Next.js data requests", async ({ page, context }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await saveForOffline(page, "/", "stayguide-site-pages-v1");
-  await page.waitForFunction(
-    async () => Boolean(await (await caches.open("stayguide-site-pages-v1")).match("/pricing", { ignoreVary: true })),
-    null,
-    { timeout: 20000 },
-  );
+  await waitForSavedPage(page, "/pricing", "stayguide-site-pages-v1");
   await context.setOffline(true);
   const dataRequests: string[] = [];
   page.on("request", (r) => {

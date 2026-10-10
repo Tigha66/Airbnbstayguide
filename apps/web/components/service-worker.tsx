@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 const PRIVATE = ["/dashboard", "/admin", "/login", "/api", "/status"];
 
@@ -10,12 +11,24 @@ const LOCALES = ["fr", "es", "de", "ar"];
 async function savePage(path: string) {
   try {
     const res = await fetch(path, { headers: { Accept: "text/html" } });
-    if (!res.ok || res.redirected) return;
+    if (!res.ok) return;
+    const destination = new URL(res.url);
+    if (destination.origin !== location.origin || isPrivate(destination.pathname)) return;
     const html = await res.text();
-    const assets = new Set(html.match(/\/_next\/static\/[^"'\s)]+/g) ?? []);
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const assets = new Set(
+      [...document.querySelectorAll("script[src], link[href]")]
+        .map((element) => new URL(element.getAttribute("src") ?? element.getAttribute("href")!, res.url))
+        .filter((url) => url.origin === location.origin && url.pathname.startsWith("/_next/static/"))
+        .map((url) => url.href),
+    );
+    // Next embeds client-component chunks in Flight data as well as script tags.
+    for (const script of document.querySelectorAll("script:not([src])"))
+      for (const asset of script.textContent.match(/\/_next\/static\/[^"'\\\s<>]+/g) ?? [])
+        assets.add(new URL(asset, res.url).href);
     // Photos shown on the page (e.g. a guide's cover), which may be on another site.
     const photos = new Set(
-      [...html.matchAll(/<img[^>]+src="(https?:\/\/[^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, "&")),
+      [...document.querySelectorAll("img[src]")].map((img) => new URL(img.getAttribute("src")!, res.url).href),
     );
     await Promise.all([
       ...[...assets].map((url) => fetch(url).catch(() => {})),
@@ -30,17 +43,11 @@ async function savePage(path: string) {
  * Saves the page a visitor is on, its code, fonts and photos, plus the main website pages in
  * their language, so the site (and a home-screen app, which starts at "/") reopens offline.
  */
-function warmCache() {
+async function warmCache() {
   const path = location.pathname;
-  if (!isPrivate(path)) void savePage(path);
-  let savedThisSession = false;
-  try {
-    savedThisSession = sessionStorage.getItem("stayguide-pages-saved") === "1";
-    sessionStorage.setItem("stayguide-pages-saved", "1");
-  } catch {
-    /* storage unavailable */
-  }
-  if (!savedThisSession && !path.startsWith("/g/") && !isPrivate(path)) {
+  if (!navigator.onLine || isPrivate(path)) return;
+  await savePage(path);
+  if (!path.startsWith("/g/")) {
     const first = path.split("/")[1];
     const base = LOCALES.includes(first) ? `/${first}` : "";
     // "/demo" forwards to the sample guide, so save that guide too.
@@ -81,6 +88,15 @@ function loadWholePagesWhileOffline(event: MouseEvent) {
 
 /** Registers the offline service worker for the whole public site and guest guides. */
 export function ServiceWorker() {
+  const pathname = usePathname();
+  useEffect(() => {
+    const save = () => {
+      if (navigator.serviceWorker?.controller) void warmCache();
+    };
+    save();
+    window.addEventListener("online", save);
+    return () => window.removeEventListener("online", save);
+  }, [pathname]);
   useEffect(() => {
     // Capture phase, so it runs before Next.js handles the link.
     document.addEventListener("click", loadWholePagesWhileOffline, true);
@@ -94,7 +110,7 @@ export function ServiceWorker() {
         // Older versions registered only for /g/; one site-wide worker replaces it.
         for (const old of await navigator.serviceWorker.getRegistrations())
           if (new URL(old.scope).pathname !== "/") await old.unregister();
-        await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        await navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" });
         await navigator.serviceWorker.ready;
         if (cancelled) return;
         if (navigator.serviceWorker.controller) warmCache();
