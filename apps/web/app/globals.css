@@ -433,7 +433,16 @@ small {
   flex-direction: column;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cfd6cd transparent;
   z-index: 30;
+}
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #cfd6cd;
+  border-radius: 999px;
 }
 .workspace {
   margin: 35px 0 28px;
@@ -507,6 +516,11 @@ small {
 .sidebar-bottom {
   margin-top: auto;
   padding-top: 30px;
+}
+@media (max-height: 820px) {
+  .sidebar-bottom {
+    margin-top: 24px;
+  }
 }
 .upgrade-card {
   background: #f5f5e9;
