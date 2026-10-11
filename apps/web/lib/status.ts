@@ -1,4 +1,5 @@
-import { authConfigured } from "@/auth";
+import { appleConfigured, authConfigured, googleConfigured } from "@/auth";
+import { emailLoginConfigured } from "./email-login";
 import { aiConfigured } from "@/lib/ai";
 import { dbConfigured, query } from "@/lib/db";
 
@@ -18,15 +19,20 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
     }
   }
   const auth = authConfigured() && dbOk;
+  const authProviders = [
+    googleConfigured() && "Google",
+    appleConfigured() && "Apple",
+    emailLoginConfigured() && "email code",
+  ].filter(Boolean).join(", ");
   const stripe = Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_") && process.env.STRIPE_WEBHOOK_SECRET);
   const mode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_") ? "live" : "test";
   return [
     { key: "database", label: "Database (Neon)", ok: dbOk, detail: dbDetail },
     {
       key: "accounts",
-      label: "Host accounts (Google login)",
+      label: "Host accounts",
       ok: auth,
-      detail: auth ? "Hosts can sign in with Google." : "Needs AUTH_SECRET, AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET and a working database.",
+      detail: auth ? `Hosts can sign in with ${authProviders}.` : "Needs AUTH_SECRET, at least one login provider, and a working database.",
     },
     {
       key: "ai",
