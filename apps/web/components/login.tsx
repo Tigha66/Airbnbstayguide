@@ -17,7 +17,7 @@ function GoogleMark() {
 function loginErrorMessage(tr: ReturnType<typeof makeTr>, error?: string) {
   switch (error) {
     case "email-code-send":
-      return tr("We couldn’t send the code. Check the email address and try again.");
+      return tr("We couldn’t send the code. Try Google while email sign-in is being fixed.");
     case "email-code-invalid":
     case "CredentialsSignin":
       return tr("That code did not work. Request a new code or try again.");
