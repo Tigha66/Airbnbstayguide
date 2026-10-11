@@ -22,3 +22,13 @@ test("desktop shows the full menu without a menu button", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Open menu" })).toBeHidden();
   await expect(page.locator("#site-menu").getByRole("link", { name: "Pricing" })).toBeVisible();
 });
+
+test("phone dashboard does not require browser zoom to fit", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard");
+  await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(page.getByRole("button", { name: "Close navigation" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});

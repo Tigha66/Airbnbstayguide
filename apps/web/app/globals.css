@@ -2389,6 +2389,9 @@ small {
   }
 }
 @media (max-width: 640px) {
+  .app-shell {
+    overflow-x: hidden;
+  }
   /* iPhone Safari zooms into any field with text under 16px and stays zoomed,
      cutting off the right edge of the page (e.g. the concierge send button). */
   input,
