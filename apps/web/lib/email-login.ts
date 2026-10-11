@@ -42,7 +42,10 @@ async function sendCode(email: string, code: string) {
       html: `<p>Your StayGuide sign-in code is <strong>${code}</strong>.</p><p>It expires in ${ttlMinutes} minutes.</p>`,
     }),
   });
-  if (!res.ok) throw new Error(`Could not send sign-in email: ${res.status}`);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Could not send sign-in email: ${res.status} ${detail.slice(0, 500)}`.trim());
+  }
 }
 
 export async function requestEmailLoginCode(emailInput: unknown) {
