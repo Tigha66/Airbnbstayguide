@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Apple, ArrowRight, Mail } from "lucide-react";
+import { Apple, ArrowRight } from "lucide-react";
 import { Logo } from "./ui";
 import { makeTr } from "@/lib/app-i18n";
 import { siteDir, type SiteLocale } from "@/lib/site-i18n";
@@ -16,11 +16,11 @@ function GoogleMark() {
 
 function loginErrorMessage(tr: ReturnType<typeof makeTr>, error?: string) {
   switch (error) {
-    case "email-code-send":
-      return tr("We couldn’t send the code. Try Google while email sign-in is being fixed.");
-    case "email-code-invalid":
+    case "registration":
+      return tr("Could not create this account. Check your details, or sign in if you already have an account. Existing Google accounts should continue with Google.");
+    case "password-invalid":
     case "CredentialsSignin":
-      return tr("That code did not work. Request a new code or try again.");
+      return tr("Email or password is incorrect, or too many attempts. Try again later or use your original sign-in method.");
     default:
       return tr("We couldn’t sign you in. Please try again.");
   }
@@ -30,27 +30,27 @@ export function Login({
   configured,
   googleConfigured,
   appleConfigured,
-  emailConfigured,
   error,
   email,
-  sent,
+  register = false,
+  created = false,
   googleAction,
   appleAction,
-  requestEmailCodeAction,
-  emailCodeAction,
+  registerAction,
+  passwordAction,
   locale = "en",
 }: {
   configured: boolean;
   googleConfigured: boolean;
   appleConfigured: boolean;
-  emailConfigured: boolean;
   error?: string;
   email?: string;
-  sent?: boolean;
+  register?: boolean;
+  created?: boolean;
   googleAction: () => Promise<void>;
   appleAction: () => Promise<void>;
-  requestEmailCodeAction: (formData: FormData) => Promise<void>;
-  emailCodeAction: (formData: FormData) => Promise<void>;
+  registerAction: (formData: FormData) => Promise<void>;
+  passwordAction: (formData: FormData) => Promise<void>;
   locale?: SiteLocale;
 }) {
   const tr = makeTr(locale);
@@ -79,8 +79,8 @@ export function Login({
       </div>
       <main className="login-form">
         <Logo />
-        <h1>{tr("Sign in to your account")}</h1>
-        <p>{tr("Welcome back. Choose a secure sign-in option to continue.")}</p>
+        <h1>{tr(register ? "Create account" : "Sign in to your account")}</h1>
+        <p>{tr(register ? "Create your StayGuide account." : "Welcome back. Choose a secure sign-in option to continue.")}</p>
         {configured ? (
           <div className="login-options">
             {googleConfigured && (
@@ -99,39 +99,25 @@ export function Login({
                 </button>
               </form>
             )}
-            {emailConfigured && (
-              <div className="email-login">
-                <form action={requestEmailCodeAction}>
-                  <label htmlFor="login-email">{tr("Email address")}</label>
-                  <div className="email-login-row">
-                    <input id="login-email" name="email" type="email" required autoComplete="email" defaultValue={email ?? ""} placeholder="you@example.com" />
-                    <button className="button secondary" type="submit">
-                      <Mail size={16} />
-                      {tr("Send code")}
-                    </button>
-                  </div>
-                </form>
-                {(sent || email) && (
-                  <form action={emailCodeAction}>
-                    <input name="email" type="hidden" value={email ?? ""} />
-                    <label htmlFor="login-code">{tr("Sign-in code")}</label>
-                    <div className="email-login-row">
-                      <input id="login-code" name="code" required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" placeholder="123456" />
-                      <button className="button" type="submit">
-                        {tr("Continue")}
-                      </button>
-                    </div>
-                  </form>
-                )}
-                {sent && <small>{tr("We sent a 6-digit code to your email. It expires in 10 minutes.")}</small>}
-              </div>
-            )}
+            <div className="email-login">
+              <form action={register ? registerAction : passwordAction} key={register ? "register" : "signin"}>
+                {register && <><label htmlFor="login-name">{tr("Name")}</label><input id="login-name" name="name" autoComplete="name" required maxLength={120} /></>}
+                <label htmlFor="login-email">{tr("Email address")}</label>
+                <input id="login-email" name="email" type="email" required maxLength={254} autoComplete="email" defaultValue={email ?? ""} placeholder="you@example.com" />
+                <label htmlFor="login-password">{tr("Password")}</label>
+                <input id="login-password" name="password" type="password" required minLength={12} maxLength={128} autoComplete={register ? "new-password" : "current-password"} aria-describedby={register ? "password-hint" : undefined} />
+                {register && <small id="password-hint">{tr("Use 12 to 128 characters. Keep your password safe; password reset is not available yet.")}</small>}
+                <button className="button" type="submit">{tr(register ? "Create account" : "Sign in")}</button>
+              </form>
+              <Link href={register ? "/login" : "/login?mode=register"}>{tr(register ? "Already have an account? Sign in" : "New to StayGuide? Create account")}</Link>
+            </div>
           </div>
         ) : (
           <div className="notice" role="status">
             {tr("Live accounts are not connected yet. Explore the demo below.")}
           </div>
         )}
+        {created && <div className="notice" role="status">{tr("Account created. Sign in with your email and password.")}</div>}
         {error && (
           <div className="notice" role="alert">
             {loginErrorMessage(tr, error)}
