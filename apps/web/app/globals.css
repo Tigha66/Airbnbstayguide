@@ -1224,6 +1224,19 @@ small {
 .pricing-card .button {
   width: 100%;
 }
+.pricing-contact {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.6;
+  margin-top: 14px;
+  text-align: center;
+}
+.pricing-contact a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .theme-dark {
   --bg: #172620;
   --card: #20312a;
