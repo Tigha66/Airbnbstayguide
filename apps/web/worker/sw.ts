@@ -35,11 +35,15 @@ const ignoreQuery: SerwistPlugin = {
 };
 
 // Safari refuses a saved page that was reached through a redirect ("Response served by service
-// worker has redirections") and shows its own "not connected" error. Never save redirected
-// responses, and rebuild any older saved copy that still carries the redirect flag.
+// worker has redirections") and shows its own "not connected" error. Rebuild public HTML
+// responses after reading their complete body, so interrupted streams cannot look saved.
 const safariSafe: SerwistPlugin = {
   cacheWillUpdate: async ({ response }) =>
-    response.status === 200 && !response.redirected ? response : null,
+    response.status === 200 &&
+    response.headers.get("content-type")?.includes("text/html") &&
+    (!response.url || (new URL(response.url).origin === self.location.origin && !isPrivate(new URL(response.url).pathname)))
+      ? new Response(await response.arrayBuffer(), { status: 200, headers: response.headers })
+      : null,
   cachedResponseWillBeUsed: async ({ cachedResponse }) =>
     cachedResponse?.redirected
       ? new Response(cachedResponse.body, {
@@ -98,17 +102,18 @@ async function offlineScreen(): Promise<Response> {
  * showed its own "not connected" error offline. Always answers: the live page, else the saved
  * page (or its saved translation), else the StayGuide offline screen. Never an error.
  */
-async function handleNavigation(request: Request, url: URL): Promise<Response> {
-  const network = fetch(request).then(async (response) => {
+async function handleNavigation(request: Request, url: URL, event: FetchEvent): Promise<Response> {
+  const network = fetch(request);
+  const save = network.then(async (response) => {
     // Save real pages only: not redirects (Safari rejects them later) and not error pages.
     if (response.status === 200 && response.type === "basic" && !response.redirected) {
       const copy = response.clone();
       const cacheName = url.pathname.startsWith("/g/") ? GUIDES_CACHE : SITE_CACHE;
-      caches.open(cacheName).then((cache) => cache.put(pageKey(url), copy)).catch(() => {});
+      await caches.open(cacheName).then((cache) => cache.put(pageKey(url), copy)).catch(() => {});
     }
-    return response;
   });
   network.catch(() => {}); // handled below; avoids an "unhandled rejection" when the cache wins
+  event.waitUntil(save.catch(() => {}));
   // Slow connection: after 4 seconds use the saved page if there is one.
   const slow = new Promise<Response | undefined>((resolve) =>
     setTimeout(() => savedPage(url).then(resolve, () => resolve(undefined)), 4000),
@@ -137,7 +142,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(request).catch(() => offlineScreen()));
     return;
   }
-  event.respondWith(handleNavigation(request, url));
+  event.respondWith(handleNavigation(request, url, event));
 });
 
 // Earlier versions turned navigation preload on; it stays on until disabled.

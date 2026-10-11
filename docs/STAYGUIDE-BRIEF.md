@@ -40,13 +40,13 @@ Then ask me which of these I want help with:
 ### Links
 | What | URL |
 |---|---|
-| Website / landing page | https://stayguide-gamma.vercel.app |
-| Live AI demo guide | https://stayguide-gamma.vercel.app/g/sea-breeze-loft |
-| Sample guides | https://stayguide-gamma.vercel.app/g/casa-serena · https://stayguide-gamma.vercel.app/g/olive-grove |
-| Demo page | https://stayguide-gamma.vercel.app/demo |
-| Host login | https://stayguide-gamma.vercel.app/login |
-| Pricing | https://stayguide-gamma.vercel.app/pricing |
-| Service status | https://stayguide-gamma.vercel.app/status |
+| Website / landing page | https://www.getstayguide.com |
+| Live AI demo guide | https://www.getstayguide.com/g/sea-breeze-loft |
+| Sample guides | https://www.getstayguide.com/g/casa-serena · https://www.getstayguide.com/g/olive-grove |
+| Demo page | https://www.getstayguide.com/demo |
+| Host login | https://www.getstayguide.com/login |
+| Pricing | https://www.getstayguide.com/pricing |
+| Service status | https://www.getstayguide.com/status |
 
 ---
 
@@ -317,7 +317,7 @@ LOCAL TIPS: Best pastel de nata: Manteigaria (5 min walk). Sunset: Miradouro de 
 
 ### Before outreach (launch checklist)
 1. Google Cloud: complete **Branding**, then **Publish app** (so any host can sign in).
-2. Own **domain** (for example getstayguide.com), connected in Vercel, plus the new Google redirect URI.
+2. Keep **www.getstayguide.com** connected in Vercel, plus the matching Google redirect URI.
 3. **Business email** on that domain, warmed up for 2 weeks before sending volume.
 4. Two polished **demo guides** (apartment + villa/riad; English + French).
 5. A **test payment** on a second account (subscribe → check plan → cancel → refund).

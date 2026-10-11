@@ -112,6 +112,7 @@ export function MarketingFooter({ locale = "en" }: { locale?: SiteLocale }) {
         <Link href="/blog">{t.journal}</Link>
         <Link href="/legal/privacy">{t.privacy}</Link>
         <Link href="/legal/terms">{t.terms}</Link>
+        <a href="mailto:hello@getstayguide.com">{t.contact}</a>
       </nav>
     </footer>
   );
