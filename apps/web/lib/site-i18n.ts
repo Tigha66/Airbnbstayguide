@@ -27,7 +27,7 @@ const en = {
     pricingTitle: "Simple per-property pricing",
   },
   nav: { howItWorks: "How it works", pricing: "Pricing", demo: "Guest demo", login: "Log in", explore: "Explore StayGuide", language: "Language", openMenu: "Open menu", closeMenu: "Close menu" },
-  footer: { tagline: "Made for thoughtful hosts.", journal: "Journal", privacy: "Privacy", terms: "Terms" },
+  footer: { tagline: "Made for thoughtful hosts.", journal: "Journal", privacy: "Privacy", terms: "Terms", contact: "Contact" },
   hero: {
     eyebrow: "A WARMER WELCOME. A LIGHTER WORKLOAD.",
     title1: "Less managing.",
@@ -141,7 +141,7 @@ const fr: SiteText = {
     pricingTitle: "Des tarifs simples, par logement",
   },
   nav: { howItWorks: "Comment ça marche", pricing: "Tarifs", demo: "Démo voyageur", login: "Connexion", explore: "Découvrir StayGuide", language: "Langue", openMenu: "Ouvrir le menu", closeMenu: "Fermer le menu" },
-  footer: { tagline: "Conçu pour les hôtes attentionnés.", journal: "Journal", privacy: "Confidentialité", terms: "Conditions" },
+  footer: { tagline: "Conçu pour les hôtes attentionnés.", journal: "Journal", privacy: "Confidentialité", terms: "Conditions", contact: "Contact" },
   hero: {
     eyebrow: "UN ACCUEIL PLUS CHALEUREUX. MOINS DE TRAVAIL.",
     title1: "Moins de gestion.",
@@ -254,7 +254,7 @@ const es: SiteText = {
     pricingTitle: "Precios sencillos por alojamiento",
   },
   nav: { howItWorks: "Cómo funciona", pricing: "Precios", demo: "Demo para huéspedes", login: "Iniciar sesión", explore: "Descubrir StayGuide", language: "Idioma", openMenu: "Abrir menú", closeMenu: "Cerrar menú" },
-  footer: { tagline: "Hecho para anfitriones atentos.", journal: "Blog", privacy: "Privacidad", terms: "Términos" },
+  footer: { tagline: "Hecho para anfitriones atentos.", journal: "Blog", privacy: "Privacidad", terms: "Términos", contact: "Contacto" },
   hero: {
     eyebrow: "UNA BIENVENIDA MÁS CÁLIDA. MENOS TRABAJO.",
     title1: "Menos gestión.",
@@ -367,7 +367,7 @@ const de: SiteText = {
     pricingTitle: "Einfache Preise pro Unterkunft",
   },
   nav: { howItWorks: "So funktioniert’s", pricing: "Preise", demo: "Gäste-Demo", login: "Anmelden", explore: "StayGuide entdecken", language: "Sprache", openMenu: "Menü öffnen", closeMenu: "Menü schließen" },
-  footer: { tagline: "Für aufmerksame Gastgeber gemacht.", journal: "Blog", privacy: "Datenschutz", terms: "AGB" },
+  footer: { tagline: "Für aufmerksame Gastgeber gemacht.", journal: "Blog", privacy: "Datenschutz", terms: "AGB", contact: "Kontakt" },
   hero: {
     eyebrow: "EIN HERZLICHERER EMPFANG. WENIGER ARBEIT.",
     title1: "Weniger verwalten.",
@@ -480,7 +480,7 @@ const ar: SiteText = {
     pricingTitle: "أسعار بسيطة لكل عقار",
   },
   nav: { howItWorks: "كيف يعمل", pricing: "الأسعار", demo: "تجربة الضيف", login: "تسجيل الدخول", explore: "اكتشف StayGuide", language: "اللغة", openMenu: "فتح القائمة", closeMenu: "إغلاق القائمة" },
-  footer: { tagline: "صُمّم للمضيفين المهتمين بالتفاصيل.", journal: "المدونة", privacy: "الخصوصية", terms: "الشروط" },
+  footer: { tagline: "صُمّم للمضيفين المهتمين بالتفاصيل.", journal: "المدونة", privacy: "الخصوصية", terms: "الشروط", contact: "تواصل معنا" },
   hero: {
     eyebrow: "ترحيب أدفأ. عمل أقل.",
     title1: "إدارة أقل.",

@@ -52,9 +52,14 @@ export default async function Page({
             <h2>Before launch</h2>
             <p>
               The production privacy policy must name the data controller,
-              describe each processor and international transfer, establish
-              retention and deletion procedures, and provide a verified contact
-              for privacy requests.
+              describe each processor and international transfer, and
+              establish retention and deletion procedures. For privacy
+              requests (access, correction, deletion) in the meantime,
+              contact{" "}
+              <a href="mailto:hello@getstayguide.com">
+                hello@getstayguide.com
+              </a>
+              .
             </p>
           </>
         ) : (
@@ -85,6 +90,14 @@ export default async function Page({
               This preview may change and is not a substitute for direct
               communication with a property host. Contact the relevant local
               emergency service in an emergency.
+            </p>
+            <h2>Contact</h2>
+            <p>
+              For legal questions about these terms, reach us at{" "}
+              <a href="mailto:hello@getstayguide.com">
+                hello@getstayguide.com
+              </a>
+              .
             </p>
           </>
         )}
