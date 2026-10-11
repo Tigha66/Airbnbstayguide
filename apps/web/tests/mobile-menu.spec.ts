@@ -32,3 +32,17 @@ test("phone dashboard does not require browser zoom to fit", async ({ page }) =>
   await expect(page.getByRole("button", { name: "Close navigation" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
+
+test("short desktop dashboard can scroll the full sidebar", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 620 });
+  await page.goto("/dashboard/settings");
+  const sidebar = page.locator(".sidebar");
+  await expect(sidebar).toBeVisible();
+  await page.evaluate(() => {
+    const el = document.querySelector(".sidebar");
+    if (el) el.scrollTop = el.scrollHeight;
+  });
+  const userBox = await page.locator(".sidebar-user").boundingBox();
+  expect(userBox).not.toBeNull();
+  expect(userBox!.y + userBox!.height).toBeLessThanOrEqual(620);
+});

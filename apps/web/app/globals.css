@@ -431,6 +431,8 @@ small {
   padding: 32px 22px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   z-index: 30;
 }
 .workspace {
