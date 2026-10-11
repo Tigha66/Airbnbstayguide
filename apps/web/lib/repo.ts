@@ -29,19 +29,19 @@ export const propertyDataSchema = z.object({
   extras: z.array(extraSchema).max(40),
 });
 
-export type User = { id: string; email: string; name: string | null; plan: Plan };
+export type User = { id: string; email: string; name: string | null; plan: Plan; emailVerified: boolean };
 
 export async function upsertUser(email: string, name?: string | null, image?: string | null) {
   const [user] = await query<User>(
     `INSERT INTO users (email, name, image) VALUES ($1, $2, $3)
      ON CONFLICT (email) DO UPDATE SET name = COALESCE(EXCLUDED.name, users.name), image = COALESCE(EXCLUDED.image, users.image)
-     RETURNING id, email, name, plan`,
+     RETURNING id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified"`,
     [email.toLowerCase(), name ?? null, image ?? null],
   );
   return user;
 }
 export async function getUser(id: string) {
-  const [user] = await query<User>(`SELECT id, email, name, plan FROM users WHERE id = $1`, [id]);
+  const [user] = await query<User>(`SELECT id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified" FROM users WHERE id = $1`, [id]);
   return user ?? null;
 }
 export async function deleteUser(id: string) {

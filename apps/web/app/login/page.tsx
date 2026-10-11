@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { Login } from "@/components/login";
 import { appleConfigured, auth, authConfigured, googleConfigured, signIn } from "@/auth";
 import { requestLocale } from "@/lib/request-locale";
 import { makeTr } from "@/lib/app-i18n";
 import { registerPasswordUser } from "@/lib/password-login";
+import { originFromHeaders, sendVerificationEmail } from "@/lib/account-email";
 
 function loginRedirect(email: FormDataEntryValue | null, error: string, register = false): never {
   const value = String(email ?? "").trim().toLowerCase();
@@ -44,8 +46,14 @@ export default async function Page({
   async function register(formData: FormData) {
     "use server";
     const emailInput = formData.get("email");
+    let user: Awaited<ReturnType<typeof registerPasswordUser>>;
     try {
-      await registerPasswordUser({ email: emailInput, name: formData.get("name"), password: formData.get("password") });
+      user = await registerPasswordUser({ email: emailInput, name: formData.get("name"), password: formData.get("password") });
+      try {
+        await sendVerificationEmail({ userId: user.id, email: user.email, origin: originFromHeaders(await headers()) });
+      } catch (error) {
+        console.error("[auth] verification email failed", error);
+      }
     } catch {
       loginRedirect(emailInput, "registration", true);
     }

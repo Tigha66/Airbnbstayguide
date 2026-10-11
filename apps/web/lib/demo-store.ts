@@ -79,7 +79,7 @@ export function saveProperty(property: Property) {
 }
 
 /* ───────── Live mode: signed-in hosts sync with the Neon-backed API ───────── */
-export type LiveUser = { id: string; email: string; name: string | null; image: string | null; plan: string };
+export type LiveUser = { id: string; email: string; name: string | null; image: string | null; plan: string; emailVerified?: boolean };
 export type SyncState = "idle" | "saving" | "saved" | "error";
 type LiveState = {
   checked: boolean;

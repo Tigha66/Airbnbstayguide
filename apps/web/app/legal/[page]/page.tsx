@@ -14,33 +14,40 @@ export default async function Page({
     <div className="marketing">
       <MarketingNav />
       <article className="article">
-        <div className="eyebrow">PREVIEW NOTICE · OCTOBER 2026</div>
+        <div className="eyebrow">STAYGUIDE · OCTOBER 2026</div>
         <h1>
           {page === "privacy"
             ? "Your privacy matters."
             : "A few clear expectations."}
         </h1>
-        <div className="notice">
-          Draft notice for the StayGuide demonstration. Operator identity, legal
-          contact, jurisdictions, retention schedule, and final terms must be
-          supplied before accepting real customers.
-        </div>
         {page === "privacy" ? (
           <>
-            <h2>Information in this preview</h2>
+            <h2>Who operates StayGuide</h2>
             <p>
-              The demo workspace stores guide edits and preferences in your
-              browser’s local storage. Do not enter real guest personal
-              information, private door codes, or confidential documents. Clear
-              site data in your browser to remove your local demo information.
+              StayGuide is available at{" "}
+              <a href="https://www.getstayguide.com">www.getstayguide.com</a>.
+              For privacy, support, billing, or legal questions, contact{" "}
+              <a href="mailto:hello@getstayguide.com">
+                hello@getstayguide.com
+              </a>
+              .
+            </p>
+            <h2>Information we process</h2>
+            <p>
+              Hosts may provide account details, workspace preferences, property
+              descriptions, guide content, photos, guest recommendations, extras
+              and billing information. Guests may use public guide links, ask
+              concierge questions, request paid extras, and provide contact
+              details when they choose to contact a host or request a service.
             </p>
             <h2>Hosting and external services</h2>
             <p>
-              Vercel hosts this site and may process request metadata. Vercel
-              Analytics is included for aggregated website usage measurement.
-              Property photographs load from Unsplash. Opening map links takes
-              you to Google Maps. Live Supabase, Stripe, email, and AI
-              processing are not enabled without configuration.
+              StayGuide uses trusted service providers to run the product:
+              Vercel for hosting and analytics, Neon Postgres for application
+              data, Google and Apple for optional sign-in, Resend for account
+              email when configured, Stripe for subscriptions, paid extras and
+              payouts, and AI providers to organize guide content and answer
+              guest questions from the host’s guide.
             </p>
             <h2>Offline guide storage</h2>
             <p>
@@ -49,13 +56,14 @@ export default async function Page({
               the installed guide and clear browser site data to remove cached
               content.
             </p>
-            <h2>Before launch</h2>
+            <h2>Retention and control</h2>
             <p>
-              The production privacy policy must name the data controller,
-              describe each processor and international transfer, and
-              establish retention and deletion procedures. For privacy
-              requests (access, correction, deletion) in the meantime,
-              contact{" "}
+              Hosts can update or delete their guide content from the
+              dashboard. Account deletion removes the host account and related
+              properties, chats and requests from the application database,
+              subject to records that must be retained for security, billing,
+              tax, fraud prevention or legal compliance. For privacy requests
+              including access, correction or deletion, contact{" "}
               <a href="mailto:hello@getstayguide.com">
                 hello@getstayguide.com
               </a>
@@ -64,12 +72,12 @@ export default async function Page({
           </>
         ) : (
           <>
-            <h2>Demonstration service</h2>
+            <h2>The service</h2>
             <p>
-              StayGuide currently provides a product preview. Sample metrics,
-              messages, and extras are fictional. Demo checkout does not charge
-              a card or reserve a service. Do not rely on the sample concierge
-              for emergency assistance or real property access.
+              StayGuide helps hosts create digital guest guides, share them
+              with guests, answer guide-based questions with AI assistance, and
+              offer optional paid extras. Guests do not need a StayGuide account
+              to open a public guide link.
             </p>
             <h2>Your content</h2>
             <p>
@@ -78,18 +86,22 @@ export default async function Page({
               responsible for checking the accuracy of their guides. AI
               suggestions require human review before publication.
             </p>
-            <h2>Planned billing</h2>
+            <h2>Billing, subscriptions and extras</h2>
             <p>
-              Displayed prices describe planned subscription tiers. Final
-              billing terms, cancellation rights, applicable taxes, refund
-              policies, and extras fulfillment responsibilities must be
-              established before paid subscriptions are activated.
+              Paid plans and extras are processed by Stripe. Subscription
+              prices, included usage and plan limits are shown on the pricing
+              page and in the dashboard before checkout. Hosts are responsible
+              for fulfilling extras they publish, handling guest communication,
+              and complying with taxes, local regulations and refund
+              obligations that apply to their properties and services.
             </p>
             <h2>Service limitations</h2>
             <p>
-              This preview may change and is not a substitute for direct
-              communication with a property host. Contact the relevant local
-              emergency service in an emergency.
+              AI answers are generated from the guide content and may be
+              incomplete or unavailable. Hosts must review guide information,
+              especially access details, prices, phone numbers and emergency
+              instructions. StayGuide is not a substitute for direct host
+              communication or emergency services.
             </p>
             <h2>Contact</h2>
             <p>
