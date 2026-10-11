@@ -13,6 +13,19 @@ function GoogleMark() {
     </svg>
   );
 }
+
+function loginErrorMessage(tr: ReturnType<typeof makeTr>, error?: string) {
+  switch (error) {
+    case "email-code-send":
+      return tr("We couldn’t send the code. Check the email address and try again.");
+    case "email-code-invalid":
+    case "CredentialsSignin":
+      return tr("That code did not work. Request a new code or try again.");
+    default:
+      return tr("We couldn’t sign you in. Please try again.");
+  }
+}
+
 export function Login({
   configured,
   googleConfigured,
@@ -121,7 +134,7 @@ export function Login({
         )}
         {error && (
           <div className="notice" role="alert">
-            {tr("We couldn’t sign you in. Please try again.")}
+            {loginErrorMessage(tr, error)}
           </div>
         )}
         <div

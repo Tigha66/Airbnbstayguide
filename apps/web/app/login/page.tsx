@@ -4,6 +4,22 @@ import { appleConfigured, auth, authConfigured, googleConfigured, signIn } from 
 import { requestLocale } from "@/lib/request-locale";
 import { makeTr } from "@/lib/app-i18n";
 import { emailLoginConfigured, requestEmailLoginCode } from "@/lib/email-login";
+
+function loginRedirect(email: FormDataEntryValue | null, error: string): never {
+  const value = String(email ?? "").trim().toLowerCase();
+  const suffix = value ? `&email=${encodeURIComponent(value)}` : "";
+  redirect(`/login?error=${encodeURIComponent(error)}${suffix}`);
+}
+
+function isNextRedirect(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "digest" in error &&
+    String((error as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT")
+  );
+}
+
 export async function generateMetadata() {
   return { title: makeTr(await requestLocale())("Welcome back") };
 }
@@ -27,16 +43,30 @@ export default async function Page({
   }
   async function requestCode(formData: FormData) {
     "use server";
-    const email = await requestEmailLoginCode(formData.get("email"));
+    const emailInput = formData.get("email");
+    let email: string;
+    try {
+      email = await requestEmailLoginCode(emailInput);
+    } catch (error) {
+      console.error("[login] email code request failed", error);
+      loginRedirect(emailInput, "email-code-send");
+    }
     redirect(`/login?email=${encodeURIComponent(email)}&sent=1`);
   }
   async function emailCode(formData: FormData) {
     "use server";
-    await signIn("email-code", {
-      email: String(formData.get("email") ?? ""),
-      code: String(formData.get("code") ?? ""),
-      redirectTo: "/dashboard",
-    });
+    const email = formData.get("email");
+    try {
+      await signIn("email-code", {
+        email: String(email ?? ""),
+        code: String(formData.get("code") ?? ""),
+        redirectTo: "/dashboard",
+      });
+    } catch (error) {
+      if (isNextRedirect(error)) throw error;
+      console.error("[login] email code sign-in failed", error);
+      loginRedirect(email, "email-code-invalid");
+    }
   }
   return (
     <Login
