@@ -199,6 +199,10 @@ export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
       <p className="muted" style={{ fontSize: 11, textAlign: "center", marginTop: 22 }}>
         {fillSite(t.note, { code: CURRENCY.toUpperCase(), symbol: CURRENCY_SYMBOL })}
       </p>
+      <p className="muted" style={{ fontSize: 13, textAlign: "center", marginTop: 8 }}>
+        {t.questions.split("hello@getstayguide.com")[0]}
+        <a href="mailto:hello@getstayguide.com">hello@getstayguide.com</a>
+      </p>
     </>
   );
 }

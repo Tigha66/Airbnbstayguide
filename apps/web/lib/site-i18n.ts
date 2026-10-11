@@ -100,6 +100,7 @@ const en = {
     priority: "Priority support",
     cta: "Explore the demo",
     note: "Prices in {code} ({symbol}), per property. Secure payment by Stripe. Cancel any time.",
+    questions: "Questions before you start? Email us at hello@getstayguide.com",
   },
   hotel: {
     name: "Hotel & Multi-Unit",
@@ -214,6 +215,7 @@ const fr: SiteText = {
     priority: "Support prioritaire",
     cta: "Explorer la démo",
     note: "Prix en {code} ({symbol}), par logement. Paiement sécurisé par Stripe. Résiliable à tout moment.",
+    questions: "Des questions avant de commencer ? Écrivez-nous à hello@getstayguide.com",
   },
   hotel: {
     name: "Hôtels & multi-logements",
@@ -327,6 +329,7 @@ const es: SiteText = {
     priority: "Soporte prioritario",
     cta: "Explorar la demo",
     note: "Precios en {code} ({symbol}), por alojamiento. Pago seguro con Stripe. Cancela cuando quieras.",
+    questions: "¿Dudas antes de empezar? Escríbenos a hello@getstayguide.com",
   },
   hotel: {
     name: "Hoteles y multiunidad",
@@ -440,6 +443,7 @@ const de: SiteText = {
     priority: "Bevorzugter Support",
     cta: "Demo entdecken",
     note: "Preise in {code} ({symbol}) pro Unterkunft. Sichere Zahlung über Stripe. Jederzeit kündbar.",
+    questions: "Fragen vor dem Start? Schreiben Sie uns an hello@getstayguide.com",
   },
   hotel: {
     name: "Hotels & Mehrfachobjekte",
@@ -553,6 +557,7 @@ const ar: SiteText = {
     priority: "دعم ذو أولوية",
     cta: "استكشف النسخة التجريبية",
     note: "الأسعار بـ {code} ({symbol}) لكل عقار. دفع آمن عبر Stripe. يمكنك الإلغاء في أي وقت.",
+    questions: "أسئلة قبل البدء؟ راسلنا على hello@getstayguide.com",
   },
   hotel: {
     name: "الفنادق والوحدات المتعددة",
