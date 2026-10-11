@@ -20,7 +20,7 @@ function loginErrorMessage(tr: ReturnType<typeof makeTr>, error?: string) {
       return tr("Could not create this account. Check your details, or sign in if you already have an account. Existing Google accounts should continue with Google.");
     case "password-invalid":
     case "CredentialsSignin":
-      return tr("Email or password is incorrect, or too many attempts. Try again later or use your original sign-in method.");
+      return tr("That email and password did not sign in. If this is your first time, create an account first, or continue with Google.");
     default:
       return tr("We couldn’t sign you in. Please try again.");
   }
@@ -99,6 +99,22 @@ export function Login({
                 </button>
               </form>
             )}
+            <div className="login-mode-switch" aria-label={tr("Choose account action")}>
+              <Link
+                className={!register ? "active" : ""}
+                aria-current={!register ? "page" : undefined}
+                href="/login"
+              >
+                {tr("Sign in")}
+              </Link>
+              <Link
+                className={register ? "active" : ""}
+                aria-current={register ? "page" : undefined}
+                href="/login?mode=register"
+              >
+                {tr("Create account")}
+              </Link>
+            </div>
             <div className="email-login">
               <form action={register ? registerAction : passwordAction} key={register ? "register" : "signin"}>
                 {register && <><label htmlFor="login-name">{tr("Name")}</label><input id="login-name" name="name" autoComplete="name" required maxLength={120} /></>}
@@ -109,7 +125,11 @@ export function Login({
                 {register && <small id="password-hint">{tr("Use 12 to 128 characters. Keep your password safe; password reset is not available yet.")}</small>}
                 <button className="button" type="submit">{tr(register ? "Create account" : "Sign in")}</button>
               </form>
-              <Link href={register ? "/login" : "/login?mode=register"}>{tr(register ? "Already have an account? Sign in" : "New to StayGuide? Create account")}</Link>
+              <p className="login-mode-help">
+                {register
+                  ? tr("Already registered? Use Sign in above.")
+                  : tr("First time using email and password? Use Create account above.")}
+              </p>
             </div>
           </div>
         ) : (

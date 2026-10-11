@@ -1540,6 +1540,32 @@ small {
   display: grid;
   gap: 14px;
 }
+.login-mode-switch {
+  background: #f0f3f0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 4px;
+}
+.login-mode-switch a {
+  align-items: center;
+  border-radius: 9px;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 12px;
+  text-align: center;
+}
+.login-mode-switch a.active {
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+}
 .email-login {
   border-top: 1px solid var(--line);
   display: grid;
@@ -1573,6 +1599,12 @@ small {
 }
 .email-login .button {
   white-space: nowrap;
+}
+.login-mode-help {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
 }
 .login-form .notice {
   font-size: 13px;
