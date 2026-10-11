@@ -25,7 +25,9 @@ import {
   Home,
   Leaf,
   Lightbulb,
+  LifeBuoy,
   MapPin,
+  Mail,
   Menu,
   MessageCircle,
   MoreHorizontal,
@@ -243,6 +245,38 @@ export function Dashboard({ view = "" }: { view?: string }) {
       foot: "4.9 / 5",
       detail: tr("average guest rating"),
       icon: HeartIcon,
+    },
+  ];
+  const onboarding = [
+    {
+      label: tr("Verify your email"),
+      done: !live || Boolean(liveState.user?.emailVerified),
+      href: "/dashboard/settings",
+      detail: live ? tr("Keeps account recovery and support safe.") : tr("Demo mode uses sample account details."),
+    },
+    {
+      label: tr("Create your first property"),
+      done: state.properties.length > 0,
+      href: "/dashboard/properties",
+      detail: tr("Add the address, arrival notes, Wi-Fi, rules and checkout."),
+    },
+    {
+      label: tr("Publish and preview the guest guide"),
+      done: state.properties.some((p) => p.status === "published"),
+      href: property ? `/g/${property.slug}` : "/dashboard/properties",
+      detail: tr("Open the same link your guests will receive."),
+    },
+    {
+      label: tr("Add one extra or upsell"),
+      done: state.properties.some((p) => p.extras.length > 0),
+      href: "/dashboard/extras",
+      detail: tr("Late checkout, breakfast baskets, transfers and paid services."),
+    },
+    {
+      label: tr("Choose a plan and set up payouts"),
+      done: live && liveState.user?.plan !== "free",
+      href: "/dashboard/billing",
+      detail: tr("Upgrade when you need more properties or AI answers."),
     },
   ];
   const propertyCards = state.properties.filter(
@@ -570,6 +604,36 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   </div>
                 </div>
               </section>
+              <section className="card panel onboarding-card">
+                <div className="panel-title">
+                  <div>
+                    <div className="eyebrow">{tr("GET READY TO HOST")}</div>
+                    <h2>{tr("Launch checklist")}</h2>
+                  </div>
+                  <Link className="text-link" href="/dashboard/properties">
+                    {tr("Keep building")}
+                    <ArrowRight size={13} />
+                  </Link>
+                </div>
+                <div className="onboarding-list">
+                  {onboarding.map((item) => (
+                    <Link className="onboarding-item" href={item.href} key={item.label}>
+                      <span className={item.done ? "check-dot done" : "check-dot"}>
+                        <Check size={13} />
+                      </span>
+                      <span>
+                        <strong>{item.label}</strong>
+                        <small>{item.detail}</small>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+              {live && liveState.user && !liveState.user.emailVerified && (
+                <div className="notice" role="status" style={{ marginBottom: 22 }}>
+                  {tr("Please verify your email address. Check your inbox for the StayGuide verification link, or contact support if it did not arrive.")}
+                </div>
+              )}
               <div className="stats-grid">
                 {stats.map(({ label, value, foot, detail, icon: Icon }) => (
                   <div className="card stat-card" key={label}>
@@ -1513,6 +1577,20 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       <ArrowRight size={14} />
                     </Link>
                   )}
+                </div>
+                <div className="card panel stack">
+                  <h3>{tr("Support")}</h3>
+                  <p className="muted" style={{ fontSize: 13 }}>
+                    {tr("Need help setting up a property, billing, payouts, or a guest guide? Email us and we’ll help you get unstuck.")}
+                  </p>
+                  <a className="button secondary" href="mailto:hello@getstayguide.com?subject=StayGuide%20support">
+                    <Mail size={15} />
+                    hello@getstayguide.com
+                  </a>
+                  <div className="row" style={{ alignItems: "flex-start" }}>
+                    <LifeBuoy size={16} />
+                    <small>{tr("Support replies are handled by the StayGuide team. Do not send door codes or guest payment details by email.")}</small>
+                  </div>
                 </div>
               </div>
             </>

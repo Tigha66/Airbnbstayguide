@@ -9,6 +9,19 @@ CREATE TABLE IF NOT EXISTS users (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
+UPDATE users SET email_verified_at = COALESCE(email_verified_at, created_at) WHERE password_hash IS NOT NULL;
+CREATE TABLE IF NOT EXISTS account_email_tokens (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  purpose text NOT NULL CHECK (purpose IN ('verify_email','reset_password')),
+  user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  email text NOT NULL,
+  token_hash text NOT NULL UNIQUE,
+  expires_at timestamptz NOT NULL,
+  used_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS account_email_tokens_email_idx ON account_email_tokens(email, purpose, expires_at);
 CREATE TABLE IF NOT EXISTS properties (
   id text PRIMARY KEY,
   owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,

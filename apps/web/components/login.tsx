@@ -122,7 +122,7 @@ export function Login({
                 <input id="login-email" name="email" type="email" required maxLength={254} autoComplete="email" defaultValue={email ?? ""} placeholder="you@example.com" />
                 <label htmlFor="login-password">{tr("Password")}</label>
                 <input id="login-password" name="password" type="password" required minLength={12} maxLength={128} autoComplete={register ? "new-password" : "current-password"} aria-describedby={register ? "password-hint" : undefined} />
-                {register && <small id="password-hint">{tr("Use 12 to 128 characters. Keep your password safe; password reset is not available yet.")}</small>}
+                {register && <small id="password-hint">{tr("Use 12 to 128 characters. We’ll email you a verification link after signup.")}</small>}
                 <button className="button" type="submit">{tr(register ? "Create account" : "Sign in")}</button>
               </form>
               <p className="login-mode-help">
@@ -130,6 +130,7 @@ export function Login({
                   ? tr("Already registered? Use Sign in above.")
                   : tr("First time using email and password? Use Create account above.")}
               </p>
+              {!register && <Link className="text-link" href="/forgot-password">{tr("Forgot password?")}</Link>}
             </div>
           </div>
         ) : (
@@ -137,7 +138,7 @@ export function Login({
             {tr("Live accounts are not connected yet. Explore the demo below.")}
           </div>
         )}
-        {created && <div className="notice" role="status">{tr("Account created. Sign in with your email and password.")}</div>}
+        {created && <div className="notice" role="status">{tr("Account created. Check your email to verify your address, then sign in with your password.")}</div>}
         {error && (
           <div className="notice" role="alert">
             {loginErrorMessage(tr, error)}

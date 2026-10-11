@@ -24,12 +24,13 @@ export async function registerPasswordUser(input: unknown) {
   const salt = randomBytes(32).toString("hex");
   const hash = `${salt}:${(await passwordHash(data.password, salt)).toString("hex")}`;
   // Never attach a password to an existing account based on an unverified email.
-  const rows = await query(
+  const rows = await query<{ id: string; email: string; name: string }>(
     `INSERT INTO users (email, name, password_hash) VALUES ($1, $2, $3)
-     ON CONFLICT (email) DO NOTHING RETURNING id`,
+     ON CONFLICT (email) DO NOTHING RETURNING id, email, name`,
     [data.email, data.name, hash],
   );
   if (!rows.length) throw new Error("Account cannot be created");
+  return rows[0];
 }
 
 export async function authenticatePassword(input: unknown) {
@@ -38,12 +39,12 @@ export async function authenticatePassword(input: unknown) {
   const { email, password } = parsed.data;
   if (isAdminEmail(email)) return null;
   if (!await consumeRateLimit(`password:${email}`, 10, 900)) return null;
-  const [user] = await query<{ id: string; email: string; name: string; password_hash: string | null }>(
-    `SELECT id, email, name, password_hash FROM users WHERE email = $1`, [email],
+  const [user] = await query<{ id: string; email: string; name: string; password_hash: string | null; email_verified_at: string | null }>(
+    `SELECT id, email, name, password_hash, email_verified_at FROM users WHERE email = $1`, [email],
   );
   const [salt, stored] = (user?.password_hash ?? `${"0".repeat(64)}:${"0".repeat(128)}`).split(":");
   const actual = await passwordHash(password, salt);
   const expected = Buffer.from(stored, "hex");
   if (!user?.password_hash || actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
-  return { id: user.id, email: user.email, name: user.name };
+  return { id: user.id, email: user.email, name: user.name, emailVerified: Boolean(user.email_verified_at) };
 }
