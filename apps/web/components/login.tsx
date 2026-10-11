@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { Apple, ArrowRight, Mail } from "lucide-react";
 import { Logo } from "./ui";
 import { makeTr } from "@/lib/app-i18n";
 import { siteDir, type SiteLocale } from "@/lib/site-i18n";
@@ -15,13 +15,29 @@ function GoogleMark() {
 }
 export function Login({
   configured,
+  googleConfigured,
+  appleConfigured,
+  emailConfigured,
   error,
+  email,
+  sent,
   googleAction,
+  appleAction,
+  requestEmailCodeAction,
+  emailCodeAction,
   locale = "en",
 }: {
   configured: boolean;
+  googleConfigured: boolean;
+  appleConfigured: boolean;
+  emailConfigured: boolean;
   error?: string;
+  email?: string;
+  sent?: boolean;
   googleAction: () => Promise<void>;
+  appleAction: () => Promise<void>;
+  requestEmailCodeAction: (formData: FormData) => Promise<void>;
+  emailCodeAction: (formData: FormData) => Promise<void>;
   locale?: SiteLocale;
 }) {
   const tr = makeTr(locale);
@@ -51,14 +67,53 @@ export function Login({
       <main className="login-form">
         <Logo />
         <h1>{tr("Sign in to your account")}</h1>
-        <p>{tr("Welcome back. Sign in with your Google account to continue.")}</p>
+        <p>{tr("Welcome back. Choose a secure sign-in option to continue.")}</p>
         {configured ? (
-          <form action={googleAction}>
-            <button className="button" type="submit">
-              <GoogleMark />
-              {tr("Continue with Google")}
-            </button>
-          </form>
+          <div className="login-options">
+            {googleConfigured && (
+              <form action={googleAction}>
+                <button className="button" type="submit">
+                  <GoogleMark />
+                  {tr("Continue with Google")}
+                </button>
+              </form>
+            )}
+            {appleConfigured && (
+              <form action={appleAction}>
+                <button className="button secondary" type="submit">
+                  <Apple size={16} />
+                  {tr("Continue with Apple")}
+                </button>
+              </form>
+            )}
+            {emailConfigured && (
+              <div className="email-login">
+                <form action={requestEmailCodeAction}>
+                  <label htmlFor="login-email">{tr("Email address")}</label>
+                  <div className="email-login-row">
+                    <input id="login-email" name="email" type="email" required autoComplete="email" defaultValue={email ?? ""} placeholder="you@example.com" />
+                    <button className="button secondary" type="submit">
+                      <Mail size={16} />
+                      {tr("Send code")}
+                    </button>
+                  </div>
+                </form>
+                {(sent || email) && (
+                  <form action={emailCodeAction}>
+                    <input name="email" type="hidden" value={email ?? ""} />
+                    <label htmlFor="login-code">{tr("Sign-in code")}</label>
+                    <div className="email-login-row">
+                      <input id="login-code" name="code" required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" placeholder="123456" />
+                      <button className="button" type="submit">
+                        {tr("Continue")}
+                      </button>
+                    </div>
+                  </form>
+                )}
+                {sent && <small>{tr("We sent a 6-digit code to your email. It expires in 10 minutes.")}</small>}
+              </div>
+            )}
+          </div>
         ) : (
           <div className="notice" role="status">
             {tr("Live accounts are not connected yet. Explore the demo below.")}

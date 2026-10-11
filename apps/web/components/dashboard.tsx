@@ -1418,7 +1418,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                     <button
                       className="button secondary"
                       onClick={() =>
-                        notify(tr("This is a demo workspace. Sign in with Google to choose a plan."))
+                        notify(tr("This is a demo workspace. Sign in to choose a plan."))
                       }
                     >
                       {plan === "free"
@@ -1430,7 +1430,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 <HotelPlanCard text={siteText(locale).hotel} />
               </div>
               <div className="notice" style={{ marginTop: 20 }}>
-                {tr("Demo workspace · Sign in with Google to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.", {
+                {tr("Demo workspace · Sign in to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.", {
                   code: CURRENCY.toUpperCase(),
                   symbol: CURRENCY_SYMBOL,
                 })}
@@ -1498,7 +1498,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   <p className="muted" style={{ fontSize: 12 }}>
                     {live
                       ? tr("Team access for co-hosts and staff is coming soon.")
-                      : tr("This is a demo workspace saved in your browser. Sign in with Google to create your real account.")}
+                      : tr("This is a demo workspace saved in your browser. Sign in to create your real account.")}
                   </p>
                   <button
                     className="button secondary"

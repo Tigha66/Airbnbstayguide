@@ -61,6 +61,13 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   window_start timestamptz NOT NULL,
   count integer NOT NULL
 );
+CREATE TABLE IF NOT EXISTS email_login_codes (
+  email text PRIMARY KEY,
+  code_hash text NOT NULL,
+  expires_at timestamptz NOT NULL,
+  attempts integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 -- Billing (Stripe subscriptions) and payouts (Stripe Connect Express)
 ALTER TABLE users ALTER COLUMN plan SET DEFAULT 'free';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id text;
