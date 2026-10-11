@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   plan text NOT NULL DEFAULT 'starter',
   created_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text;
 CREATE TABLE IF NOT EXISTS properties (
   id text PRIMARY KEY,
   owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,

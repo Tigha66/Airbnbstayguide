@@ -2,13 +2,12 @@ import NextAuth from "next-auth";
 import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { dbConfigured } from "@/lib/db";
-import { consumeEmailLoginCode, emailLoginConfigured } from "@/lib/email-login";
-import { upsertUser } from "@/lib/repo";
+import { dbConfigured, query } from "@/lib/db";
+import { authenticatePassword, passwordLoginConfigured } from "@/lib/password-login";
 
 export const googleConfigured = () => Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 export const appleConfigured = () => Boolean(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET);
-export const authConfigured = () => Boolean(process.env.AUTH_SECRET && dbConfigured() && (googleConfigured() || appleConfigured() || emailLoginConfigured()));
+export const authConfigured = passwordLoginConfigured;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
@@ -16,17 +15,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...(googleConfigured() ? [Google] : []),
     ...(appleConfigured() ? [Apple] : []),
     Credentials({
-      id: "email-code",
-      name: "Email code",
+      id: "password",
+      name: "Email and password",
       credentials: {
         email: { label: "Email", type: "email" },
-        code: { label: "Code", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!emailLoginConfigured() || !dbConfigured()) return null;
-        const ok = await consumeEmailLoginCode(credentials?.email, credentials?.code);
-        if (!ok) return null;
-        return { id: ok.email, email: ok.email, name: ok.email.split("@")[0] };
+        return authenticatePassword(credentials);
       },
     }),
   ],
@@ -36,9 +32,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user }) {
       return Boolean(user.email && dbConfigured());
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user?.email) {
-        const row = await upsertUser(user.email, user.name, user.image);
+        if (account?.provider === "password") {
+          token.uid = user.id;
+          return token;
+        }
+        // Do not merge an OAuth identity into an unverified password account.
+        const [row] = await query<{ id: string }>(
+          `INSERT INTO users (email, name, image) VALUES ($1, $2, $3)
+           ON CONFLICT (email) DO UPDATE SET name = COALESCE(EXCLUDED.name, users.name), image = COALESCE(EXCLUDED.image, users.image)
+           WHERE users.password_hash IS NULL RETURNING id`,
+          [user.email.toLowerCase(), user.name ?? null, user.image ?? null],
+        );
+        if (!row) throw new Error("Use email and password for this account");
         token.uid = row.id;
       }
       return token;

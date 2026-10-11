@@ -3,12 +3,12 @@ import { Login } from "@/components/login";
 import { appleConfigured, auth, authConfigured, googleConfigured, signIn } from "@/auth";
 import { requestLocale } from "@/lib/request-locale";
 import { makeTr } from "@/lib/app-i18n";
-import { emailLoginConfigured, requestEmailLoginCode } from "@/lib/email-login";
+import { registerPasswordUser } from "@/lib/password-login";
 
-function loginRedirect(email: FormDataEntryValue | null, error: string): never {
+function loginRedirect(email: FormDataEntryValue | null, error: string, register = false): never {
   const value = String(email ?? "").trim().toLowerCase();
   const suffix = value ? `&email=${encodeURIComponent(value)}` : "";
-  redirect(`/login?error=${encodeURIComponent(error)}${suffix}`);
+  redirect(`/login?error=${encodeURIComponent(error)}${suffix}${register ? "&mode=register" : ""}`);
 }
 
 function isNextRedirect(error: unknown) {
@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; email?: string; sent?: string }>;
+  searchParams: Promise<{ error?: string; email?: string; mode?: string; created?: string }>;
 }) {
   const configured = authConfigured();
   if (configured && (await auth())?.user) redirect("/dashboard");
@@ -41,31 +41,28 @@ export default async function Page({
     "use server";
     await signIn("apple", { redirectTo: "/dashboard" });
   }
-  async function requestCode(formData: FormData) {
+  async function register(formData: FormData) {
     "use server";
     const emailInput = formData.get("email");
-    let email: string;
     try {
-      email = await requestEmailLoginCode(emailInput);
-    } catch (error) {
-      console.error("[login] email code request failed", error);
-      loginRedirect(emailInput, "email-code-send");
+      await registerPasswordUser({ email: emailInput, name: formData.get("name"), password: formData.get("password") });
+    } catch {
+      loginRedirect(emailInput, "registration", true);
     }
-    redirect(`/login?email=${encodeURIComponent(email)}&sent=1`);
+    redirect(`/login?email=${encodeURIComponent(String(emailInput ?? ""))}&created=1`);
   }
-  async function emailCode(formData: FormData) {
+  async function password(formData: FormData) {
     "use server";
     const email = formData.get("email");
     try {
-      await signIn("email-code", {
+      await signIn("password", {
         email: String(email ?? ""),
-        code: String(formData.get("code") ?? ""),
+        password: String(formData.get("password") ?? ""),
         redirectTo: "/dashboard",
       });
     } catch (error) {
       if (isNextRedirect(error)) throw error;
-      console.error("[login] email code sign-in failed", error);
-      loginRedirect(email, "email-code-invalid");
+      loginRedirect(email, "password-invalid");
     }
   }
   return (
@@ -73,14 +70,14 @@ export default async function Page({
       configured={configured}
       googleConfigured={googleConfigured()}
       appleConfigured={appleConfigured()}
-      emailConfigured={emailLoginConfigured()}
       error={error}
       email={params.email}
-      sent={params.sent === "1"}
+      register={params.mode === "register"}
+      created={params.created === "1"}
       googleAction={google}
       appleAction={apple}
-      requestEmailCodeAction={requestCode}
-      emailCodeAction={emailCode}
+      registerAction={register}
+      passwordAction={password}
       locale={await requestLocale()}
     />
   );
