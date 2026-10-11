@@ -22,3 +22,27 @@ test("desktop shows the full menu without a menu button", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Open menu" })).toBeHidden();
   await expect(page.locator("#site-menu").getByRole("link", { name: "Pricing" })).toBeVisible();
 });
+
+test("phone dashboard does not require browser zoom to fit", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard");
+  await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(page.getByRole("button", { name: "Close navigation" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});
+
+test("short desktop dashboard can scroll the full sidebar", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 620 });
+  await page.goto("/dashboard/settings");
+  const sidebar = page.locator(".sidebar");
+  await expect(sidebar).toBeVisible();
+  await page.evaluate(() => {
+    const el = document.querySelector(".sidebar");
+    if (el) el.scrollTop = el.scrollHeight;
+  });
+  const userBox = await page.locator(".sidebar-user").boundingBox();
+  expect(userBox).not.toBeNull();
+  expect(userBox!.y + userBox!.height).toBeLessThanOrEqual(620);
+});

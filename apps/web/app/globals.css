@@ -431,7 +431,18 @@ small {
   padding: 32px 22px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cfd6cd transparent;
   z-index: 30;
+}
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #cfd6cd;
+  border-radius: 999px;
 }
 .workspace {
   margin: 35px 0 28px;
@@ -505,6 +516,11 @@ small {
 .sidebar-bottom {
   margin-top: auto;
   padding-top: 30px;
+}
+@media (max-height: 820px) {
+  .sidebar-bottom {
+    margin-top: 24px;
+  }
 }
 .upgrade-card {
   background: #f5f5e9;
@@ -2389,6 +2405,9 @@ small {
   }
 }
 @media (max-width: 640px) {
+  .app-shell {
+    overflow-x: hidden;
+  }
   /* iPhone Safari zooms into any field with text under 16px and stays zoomed,
      cutting off the right edge of the page (e.g. the concierge send button). */
   input,
