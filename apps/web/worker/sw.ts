@@ -71,6 +71,22 @@ const fresh = (response: Response) =>
     headers: response.headers,
   });
 
+const OFFLINE_HELPER = `<script>(()=>{document.addEventListener("click",e=>{const b=e.target&&e.target.closest&&e.target.closest(".menu-toggle");if(!b)return;const h=b.closest(".marketing-nav");if(!h)return;const open=!h.classList.contains("menu-open");h.classList.toggle("menu-open",open);b.setAttribute("aria-expanded",open?"true":"false")},true)})()</script>`;
+const GUIDE_OFFLINE_BANNER = `<div class="offline-banner">You’re offline. Your saved guide is still here.</div>`;
+
+async function offlineHtml(response: Response, url: URL): Promise<Response> {
+  const type = response.headers.get("content-type") ?? "";
+  if (!type.includes("text/html")) return fresh(response);
+  const html = await response.clone().text();
+  const extra = `${url.pathname.startsWith("/g/") ? GUIDE_OFFLINE_BANNER : ""}${OFFLINE_HELPER}`;
+  const body = html.replace(/<body([^>]*)>/i, `<body$1>${extra}`);
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
 async function savedPage(url: URL): Promise<Response | undefined> {
   const paths = [url.pathname];
   if (LANGUAGE_REDIRECTED.includes(url.pathname)) {
@@ -84,7 +100,7 @@ async function savedPage(url: URL): Promise<Response | undefined> {
     for (const name of [GUIDES_CACHE, SITE_CACHE]) {
       const cache = await caches.open(name);
       const hit = await cache.match(`${url.origin}${path}`, { ignoreVary: true, ignoreSearch: true });
-      if (hit) return fresh(hit);
+      if (hit) return offlineHtml(hit, url);
     }
   return undefined;
 }
