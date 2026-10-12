@@ -78,7 +78,12 @@ import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
 import { DndSortableSectionList } from "./dnd-sortable-section-list";
 import { TemplatePickerModal } from "./template-picker-modal";
-import type { SectionTemplate } from "@stayguide/shared";
+import { MediaUploadWidget } from "./media-upload-widget";
+import { MapsPlacePicker } from "./maps-place-picker";
+import { DuplicateGuideModal } from "./duplicate-guide-modal";
+import { ShareGuideModal } from "./share-guide-modal";
+import { ExportGuideModal } from "./export-guide-modal";
+import type { SectionTemplate, MediaItem, LocationPoint } from "@stayguide/shared";
 const nav = [
   ["", "Overview", Home],
   ["properties", "Properties", BookOpen],
@@ -121,6 +126,12 @@ export function Dashboard({ view = "" }: { view?: string }) {
   }, []);
   const [mobile, setMobile] = useState(false);
   const [modal, setModal] = useState<"property" | "extra" | null>(null);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showMediaUpload, setShowMediaUpload] = useState(false);
+  const [showMapsEditor, setShowMapsEditor] = useState(false);
   const [toast, setToast] = useState("");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -794,6 +805,29 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   <Eye size={15} />
                   {tr("Guest preview")}
                 </Link>
+                <button
+                  className="button secondary"
+                  onClick={() => setShowDuplicateModal(true)}
+                  title={tr("Create a copy of this guide")}
+                >
+                  <Copy size={15} />
+                  {tr("Duplicate")}
+                </button>
+                <button
+                  className="button secondary"
+                  onClick={() => setShowShareModal(true)}
+                  title={tr("Share guide link")}
+                >
+                  {tr("Share")}
+                </button>
+                <button
+                  className="button secondary"
+                  onClick={() => setShowExportModal(true)}
+                  title={tr("Export guide")}
+                >
+                  <Download size={15} />
+                  {tr("Export")}
+                </button>
                 {live && (
                   <button
                     className="button secondary"
@@ -1737,6 +1771,46 @@ export function Dashboard({ view = "" }: { view?: string }) {
             }
           }}
           onClose={() => setShowTemplatePicker(false)}
+          tr={tr}
+        />
+      )}
+      {showDuplicateModal && property && (
+        <DuplicateGuideModal
+          propertyName={property.name}
+          onDuplicate={async (newName: string) => {
+            const newProperty: Property = {
+              ...property,
+              id: crypto.randomUUID(),
+              name: newName,
+              slug:
+                newName
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/^-|-$/g, "") +
+                "-" +
+                crypto.randomUUID().slice(0, 6),
+              status: "draft",
+            };
+            saveProperty(newProperty);
+            setSelected(newProperty.id);
+            notify(tr("Guide duplicated. The copy is now in draft."));
+          }}
+          onClose={() => setShowDuplicateModal(false)}
+          tr={tr}
+        />
+      )}
+      {showShareModal && property && (
+        <ShareGuideModal
+          propertySlug={property.slug}
+          propertyName={property.name}
+          onClose={() => setShowShareModal(false)}
+          tr={tr}
+        />
+      )}
+      {showExportModal && property && (
+        <ExportGuideModal
+          propertyName={property.name}
+          onClose={() => setShowExportModal(false)}
           tr={tr}
         />
       )}

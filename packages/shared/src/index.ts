@@ -57,12 +57,34 @@ export const chatSchema = z.object({
   accessCode: z.string().max(100).optional(),
   threadId: z.uuid().optional(),
 });
+export type MediaItem = {
+  id: string;
+  url: string;
+  caption?: string;
+  alt?: string;
+};
+export type LocationPoint = {
+  latitude: number;
+  longitude: number;
+  address?: string;
+};
 export const sectionSchema = z.object({
   id: z.string(),
   type: z.string(),
   title: z.string().min(1).max(120),
   body: z.string().max(20000),
   icon: z.string(),
+  media: z.array(z.object({
+    id: z.string(),
+    url: z.string(),
+    caption: z.string().optional(),
+    alt: z.string().optional(),
+  })).optional(),
+  location: z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+    address: z.string().optional(),
+  }).optional(),
 });
 export type Section = z.infer<typeof sectionSchema>;
 export type SectionTemplate = {

@@ -3697,3 +3697,395 @@ small {
     font-size: 12px;
   }
 }
+
+/* Media Upload Widget */
+.media-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+  text-align: center;
+  cursor: pointer;
+  transition: all 200ms ease;
+  color: var(--muted);
+}
+
+.upload-zone:hover {
+  border-color: var(--teal);
+  background: rgba(20, 184, 166, 0.05);
+  color: var(--teal);
+}
+
+.upload-zone.dragging {
+  border-color: var(--teal-bright);
+  background: rgba(20, 184, 166, 0.1);
+  box-shadow: inset 0 0 0 1px var(--teal-bright);
+}
+
+.upload-zone svg {
+  color: currentColor;
+}
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--teal);
+}
+
+.media-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.media-gallery h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.media-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  transition: all 200ms ease;
+  min-height: 140px;
+}
+
+.media-item:hover {
+  border-color: var(--teal);
+  box-shadow: var(--shadow-sm);
+}
+
+.media-item img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.media-item .media-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  color: white;
+}
+
+.media-item .caption {
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 0 2px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.media-item .alt {
+  font-size: 10px;
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.media-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.media-item:hover .media-actions {
+  opacity: 1;
+}
+
+.media-actions .icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 4px;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.media-actions .icon-button.delete:hover {
+  background: #fee;
+  color: #c33;
+}
+
+.media-edit-form {
+  padding: 12px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.media-edit-form img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  max-height: 200px;
+  object-fit: cover;
+}
+
+.media-edit-form label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.media-edit-form input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Maps Place Picker */
+.maps-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: var(--soft);
+  border-radius: 8px;
+}
+
+.picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.picker-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.maps-picker .search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.maps-picker .search-field input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  outline: 0;
+  font-size: 14px;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 150ms ease;
+  font-size: 13px;
+}
+
+.suggestion-item:hover {
+  background: var(--soft);
+}
+
+.suggestion-item svg {
+  color: var(--teal);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.suggestion-item strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.suggestion-item small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.location-preview {
+  padding: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-info strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.preview-info small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.map-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--soft);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.map-placeholder p {
+  margin: 0;
+}
+
+.map-placeholder .coords {
+  font-size: 14px;
+  color: var(--teal);
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* Export Guide Modal */
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+  transition: all 200ms ease;
+  position: relative;
+}
+
+.export-option:hover {
+  border-color: var(--teal);
+  background: var(--soft);
+}
+
+.export-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background: rgba(20, 184, 166, 0.1);
+  color: var(--teal);
+  flex-shrink: 0;
+}
+
+.export-option strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.export-option small {
+  font-size: 12px;
+  color: var(--muted);
+  display: block;
+}
+
+.export-option .spinner {
+  position: absolute;
+  right: 14px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--line);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 600ms linear infinite;
+}
