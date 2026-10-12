@@ -147,6 +147,68 @@ export type Property = {
   hostPhone: string;
   sections: Section[];
   extras: Extra[];
+  workspaceId?: string;
+};
+
+/** Team roles for workspace members */
+export type TeamRole = "owner" | "editor" | "viewer";
+
+/** Workspace member invitation and membership */
+export type WorkspaceMember = {
+  id: string;
+  workspaceId: string;
+  userId?: string;
+  email: string;
+  role: TeamRole;
+  invitedAt: string;
+  joinedAt?: string;
+  status: "pending" | "accepted" | "rejected";
+};
+
+/** Workspace aggregates properties and team */
+export type Workspace = {
+  id: string;
+  ownerId: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Activity log entry for audit trail */
+export type ActivityEntry = {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  action: "create" | "update" | "delete" | "publish" | "duplicate" | "invite" | "remove";
+  resourceType: "guide" | "extra" | "member" | "workspace";
+  resourceId: string;
+  changes?: Record<string, unknown>;
+  timestamp: string;
+};
+
+/** Analytics metrics for dashboard */
+export type AnalyticsMetrics = {
+  period: "7d" | "30d" | "90d";
+  viewCount: number;
+  viewTrend: Array<{ date: string; count: number }>;
+  questionsCount: number;
+  questionsByCategory: Array<{ category: string; count: number }>;
+  extrasRevenue: number;
+  extrasCount: number;
+  guestSatisfaction: number;
+  topGuides: Array<{ id: string; name: string; views: number }>;
+};
+
+/** Webhook configuration */
+export type Webhook = {
+  id: string;
+  workspaceId: string;
+  url: string;
+  events: Array<"guide.published" | "extra.purchased" | "question.escalated" | "member.joined">;
+  active: boolean;
+  createdAt: string;
+  lastFiredAt?: string;
 };
 export const sectionTemplates: SectionTemplate[] = [
   {
