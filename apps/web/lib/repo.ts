@@ -462,3 +462,108 @@ export async function setManagedPlan(email: string, plan: "hotel" | "free") {
   );
   return rows.length > 0;
 }
+
+/** Log an activity for an organization (audit trail) */
+export async function logActivity(
+  organizationId: string,
+  userId: string,
+  action: string,
+  details: Record<string, unknown> = {},
+) {
+  const [row] = await query<{ id: string }>(
+    `INSERT INTO public.activities (organization_id, user_id, action, details) VALUES ($1, $2, $3, $4) RETURNING id`,
+    [organizationId, userId, action, JSON.stringify(details)],
+  );
+  return row?.id ?? null;
+}
+
+/** Get activities for an organization (paginated) */
+export async function getOrganizationActivities(
+  organizationId: string,
+  limit = 50,
+  offset = 0,
+) {
+  const rows = await query<ActivityRow>(
+    `SELECT id, organization_id, user_id, action, details, created_at
+     FROM public.activities
+     WHERE organization_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [organizationId, limit, offset],
+  );
+  return rows;
+}
+
+export interface ActivityRow {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  action: string;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+/** Create an organization invitation */
+export async function createOrganizationInvitation(
+  organizationId: string,
+  email: string,
+  role: 'owner' | 'manager' | 'cleaner' | 'viewer',
+) {
+  const token = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [row] = await query<{ id: string }>(
+    `INSERT INTO public.organization_invitations (organization_id, email, role, token, expires_at) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+    [organizationId, email, role, token, expiresAt],
+  );
+  return { id: row.id, token, expiresAt };
+}
+
+/** Accept an organization invitation */
+export async function acceptOrganizationInvitation(
+  token: string,
+  userId: string,
+) {
+  const [row] = await query<{ id: string; organization_id: string }>(
+    `UPDATE public.organization_invitations
+       SET used_at = now()
+     WHERE token = $1 AND used_at IS NULL AND expires_at > now()
+     RETURNING id, organization_id`,
+    [token],
+  );
+  if (row) {
+    // Add user to organization members
+    await query(
+      `INSERT INTO public.org_members (organization_id, user_id, role)
+       VALUES ($1, $2, (SELECT role FROM public.organization_invitations WHERE id = $3))
+       ON CONFLICT DO NOTHING`,
+      [row.organization_id, userId, row.id],
+    );
+  }
+  return row ?? null;
+}
+
+/** Get organizations for a user */
+export async function getUserOrganizations(userId: string) {
+  const rows = await query<{ id: string; name: string; plan: string; status: string }>(
+    `SELECT o.id, o.name, o.plan, o.status
+     FROM public.organizations o
+     JOIN public.org_members m ON m.organization_id = o.id
+     WHERE m.user_id = $1 AND m.role IN ('owner','manager')
+     ORDER BY o.created_at DESC`,
+    [userId],
+  );
+  return rows;
+}
+
+/** Get organization members */
+export async function getOrganizationMembers(organizationId: string) {
+  const rows = await query<{ user_id: string; role: string; joined_at: string }>(
+    `SELECT m.user_id, m.role, m.joined_at
+     FROM public.org_members m
+     WHERE m.organization_id = $1
+     ORDER BY m.joined_at DESC`,
+    [organizationId],
+  );
+  return rows;
+}
