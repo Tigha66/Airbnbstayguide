@@ -76,6 +76,9 @@ import { siteDir, siteText } from "@/lib/site-i18n";
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
+import { DndSortableSectionList } from "./dnd-sortable-section-list";
+import { TemplatePickerModal } from "./template-picker-modal";
+import type { SectionTemplate } from "@stayguide/shared";
 const nav = [
   ["", "Overview", Home],
   ["properties", "Properties", BookOpen],
@@ -125,6 +128,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const setSelected = (id: string) => updateDemo({ selectedProperty: id });
   const [sectionId, setSectionId] = useState("arrival");
   const [editPreview, setEditPreview] = useState(false);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [thread, setThread] = useState(threads[0]);
   const [reply, setReply] = useState("");
   const [qr, setQr] = useState("");
@@ -888,55 +892,16 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
               <div className="editor-grid">
                 <div className="card section-list">
-                  {property.sections.map((s) => (
-                    <button
-                      draggable
-                      onDragStart={(e) =>
-                        e.dataTransfer.setData("text/plain", s.id)
-                      }
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const id = e.dataTransfer.getData("text/plain");
-                        const items = [...property.sections];
-                        const from = items.findIndex((x) => x.id === id),
-                          to = items.findIndex((x) => x.id === s.id);
-                        if (from >= 0) {
-                          items.splice(to, 0, items.splice(from, 1)[0]);
-                          saveProperty({ ...property, sections: items });
-                        }
-                      }}
-                      className={s.id === currentSection?.id ? "active" : ""}
-                      key={s.id}
-                      onClick={() => setSectionId(s.id)}
-                    >
-                      <GripVertical size={12} />
-                      <GuideIcon name={s.icon} size={15} />
-                      {s.title}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => {
-                      const id = crypto.randomUUID();
-                      saveProperty({
-                        ...property,
-                        sections: [
-                          ...property.sections,
-                          {
-                            id,
-                            type: "custom",
-                            title: tr("A new little detail"),
-                            body: "",
-                            icon: "book",
-                          },
-                        ],
-                      });
-                      setSectionId(id);
+                  <DndSortableSectionList
+                    sections={property.sections}
+                    onReorder={(reordered) => {
+                      saveProperty({ ...property, sections: reordered });
                     }}
-                  >
-                    <Plus size={15} />
-                    {tr("Add section")}
-                  </button>
+                    onAddSection={() => setShowTemplatePicker(true)}
+                    selectedId={currentSection?.id}
+                    onSelectSection={setSectionId}
+                    tr={tr}
+                  />
                 </div>
                 <div className="card section-editor">
                   {currentSection && (
@@ -1748,6 +1713,32 @@ export function Dashboard({ view = "" }: { view?: string }) {
             </button>
           </form>
         </Modal>
+      )}
+      {showTemplatePicker && (
+        <TemplatePickerModal
+          onSelect={(template: SectionTemplate) => {
+            if (property) {
+              const id = crypto.randomUUID();
+              saveProperty({
+                ...property,
+                sections: [
+                  ...property.sections,
+                  {
+                    id,
+                    type: template.category,
+                    title: template.title,
+                    body: template.body,
+                    icon: template.icon,
+                  },
+                ],
+              });
+              setSectionId(id);
+              setShowTemplatePicker(false);
+            }
+          }}
+          onClose={() => setShowTemplatePicker(false)}
+          tr={tr}
+        />
       )}
     </div>
   );
