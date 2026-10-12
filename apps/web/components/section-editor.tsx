@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { GripVertical, Plus, X, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
 import type { Section } from "@stayguide/shared";
+import { MediaUpload } from "./media-upload";
 
 interface SectionEditorProps {
   section: Section;
@@ -60,46 +61,14 @@ export function SectionEditor({ section, onUpdate, onDelete, isDragging, dragHan
             />
           </label>
 
-          {section.media && section.media.length > 0 && (
-            <div className="section-media">
-              <h4>Media</h4>
-              <div className="media-grid">
-                {section.media.map((m, i) => (
-                  <div key={i} className="media-item">
-                    {m.type === "photo" ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.url} alt="Section photo" />
-                    ) : (
-                      <video src={m.url} controls />
-                    )}
-                    <button
-                      type="button"
-                      className="icon-button"
-                      onClick={() => {
-                        const updated = {
-                          ...section,
-                          media: section.media?.filter((_, idx) => idx !== i),
-                        };
-                        onUpdate(updated);
-                      }}
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="section-actions">
-            <button className="button secondary" type="button" disabled>
-              <ImageIcon size={14} />
-              Add photo
-            </button>
-            <button className="button secondary" type="button" disabled>
-              <VideoIcon size={14} />
-              Add video
-            </button>
+          <div style={{ marginTop: 16 }}>
+            <label style={{ display: "block", marginBottom: 8 }}>
+              <h4 style={{ margin: 0 }}>Media</h4>
+            </label>
+            <MediaUpload
+              section={section}
+              onUpdate={(media) => onUpdate({ ...section, media })}
+            />
           </div>
         </div>
       )}

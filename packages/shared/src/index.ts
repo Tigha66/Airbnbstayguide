@@ -152,6 +152,13 @@ export type WorkspaceBranding = {
 };
 export const sections: Section[] = [
   {
+    id: "recommendations",
+    type: "localRecommendations",
+    title: "Nearby gems",
+    icon: "map",
+    body: "Discover local favorites: restaurants, cafes, and attractions our guests love.",
+  },
+  {
     id: "arrival",
     type: "arrival",
     title: "A lovely arrival",

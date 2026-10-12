@@ -17,6 +17,7 @@ import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, 
 import { useDemo } from "@/lib/demo-store";
 import { fill, guestText, isRtl } from "@/lib/guest-i18n";
 import { Logo, GuideIcon } from "./ui";
+import { LocalRecommendations } from "./local-recommendations";
 type Message = {
   role: "assistant" | "user" | "host";
   content: string;
@@ -377,6 +378,22 @@ export function GuestGuide({
                 <div className="markdown">
                   <ReactMarkdown>{section.body}</ReactMarkdown>
                 </div>
+                {section.media && section.media.length > 0 && (
+                  <div className="section-media-gallery" style={{ marginTop: 16 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 }}>
+                      {section.media.map((m, i) => (
+                        <div key={i} style={{ borderRadius: 8, overflow: "hidden", backgroundColor: "#f0f0f0", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {m.type === "photo" ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={m.url} alt={`${section.title} photo ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ) : (
+                            <video src={m.url} style={{ width: "100%", height: "100%", objectFit: "cover" }} controls />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </details>
             ))}
             <div
