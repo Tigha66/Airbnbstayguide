@@ -11,6 +11,8 @@ import {
   BarChart3,
   Bell,
   BookOpen,
+  Building,
+  Bus,
   CalendarDays,
   Check,
   CheckCheck,
@@ -20,12 +22,16 @@ import {
   CreditCard,
   Download,
   Eye,
+  FileText,
   Gift,
   GripVertical,
   Home,
+  Hotel,
   Leaf,
   Lightbulb,
   LifeBuoy,
+  Link as LinkIcon,
+  LoaderCircle,
   MapPin,
   Mail,
   Menu,
@@ -40,7 +46,10 @@ import {
   ShieldCheck,
   Sparkles,
   Sun,
+  TreePine,
   TrendingUp,
+  Umbrella,
+  Waves,
   Wifi,
   X,
 } from "lucide-react";
@@ -53,6 +62,8 @@ import {
   plans,
   priceFor,
   propertySchema,
+  starterTemplates,
+  templateById,
   type Property,
   type Section,
   CURRENCY,
@@ -69,6 +80,7 @@ import {
   deleteLiveProperty,
 } from "@/lib/demo-store";
 import { parseManual, extractWifi, extractTime } from "@/lib/guide-parser";
+import { setupSteps, setupPercent, type SetupStepKey } from "@/lib/setup";
 import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling } from "./live";
 import { HotelPlanCard } from "./hotel-plan";
 import { AppLanguageMenu, useAppLocale } from "./app-locale";
@@ -154,26 +166,78 @@ export function Dashboard({ view = "" }: { view?: string }) {
         ),
       });
   };
-  async function createProperty(form: FormData) {
+  const sectionDefaults: Record<string, { title: string; icon: string }> = {
+    arrival: { title: tr("A lovely arrival"), icon: "key" },
+    wifi: { title: tr("Get connected"), icon: "wifi" },
+    rules: { title: tr("House rules"), icon: "heart" },
+    checkout: { title: tr("Checkout"), icon: "sun" },
+  };
+  /** Jump the editor to a section, creating it first if the guide doesn't have one yet. */
+  const goToSection = (type: string) => {
+    if (!property) return;
+    const existing = property.sections.find((s) => s.type === type);
+    if (existing) {
+      setSectionId(existing.id);
+    } else {
+      const id = crypto.randomUUID();
+      const preset = sectionDefaults[type] ?? { title: tr("A new little detail"), icon: "book" };
+      saveProperty({
+        ...property,
+        sections: [...property.sections, { id, type, title: preset.title, body: "", icon: preset.icon }],
+      });
+      setSectionId(id);
+    }
+    document.getElementById("guide-sections")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const focusDetails = () => {
+    const card = document.getElementById("property-details");
+    card?.scrollIntoView({ behavior: "smooth", block: "start" });
+    card?.querySelector<HTMLInputElement>("input")?.focus();
+  };
+  const togglePublish = (p: Property) => {
+    saveProperty({ ...p, status: p.status === "published" ? "draft" : "published" });
+    notify(
+      p.status === "published"
+        ? tr("Guide moved to draft.")
+        : live
+          ? tr("Guide published. Guests can open it now.")
+          : tr("Demo guide published on this device."),
+    );
+  };
+  async function createProperty(input: {
+    name: string;
+    location: string;
+    address: string;
+    description: string;
+    templateId: string | null;
+  }) {
     const result = propertySchema.safeParse({
-      name: form.get("name"),
-      location: form.get("location"),
-      address: form.get("address") ?? "",
-      description: form.get("description"),
+      name: input.name,
+      location: input.location,
+      address: input.address ?? "",
+      description: input.description,
     });
     if (!result.success) {
       setError(result.error.issues[0].message);
       return;
     }
+    const manual = result.data.description;
+    const template = input.templateId ? templateById(input.templateId) : null;
+    // Starter-template sections seed the guide only when the host hasn't pasted their own text.
+    const templateSections = template && !manual.trim()
+      ? template.sections.map((s) => ({ ...s }))
+      : undefined;
     if (live) {
       setCreating(true);
       try {
-        const { ai } = await createLiveProperty(result.data);
+        const { ai } = await createLiveProperty({ ...result.data, sections: templateSections });
         close();
         notify(
           ai
             ? tr("Property created. AI organized your guide — have a look.")
-            : tr("Property created. Your guide is ready to edit."),
+            : template && templateSections
+              ? tr("Property created from the {template} template. Fill in the details to finish.", { template: tr(template.name) })
+              : tr("Property created. Your guide is ready to edit."),
         );
         router.push("/dashboard/editor");
       } catch (e) {
@@ -191,7 +255,6 @@ export function Dashboard({ view = "" }: { view?: string }) {
         .replace(/^-|-$/g, "") +
       "-" +
       id.slice(0, 6);
-    const manual = result.data.description;
     const next: Property = {
       ...demoProperties[0],
       ...result.data,
@@ -205,7 +268,8 @@ export function Dashboard({ view = "" }: { view?: string }) {
       hostPhone: "",
       sections: manual
         ? parseManual(manual)
-        : sections.map((s) => ({
+        : templateSections ??
+          sections.map((s) => ({
             ...s,
             body: tr("Add your property’s {type} information here.", { type: s.type }),
           })),
@@ -214,7 +278,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
     saveProperty(next);
     setSelected(id);
     close();
-    notify(tr("Property created. Your guide is ready to edit."));
+    notify(
+      template && templateSections
+        ? tr("Property created from the {template} template. Fill in the details to finish.", { template: tr(template.name) })
+        : tr("Property created. Your guide is ready to edit."),
+    );
     router.push("/dashboard/editor");
   }
   const stats = [
@@ -334,6 +402,21 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 {tr("{n} chats", { n: i < 2 ? [218, 124][i] : 0 })}
               </span>
             </div>
+            {setupPercent(p) < 100 && (
+              <button
+                className="setup-bar"
+                onClick={() => {
+                  setSelected(p.id);
+                  router.push("/dashboard/editor");
+                }}
+                aria-label={tr("Finish setting up {name} — {percent}% done", { name: p.name, percent: setupPercent(p) })}
+              >
+                <div className="setup-bar-track">
+                  <span style={{ width: `${setupPercent(p)}%` }} />
+                </div>
+                <small>{tr("Setup {percent}%", { percent: setupPercent(p) })}</small>
+              </button>
+            )}
             <div className="property-bottom">
               <small>{tr("Made with a little extra care")}</small>
               <div className="row">
@@ -832,22 +915,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   )}
                   <button
                     className="button small"
-                    onClick={() => {
-                      saveProperty({
-                        ...property,
-                        status:
-                          property.status === "published"
-                            ? "draft"
-                            : "published",
-                      });
-                      notify(
-                        property.status === "published"
-                          ? tr("Guide moved to draft.")
-                          : live
-                            ? tr("Guide published. Guests can open it now.")
-                            : tr("Demo guide published on this device."),
-                      );
-                    }}
+                    onClick={() => togglePublish(property)}
                   >
                     {property.status === "published"
                       ? tr("Unpublish")
@@ -855,7 +923,16 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   </button>
                 </div>
               </div>
-              <div className="card property-details">
+              <SetupProgress
+                property={property}
+                onStep={(key) => {
+                  if (key === "details" || key === "wifi") focusDetails();
+                  else if (key === "extras") router.push("/dashboard/extras");
+                  else if (key === "publish") togglePublish(property);
+                  else goToSection(key);
+                }}
+              />
+              <div className="card property-details" id="property-details">
                 <div className="property-details-head">
                   <h3>{tr("Property details")}</h3>
                   <small className="muted">
@@ -886,7 +963,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   ))}
                 </div>
               </div>
-              <div className="editor-grid">
+              <div className="editor-grid" id="guide-sections">
                 <div className="card section-list">
                   {property.sections.map((s) => (
                     <button
@@ -1610,63 +1687,13 @@ export function Dashboard({ view = "" }: { view?: string }) {
         </div>
       )}
       {modal === "property" && (
-        <Modal title={tr("A new place. A new welcome.")} close={close} closeLabel={tr("Close dialog")}>
-          <p>{tr("Add the basics and bring your guest guide to life.")}</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              createProperty(new FormData(e.currentTarget));
-            }}
-            className="form-grid"
-          >
-            <label>
-              {tr("Property name")}
-              <input
-                name="name"
-                placeholder={tr("e.g. The Little Olive House")}
-                required
-                minLength={2}
-                maxLength={120}
-              />
-            </label>
-            <label>
-              {tr("City, country")}
-              <input
-                name="location"
-                placeholder={tr("e.g. Gatlinburg, Tennessee")}
-                required
-                minLength={2}
-              />
-            </label>
-            <label>
-              {tr("Street address")} <small>{tr("Optional · used for “Open in Maps”")}</small>
-              <input
-                name="address"
-                placeholder="e.g. 123 Ridge Road, Gatlinburg, TN 37738"
-                maxLength={300}
-                autoComplete="street-address"
-              />
-            </label>
-            <label>
-              {tr("Your house manual")} <small>{tr("Optional · Only content you own")}</small>
-              <textarea
-                name="description"
-                maxLength={12000}
-                placeholder={tr("Paste your arrival details, house rules, and favorite local tips…")}
-              />
-            </label>
-            <div className="notice">
-              {live && liveState.services.ai
-                ? tr("Our AI will organize your text into guide sections using only what you wrote.")
-                : tr("We’ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as “WI-FI:” for best results.")}
-            </div>
-            {error && <p className="error-text">{error}</p>}
-            <button className="button" disabled={creating}>
-              <Sparkles size={16} />
-              {creating ? tr("Building your guide…") : tr("Create my guide")}
-            </button>
-          </form>
-        </Modal>
+        <CreateGuideModal
+          aiReady={Boolean(live && liveState.services.ai)}
+          creating={creating}
+          error={error}
+          onClose={close}
+          onCreate={createProperty}
+        />
       )}
       {modal === "extra" && (
         <Modal title={tr("A thoughtful little extra")} close={close} closeLabel={tr("Close dialog")}>
@@ -1754,4 +1781,265 @@ export function Dashboard({ view = "" }: { view?: string }) {
 }
 function HeartIcon({ size = 15 }: { size?: number }) {
   return <ShieldCheck size={size} />;
+}
+const templateIcons: Record<string, typeof Building> = {
+  building: Building,
+  pool: Waves,
+  nature: TreePine,
+  transport: Bus,
+  beach: Umbrella,
+  hotel: Hotel,
+};
+function SetupProgress({
+  property,
+  onStep,
+}: {
+  property: Property;
+  onStep: (key: SetupStepKey) => void;
+}) {
+  const { tr } = useAppLocale();
+  const steps = setupSteps(property);
+  const percent = setupPercent(property);
+  const done = steps.filter((s) => s.done).length;
+  const label = (key: SetupStepKey) =>
+    ({
+      details: tr("Property details"),
+      arrival: tr("Arrival & check-in"),
+      wifi: tr("Wi-Fi"),
+      rules: tr("House rules"),
+      checkout: tr("Checkout"),
+      extras: tr("Extras"),
+      publish: tr("Publish"),
+    })[key];
+  return (
+    <section className="card setup-progress">
+      <div className="setup-progress-head">
+        <div>
+          <div className="eyebrow">{tr("GUIDE SETUP")}</div>
+          <h3>{percent === 100 ? tr("Your guide is ready to shine") : tr("A few steps to a lovely guide")}</h3>
+          <small className="muted">{tr("{done} of {total} steps complete", { done, total: steps.length })}</small>
+        </div>
+        <div className={`setup-percent ${percent === 100 ? "done" : ""}`}>
+          {percent === 100 ? <Check size={18} /> : <strong>{percent}%</strong>}
+        </div>
+      </div>
+      <div className="setup-track" aria-hidden="true">
+        <span style={{ width: `${percent}%` }} />
+      </div>
+      <div className="setup-steps">
+        {steps.map((s) => (
+          <button
+            key={s.key}
+            className={`setup-step ${s.done ? "done" : ""}`}
+            onClick={() => onStep(s.key)}
+          >
+            <span className={s.done ? "check-dot done" : "check-dot"}>
+              {s.done ? <Check size={13} /> : <Plus size={13} />}
+            </span>
+            <span className="setup-step-label">{label(s.key)}</span>
+            {!s.done && <ChevronRight size={14} className="setup-step-go" />}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+function CreateGuideModal({
+  aiReady,
+  creating,
+  error,
+  onClose,
+  onCreate,
+}: {
+  aiReady: boolean;
+  creating: boolean;
+  error: string;
+  onClose: () => void;
+  onCreate: (input: {
+    name: string;
+    location: string;
+    address: string;
+    description: string;
+    templateId: string | null;
+  }) => void;
+}) {
+  const { tr } = useAppLocale();
+  const [method, setMethod] = useState<"template" | "airbnb" | "manual">("template");
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: "", location: "", address: "", description: "" });
+  const [url, setUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
+  const [imported, setImported] = useState(false);
+  const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
+  const chosen = templateId ? templateById(templateId) : null;
+  async function importListing() {
+    if (!url.trim()) return;
+    setImportError("");
+    setImporting(true);
+    try {
+      const res = await fetch("/api/v1/import-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || tr("We couldn’t import that listing."));
+      const listing = data.listing as { name: string; location: string; description: string };
+      setForm((f) => ({
+        name: listing.name || f.name,
+        location: listing.location || f.location,
+        address: f.address,
+        description: f.description || listing.description || "",
+      }));
+      setImported(true);
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : tr("We couldn’t import that listing."));
+    } finally {
+      setImporting(false);
+    }
+  }
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    onCreate({ ...form, templateId: method === "template" ? templateId : null });
+  }
+  const methods = [
+    ["template", tr("Start from a template")],
+    ["airbnb", tr("Import from Airbnb")],
+    ["manual", tr("Paste a house manual")],
+  ] as const;
+  return (
+    <Modal title={tr("A new place. A new welcome.")} close={onClose} closeLabel={tr("Close dialog")}>
+      <p>{tr("Pick the quickest way to begin — you can edit everything afterwards.")}</p>
+      <div className="create-method" role="tablist">
+        {methods.map(([key, lbl]) => (
+          <button
+            key={key}
+            role="tab"
+            aria-selected={method === key}
+            className={method === key ? "active" : ""}
+            onClick={() => setMethod(key)}
+          >
+            {key === "template" ? <Sparkles size={14} /> : key === "airbnb" ? <LinkIcon size={14} /> : <FileText size={14} />}
+            {lbl}
+          </button>
+        ))}
+      </div>
+      {method === "template" && (
+        <div className="template-grid">
+          {starterTemplates.map((t) => {
+            const Icon = templateIcons[t.icon] ?? Home;
+            return (
+              <button
+                type="button"
+                key={t.id}
+                className={`template-card ${templateId === t.id ? "active" : ""}`}
+                aria-pressed={templateId === t.id}
+                onClick={() => setTemplateId(t.id)}
+              >
+                <span className="template-icon">
+                  <Icon size={18} />
+                </span>
+                <strong>{tr(t.name)}</strong>
+                <small>{tr(t.tagline)}</small>
+                {templateId === t.id && <span className="template-check"><Check size={12} /></span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {method === "template" && chosen && (
+        <div className="notice">
+          {tr("We’ll create {n} ready-to-edit sections for your {template}. Fill in your details and you’re live.", {
+            n: chosen.sections.length,
+            template: tr(chosen.name),
+          })}
+        </div>
+      )}
+      {method === "airbnb" && (
+        <div className="import-row">
+          <label>
+            {tr("Airbnb listing link")}
+            <input
+              value={url}
+              inputMode="url"
+              placeholder="https://www.airbnb.com/rooms/…"
+              onChange={(e) => setUrl(e.target.value)}
+            />
+          </label>
+          <button type="button" className="button secondary" disabled={importing || !url.trim()} onClick={importListing}>
+            {importing ? <LoaderCircle size={15} className="spin" /> : <Download size={15} />}
+            {importing ? tr("Fetching…") : tr("Fetch details")}
+          </button>
+        </div>
+      )}
+      {method === "airbnb" && importError && <p className="error-text">{importError}</p>}
+      {method === "airbnb" && imported && !importError && (
+        <div className="notice">{tr("We’ve filled in what we found. Review it below — nothing is saved until you create the guide.")}</div>
+      )}
+      {method === "airbnb" && (
+        <p className="create-hint">
+          {tr("We only read the listing’s public title, summary and photo. Private details are never fetched.")}
+        </p>
+      )}
+      <form onSubmit={submit} className="form-grid">
+        <label>
+          {tr("Property name")}
+          <input
+            value={form.name}
+            onChange={(e) => set({ name: e.target.value })}
+            placeholder={tr("e.g. The Little Olive House")}
+            required
+            minLength={2}
+            maxLength={120}
+          />
+        </label>
+        <label>
+          {tr("City, country")}
+          <input
+            value={form.location}
+            onChange={(e) => set({ location: e.target.value })}
+            placeholder={tr("e.g. Gatlinburg, Tennessee")}
+            required
+            minLength={2}
+          />
+        </label>
+        <label>
+          {tr("Street address")} <small>{tr("Optional · used for “Open in Maps”")}</small>
+          <input
+            value={form.address}
+            onChange={(e) => set({ address: e.target.value })}
+            placeholder="e.g. 123 Ridge Road, Gatlinburg, TN 37738"
+            maxLength={300}
+            autoComplete="street-address"
+          />
+        </label>
+        <label>
+          {method === "template" ? tr("Your house manual") : tr("House manual")}{" "}
+          <small>{method === "template" ? tr("Optional · overrides the template") : tr("Only content you own")}</small>
+          <textarea
+            value={form.description}
+            onChange={(e) => set({ description: e.target.value })}
+            maxLength={12000}
+            rows={method === "template" ? 4 : 8}
+            placeholder={tr("Paste your arrival details, house rules, and favorite local tips…")}
+          />
+        </label>
+        <div className="notice">
+          {form.description.trim().length > 40
+            ? aiReady
+              ? tr("Our AI will organize your text into guide sections using only what you wrote.")
+              : tr("We’ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as “WI-FI:” for best results.")
+            : method === "template"
+              ? tr("Your template’s sections come ready to edit — just add your codes, times and tips.")
+              : tr("Add a template or paste a manual to pre-fill your sections. You can also start from scratch.")}
+        </div>
+        {error && <p className="error-text">{error}</p>}
+        <button className="button" disabled={creating || (method === "template" && !templateId)}>
+          {creating ? <LoaderCircle size={16} className="spin" /> : <Sparkles size={16} />}
+          {creating ? tr("Building your guide…") : tr("Create my guide")}
+        </button>
+      </form>
+    </Modal>
+  );
 }

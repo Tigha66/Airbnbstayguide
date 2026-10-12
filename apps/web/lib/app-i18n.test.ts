@@ -20,6 +20,10 @@ const dynamicKeys = [
   "Wi-Fi & getting connected", "Check-in & arrival", "Local recommendations", "Check-out details",
   "pending", "approved", "declined", "paid", "refunded",
   "past due", "trialing", "canceled", "unpaid",
+  // Starter template names & taglines (passed to tr() via template objects)
+  "Apartment", "Villa", "Cabin", "City flat", "Beach house", "Hotel room",
+  "A city apartment or condo", "A larger home, often with a pool", "A cosy retreat in nature",
+  "A compact place, close to transit", "Sun, sand and the sea", "A room, suite or aparthotel",
 ];
 
 describe("host app translations", () => {

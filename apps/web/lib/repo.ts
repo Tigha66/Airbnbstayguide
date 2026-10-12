@@ -86,6 +86,7 @@ export async function createProperty(
   owner: User,
   input: { name: string; location: string; address?: string; description: string },
   aiSections?: Property["sections"],
+  templateSections?: Property["sections"],
 ) {
   const [{ count }] = await query<{ count: string | number }>(
     `SELECT count(*) AS count FROM properties WHERE owner_id = $1`,
@@ -94,7 +95,13 @@ export async function createProperty(
   const limit = plans[owner.plan]?.properties ?? 1;
   if (Number(count) >= limit) throw new LimitError(`Your ${plans[owner.plan].name} plan includes ${limit} propert${limit === 1 ? "y" : "ies"}.`);
   const manual = input.description.trim();
-  const sections = aiSections?.length ? aiSections : manual ? parseManual(manual) : [];
+  const sections = aiSections?.length
+    ? aiSections
+    : manual
+      ? parseManual(manual)
+      : templateSections?.length
+        ? templateSections
+        : [];
   const wifi = extractWifi(manual);
   const id = crypto.randomUUID();
   const slug = slugify(input.name);

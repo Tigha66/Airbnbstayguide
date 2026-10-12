@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { propertySchema } from "@stayguide/shared";
+import { z } from "zod";
+import { propertySchema, sectionSchema } from "@stayguide/shared";
 import { requireHost } from "@/lib/session";
 import { createProperty, listProperties, LimitError } from "@/lib/repo";
 import { syncSubscriptionQuantity } from "@/lib/billing";
@@ -11,13 +12,17 @@ export async function GET() {
   if ("response" in host) return host.response;
   return NextResponse.json({ properties: await listProperties(host.user.id) });
 }
+const createSchema = propertySchema.extend({
+  /** Optional starter-template sections, used when no house manual is pasted. */
+  sections: z.array(sectionSchema).max(30).optional(),
+});
 export async function POST(request: Request) {
   if (!safeOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   const host = await requireHost();
   if ("response" in host) return host.response;
   let input;
   try {
-    input = propertySchema.parse(parseJson(await request.text()));
+    input = createSchema.parse(parseJson(await request.text()));
   } catch {
     return NextResponse.json({ error: "Please check the property name and location." }, { status: 400 });
   }
@@ -30,7 +35,7 @@ export async function POST(request: Request) {
     }
   }
   try {
-    const property = await createProperty(host.user, input, sections);
+    const property = await createProperty(host.user, input, sections, input.sections);
     await syncSubscriptionQuantity(host.user.id);
     return NextResponse.json({ property, ai: Boolean(sections?.length) }, { status: 201 });
   } catch (e) {

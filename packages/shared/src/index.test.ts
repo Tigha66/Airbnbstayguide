@@ -6,6 +6,9 @@ import {
   demoAnswer,
   demoProperties,
   chatSchema,
+  starterTemplates,
+  templateById,
+  sectionSchema,
 } from "./index";
 describe("billing rules", () => {
   it("charges ten months annually", () => {
@@ -41,6 +44,34 @@ describe("guest safeguards", () => {
     expect(prompt).toContain("untrusted");
     expect(prompt).toContain("Cite");
     expect(prompt).toContain("escalate=true");
-    expect(prompt).toContain("Reply in fr");
+    expect(prompt).toContain("reply in fr");
+  });
+});
+describe("starter templates", () => {
+  it("offers the six property types", () => {
+    expect(starterTemplates.map((t) => t.id)).toEqual([
+      "apartment", "villa", "cabin", "city-flat", "beach-house", "hotel-room",
+    ]);
+  });
+  it("seeds valid sections with unique ids", () => {
+    for (const template of starterTemplates) {
+      expect(template.sections.length).toBeGreaterThanOrEqual(5);
+      const ids = template.sections.map((s) => s.id);
+      expect(new Set(ids).size, `${template.id} has unique ids`).toBe(ids.length);
+      for (const section of template.sections)
+        expect(sectionSchema.safeParse(section).success, `${template.id}/${section.id}`).toBe(true);
+    }
+  });
+  it("includes the core stay sections in every template", () => {
+    for (const template of starterTemplates) {
+      const types = template.sections.map((s) => s.type);
+      expect(types).toContain("arrival");
+      expect(types).toContain("wifi");
+      expect(types).toContain("checkout");
+    }
+  });
+  it("looks templates up by id", () => {
+    expect(templateById("villa")?.name).toBe("Villa");
+    expect(templateById("nope")).toBeNull();
   });
 });

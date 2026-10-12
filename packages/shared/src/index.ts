@@ -183,6 +183,63 @@ export const sections: Section[] = [
     body: "Start your morning with a pastel de nata and an espresso at a neighborhood café. Wander the old town on foot, then make time for sunset by the water.\n\nOur favorite kind of day: a slow breakfast, a walk through the gardens, and dinner on a terrace. Ask your host for current restaurant recommendations and opening hours.",
   },
 ];
+/**
+ * Starter guide templates offered during onboarding. Each one seeds a property type with
+ * warm, pre-structured sections the host fills in (bracketed [prompts] mark what to replace).
+ * `name` and `tagline` are shown in the picker and translated in the UI; section bodies are
+ * guide content the host edits, so they stay in English until the host rewrites them.
+ */
+export type StarterTemplate = {
+  id: string;
+  name: string;
+  tagline: string;
+  icon: string;
+  sections: Section[];
+};
+type SectionSeed = Omit<Section, "id">;
+const seed: Record<string, SectionSeed> = {
+  welcome: { type: "welcome", title: "A warm welcome", icon: "book", body: "Welcome! We’re so happy to have you. This guide has everything you need for a relaxed, easy stay — arrival, Wi-Fi, the little how-tos and our favourite local spots.\n\nIf anything is ever unclear, message us any time. Make yourself at home." },
+  arrival: { type: "arrival", title: "A lovely arrival", icon: "key", body: "**Check-in:** from [3:00 PM]\n\n**Getting in:** [Describe how to find the entrance and get inside — door code, lockbox location, or key handover.]\n\nTell us your estimated arrival time so everything is ready for you. Arriving early? [Let us know — we’ll do our best.]" },
+  frontdesk: { type: "arrival", title: "Check-in & front desk", icon: "key", body: "**Check-in:** from [3:00 PM] at the front desk\n\n**Reaching us:** The front desk is open [24 hours]. Dial [0] from your room phone or call [+1 000 000 0000] for anything at all — extra towels, recommendations, a wake-up call.\n\nPlease have [photo ID and your booking reference] ready at check-in." },
+  wifi: { type: "wifi", title: "Get connected", icon: "wifi", body: "**Network:** [your Wi-Fi name]\n**Password:** [your Wi-Fi password]\n\nYou’ll also find these on the card by the [entryway]. If the connection drops, unplug the router for 30 seconds and plug it back in." },
+  rules: { type: "rules", title: "A little house etiquette", icon: "heart", body: "A few small things keep this a lovely place for everyone:\n\n- Quiet hours [10:00 PM – 8:00 AM]\n- No smoking indoors\n- No parties or unregistered overnight guests\n- [Pets: welcome only with prior approval]\n- [Please remove shoes indoors]" },
+  checkout: { type: "checkout", title: "Until next time", icon: "sun", body: "**Checkout:** by [11:00 AM]\n\nBefore you go, if you have a moment:\n- Load any used dishes in the dishwasher\n- Leave used towels in the bathroom\n- Close the windows and lock the door\n- [Leave the keys in the lockbox]\n\nThank you for staying with us — safe travels!" },
+  appliances: { type: "appliances", title: "The comforts of home", icon: "coffee", body: "**Coffee:** [How the coffee machine works, where the capsules/beans are.]\n\n**Heating / AC:** [How to use the controls, a comfortable setting.]\n\n**Kitchen & laundry:** [Dishwasher, washer, anything with a knack to it.]" },
+  amenities: { type: "appliances", title: "In your room", icon: "coffee", body: "**TV & entertainment:** [How to turn it on, log in to streaming, change inputs.]\n\n**Climate:** [Thermostat or AC remote — a comfortable setting.]\n\n**Also here:** [Safe, minibar, kettle, hairdryer, iron — quick how-tos.]" },
+  parking: { type: "parking", title: "Where to park", icon: "car", body: "[Where to leave the car — an assigned spot, street rules and permit times, or the garage code. Note anything tight or easy to miss.]" },
+  trash: { type: "trash", title: "Trash & recycling", icon: "leaf", body: "[Which bins are which, where they live, and collection days. Note any recycling or food-waste rules so nothing gets a fine.]" },
+  local: { type: "local", title: "Live like a local", icon: "map", body: "**Our favourite nearby spots:**\n- Coffee: [a place you love]\n- Dinner: [somewhere special]\n- A walk or a view: [where you’d send a friend]\n\nAsk us any time for a personal recommendation." },
+  building: { type: "custom", title: "The building", icon: "book", body: "[Floor and apartment number, elevator, buzzer/intercom, mailbox, and any shared areas or quirks — a door that sticks, a light switch that hides.]" },
+  pool: { type: "custom", title: "The pool", icon: "leaf", body: "**Pool hours:** [when it’s open]\n\n[How the cover or heating works, depth, and any rules.] Children must be supervised at all times. Please no glass near the water." },
+  outdoor: { type: "custom", title: "Garden & terrace", icon: "leaf", body: "[The garden, terrace, loungers and BBQ — how to use them and leave them tidy. Note anything about watering, gates, or closing the parasol in wind.]" },
+  heating: { type: "custom", title: "Wood stove & heat", icon: "shield", body: "**Staying warm:** [How to light the wood stove, where the firewood and kindling are, and how the thermostat works.]\n\nNever leave a fire unattended, and let embers die down fully before you leave." },
+  nature: { type: "custom", title: "The great outdoors", icon: "leaf", body: "[Trails from the door, the nearest town, fuel and groceries, phone signal, and how to store food so it stays yours and not the wildlife’s.]\n\nIn an emergency, call [112]." },
+  transport: { type: "custom", title: "Getting around", icon: "map", body: "**Nearest stops:** [metro / bus / tram and the lines that help]\n\n[How to buy tickets, handy apps, the airport link, and a reliable taxi or ride option at night.]" },
+  beachgear: { type: "custom", title: "Beach kit", icon: "sun", body: "**For the beach:** [Towels, umbrella, chairs and the cooler — where they live.] The nearest beach is [a 5-minute walk].\n\nPlease rinse off the sand and bring everything back so it’s ready for the next guests." },
+  breakfast: { type: "custom", title: "Breakfast", icon: "coffee", body: "**Breakfast:** served [7:00–10:30 AM] in [the dining room].\n\n[What’s included, how to order room service, and options for dietary needs.]" },
+  emergency: { type: "emergency", title: "Here if you need us", icon: "shield", body: "In an emergency, call [112 / your local number]. [Where the first-aid kit and fire extinguisher are, and the nearest hospital or pharmacy.]\n\nFor anything about the property, message us — we’re here to help." },
+};
+function build(ids: string[]): Section[] {
+  const used = new Map<string, number>();
+  return ids.map((key) => {
+    const s = seed[key];
+    const n = (used.get(s.type) ?? 0) + 1;
+    used.set(s.type, n);
+    return { ...s, id: n > 1 ? `${key}` : s.type === "custom" ? key : s.type };
+  });
+}
+export const starterTemplates: StarterTemplate[] = [
+  { id: "apartment", name: "Apartment", tagline: "A city apartment or condo", icon: "building", sections: build(["welcome", "arrival", "building", "wifi", "appliances", "rules", "trash", "checkout", "local"]) },
+  { id: "villa", name: "Villa", tagline: "A larger home, often with a pool", icon: "pool", sections: build(["welcome", "arrival", "wifi", "pool", "outdoor", "parking", "appliances", "rules", "checkout", "local"]) },
+  { id: "cabin", name: "Cabin", tagline: "A cosy retreat in nature", icon: "nature", sections: build(["welcome", "arrival", "wifi", "heating", "nature", "appliances", "rules", "checkout", "local"]) },
+  { id: "city-flat", name: "City flat", tagline: "A compact place, close to transit", icon: "transport", sections: build(["welcome", "arrival", "building", "wifi", "transport", "appliances", "rules", "trash", "checkout", "local"]) },
+  { id: "beach-house", name: "Beach house", tagline: "Sun, sand and the sea", icon: "beach", sections: build(["welcome", "arrival", "wifi", "beachgear", "outdoor", "parking", "rules", "checkout", "local"]) },
+  { id: "hotel-room", name: "Hotel room", tagline: "A room, suite or aparthotel", icon: "hotel", sections: build(["frontdesk", "wifi", "amenities", "breakfast", "rules", "checkout", "local"]) },
+];
+export function templateById(id: string | null | undefined) {
+  return starterTemplates.find((t) => t.id === id) ?? null;
+}
+
 export const demoProperties: Property[] = [
   {
     id: "casa-serena",
