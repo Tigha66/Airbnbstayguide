@@ -4,6 +4,15 @@ import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  DndContext,
+  closestCenter,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import {
   ArrowRight,
   ArrowUpRight,
   ArrowUp,
@@ -88,6 +97,7 @@ import { siteDir, siteText } from "@/lib/site-i18n";
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
+import { TemplateLibrary } from "./template-library";
 const nav = [
   ["", "Overview", Home],
   ["properties", "Properties", BookOpen],
@@ -129,7 +139,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
     void initLive();
   }, []);
   const [mobile, setMobile] = useState(false);
-  const [modal, setModal] = useState<"property" | "extra" | null>(null);
+  const [modal, setModal] = useState<"property" | "extra" | "template" | null>(null);
   const [toast, setToast] = useState("");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -965,55 +975,67 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
               <div className="editor-grid" id="guide-sections">
                 <div className="card section-list">
-                  {property.sections.map((s) => (
-                    <button
-                      draggable
-                      onDragStart={(e) =>
-                        e.dataTransfer.setData("text/plain", s.id)
-                      }
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const id = e.dataTransfer.getData("text/plain");
+                  <DndContext
+                    collisionDetection={closestCenter}
+                    onDragEnd={(event) => {
+                      const { active, over } = event;
+                      if (over && active.id !== over.id) {
                         const items = [...property.sections];
-                        const from = items.findIndex((x) => x.id === id),
-                          to = items.findIndex((x) => x.id === s.id);
-                        if (from >= 0) {
-                          items.splice(to, 0, items.splice(from, 1)[0]);
+                        const from = items.findIndex((x) => x.id === active.id);
+                        const to = items.findIndex((x) => x.id === over.id);
+                        if (from >= 0 && to >= 0) {
+                          [items[from], items[to]] = [items[to], items[from]];
                           saveProperty({ ...property, sections: items });
                         }
-                      }}
-                      className={s.id === currentSection?.id ? "active" : ""}
-                      key={s.id}
-                      onClick={() => setSectionId(s.id)}
-                    >
-                      <GripVertical size={12} />
-                      <GuideIcon name={s.icon} size={15} />
-                      {s.title}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => {
-                      const id = crypto.randomUUID();
-                      saveProperty({
-                        ...property,
-                        sections: [
-                          ...property.sections,
-                          {
-                            id,
-                            type: "custom",
-                            title: tr("A new little detail"),
-                            body: "",
-                            icon: "book",
-                          },
-                        ],
-                      });
-                      setSectionId(id);
+                      }
                     }}
                   >
-                    <Plus size={15} />
-                    {tr("Add section")}
-                  </button>
+                    <SortableContext
+                      items={property.sections.map((s) => s.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {property.sections.map((s) => (
+                        <SortableSectionItem
+                          key={s.id}
+                          section={s}
+                          isActive={s.id === currentSection?.id}
+                          onSelect={() => setSectionId(s.id)}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                  <div style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+                    <button
+                      onClick={() => setModal("template")}
+                      style={{ width: "100%" }}
+                    >
+                      <Plus size={15} />
+                      {tr("Use template")}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const id = crypto.randomUUID();
+                        saveProperty({
+                          ...property,
+                          sections: [
+                            ...property.sections,
+                            {
+                              id,
+                              type: "custom",
+                              title: tr("A new little detail"),
+                              body: "",
+                              icon: "book",
+                            },
+                          ],
+                        });
+                        setSectionId(id);
+                      }}
+                      className="secondary"
+                      style={{ width: "100%" }}
+                    >
+                      {tr("Blank section")}
+                    </button>
+                  </div>
                 </div>
                 <div className="card section-editor">
                   {currentSection && (
@@ -1776,9 +1798,64 @@ export function Dashboard({ view = "" }: { view?: string }) {
           </form>
         </Modal>
       )}
+      {modal === "template" && property && (
+        <TemplateLibrary
+          existingSectionTypes={property.sections.map((s) => s.type)}
+          onInsert={(section) => {
+            saveProperty({
+              ...property,
+              sections: [...property.sections, section],
+            });
+            setSectionId(section.id);
+            close();
+            notify(tr("Section added from template."));
+          }}
+          close={close}
+        />
+      )}
     </div>
   );
 }
+function SortableSectionItem({
+  section,
+  isActive,
+  onSelect,
+}: {
+  section: Section;
+  isActive: boolean;
+  onSelect: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.id });
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <button
+      ref={setNodeRef}
+      style={style}
+      className={isActive ? "active" : ""}
+      onClick={onSelect}
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical size={12} />
+      <GuideIcon name={section.icon} size={15} />
+      {section.title}
+    </button>
+  );
+}
+
 function HeartIcon({ size = 15 }: { size?: number }) {
   return <ShieldCheck size={size} />;
 }

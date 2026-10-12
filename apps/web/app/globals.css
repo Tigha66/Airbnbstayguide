@@ -3643,8 +3643,115 @@ small {
   color: var(--muted);
   margin: 6px 0 2px;
 }
+.template-library-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.template-library-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.template-library-card:hover:not(.added) {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -14px rgb(10 10 10 / 0.4);
+}
+.template-library-card.active {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 2px var(--teal);
+  background: #f0fffe;
+}
+.template-library-card.added {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.template-library-card strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.template-library-card small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+.template-library-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--soft, #eef2ec);
+  color: var(--teal);
+}
+.template-library-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 3px 6px;
+  border-radius: 12px;
+}
+.template-library-preview {
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.preview-header h3 {
+  font-size: 14px;
+  margin: 0;
+}
+.preview-content {
+  max-height: 200px;
+  overflow-y: auto;
+}
+.template-library-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.template-library-actions .button {
+  min-width: 120px;
+}
 @media (max-width: 640px) {
   .template-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .template-library-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   .import-row {

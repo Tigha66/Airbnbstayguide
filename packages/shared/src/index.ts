@@ -63,6 +63,10 @@ export const sectionSchema = z.object({
   title: z.string().min(1).max(120),
   body: z.string().max(20000),
   icon: z.string(),
+  /** 0-based order for drag-and-drop reordering; optional for backwards compatibility. */
+  order: z.number().optional(),
+  /** Media URLs (photos/videos) attached to this section. */
+  media: z.array(z.object({ url: z.string(), type: z.enum(["photo", "video"]) })).optional(),
 });
 export type Section = z.infer<typeof sectionSchema>;
 export type Extra = {
@@ -100,6 +104,16 @@ export function mapsUrl(property: { address?: string; location: string }) {
   const query = property.address?.trim() || property.location;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
+export type Recommendation = {
+  id: string;
+  title: string;
+  type: "restaurant" | "cafe" | "attraction" | "activity";
+  address: string;
+  lat: number;
+  lng: number;
+  description: string;
+};
+
 export type Property = {
   id: string;
   name: string;
@@ -117,6 +131,24 @@ export type Property = {
   hostPhone: string;
   sections: Section[];
   extras: Extra[];
+  /** Local recommendations with map markers. */
+  recommendations?: Recommendation[];
+  /** Reference to workspace template, if created from one. */
+  templateId?: string;
+};
+
+export type WorkspaceTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  sections: Section[];
+  extras: Extra[];
+};
+
+export type WorkspaceBranding = {
+  primaryColor: string;
+  accentColor: string;
+  logoUrl?: string;
 };
 export const sections: Section[] = [
   {
