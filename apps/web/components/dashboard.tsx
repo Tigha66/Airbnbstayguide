@@ -76,6 +76,14 @@ import { siteDir, siteText } from "@/lib/site-i18n";
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
+import { DndSortableSectionList } from "./dnd-sortable-section-list";
+import { TemplatePickerModal } from "./template-picker-modal";
+import { MediaUploadWidget } from "./media-upload-widget";
+import { MapsPlacePicker } from "./maps-place-picker";
+import { DuplicateGuideModal } from "./duplicate-guide-modal";
+import { ShareGuideModal } from "./share-guide-modal";
+import { ExportGuideModal } from "./export-guide-modal";
+import type { SectionTemplate, MediaItem, LocationPoint } from "@stayguide/shared";
 const nav = [
   ["", "Overview", Home],
   ["properties", "Properties", BookOpen],
@@ -118,6 +126,12 @@ export function Dashboard({ view = "" }: { view?: string }) {
   }, []);
   const [mobile, setMobile] = useState(false);
   const [modal, setModal] = useState<"property" | "extra" | null>(null);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showMediaUpload, setShowMediaUpload] = useState(false);
+  const [showMapsEditor, setShowMapsEditor] = useState(false);
   const [toast, setToast] = useState("");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -125,6 +139,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const setSelected = (id: string) => updateDemo({ selectedProperty: id });
   const [sectionId, setSectionId] = useState("arrival");
   const [editPreview, setEditPreview] = useState(false);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [thread, setThread] = useState(threads[0]);
   const [reply, setReply] = useState("");
   const [qr, setQr] = useState("");
@@ -790,6 +805,29 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   <Eye size={15} />
                   {tr("Guest preview")}
                 </Link>
+                <button
+                  className="button secondary"
+                  onClick={() => setShowDuplicateModal(true)}
+                  title={tr("Create a copy of this guide")}
+                >
+                  <Copy size={15} />
+                  {tr("Duplicate")}
+                </button>
+                <button
+                  className="button secondary"
+                  onClick={() => setShowShareModal(true)}
+                  title={tr("Share guide link")}
+                >
+                  {tr("Share")}
+                </button>
+                <button
+                  className="button secondary"
+                  onClick={() => setShowExportModal(true)}
+                  title={tr("Export guide")}
+                >
+                  <Download size={15} />
+                  {tr("Export")}
+                </button>
                 {live && (
                   <button
                     className="button secondary"
@@ -888,55 +926,16 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
               <div className="editor-grid">
                 <div className="card section-list">
-                  {property.sections.map((s) => (
-                    <button
-                      draggable
-                      onDragStart={(e) =>
-                        e.dataTransfer.setData("text/plain", s.id)
-                      }
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const id = e.dataTransfer.getData("text/plain");
-                        const items = [...property.sections];
-                        const from = items.findIndex((x) => x.id === id),
-                          to = items.findIndex((x) => x.id === s.id);
-                        if (from >= 0) {
-                          items.splice(to, 0, items.splice(from, 1)[0]);
-                          saveProperty({ ...property, sections: items });
-                        }
-                      }}
-                      className={s.id === currentSection?.id ? "active" : ""}
-                      key={s.id}
-                      onClick={() => setSectionId(s.id)}
-                    >
-                      <GripVertical size={12} />
-                      <GuideIcon name={s.icon} size={15} />
-                      {s.title}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => {
-                      const id = crypto.randomUUID();
-                      saveProperty({
-                        ...property,
-                        sections: [
-                          ...property.sections,
-                          {
-                            id,
-                            type: "custom",
-                            title: tr("A new little detail"),
-                            body: "",
-                            icon: "book",
-                          },
-                        ],
-                      });
-                      setSectionId(id);
+                  <DndSortableSectionList
+                    sections={property.sections}
+                    onReorder={(reordered) => {
+                      saveProperty({ ...property, sections: reordered });
                     }}
-                  >
-                    <Plus size={15} />
-                    {tr("Add section")}
-                  </button>
+                    onAddSection={() => setShowTemplatePicker(true)}
+                    selectedId={currentSection?.id}
+                    onSelectSection={setSectionId}
+                    tr={tr}
+                  />
                 </div>
                 <div className="card section-editor">
                   {currentSection && (
@@ -1748,6 +1747,72 @@ export function Dashboard({ view = "" }: { view?: string }) {
             </button>
           </form>
         </Modal>
+      )}
+      {showTemplatePicker && (
+        <TemplatePickerModal
+          onSelect={(template: SectionTemplate) => {
+            if (property) {
+              const id = crypto.randomUUID();
+              saveProperty({
+                ...property,
+                sections: [
+                  ...property.sections,
+                  {
+                    id,
+                    type: template.category,
+                    title: template.title,
+                    body: template.body,
+                    icon: template.icon,
+                  },
+                ],
+              });
+              setSectionId(id);
+              setShowTemplatePicker(false);
+            }
+          }}
+          onClose={() => setShowTemplatePicker(false)}
+          tr={tr}
+        />
+      )}
+      {showDuplicateModal && property && (
+        <DuplicateGuideModal
+          propertyName={property.name}
+          onDuplicate={async (newName: string) => {
+            const newProperty: Property = {
+              ...property,
+              id: crypto.randomUUID(),
+              name: newName,
+              slug:
+                newName
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/^-|-$/g, "") +
+                "-" +
+                crypto.randomUUID().slice(0, 6),
+              status: "draft",
+            };
+            saveProperty(newProperty);
+            setSelected(newProperty.id);
+            notify(tr("Guide duplicated. The copy is now in draft."));
+          }}
+          onClose={() => setShowDuplicateModal(false)}
+          tr={tr}
+        />
+      )}
+      {showShareModal && property && (
+        <ShareGuideModal
+          propertySlug={property.slug}
+          propertyName={property.name}
+          onClose={() => setShowShareModal(false)}
+          tr={tr}
+        />
+      )}
+      {showExportModal && property && (
+        <ExportGuideModal
+          propertyName={property.name}
+          onClose={() => setShowExportModal(false)}
+          tr={tr}
+        />
       )}
     </div>
   );
