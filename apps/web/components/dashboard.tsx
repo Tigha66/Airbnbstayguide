@@ -488,7 +488,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </>
             )}
             <AppLanguageMenu compact />
-            <Link href="/demo">
+            <Link href={live && state.properties.length > 0 ? `/g/${state.properties[0].slug}` : "/demo"}>
               {tr("View guest experience")}
               <ArrowUpRight
                 size={12}
