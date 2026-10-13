@@ -3,7 +3,7 @@ import { serviceStatus } from "./status";
 
 vi.mock("@/auth", () => ({ appleConfigured: () => false, authConfigured: () => true, googleConfigured: () => true }));
 vi.mock("./password-login", () => ({ passwordLoginConfigured: () => true }));
-vi.mock("@/lib/ai", () => ({ aiConfigured: () => true }));
+vi.mock("@/lib/ai", () => ({ aiHealthCheck: vi.fn().mockResolvedValue({ ok: true, provider: "test", model: "test-model", detail: "Test provider working" }) }));
 vi.mock("@/lib/db", () => ({ dbConfigured: () => true, query: vi.fn().mockResolvedValue([]) }));
 
 afterEach(() => vi.unstubAllEnvs());

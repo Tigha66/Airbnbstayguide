@@ -1,6 +1,6 @@
 import { appleConfigured, authConfigured, googleConfigured } from "@/auth";
 import { passwordLoginConfigured } from "./password-login";
-import { aiConfigured } from "@/lib/ai";
+import { aiHealthCheck } from "@/lib/ai";
 import { dbConfigured, query } from "@/lib/db";
 import { mailerConfigured } from "@/lib/mailer";
 
@@ -27,6 +27,7 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
   ].filter(Boolean).join(", ");
   const stripe = Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_") && process.env.STRIPE_WEBHOOK_SECRET);
   const mode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_") ? "live" : "test";
+  const aiHealth = await aiHealthCheck();
   return [
     { key: "database", label: "Database (Neon)", ok: dbOk, detail: dbDetail },
     {
@@ -44,8 +45,8 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
     {
       key: "ai",
       label: "AI concierge & guide builder",
-      ok: aiConfigured(),
-      detail: aiConfigured() ? "AI provider configured." : "Needs HF_TOKEN (Hugging Face). Guests get keyword answers from the guide meanwhile.",
+      ok: aiHealth.ok,
+      detail: aiHealth.ok ? `AI provider (${aiHealth.provider}) is responding.` : `Configured but not answering: ${aiHealth.detail}`,
     },
     {
       key: "payments",
