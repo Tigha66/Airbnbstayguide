@@ -26,12 +26,10 @@ describe("host app translations", () => {
   it("finds the translated texts in the app", () => {
     expect(usedKeys().size).toBeGreaterThan(250);
   });
-  it("has French, Spanish, German and Arabic for every text in the dashboard and sign-in page", () => {
+  it.each(Object.entries(appDictionaries))("has %s for every text in the dashboard and sign-in page", (locale, dict) => {
     const keys = [...usedKeys(), ...dynamicKeys];
-    for (const [locale, dict] of Object.entries(appDictionaries)) {
-      const missing = keys.filter((k) => !dict[k]?.trim());
-      expect(missing, `${locale} is missing`).toEqual([]);
-    }
+    const missing = keys.filter((k) => !dict[k]?.trim());
+    expect(missing, `${locale} is missing`).toEqual([]);
   });
   it("keeps every {placeholder} in the translations", () => {
     for (const [locale, dict] of Object.entries(appDictionaries))
