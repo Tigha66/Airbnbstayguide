@@ -11,6 +11,7 @@ import {
   BarChart3,
   Bell,
   BookOpen,
+  Building,
   CalendarDays,
   Check,
   CheckCheck,
@@ -78,6 +79,7 @@ import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
 import { Modal } from "./modal";
 const nav = [
   ["", "Overview", Home],
+  ["organizations", "Organizations", Building],
   ["properties", "Properties", BookOpen],
   ["inbox", "Guest inbox", MessageCircle],
   ["extras", "Extras & upsells", Gift],

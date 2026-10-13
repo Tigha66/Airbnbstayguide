@@ -271,7 +271,7 @@ export function demoAnswer(property: Property, message: string, language = "en")
     [/wifi|wi-fi|wlan|internet|password|mot de passe|contraseña|passwort|senha|wachtwoord|واي ?فاي|الإنترنت|كلمة (ال)?مرور|كلمة السر/, "wifi"],
     [/check.?out|leave|leaving|départ|depart|partir|salida|abreise|partenza|saída|vertrek|المغادرة|مغادرة|الخروج/, "checkout"],
     [/check.?in|arriv|door|key|clé|porte|llave|puerta|llegada|schlüssel|tür|ankunft|chiav|chave|chegada|sleutel|aankomst|الوصول|المفتاح|مفتاح|الباب|الدخول/, "arrival"],
-    [/park|car space|garer|stationnement|aparcar|estacion|parcheggi|parkeren|ركن|موقف|السيارة|سيارة/, "parking"],
+    [/park|car space|garer|stationnement|aparcar|estacionar|parcheggi|parkeren|ركن|موقف|السيارة|سيارة/, "parking"],
     [/coffee|washer|wash|air con|appliance|machine|lave|cafetière|cafetera|kaffee|lavadora|waschmaschine|lavatrice|máquina|القهوة|قهوة|الغسالة|غسالة|المكيف|آلة/, "appliances"],
     [/trash|rubbish|recycl|bin|poubelle|déchet|basura|müll|spazzatura|rifiuti|lixo|afval|القمامة|النفايات|الزبالة/, "trash"],
     [/quiet|rule|smok|\bpets?\b|party|règle|fumer|fête|bruit|regla|fumar|fiesta|regel|rauchen|regol|fumare|festa|roken|قواعد|القواعد|التدخين|تدخين|حفلة|حيوان/, "rules"],
@@ -320,4 +320,47 @@ export function createApiClient(
     if (!response.ok) throw new Error(data.error ?? "Request failed");
     return data as T;
   };
+}
+
+/* ---- Organization / team-collaboration types (Phase 4) ---- */
+export const organizationRoles = ["owner", "manager", "cleaner", "viewer"] as const;
+export type OrganizationRole = (typeof organizationRoles)[number];
+export type OrganizationRoles = OrganizationRole;
+export interface Activity {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  action: string;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+export interface ActivityLog extends Activity {}
+export interface Organization {
+  id: string;
+  name: string;
+  plan: Plan;
+  status: "active" | "suspended";
+  created_by: string;
+  stripe_connect_id?: string;
+  custom_domain?: string;
+  branding: Record<string, unknown>;
+  created_at: string;
+  updated_at?: string;
+}
+export interface OrganizationMember {
+  organization_id: string;
+  user_id: string;
+  role: OrganizationRole;
+  joined_at: string;
+  left_at: string | null;
+}
+export interface OrganizationInvitation {
+  id: string;
+  organization_id: string;
+  email: string;
+  role: OrganizationRole;
+  token: string;
+  expires_at: string;
+  created_at: string;
+  used_at: string | null;
 }
