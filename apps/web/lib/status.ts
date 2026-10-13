@@ -2,6 +2,7 @@ import { appleConfigured, authConfigured, googleConfigured } from "@/auth";
 import { passwordLoginConfigured } from "./password-login";
 import { aiConfigured } from "@/lib/ai";
 import { dbConfigured, query } from "@/lib/db";
+import { mailerConfigured } from "@/lib/mailer";
 
 export type ServiceStatus = { key: string; label: string; ok: boolean; detail: string };
 
@@ -33,6 +34,12 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       label: "Host accounts",
       ok: auth,
       detail: auth ? `Hosts can sign in with ${authProviders}.` : "Needs AUTH_SECRET, at least one login provider, and a working database.",
+    },
+    {
+      key: "email",
+      label: "Account email",
+      ok: mailerConfigured(),
+      detail: mailerConfigured() ? "Email provider configured; delivery has not been verified." : "Verification and password reset emails need RESEND_API_KEY and EMAIL_FROM (or RESEND_FROM).",
     },
     {
       key: "ai",
