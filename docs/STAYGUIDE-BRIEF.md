@@ -100,6 +100,15 @@ StayGuide **does not connect to the Airbnb account** (Airbnb only opens its API 
 3. The same link goes into **Booking.com and Vrbo messages**, the host's **website**, **WhatsApp** and the **QR card** in the property.
 4. Every guest receives the guide automatically. **One guide works for every booking channel.**
 
+StayGuide now has a public **/integrations** directory that documents the breadth honestly:
+
+- **Live:** durable guest links, QR cards, host inbox escalation, Stripe Checkout, Stripe Connect and Google sign-in.
+- **Setup guide:** Airbnb, Booking.com, Vrbo, direct booking sites, WhatsApp, SMS and email templates.
+- **Onboarding:** property-manager setup paths for Guesty, Hostaway, Lodgify, Hostfully PMS, OwnerRez and Smoobu.
+- **Planned:** iCal calendar awareness, Zapier and customer-facing public webhooks.
+
+Do not describe an integration as native account sync unless the integration page marks it **Live**.
+
 ---
 
 ## 5. Pricing and how the business makes money
@@ -281,7 +290,7 @@ LOCAL TIPS: Best pastel de nata: Manteigaria (5 min walk). Sunset: Miradouro de 
 | Personal done-for-you setup | — | — | Paid onboarding | Rarely | **Yes (founder)** |
 
 ### Honest limitations today
-- No booking sync with Airbnb or a PMS (the host pastes the link once).
+- No native booking sync with Airbnb, Booking.com, Vrbo or a PMS yet; current channel/PMS coverage is link, template and onboarding based.
 - One Google login per account (no team or agency access yet).
 - No guest ID verification, smart-lock integration, cleaning management, or booking-date-based upsell automation.
 - Google sign-in is in **testing mode** until the Google app is published (only added test users can sign in).
@@ -454,7 +463,7 @@ Pour ne plus recevoir d'e-mails, répondez « non ».
 - **AI:** configurable provider for the concierge and guide builder; keyword search fallback if AI is unavailable.
 - **Payments:** **Stripe** (Checkout subscriptions, Customer Portal, Connect Express for extras with a 5% application fee, webhooks for plan sync). Live mode.
 - **Guest guide:** installable PWA with a service worker for offline use.
-- **Other pages:** landing page, pricing, demo, blog (3 SEO articles), terms, privacy, status.
+- **Other pages:** landing page, integrations, pricing, demo, blog (3 SEO articles), terms, privacy, status.
 - **Code:** private GitHub repository `Tigha66/Airbnbstayguide`.
 
 ## 17. Planned improvements (not built yet)
@@ -462,4 +471,4 @@ Pour ne plus recevoir d'e-mails, répondez « non ».
 2. **Agency / team mode** so one person can manage many clients' guides.
 3. Custom domain and French version of the website.
 4. Customer intake form built into the app.
-5. Integrations with PMS tools to send the guide link automatically.
+5. Native PMS integrations that send the guide link automatically, prioritized from paying-customer demand.

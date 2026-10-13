@@ -79,6 +79,7 @@ export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
       <Logo href={base || "/"} />
       <nav id="site-menu">
         <Link href={`${base}/#how-it-works`} onClick={close}>{t.howItWorks}</Link>
+        <Link href="/integrations" onClick={close}>{t.integrations}</Link>
         <Link href={`${base}/pricing`} onClick={close}>{t.pricing}</Link>
         <Link href="/demo" onClick={close}>{t.demo}</Link>
         <Link href="/login" onClick={close}>{t.login}</Link>
@@ -103,12 +104,14 @@ export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
 }
 
 export function MarketingFooter({ locale = "en" }: { locale?: SiteLocale }) {
-  const t = siteText(locale).footer;
+  const all = siteText(locale);
+  const t = all.footer;
   return (
     <footer className="marketing-footer">
       <Logo />
       <span>{t.tagline}</span>
       <nav>
+        <Link href="/integrations">{all.nav.integrations}</Link>
         <Link href="/blog">{t.journal}</Link>
         <Link href="/legal/privacy">{t.privacy}</Link>
         <Link href="/legal/terms">{t.terms}</Link>

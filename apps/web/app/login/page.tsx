@@ -29,7 +29,7 @@ export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; email?: string; mode?: string; created?: string }>;
+  searchParams: Promise<{ error?: string; email?: string; mode?: string; created?: string; verification?: string }>;
 }) {
   const configured = authConfigured();
   if (configured && (await auth())?.user) redirect("/dashboard");
@@ -47,17 +47,18 @@ export default async function Page({
     "use server";
     const emailInput = formData.get("email");
     let user: Awaited<ReturnType<typeof registerPasswordUser>>;
+    let verificationSent = false;
     try {
       user = await registerPasswordUser({ email: emailInput, name: formData.get("name"), password: formData.get("password") });
       try {
-        await sendVerificationEmail({ userId: user.id, email: user.email, origin: originFromHeaders(await headers()) });
+        verificationSent = await sendVerificationEmail({ userId: user.id, email: user.email, origin: originFromHeaders(await headers()) });
       } catch (error) {
         console.error("[auth] verification email failed", error);
       }
     } catch {
       loginRedirect(emailInput, "registration", true);
     }
-    redirect(`/login?email=${encodeURIComponent(String(emailInput ?? ""))}&created=1`);
+    redirect(`/login?email=${encodeURIComponent(String(emailInput ?? ""))}&created=1&verification=${verificationSent ? "sent" : "unavailable"}`);
   }
   async function password(formData: FormData) {
     "use server";
@@ -82,6 +83,7 @@ export default async function Page({
       email={params.email}
       register={params.mode === "register"}
       created={params.created === "1"}
+      verificationSent={params.verification === "sent"}
       googleAction={google}
       appleAction={apple}
       registerAction={register}

@@ -1,5 +1,8 @@
 # Email and password accounts
 
+For the hosting, sender-domain and deployment steps, see
+[Finish production configuration](PRODUCTION-SETUP.md).
+
 The login page now offers Create account (name, email, password) and Sign in
 (email, password), alongside the existing Google option. Passwords must be 12-128 characters and are stored as
 salted scrypt hashes, never plaintext. Sign-in attempts are rate limited.

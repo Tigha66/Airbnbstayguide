@@ -34,6 +34,7 @@ export function Login({
   email,
   register = false,
   created = false,
+  verificationSent = false,
   googleAction,
   appleAction,
   registerAction,
@@ -47,6 +48,7 @@ export function Login({
   email?: string;
   register?: boolean;
   created?: boolean;
+  verificationSent?: boolean;
   googleAction: () => Promise<void>;
   appleAction: () => Promise<void>;
   registerAction: (formData: FormData) => Promise<void>;
@@ -122,7 +124,7 @@ export function Login({
                 <input id="login-email" name="email" type="email" required maxLength={254} autoComplete="email" defaultValue={email ?? ""} placeholder="you@example.com" />
                 <label htmlFor="login-password">{tr("Password")}</label>
                 <input id="login-password" name="password" type="password" required minLength={12} maxLength={128} autoComplete={register ? "new-password" : "current-password"} aria-describedby={register ? "password-hint" : undefined} />
-                {register && <small id="password-hint">{tr("Use 12 to 128 characters. We’ll email you a verification link after signup.")}</small>}
+                {register && <small id="password-hint">{tr("Use 12 to 128 characters.")}</small>}
                 <button className="button" type="submit">{tr(register ? "Create account" : "Sign in")}</button>
               </form>
               <p className="login-mode-help">
@@ -138,7 +140,9 @@ export function Login({
             {tr("Live accounts are not connected yet. Explore the demo below.")}
           </div>
         )}
-        {created && <div className="notice" role="status">{tr("Account created. Check your email to verify your address, then sign in with your password.")}</div>}
+        {created && <div className="notice" role="status">{verificationSent
+          ? tr("Account created. Check your email to verify your address, then sign in with your password.")
+          : tr("Account created. You can sign in with your password. We couldn’t send a verification email; contact support for help.")}</div>}
         {error && (
           <div className="notice" role="alert">
             {loginErrorMessage(tr, error)}
