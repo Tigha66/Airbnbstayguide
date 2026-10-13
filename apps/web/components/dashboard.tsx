@@ -11,6 +11,7 @@ import {
   BarChart3,
   Bell,
   BookOpen,
+  Building,
   CalendarDays,
   Check,
   CheckCheck,
