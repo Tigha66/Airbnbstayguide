@@ -3,12 +3,14 @@ import { ArrowRight, ArrowUpRight, BookOpen, Languages, Leaf, MessageCircle, Shi
 import { demoProperties } from "@stayguide/shared";
 import { MarketingNav, MarketingFooter, Pricing, RoiCalculator } from "./marketing";
 import { guestLanguageChips, siteDir, siteText, type SiteLocale } from "@/lib/site-i18n";
+import { integrationCategories, integrationDisclaimer } from "@/lib/integrations";
 
 const pointIcons = [BookOpen, MessageCircle, ShieldCheck];
 
 /** The marketing homepage, in any of the website languages. */
 export function HomePage({ locale }: { locale: SiteLocale }) {
   const t = siteText(locale);
+  const integrations = t.integrationsSection;
   return (
     <div className="marketing" lang={locale} dir={siteDir(locale)}>
       <MarketingNav locale={locale} />
@@ -136,6 +138,34 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
 
         <section className="marketing-section">
           <RoiCalculator locale={locale} />
+        </section>
+        <section className="marketing-band">
+          <div className="marketing-section integrations-preview">
+            <div>
+              <div className="eyebrow">{integrations.eyebrow}</div>
+              <h2>{integrations.title}</h2>
+              <p className="muted">{integrations.body}</p>
+              <Link className="button secondary" href="/integrations">
+                {integrations.cta}
+                <ArrowRight size={15} />
+              </Link>
+            </div>
+            <div className="integrations-preview-grid">
+              {integrationCategories.slice(0, 4).map((category) => {
+                const Icon = category.icon;
+                return (
+                  <div className="integration-preview-card" key={category.title}>
+                    <span className="stat-icon">
+                      <Icon size={17} />
+                    </span>
+                    <strong>{category.title}</strong>
+                    <p>{category.integrations.map((integration) => integration.name).slice(0, 3).join(", ")}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <small>{integrationDisclaimer}</small>
+          </div>
         </section>
         <section className="marketing-section center">
           <div className="eyebrow">{t.pricingSection.eyebrow}</div>

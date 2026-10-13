@@ -69,12 +69,13 @@
 - **Extras & upsells:** manage extras; guest requests with *Approve & charge / Decline & release / Refund / Mark as paid*
 - **Analytics:** views, questions, AI resolution rate, top questions, extras revenue, AI usage
 - **Share kit:** guest link, printable QR card, Airbnb welcome-message template
+- **Integration directory:** public `/integrations` page covering live integrations, channel setup guides, PMS onboarding paths and the native automation roadmap
 - **Plans & billing:** choose Starter/Pro (Stripe Checkout), Manage billing (Stripe Customer Portal), **Set up payouts** (Stripe Connect Express onboarding + Express dashboard link)
 - Settings, dark mode, account deletion
 - Without sign-in the dashboard runs as a browser-only demo (data saved in localStorage)
 
 ### Marketing site
-- `/` landing (hero with phone mockup, problem, how it works, features, extras ROI calculator, pricing slider, FAQ, CTA), `/pricing`, `/demo`, `/blog` (Airbnb welcome book template, Airbnb house manual, Increase Airbnb revenue with upsells), `/legal/terms`, `/legal/privacy`, SEO metadata, sitemap, robots
+- `/` landing (hero with phone mockup, problem, how it works, integrations preview, features, extras ROI calculator, pricing slider, FAQ, CTA), `/integrations`, `/pricing`, `/demo`, `/blog` (Airbnb welcome book template, Airbnb house manual, Increase Airbnb revenue with upsells), `/legal/terms`, `/legal/privacy`, SEO metadata, sitemap, robots
 
 ## Architecture
 
