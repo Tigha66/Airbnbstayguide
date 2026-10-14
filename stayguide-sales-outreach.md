@@ -4,13 +4,13 @@ Prepared 2026-10-14. Goal: sell software subscriptions to US vacation rental ope
 
 ## Actual outreach status
 
-Five personalized Gmail drafts created successfully. ZERO prospect emails sent. Sender: abdelhaktirha@gmail.com. Reply-To: hello@getstayguide.com (normalized the extra leading @ in the request; mailbox delivery is not verified).
+Five personalized proposals sent through Gmail on 2026-10-14. Gmail returned SENT for all five messages. Sender: abdelhaktirha@gmail.com. Reply-To: hello@getstayguide.com (user confirmed this mailbox receives replies). Sending does not establish delivery, readership or sales.
 
-Blocked on the sender's valid business postal address. Every draft contains an explicit placeholder that must be replaced before sending. Confirm the reply mailbox receives mail. Public contact listings establish potential fit, not buying intent or consent; deliverability has not been tested.
+The user supplied a complete postal address, which was added to every email footer. The private address is intentionally omitted from this repository; copies below are redacted. Public contact listings establish potential fit, not buying intent or consent. No follow-ups or automated monitoring are scheduled.
 
 The FTC states commercial email, including B2B messages, must contain a valid postal address, clear advertising identification and an opt-out mechanism. Honor opt-outs within 10 business days and maintain the mechanism for at least 30 days. Source: https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business
 
-## Prospects and personalized drafts
+## Prospects and sent proposals (address redacted)
 
 ### 1. Inspired Getaway
 
@@ -18,7 +18,8 @@ The FTC states commercial email, including B2B messages, must contain a valid po
 - First-party source: https://inspiredgetaway.com/about-us/
 - Fit: Your focus on individualized care for Asheville vacation homes caught my attention.
 - Gmail draft ID: r-7369344956398615358
-- Status: draft; not sent; no follow-up scheduled.
+- Status: sent; no follow-up scheduled.
+- Gmail sent message ID: 1a13c925eb9be241
 
 Subject: StayGuide proposal for Inspired Getaway
 
@@ -37,7 +38,7 @@ Abdelhak Tirha
 StayGuide | hello@getstayguide.com
 
 Commercial outreach from StayGuide.
-[BUSINESS POSTAL ADDRESS REQUIRED BEFORE SENDING]
+[POSTAL ADDRESS OMITTED FROM REPOSITORY; INCLUDED IN SENT EMAIL]
 If you prefer no further marketing emails from me, reply "no thanks" and I'll stop.
 
 ### 2. Hospiti
@@ -46,7 +47,8 @@ If you prefer no further marketing emails from me, reply "no thanks" and I'll st
 - First-party source: https://www.hospiti.co/
 - Fit: I saw that your team handles around-the-clock guest communication in Sevierville and New Orleans.
 - Gmail draft ID: r624594397057901684
-- Status: draft; not sent; no follow-up scheduled.
+- Status: sent; no follow-up scheduled.
+- Gmail sent message ID: 1a13c92607ba0b5b
 
 Subject: A guest-guide proposal for Hospiti
 
@@ -65,7 +67,7 @@ Abdelhak Tirha
 StayGuide | hello@getstayguide.com
 
 Commercial outreach from StayGuide.
-[BUSINESS POSTAL ADDRESS REQUIRED BEFORE SENDING]
+[POSTAL ADDRESS OMITTED FROM REPOSITORY; INCLUDED IN SENT EMAIL]
 If you prefer no further marketing emails from me, reply "no thanks" and I'll stop.
 
 ### 3. Martindale Hospitality
@@ -74,7 +76,8 @@ If you prefer no further marketing emails from me, reply "no thanks" and I'll st
 - First-party source: https://www.martindalehospitality.com/contact.html
 - Fit: I came across your boutique vacation rental management service in West Florida.
 - Gmail draft ID: r592612993276675991
-- Status: draft; not sent; no follow-up scheduled.
+- Status: sent; no follow-up scheduled.
+- Gmail sent message ID: 1a13c926580ea419
 
 Subject: StayGuide for your West Florida vacation rentals
 
@@ -93,7 +96,7 @@ Abdelhak Tirha
 StayGuide | hello@getstayguide.com
 
 Commercial outreach from StayGuide.
-[BUSINESS POSTAL ADDRESS REQUIRED BEFORE SENDING]
+[POSTAL ADDRESS OMITTED FROM REPOSITORY; INCLUDED IN SENT EMAIL]
 If you prefer no further marketing emails from me, reply "no thanks" and I'll stop.
 
 ### 4. Towns Property
@@ -102,7 +105,8 @@ If you prefer no further marketing emails from me, reply "no thanks" and I'll st
 - First-party source: https://townsproperty.com/about/contact-us/
 - Fit: Your website highlights around-the-clock support for vacation rental guests in Asheville.
 - Gmail draft ID: r-8876570710858654156
-- Status: draft; not sent; no follow-up scheduled.
+- Status: sent; no follow-up scheduled.
+- Gmail sent message ID: 1a13c926d9a1b132
 
 Subject: A digital guest-guide proposal for Towns Property
 
@@ -121,7 +125,7 @@ Abdelhak Tirha
 StayGuide | hello@getstayguide.com
 
 Commercial outreach from StayGuide.
-[BUSINESS POSTAL ADDRESS REQUIRED BEFORE SENDING]
+[POSTAL ADDRESS OMITTED FROM REPOSITORY; INCLUDED IN SENT EMAIL]
 If you prefer no further marketing emails from me, reply "no thanks" and I'll stop.
 
 ### 5. Moonrise Peak
@@ -130,7 +134,8 @@ If you prefer no further marketing emails from me, reply "no thanks" and I'll st
 - First-party source: https://www.moonrisepeak.com/contact/
 - Fit: I noticed that your Asheville team offers both vacation rentals and concierge services.
 - Gmail draft ID: r-735309388442108519
-- Status: draft; not sent; no follow-up scheduled.
+- Status: sent; no follow-up scheduled.
+- Gmail sent message ID: 1a13c92707bacaab
 
 Subject: StayGuide proposal for Moonrise Peak
 
@@ -149,7 +154,7 @@ Abdelhak Tirha
 StayGuide | hello@getstayguide.com
 
 Commercial outreach from StayGuide.
-[BUSINESS POSTAL ADDRESS REQUIRED BEFORE SENDING]
+[POSTAL ADDRESS OMITTED FROM REPOSITORY; INCLUDED IN SENT EMAIL]
 If you prefer no further marketing emails from me, reply "no thanks" and I'll stop.
 
 ## Conversion and Stripe
@@ -172,8 +177,8 @@ The existing stayguide-promo-kit.md contains unsubstantiated first-person proper
 
 ## Suggested next actions
 
-1. Replace the postal-address placeholder and confirm hello@getstayguide.com works.
-2. Send this small initial batch from the connected Gmail account; record actual send IDs and dates, and track replies and opt-outs.
+1. Initial batch completed; see Gmail sent message IDs above.
+2. Track replies and opt-outs in hello@getstayguide.com and delivery failures in the sending Gmail account.
 3. For interested operators, arrange a walkthrough and assess one property before discussing a portfolio subscription.
 4. Direct interested buyers to the app's existing billing flow; confirm actual successful subscriptions and payouts in Stripe.
 5. Measure replies, walkthroughs, activated properties and paid subscriptions. Do not claim email delivery, revenue or sales merely because a draft exists.
