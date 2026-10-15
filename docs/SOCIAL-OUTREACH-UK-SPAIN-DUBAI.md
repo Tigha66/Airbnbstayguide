@@ -1,5 +1,23 @@
 # Community & social outreach tracker — UK, Spain, Dubai (UAE)
 
+## Recorded activity — 15 October 2026
+
+This dated ledger supersedes the initial blank status cells below. Full messages,
+contact sources and Gmail send IDs: [send report](UK-SPAIN-DUBAI-SENT-2026-10-15.md).
+
+| Entry | Channel | Status |
+|---|---|---|
+| Hospitality Community / Boostly (UK #3) | Email to info@boostly.co.uk | Approval/partnership inquiry SENT; permission pending |
+| FEVITUR (Spain #1) | Prior Spanish email | Already sent; not duplicated |
+| APARTUR (Spain #2) | Spanish email to info@apartur.com | Collaboration inquiry SENT; permission pending |
+| Veïns i Amfitrions (Spain #6) | Spanish email to info@veinsiamfitrions.org | Resource inquiry SENT; permission pending |
+| Dubai property-manager category (#5) | Email to DGS Holiday Homes, info@dgsdubai.com | Walkthrough proposal SENT; response pending |
+| Remaining Facebook, Reddit, forum and LinkedIn entries | No connected posting tools / no verified organizer contact | Not posted or messaged in this batch |
+| DTCM and r/UKPersonalFinance | Not suitable for generic promotion | Not contacted |
+
+SENT confirms Gmail submission only, not delivery, permission, endorsement or sales.
+No paid commitments, social posts or automated follow-ups were made.
+
 Companion to `SOCIAL-OUTREACH-TRACKER.md` (US). Same rule applies everywhere below: no pitch
 until permission is confirmed (or the community has no self-promo restriction) and you've made
 at least one genuine, non-promotional contribution first. Always disclose
