@@ -1,5 +1,26 @@
 # StayGuide international community outreach
 
+## Gmail verification — 15 October 2026
+
+Re-read all five original Gmail threads and searched all folders for the recipient
+domains. All five originals retain Gmail's SENT label (they also currently carry
+TRASH). The messages were sent on 14 October at approximately 22:52 UTC, less than
+one day before this check. No replies or delivery failures were visible in the
+threads or domain search. No duplicate proposals or same-day reminders were sent.
+The Trash label was left unchanged and does not mean a sent email was recalled.
+
+| Organization | Market | Original email language | Verified state |
+|---|---|---|---|
+| FEVITUR | Spain | Spanish | SENT; no reply visible in Gmail |
+| ALEP | Portugal | European Portuguese | SENT; no reply visible in Gmail |
+| SPLM | France | French | SENT; no reply visible in Gmail |
+| AIGAB | Italy | Italian | SENT; no reply visible in Gmail |
+| ASTRA | Australia and New Zealand | English | SENT; no reply visible in Gmail |
+
+Delivery and interest remain unconfirmed. Replies received exclusively at
+hello@getstayguide.com are not visible through this Gmail connection. No automatic
+follow-up or monitoring has been scheduled.
+
 Five localized partnership inquiries sent covering six countries. ASTRA represents both Australia and New Zealand, so one email covers that association without duplication. These are selected relevant markets, not a researched ranking of the world's largest markets.
 
 Sender: abdelhaktirha@gmail.com. Reply-To: hello@getstayguide.com. Connected sender verified; Gmail search for prior correspondence with these five addresses returned no matches. Gmail returned SENT for all five; receipt, replies, partnerships and revenue are unconfirmed. No fees, membership purchases, sponsorship agreements or automated follow-ups were created.
@@ -147,4 +168,3 @@ Commercial partnership enquiry from StayGuide.
 If you prefer no further marketing emails from me, reply "no thanks" and I'll stop.
 
 ASTRA also explicitly invites partnership enquiries at https://heretostayconference.com/why-2026-is-the-year-of-bold-ideas/. ALEP provides a partnership form; the email requests guidance on the appropriate route and makes no claim that an application was submitted.
-
