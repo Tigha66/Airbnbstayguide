@@ -34,6 +34,8 @@ Extra-payment actions bind the PaymentIntent's app, extra-request ID, amount and
 
 Current local validation: 109 tests, ESLint, type checking and production build pass. No customer charge, refund or production schema change was performed for this follow-up.
 
+`node --import tsx scripts/qa-database-acceptance.mts` also passed against the real isolated Neon `stayguide_qa` database: password authentication, preserved unverified state, concurrent free-plan creation (exactly one accepted), draft privacy, cross-tenant denial, persisted profile/organization and stale extra-request rejection. Credentials are supplied only on stdin; production databases are explicitly refused. Two synthetic hosts, one draft property and one unpaid extra were retained on the expiring QA branch. This backend integration does not certify the signup screen, OAuth, delivery, AI, Stripe or a restore.
+
 `pnpm install --frozen-lockfile --ignore-scripts`, `pnpm --filter @stayguide/web test`, `pnpm --filter @stayguide/web lint`, `pnpm --filter @stayguide/web build`.
 PGlite tests use an isolated database; email delivery is mocked. Source tests/build do not prove inbox delivery, Stripe lifecycle, Connect payouts or deployed browser flows. Restore and provider acceptance remain open.
 
