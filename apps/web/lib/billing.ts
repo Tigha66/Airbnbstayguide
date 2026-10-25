@@ -10,13 +10,15 @@ export async function ensureCustomer(user: User) {
     } catch (error) {
       if (!isMissing(error)) throw error;
     }
+    if (billing.stripeSubscriptionId && !["canceled", "incomplete_expired"].includes(billing.subscriptionStatus ?? ""))
+      throw new Error("Existing subscription could not be verified. Contact support before creating another.");
     await clearStripeCustomer(user.id);
   }
   const customer = await stripeClient().customers.create({
     email: user.email,
     name: user.name ?? undefined,
     metadata: { app: "stayguide", user_id: user.id },
-  });
+  }, { idempotencyKey: "stayguide-customer-" + user.id + "-" + (process.env.STRIPE_SECRET_KEY?.includes("_live_") ? "live" : "test") });
   await setStripeCustomer(user.id, customer.id);
   return customer.id;
 }

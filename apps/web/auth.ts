@@ -32,26 +32,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user }) {
       return Boolean(user.email && dbConfigured());
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       if (user?.email) {
         if (account?.provider === "password") {
           token.uid = user.id;
+          token.sessionVersion = Number((user as typeof user & { sessionVersion?: number }).sessionVersion ?? 0);
           return token;
         }
         // Do not merge an OAuth identity into an unverified password account.
-        const [row] = await query<{ id: string }>(
-          `INSERT INTO users (email, name, image) VALUES ($1, $2, $3)
-           ON CONFLICT (email) DO UPDATE SET name = COALESCE(EXCLUDED.name, users.name), image = COALESCE(EXCLUDED.image, users.image)
-           WHERE users.password_hash IS NULL RETURNING id`,
-          [user.email.toLowerCase(), user.name ?? null, user.image ?? null],
+        const [row] = await query<{ id: string; session_version: number }>(
+          `INSERT INTO users (email, name, image, email_verified_at) VALUES ($1, $2, $3, CASE WHEN $4::boolean THEN now() ELSE NULL END)
+           ON CONFLICT (email) DO UPDATE SET name = COALESCE(EXCLUDED.name, users.name), image = COALESCE(EXCLUDED.image, users.image), email_verified_at = COALESCE(users.email_verified_at, EXCLUDED.email_verified_at)
+           WHERE users.password_hash IS NULL RETURNING id, session_version`,
+          [user.email.toLowerCase(), user.name ?? null, user.image ?? null, ["google", "apple"].includes(account?.provider ?? "") && profile?.email_verified === true],
         );
         if (!row) throw new Error("Use email and password for this account");
         token.uid = row.id;
+        token.sessionVersion = row.session_version;
       }
       return token;
     },
     async session({ session, token }) {
       if (token.uid && session.user) session.user.id = String(token.uid);
+      (session as typeof session & { sessionVersion: number }).sessionVersion = Number(token.sessionVersion ?? 0);
       return session;
     },
   },

@@ -20,6 +20,12 @@ describe("repository (Neon schema on PGlite)", () => {
     expect(again.id).toBe(a.id);
     expect(again.name).toBe("Ana Host");
   });
+  it("persists workspace preferences without changing another host", async () => {
+    await repo.updateProfile(a.id, { name: "Ana", organization: "Ana Stays" });
+    expect((await repo.getUser(a.id))?.organization).toBe("Ana Stays");
+    expect((await repo.getUser(b.id))?.organization).toBe("");
+    await expect(repo.updateProfile(a.id, { name: "", organization: "" })).rejects.toThrow();
+  });
   it("creates, lists, updates and isolates properties per owner", async () => {
     const p = await repo.createProperty(a, { name: "Sea Breeze Loft", location: "Barcelona, Spain", description: 'WI-FI: Network "Sea", password "Pw123"\nPARKING: Street only.' });
     expect(p.wifiPassword).toBe("Pw123");
@@ -73,7 +79,7 @@ describe("repository (Neon schema on PGlite)", () => {
     await repo.recordView(p.id);
     expect(await repo.consumeAiUsage(a.id)).toBe(true);
     const stats = await repo.analytics(a.id);
-    expect(stats).toMatchObject({ views: 1, questions: 1, resolutionRate: 0, extrasRevenue: 3000, extraRequests: 1, aiMessagesThisMonth: 1 });
+    expect(stats).toMatchObject({ views: 1, questions: 1, resolutionRate: 0, extrasRevenue: 0, extraRequests: 1, aiMessagesThisMonth: 1 });
   });
   it("gives each plan its AI messages per property", () => {
     expect(repo.aiMessageLimit("free", 0)).toBe(25);
@@ -111,6 +117,7 @@ describe("repository (Neon schema on PGlite)", () => {
   });
   it("won't override a plan controlled by an active Stripe subscription", async () => {
     const s = await repo.upsertUser("subscriber@example.com", "Sub");
+    await repo.setStripeCustomer(s.id, "cus_sub");
     await repo.applySubscription({ customerId: "cus_sub", userId: s.id, subscriptionId: "sub_1", status: "active", plan: "starter" });
     expect(await repo.setManagedPlan("subscriber@example.com", "hotel")).toBe(false);
     expect((await repo.getUser(s.id))?.plan).toBe("starter");

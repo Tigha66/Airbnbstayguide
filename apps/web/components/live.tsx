@@ -213,6 +213,33 @@ type Stats = {
   aiMessagesThisMonth: number;
   aiMessageLimit?: number;
 };
+/** Authenticated overview uses the same persisted analytics as the Analytics page. */
+export function LiveOverviewStats() {
+  const { tr } = useAppLocale();
+  const { data, error } = usePoll<Stats>("/api/v1/analytics", 60000);
+  const metrics = [
+    [tr("Guide views"), data?.views.toLocaleString()],
+    [tr("Guest questions"), data?.questions.toLocaleString()],
+    [tr("Extras paid"), data ? money(data.extrasRevenue) : undefined],
+    [tr("Answered from your guide"), data?.questions ? String(data.resolutionRate) + "%" : data ? "—" : undefined],
+  ];
+  return <>{metrics.map(([label, value]) => <div className="card stat-card" key={label}>
+    <div className="stat-top">{label}</div>
+    <div className="stat-value">{value ?? "—"}</div>
+    <div className="stat-foot">{error ? tr("Couldn’t load analytics.") : data ? tr("From your saved guest activity") : tr("Loading…")}</div>
+  </div>)}</>;
+}
+export function LiveOverviewActivity() {
+  const { locale, tr } = useAppLocale();
+  const { data, error } = usePoll<{ threads: Thread[] }>("/api/v1/inbox", 15000);
+  if (error) return <p role="status">{tr("Couldn’t load conversations. Retrying…")}</p>;
+  if (!data) return <p>{tr("Loading conversations…")}</p>;
+  if (!data.threads.length) return <p>{tr("No guest conversations yet. Share a published guide to get started.")}</p>;
+  return <>{data.threads.slice(0, 3).map((thread) => <div className="activity-item" key={thread.threadId}>
+    <div className="activity-copy"><p>{thread.propertyName}</p><small>{thread.messages.at(-1)?.content}</small></div>
+    <time>{when(thread.lastAt, locale)}</time>
+  </div>)}</>;
+}
 export function LiveAnalytics() {
   const { tr } = useAppLocale();
   const { data, error } = usePoll<Stats>("/api/v1/analytics", 60000);
@@ -229,7 +256,7 @@ export function LiveAnalytics() {
               [tr("Views, last 30 days"), data.views30.toLocaleString()],
               [tr("Guest questions"), data.questions.toLocaleString()],
               [tr("Answered without you"), data.questions ? `${data.resolutionRate}%` : "—"],
-              [tr("Extras approved"), money(data.extrasRevenue)],
+              [tr("Extras paid"), money(data.extrasRevenue)],
               [tr("Extra requests"), String(data.extraRequests)],
               [tr("AI messages this month"), data.aiMessageLimit ? `${data.aiMessagesThisMonth.toLocaleString()} / ${data.aiMessageLimit.toLocaleString()}` : String(data.aiMessagesThisMonth)],
             ].map(([label, value]) => (
@@ -444,4 +471,21 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
       </div>
     </>
   );
+}
+
+export function ResendVerification() {
+  const { tr } = useAppLocale();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  return <div>
+    <button className="button small" disabled={busy} onClick={async () => {
+      setBusy(true); setMessage("");
+      try {
+        const response = await fetch("/api/v1/account/verification", { method: "POST" });
+        setMessage(response.ok ? tr("Check your inbox for your verification link.") : tr("Could not send the verification email. Please wait before trying again."));
+      } catch { setMessage(tr("Could not send the verification email. Please wait before trying again.")); }
+      finally { setBusy(false); }
+    }}>{busy ? tr("Sending…") : tr("Resend verification email")}</button>
+    {message && <p role="status">{message}</p>}
+  </div>;
 }

@@ -29,20 +29,25 @@ export const propertyDataSchema = z.object({
   extras: z.array(extraSchema).max(40),
 });
 
-export type User = { id: string; email: string; name: string | null; plan: Plan; emailVerified: boolean };
+export type User = { id: string; email: string; name: string | null; plan: Plan; emailVerified: boolean; organization?: string; sessionVersion?: number };
 
 export async function upsertUser(email: string, name?: string | null, image?: string | null) {
   const [user] = await query<User>(
     `INSERT INTO users (email, name, image) VALUES ($1, $2, $3)
      ON CONFLICT (email) DO UPDATE SET name = COALESCE(EXCLUDED.name, users.name), image = COALESCE(EXCLUDED.image, users.image)
-     RETURNING id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified"`,
+     RETURNING id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified", session_version AS "sessionVersion", organization`,
     [email.toLowerCase(), name ?? null, image ?? null],
   );
   return user;
 }
 export async function getUser(id: string) {
-  const [user] = await query<User>(`SELECT id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified" FROM users WHERE id = $1`, [id]);
+  const [user] = await query<User>(`SELECT id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified", session_version AS "sessionVersion", organization FROM users WHERE id = $1`, [id]);
   return user ?? null;
+}
+export async function updateProfile(userId: string, input: unknown) {
+  const data = z.object({ name: z.string().trim().min(1).max(50), organization: z.string().trim().min(1).max(100) }).parse(input);
+  await query("UPDATE users SET name = $2, organization = $3 WHERE id = $1", [userId, data.name, data.organization]);
+  return getUser(userId);
 }
 export async function deleteUser(id: string) {
   await query(`DELETE FROM users WHERE id = $1`, [id]);
@@ -297,7 +302,7 @@ export async function analytics(ownerId: string) {
     [ownerId],
   );
   const [extras] = await query<{ revenue: string | null; requests: string }>(
-    `SELECT sum(r.price) FILTER (WHERE r.status IN ('approved','paid')) AS revenue, count(*) AS requests FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE p.owner_id = $1`,
+    `SELECT sum(r.price) FILTER (WHERE r.status = 'paid') AS revenue, count(*) AS requests FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE p.owner_id = $1`,
     [ownerId],
   );
   const top = await query<{ content: string; n: string }>(
@@ -353,12 +358,11 @@ export async function setStripeCustomer(userId: string, customerId: string) {
 export async function setStripeAccount(userId: string, accountId: string, ready: boolean) {
   await query(`UPDATE users SET stripe_account_id = $2, payouts_ready = $3 WHERE id = $1`, [userId, accountId, ready]);
 }
-/** Webhook: mirror a Stripe subscription onto the host. Matches by customer id, falling back to metadata.user_id. */
-export async function applySubscription(input: { customerId: string; userId?: string; subscriptionId: string | null; status: string | null; plan: Plan }) {
+/** Only the server-bound Stripe customer can change a host's entitlement. */
+export async function applySubscription(input: { customerId: string; userId?: string; subscriptionId: string | null; previousSubscriptionId?: string; status: string | null; plan: Plan; eventCreated?: number }) {
   const rows = await query(
-    `UPDATE users SET plan = $3, stripe_subscription_id = $4, subscription_status = $5, stripe_customer_id = $1
-      WHERE stripe_customer_id = $1 OR ($2::uuid IS NOT NULL AND id = $2::uuid) RETURNING id`,
-    [input.customerId, input.userId ?? null, input.plan, input.subscriptionId, input.status],
+    "UPDATE users SET plan = $2, stripe_subscription_id = $3, subscription_status = $4, billing_event_created = $5 WHERE stripe_customer_id = $1 AND billing_event_created <= $5 AND ($6::text IS NULL OR stripe_subscription_id IS NULL OR stripe_subscription_id = $6 OR subscription_status IN ('canceled', 'incomplete_expired')) RETURNING id",
+    [input.customerId, input.plan, input.subscriptionId, input.status, input.eventCreated ?? Math.floor(Date.now() / 1000), input.previousSubscriptionId ?? null],
   );
   return rows.length > 0;
 }

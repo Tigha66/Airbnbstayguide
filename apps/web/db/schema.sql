@@ -1,4 +1,4 @@
--- StayGuide schema for Neon Postgres. Idempotent: safe to run on every deploy.
+-- StayGuide schema for Neon Postgres. Apply explicitly after backup review.
 -- Access control is enforced in the API layer: every host query is scoped by owner_id.
 CREATE TABLE IF NOT EXISTS users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
-UPDATE users SET email_verified_at = COALESCE(email_verified_at, created_at) WHERE password_hash IS NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS organization text NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version integer NOT NULL DEFAULT 0;
 CREATE TABLE IF NOT EXISTS account_email_tokens (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   purpose text NOT NULL CHECK (purpose IN ('verify_email','reset_password')),
@@ -91,7 +92,6 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_account_id text;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS payouts_ready boolean NOT NULL DEFAULT false;
 -- Paid plans only come from an active Stripe subscription
 -- (Hotel & Multi-Unit accounts are activated by the owner without a Stripe subscription, so they're kept.)
-UPDATE users SET plan = 'free' WHERE plan NOT IN ('free', 'hotel') AND stripe_subscription_id IS NULL AND email <> 'demo@stayguide.app';
 -- Extras paid through Stripe Checkout
 ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS checkout_session_id text;
 ALTER TABLE extra_requests ADD COLUMN IF NOT EXISTS payment_intent_id text;
@@ -109,3 +109,8 @@ CREATE TABLE IF NOT EXISTS guide_translations (
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (property_key, language)
 );
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_event_created bigint NOT NULL DEFAULT 0;
+CREATE UNIQUE INDEX IF NOT EXISTS users_stripe_customer_idx ON users(stripe_customer_id) WHERE stripe_customer_id IS NOT NULL;
+CREATE TABLE IF NOT EXISTS stripe_webhook_events (id text PRIMARY KEY, event_type text NOT NULL, created bigint NOT NULL, processed_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS billing_alerts (event_id text PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE, event_type text NOT NULL, object_id text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), resolved_at timestamptz);

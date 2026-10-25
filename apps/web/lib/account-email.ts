@@ -4,6 +4,7 @@ import { z } from "zod";
 import { dbConfigured, query } from "./db";
 import { consumeRateLimit } from "./repo";
 import { mailerConfigured, sendEmail, supportEmail } from "./mailer";
+import { applicationOrigin } from "./origin";
 
 const derive = promisify(scrypt);
 const emailSchema = z.string().trim().toLowerCase().email().max(254);
@@ -17,10 +18,9 @@ function newToken() {
   return randomBytes(32).toString("base64url");
 }
 
-export function originFromHeaders(headers: Headers) {
-  const host = headers.get("x-forwarded-host") ?? headers.get("host");
-  const proto = headers.get("x-forwarded-proto") ?? "https";
-  return host ? `${proto}://${host}` : process.env.NEXT_PUBLIC_APP_URL || "https://www.getstayguide.com";
+export function originFromHeaders(_headers: Headers) {
+  void _headers;
+  return applicationOrigin();
 }
 
 async function createToken({
@@ -97,20 +97,28 @@ export async function requestPasswordReset(input: { email: unknown; origin: stri
 }
 
 export async function resetPassword(input: { token: unknown; password: unknown }) {
-  const token = z.string().min(20).parse(input.token);
+  const token = z.string().min(20).max(256).parse(input.token);
   const password = passwordSchema.parse(input.password);
   if (!dbConfigured()) throw new Error("Accounts unavailable");
-  const [row] = await query<{ id: string; user_id: string | null }>(
-    `UPDATE account_email_tokens
-     SET used_at = now()
-     WHERE token_hash = $1 AND purpose = 'reset_password' AND used_at IS NULL AND expires_at > now()
-     RETURNING id, user_id`,
-    [tokenHash(token)],
-  );
-  if (!row?.user_id) throw new Error("Reset link is invalid or expired");
   const salt = randomBytes(32).toString("hex");
   const hash = `${salt}:${(await passwordHash(password, salt)).toString("hex")}`;
-  await query(`UPDATE users SET password_hash = $2, email_verified_at = COALESCE(email_verified_at, now()) WHERE id = $1`, [row.user_id, hash]);
+  // Compare the session version while holding the user row update lock. Even
+  // two different valid reset links cannot both win a concurrent password reset.
+  const [changed] = await query<{ id: string }>(
+    `WITH candidate AS (
+       SELECT t.user_id, u.session_version FROM account_email_tokens t
+       JOIN users u ON u.id = t.user_id AND u.email = t.email
+       WHERE t.token_hash = $1 AND t.purpose = 'reset_password' AND t.used_at IS NULL AND t.expires_at > now()
+     ), changed AS (
+       UPDATE users u SET password_hash = $2, email_verified_at = COALESCE(u.email_verified_at, now()), session_version = u.session_version + 1
+       FROM candidate c WHERE u.id = c.user_id AND u.session_version = c.session_version RETURNING u.id
+     ), consumed AS (
+       UPDATE account_email_tokens SET used_at = now()
+       WHERE user_id IN (SELECT id FROM changed) AND purpose = 'reset_password' AND used_at IS NULL RETURNING id
+     ) SELECT id FROM changed`,
+    [tokenHash(token), hash],
+  );
+  if (!changed) throw new Error("Reset link is invalid or expired");
 }
 
 export async function tokenLooksValid(token: string, purpose: "verify_email" | "reset_password") {

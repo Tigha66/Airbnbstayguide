@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { stripeClient, stripeConfigured } from "@/lib/stripe";
-import { handleStripeEvent } from "@/lib/stripe-events";
+import { handleVerifiedStripeEvent } from "@/lib/stripe-events";
 import { unavailable } from "@/lib/api";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
@@ -15,10 +15,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
   try {
-    const result = await handleStripeEvent(event);
+    const result = await handleVerifiedStripeEvent(event);
     return NextResponse.json({ received: true, result });
   } catch (error) {
-    console.error("[stripe] webhook handling failed", event.type, error);
+    console.error("[stripe] webhook handling failed", { type: event.type, error: error instanceof Error ? error.name : "UnknownError" });
     // 500 makes Stripe retry later.
     return NextResponse.json({ error: "Handler failed" }, { status: 500 });
   }

@@ -1,107 +1,59 @@
 import Stripe from "stripe";
+import { createHash } from "node:crypto";
+import { applicationOrigin } from "./origin";
 import { applicationFee, plans, CURRENCY, type Plan } from "@stayguide/shared";
 
-export const stripeConfigured = () => Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_"));
+export const stripeConfigured = () => /^(?:sk|rk)_(?:test|live)_/.test(process.env.STRIPE_SECRET_KEY ?? "");
+export const stripeLiveMode = () => /^(?:sk|rk)_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 let client: Stripe | null = null;
 export function stripeClient() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");
-  client ??= new Stripe(process.env.STRIPE_SECRET_KEY);
+  client ??= new Stripe(process.env.STRIPE_SECRET_KEY, { timeout: 15_000, maxNetworkRetries: 1 });
   return client;
 }
-export const appUrl = (request?: Request) =>
-  (process.env.NEXT_PUBLIC_APP_URL || (request ? new URL(request.url).origin : "http://localhost:3000")).replace(/\/$/, "");
+export const appUrl = (_request?: Request) => { void _request; return applicationOrigin(); };
 
 /**
- * Plan prices are found by lookup key, e.g. stayguide_pro_yearly_usd, and created on first use if
- * missing (scripts/stripe-setup.mts creates the same ones). Older keys without a currency suffix
+ * Plan prices are found in the reviewed catalogue by lookup key. Older keys without a currency suffix
  * (the original USD prices) are still recognised for existing subscriptions.
  */
 export const lookupKey = (plan: "starter" | "pro", yearly: boolean) =>
   `stayguide_${plan}_${yearly ? "yearly" : "monthly"}_${CURRENCY}`;
-const priceCache = new Map<string, string>();
-async function planProduct(plan: "starter" | "pro") {
-  const stripe = stripeClient();
-  const found = await stripe.products.search({ query: `metadata['app']:'stayguide' AND metadata['plan']:'${plan}'` });
-  return (
-    found.data[0]?.id ??
-    (
-      await stripe.products.create({
-        name: `StayGuide ${plans[plan].name}`,
-        description: "Per property, per month. Digital guidebook, AI concierge and extras store.",
-        metadata: { app: "stayguide", plan },
-      })
-    ).id
-  );
-}
+/** Read the reviewed catalogue; customer requests never create prices or modify portal settings. */
 export async function priceId(plan: "starter" | "pro", yearly: boolean) {
-  const key = lookupKey(plan, yearly);
-  const cached = priceCache.get(key);
-  if (cached) return cached;
+  const envName = "STRIPE_PRICE_" + plan.toUpperCase() + "_" + (yearly ? "YEAR" : "MONTH");
   const stripe = stripeClient();
-  const find = async () => (await stripe.prices.list({ lookup_keys: [key], active: true, limit: 1 })).data[0]?.id;
-  let id = await find();
-  if (!id) {
-    try {
-      const monthly = plans[plan].monthly * 100; // pence
-      const price = await stripe.prices.create({
-        product: await planProduct(plan),
-        currency: CURRENCY,
-        unit_amount: yearly ? monthly * 10 : monthly,
-        recurring: { interval: yearly ? "year" : "month" },
-        lookup_key: key,
-        nickname: `StayGuide ${plans[plan].name} ${yearly ? "yearly" : "monthly"} (${CURRENCY.toUpperCase()})`,
-        metadata: { app: "stayguide", plan },
-      });
-      id = price.id;
-    } catch (error) {
-      // Another request created it at the same moment (lookup keys are unique): use that one.
-      id = await find();
-      if (!id) throw error;
-    }
-  }
-  priceCache.set(key, id);
-  return id;
+  const configured = process.env[envName]?.trim();
+  const price = configured ? await stripe.prices.retrieve(configured)
+    : (await stripe.prices.list({ lookup_keys: [lookupKey(plan, yearly)], active: true, limit: 1 })).data[0];
+  const expected = plans[plan].monthly * 100 * (yearly ? 10 : 1);
+  if (!price || !price.active || price.currency !== CURRENCY || price.unit_amount !== expected ||
+      price.recurring?.interval !== (yearly ? "year" : "month") || price.recurring.interval_count !== 1)
+    throw new Error("The selected subscription price needs operator configuration");
+  return price.id;
 }
-let portalConfig: string | null | undefined;
-/** The Customer Portal configuration, kept in sync so plan switches stay in the current currency. */
 export async function portalConfigurationId() {
-  if (portalConfig !== undefined) return portalConfig ?? undefined;
-  const stripe = stripeClient();
-  const { data } = await stripe.billingPortal.configurations.list({ active: true, limit: 100 });
-  const config = data.find((c) => c.metadata?.app === "stayguide");
-  if (!config) {
-    portalConfig = null;
-    return undefined;
-  }
-  try {
-    const byProduct = new Map<string, string[]>();
-    for (const plan of ["starter", "pro"] as const)
-      for (const yearly of [false, true]) {
-        const price = await stripe.prices.retrieve(await priceId(plan, yearly));
-        const product = typeof price.product === "string" ? price.product : price.product.id;
-        byProduct.set(product, [...(byProduct.get(product) ?? []), price.id]);
-      }
-    await stripe.billingPortal.configurations.update(config.id, {
-      features: {
-        subscription_update: {
-          enabled: true,
-          default_allowed_updates: ["price"],
-          proration_behavior: "create_prorations",
-          products: [...byProduct].map(([product, prices]) => ({ product, prices })),
-        },
-      },
-    });
-  } catch (error) {
-    console.error("[billing] portal price sync failed", error);
-  }
-  portalConfig = config.id;
-  return portalConfig;
+  if (process.env.STRIPE_PORTAL_CONFIGURATION_ID?.trim()) return process.env.STRIPE_PORTAL_CONFIGURATION_ID.trim();
+  const { data } = await stripeClient().billingPortal.configurations.list({ active: true, limit: 100 });
+  return data.find((item) => item.metadata?.app === "stayguide")?.id;
+}
+export function checkoutIdentity(userId: string, price: string, quantity: number, time = Date.now()) {
+  const key = ["stayguide", "checkout", userId, price, quantity, Math.floor(time / 900_000)].join(":");
+  const suffix = [...createHash("sha256").update(key).digest().subarray(0, 8)].map((b) => String.fromCharCode(97 + b % 26)).join("");
+  return { idempotencyKey: key, integrationIdentifier: "stayguide_" + suffix };
 }
 
 /** Maps a Stripe subscription to the plan the host should have right now. */
 export function planFromSubscription(sub: Pick<Stripe.Subscription, "status" | "items">): Plan {
-  if (!["active", "trialing", "past_due"].includes(sub.status)) return "free";
-  const key = sub.items.data[0]?.price?.lookup_key ?? "";
+  if (!["active", "trialing"].includes(sub.status)) return "free";
+  const price = sub.items.data[0]?.price;
+  for (const plan of ["starter", "pro"] as const) {
+    for (const interval of ["MONTH", "YEAR"] as const) {
+      const configured = process.env["STRIPE_PRICE_" + plan.toUpperCase() + "_" + interval]?.trim();
+      if (configured && price?.id === configured) return plan;
+    }
+  }
+  const key = price?.lookup_key ?? "";
   const match = /^stayguide_(starter|pro)_(monthly|yearly)(?:_[a-z]{3})?$/.exec(key);
   return match ? (match[1] as Plan) : "free";
 }

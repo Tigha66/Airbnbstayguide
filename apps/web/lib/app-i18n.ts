@@ -8,6 +8,18 @@ import type { SiteLocale } from "./site-i18n";
 type Dict = Record<string, string>;
 
 const fr: Dict = {
+  "Workspace preferences saved online.": "Préférences de l’espace enregistrées en ligne.",
+  "Could not save workspace preferences. Please try again.": "Les préférences n’ont pas pu être enregistrées. Veuillez réessayer.",
+  "Sending…": "Envoi…",
+  "Resend verification email": "Renvoyer l’e-mail de vérification",
+  "Check your inbox for your verification link.": "Consultez votre boîte de réception pour le lien de vérification.",
+  "Could not send the verification email. Please wait before trying again.": "L’e-mail de vérification n’a pas pu être envoyé. Veuillez patienter avant de réessayer.",
+  "View analytics for activity": "Voir les statistiques d’activité",
+  "All time": "Depuis le début",
+  "Extras paid": "Extras payés",
+  "Answered from your guide": "Réponses issues de votre guide",
+  "From your saved guest activity": "D’après l’activité enregistrée des voyageurs",
+  "No guest conversations yet. Share a published guide to get started.": "Aucune conversation voyageur pour le moment. Partagez un guide publié pour commencer.",
   "Use 12 to 128 characters.": "Utilisez entre 12 et 128 caractères.",
   "Account created. You can sign in with your password. We couldn’t send a verification email; contact support for help.": "Compte créé. Vous pouvez vous connecter avec votre mot de passe. Nous n’avons pas pu envoyer l’e-mail de vérification ; contactez l’assistance.",
   "Verify your email": "Vérifiez votre adresse e-mail",
@@ -418,6 +430,18 @@ const fr: Dict = {
 };
 
 const es: Dict = {
+  "Workspace preferences saved online.": "Preferencias del espacio guardadas en línea.",
+  "Could not save workspace preferences. Please try again.": "No se pudieron guardar las preferencias. Inténtalo de nuevo.",
+  "Sending…": "Enviando…",
+  "Resend verification email": "Reenviar el correo de verificación",
+  "Check your inbox for your verification link.": "Revisa tu correo para encontrar el enlace de verificación.",
+  "Could not send the verification email. Please wait before trying again.": "No se pudo enviar el correo de verificación. Espera antes de volver a intentarlo.",
+  "View analytics for activity": "Ver estadísticas de actividad",
+  "All time": "Todo el período",
+  "Extras paid": "Extras pagados",
+  "Answered from your guide": "Respondidas desde tu guía",
+  "From your saved guest activity": "Según la actividad guardada de tus huéspedes",
+  "No guest conversations yet. Share a published guide to get started.": "Aún no hay conversaciones. Comparte una guía publicada para empezar.",
   "Use 12 to 128 characters.": "Usa entre 12 y 128 caracteres.",
   "Account created. You can sign in with your password. We couldn’t send a verification email; contact support for help.": "Cuenta creada. Puedes iniciar sesión con tu contraseña. No pudimos enviar el correo de verificación; contacta con soporte.",
   "Verify your email": "Verifica tu correo electrónico",
@@ -816,6 +840,18 @@ const es: Dict = {
 };
 
 const de: Dict = {
+  "Workspace preferences saved online.": "Arbeitsbereichseinstellungen online gespeichert.",
+  "Could not save workspace preferences. Please try again.": "Die Einstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+  "Sending…": "Wird gesendet…",
+  "Resend verification email": "Bestätigungs-E-Mail erneut senden",
+  "Check your inbox for your verification link.": "Der Bestätigungslink wurde an Ihr Postfach gesendet.",
+  "Could not send the verification email. Please wait before trying again.": "Die Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte warten Sie vor einem erneuten Versuch.",
+  "View analytics for activity": "Aktivitätsanalyse ansehen",
+  "All time": "Gesamter Zeitraum",
+  "Extras paid": "Bezahlte Extras",
+  "Answered from your guide": "Aus Ihrem Guide beantwortet",
+  "From your saved guest activity": "Aus Ihrer gespeicherten Gästeaktivität",
+  "No guest conversations yet. Share a published guide to get started.": "Noch keine Gästegespräche. Teilen Sie zunächst einen veröffentlichten Guide.",
   "Use 12 to 128 characters.": "Verwenden Sie 12 bis 128 Zeichen.",
   "Account created. You can sign in with your password. We couldn’t send a verification email; contact support for help.": "Konto erstellt. Sie können sich mit Ihrem Passwort anmelden. Die Bestätigungs-E-Mail konnte nicht gesendet werden; kontaktieren Sie den Support.",
   "Verify your email": "E-Mail-Adresse bestätigen",
@@ -1214,6 +1250,18 @@ const de: Dict = {
 };
 
 const ar: Dict = {
+  "Workspace preferences saved online.": "تم حفظ تفضيلات مساحة العمل عبر الإنترنت.",
+  "Could not save workspace preferences. Please try again.": "تعذّر حفظ تفضيلات مساحة العمل. يُرجى المحاولة مرة أخرى.",
+  "Sending…": "جارٍ الإرسال…",
+  "Resend verification email": "إعادة إرسال رسالة التحقق",
+  "Check your inbox for your verification link.": "تحقّق من بريدك الوارد للحصول على رابط التحقق.",
+  "Could not send the verification email. Please wait before trying again.": "تعذّر إرسال رسالة التحقق. يُرجى الانتظار قبل المحاولة مرة أخرى.",
+  "View analytics for activity": "عرض تحليلات النشاط",
+  "All time": "كل الفترات",
+  "Extras paid": "الإضافات المدفوعة",
+  "Answered from your guide": "تمت الإجابة من دليلك",
+  "From your saved guest activity": "من نشاط الضيوف المحفوظ",
+  "No guest conversations yet. Share a published guide to get started.": "لا توجد محادثات ضيوف بعد. شارك دليلاً منشوراً للبدء.",
   "Use 12 to 128 characters.": "استخدم من 12 إلى 128 حرفًا.",
   "Account created. You can sign in with your password. We couldn’t send a verification email; contact support for help.": "تم إنشاء الحساب. يمكنك تسجيل الدخول بكلمة المرور. تعذّر إرسال رسالة التحقق؛ تواصل مع الدعم للمساعدة.",
   "Verify your email": "تحقق من بريدك الإلكتروني",

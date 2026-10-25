@@ -18,11 +18,11 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    if (isMissing(error)) {
+    if (isMissing(error) && (!billing.stripeSubscriptionId || ["canceled", "incomplete_expired"].includes(billing.subscriptionStatus ?? ""))) {
       await clearStripeCustomer(host.user.id);
       return NextResponse.json({ error: "Your billing account was reset. Please choose a plan again." }, { status: 409 });
     }
-    console.error("[billing] portal failed", error);
+    console.error("[billing] portal failed", error instanceof Error ? error.name : "UnknownError");
     return NextResponse.json({ error: "Could not open billing. Please try again." }, { status: 502 });
   }
 }

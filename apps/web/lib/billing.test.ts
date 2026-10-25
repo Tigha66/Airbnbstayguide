@@ -5,7 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { setQueryOverride, splitStatements } from "./db";
 import * as repo from "./repo";
 import { billableQuantity, extraCheckoutParams, lookupKey, planFromSubscription } from "./stripe";
-import { handleStripeEvent } from "./stripe-events";
+import { handleVerifiedStripeEvent, handleStripeEvent } from "./stripe-events";
 import { parseJson } from "./api";
 
 const sub = (status: string, lookup: string | null) =>
@@ -42,7 +42,7 @@ describe("plans", () => {
   it("derives the plan from the Stripe price, not from client input", () => {
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly"))).toBe("pro");
     expect(planFromSubscription(sub("trialing", "stayguide_starter_monthly"))).toBe("starter");
-    expect(planFromSubscription(sub("past_due", "stayguide_starter_monthly"))).toBe("starter");
+    expect(planFromSubscription(sub("past_due", "stayguide_starter_monthly"))).toBe("free");
     expect(planFromSubscription(sub("canceled", "stayguide_pro_monthly"))).toBe("free");
     expect(planFromSubscription(sub("unpaid", "stayguide_pro_monthly"))).toBe("free");
     expect(planFromSubscription(sub("active", "someone_else_pro"))).toBe("free");
@@ -99,6 +99,24 @@ describe("billing persistence (PGlite)", () => {
     expect(after?.plan).toBe("free");
     expect(after?.stripeSubscriptionId).toBeNull();
     expect(await repo.applySubscription({ customerId: "cus_unknown", subscriptionId: "sub_x", status: "active", plan: "pro" })).toBe(false);
+  });
+  it("does not bind a Stripe customer from metadata or overwrite a newer subscription", async () => {
+    expect(await repo.applySubscription({ customerId: "cus_attacker", userId: host.id, subscriptionId: "sub_bad", status: "active", plan: "pro", eventCreated: 100 })).toBe(false);
+    await repo.applySubscription({ customerId: "cus_1", subscriptionId: "sub_new", status: "active", plan: "pro", eventCreated: 2000000000 });
+    expect(await repo.applySubscription({ customerId: "cus_1", subscriptionId: null, previousSubscriptionId: "sub_old", status: "canceled", plan: "free", eventCreated: 2000000001 })).toBe(false);
+    expect(await repo.applySubscription({ customerId: "cus_1", subscriptionId: null, previousSubscriptionId: "sub_new", status: "canceled", plan: "free", eventCreated: 1999999999 })).toBe(false);
+    expect((await repo.getBilling(host.id))?.stripeSubscriptionId).toBe("sub_new");
+    expect((await repo.getBilling(host.id))?.plan).toBe("pro");
+  });
+  it("records successful webhook events once and rejects a mode mismatch", async () => {
+    const saved = process.env.STRIPE_SECRET_KEY;
+    process.env.STRIPE_SECRET_KEY = "sk_test_fixture";
+    try {
+      const event = { id: "evt_dedupe", type: "invoice.created", created: 2000000010, livemode: false, data: { object: {} } } as unknown as Stripe.Event;
+      expect(await handleVerifiedStripeEvent(event)).toBe("ignored");
+      expect(await handleVerifiedStripeEvent(event)).toBe("duplicate");
+      await expect(handleVerifiedStripeEvent({ ...event, id: "evt_wrongmode", livemode: true })).rejects.toThrow("mode mismatch");
+    } finally { if (saved === undefined) delete process.env.STRIPE_SECRET_KEY; else process.env.STRIPE_SECRET_KEY = saved; }
   });
   it("tracks paid extras from checkout to capture and hides abandoned checkouts", async () => {
     const p = await repo.createProperty(host, { name: "Loft", location: "Here", description: "" });
