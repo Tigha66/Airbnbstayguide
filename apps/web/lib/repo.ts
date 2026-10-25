@@ -269,8 +269,8 @@ export async function settleExtraCheckout(sessionId: string, status: "pending" |
   return rows.length > 0;
 }
 export async function getOwnedExtraRequest(ownerId: string, id: string) {
-  const [row] = await query<{ id: string; status: string; payment_intent_id: string | null }>(
-    `SELECT r.id, r.status, r.payment_intent_id FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE r.id = $2 AND p.owner_id = $1`,
+  const [row] = await query<{ id: string; status: string; payment_intent_id: string | null; price: number }>(
+    `SELECT r.id, r.status, r.payment_intent_id, r.price FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE r.id = $2 AND p.owner_id = $1`,
     [ownerId, id],
   );
   return row ?? null;
@@ -283,10 +283,10 @@ export async function listExtraRequests(ownerId: string): Promise<ExtraRequest[]
   );
   return rows.map((r) => ({ id: String(r.id), propertyId: String(r.property_id), propertyName: String(r.property_name), extraName: String(r.extra_name), price: Number(r.price), guestName: String(r.guest_name), guestContact: String(r.guest_contact), note: String(r.note), status: String(r.status), prepaid: Boolean(r.payment_intent_id), createdAt: new Date(r.created_at as string).toISOString() }));
 }
-export async function setExtraRequestStatus(ownerId: string, id: string, status: "approved" | "declined" | "paid" | "refunded") {
+export async function setExtraRequestStatus(ownerId: string, id: string, status: "approved" | "declined" | "paid" | "refunded", expectedStatus?: string) {
   const rows = await query(
-    `UPDATE extra_requests r SET status = $3 FROM properties p WHERE r.id = $2 AND p.id = r.property_id AND p.owner_id = $1 RETURNING r.id`,
-    [ownerId, id, status],
+    `UPDATE extra_requests r SET status = $3 FROM properties p WHERE r.id = $2 AND p.id = r.property_id AND p.owner_id = $1 AND ($4::text IS NULL OR r.status = $4) RETURNING r.id`,
+    [ownerId, id, status, expectedStatus ?? null],
   );
   return rows.length > 0;
 }

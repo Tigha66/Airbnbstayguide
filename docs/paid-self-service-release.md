@@ -30,6 +30,10 @@ For paid guest extras, complete Stripe Connect platform responsibilities and hos
 
 ## Validation and rollback
 
+Extra-payment actions bind the PaymentIntent's app, extra-request ID, amount and currency before moving money. Capture, cancellation and refund use deterministic idempotency keys; retries reconcile already completed captures, canceled holds and successful full refunds. Pending refunds remain pending, and a compare-and-set database save refuses stale state changes. Offline requests also enforce valid transitions. These recovery tests use a simulated Stripe provider; live Connect acceptance remains outstanding. Email verification now redeems the token and records ownership in one atomic SQL statement, with an injected-database-failure regression proving that a failed update leaves the token usable.
+
+Current local validation: 109 tests, ESLint, type checking and production build pass. No customer charge, refund or production schema change was performed for this follow-up.
+
 `pnpm install --frozen-lockfile --ignore-scripts`, `pnpm --filter @stayguide/web test`, `pnpm --filter @stayguide/web lint`, `pnpm --filter @stayguide/web build`.
 PGlite tests use an isolated database; email delivery is mocked. Source tests/build do not prove inbox delivery, Stripe lifecycle, Connect payouts or deployed browser flows. Restore and provider acceptance remain open.
 

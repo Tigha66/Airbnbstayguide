@@ -52,4 +52,20 @@ describe("account ownership and recovery", () => {
     await expect(resetPassword({ token: older, password: "Third-password-2026!" })).rejects.toThrow();
     expect(Number((await query("SELECT count(*) AS count FROM account_email_tokens WHERE user_id=$1 AND purpose='reset_password' AND used_at IS NULL", [user.id]))[0].count)).toBe(0);
   });
+  it("preserves a verification link when persisting email ownership fails", async () => {
+    const recovery = await registerPasswordUser({ name: "Recovery Host", email: "verify-recovery@example.test", password: "Recovery-password-2026!" });
+    await sendVerificationEmail({ userId: recovery.id, email: recovery.email, origin: "https://www.getstayguide.com" });
+    const token = deliveredToken();
+    await pg.exec(`CREATE FUNCTION qa_reject_verification() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
+      IF NEW.email = 'verify-recovery@example.test' THEN RAISE EXCEPTION 'Injected persistence failure'; END IF;
+      RETURN NEW; END $$;
+      CREATE TRIGGER qa_reject_verification BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION qa_reject_verification();`);
+    try { await expect(verifyEmailToken(token)).rejects.toThrow("Injected persistence failure"); }
+    finally { await pg.exec("DROP TRIGGER qa_reject_verification ON users; DROP FUNCTION qa_reject_verification();"); }
+    const [saved] = await query<{ used_at: unknown }>("SELECT used_at FROM account_email_tokens WHERE user_id=$1 AND purpose='verify_email'", [recovery.id]);
+    expect(saved.used_at).toBeNull();
+    expect((await getUser(recovery.id))?.emailVerified).toBe(false);
+    expect(await verifyEmailToken(token)).toBe(true);
+    expect(await verifyEmailToken(token)).toBe(false);
+  });
 });

@@ -89,6 +89,8 @@ describe("repository (Neon schema on PGlite)", () => {
     const id = await repo.createExtraRequest(p.id, { id: "late", name: "Late checkout", price: 3000 }, { name: "Guest", contact: "g@x.com", note: "" });
     expect(await repo.setExtraRequestStatus(b.id, id, "approved")).toBe(false);
     expect(await repo.setExtraRequestStatus(a.id, id, "approved")).toBe(true);
+    expect(await repo.setExtraRequestStatus(a.id, id, "declined", "pending")).toBe(false);
+    expect((await repo.getOwnedExtraRequest(a.id, id))?.status).toBe("approved");
     await repo.recordView(p.id);
     expect(await repo.consumeAiUsage(a.id)).toBe(true);
     const stats = await repo.analytics(a.id);

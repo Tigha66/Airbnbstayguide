@@ -60,14 +60,16 @@ export async function sendVerificationEmail(input: { userId: string; email: stri
 export async function verifyEmailToken(token: string) {
   if (!dbConfigured()) return false;
   const [row] = await query<{ id: string; user_id: string | null; email: string }>(
-    `UPDATE account_email_tokens
-     SET used_at = now()
-     WHERE token_hash = $1 AND purpose = 'verify_email' AND used_at IS NULL AND expires_at > now()
-     RETURNING id, user_id, email`,
+    `WITH redeemed AS (
+       UPDATE account_email_tokens SET used_at = now()
+       WHERE token_hash = $1 AND purpose = 'verify_email' AND used_at IS NULL AND expires_at > now()
+       RETURNING user_id, email
+     ) UPDATE users u SET email_verified_at = now()
+       FROM redeemed r WHERE u.id = r.user_id AND u.email = r.email
+       RETURNING u.id, u.id AS user_id, u.email`,
     [tokenHash(token)],
   );
   if (!row?.user_id) return false;
-  await query(`UPDATE users SET email_verified_at = now() WHERE id = $1 AND email = $2`, [row.user_id, row.email]);
   return true;
 }
 
