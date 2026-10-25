@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { propertySchema } from "@stayguide/shared";
 import { requireHost } from "@/lib/session";
-import { createProperty, listProperties, LimitError } from "@/lib/repo";
+import { createProperty, listProperties, updateProperty, consumeAiUsage, consumeRateLimit, LimitError } from "@/lib/repo";
 import { syncSubscriptionQuantity } from "@/lib/billing";
 import { safeOrigin, parseJson } from "@/lib/api";
 import { aiConfigured } from "@/lib/ai";
@@ -21,16 +21,18 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "Please check the property name and location." }, { status: 400 });
   }
-  let sections: Awaited<ReturnType<typeof buildSectionsWithAi>> | undefined;
-  if (input.description.trim().length > 40 && aiConfigured()) {
-    try {
-      sections = await buildSectionsWithAi(input.description);
-    } catch {
-      sections = undefined; // Falls back to the built-in manual parser.
-    }
-  }
   try {
-    const property = await createProperty(host.user, input, sections);
+    let property = await createProperty(host.user, input);
+    let sections: Awaited<ReturnType<typeof buildSectionsWithAi>> | undefined;
+    if (input.description.trim().length > 40 && aiConfigured() && host.user.emailVerified) {
+      try {
+        if (await consumeRateLimit("guide-builder:" + host.user.id, 10, 3600) && await consumeAiUsage(host.user.id)) {
+        sections = await buildSectionsWithAi(input.description);
+        const saved = await updateProperty(host.user.id, property.id, { ...property, sections });
+        if (saved) property = saved;
+        }
+      } catch { sections = undefined; } // Keep the saved manual draft.
+    }
     await syncSubscriptionQuantity(host.user.id);
     return NextResponse.json({ property, ai: Boolean(sections?.length) }, { status: 201 });
   } catch (e) {

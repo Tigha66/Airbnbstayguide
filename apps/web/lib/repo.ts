@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { plans, sectionSchema, type GuideText, type Plan, type Property } from "@stayguide/shared";
-import { query } from "./db";
+import { query, transaction } from "./db";
 import { parseManual, extractWifi, extractTime } from "./guide-parser";
 
 export const extraSchema = z.object({
@@ -92,12 +92,6 @@ export async function createProperty(
   input: { name: string; location: string; address?: string; description: string },
   aiSections?: Property["sections"],
 ) {
-  const [{ count }] = await query<{ count: string | number }>(
-    `SELECT count(*) AS count FROM properties WHERE owner_id = $1`,
-    [owner.id],
-  );
-  const limit = plans[owner.plan]?.properties ?? 1;
-  if (Number(count) >= limit) throw new LimitError(`Your ${plans[owner.plan].name} plan includes ${limit} propert${limit === 1 ? "y" : "ies"}.`);
   const manual = input.description.trim();
   const sections = aiSections?.length ? aiSections : manual ? parseManual(manual) : [];
   const wifi = extractWifi(manual);
@@ -110,7 +104,7 @@ export async function createProperty(
     location: input.location,
     address: input.address?.trim() ?? "",
     image: fallbackImage,
-    status: "published",
+    status: "draft",
     description: `Welcome to ${input.name}. Everything you need for a wonderful stay is right here.`,
     checkIn: extractTime(manual, "in") || "3:00 PM",
     checkOut: extractTime(manual, "out") || "11:00 AM",
@@ -120,10 +114,15 @@ export async function createProperty(
     sections,
     extras: [],
   };
-  await query(
-    `INSERT INTO properties (id, owner_id, slug, status, data) VALUES ($1, $2, $3, $4, $5)`,
-    [id, owner.id, slug, property.status, JSON.stringify(property)],
-  );
+  const [, inserted] = await transaction([
+    { text: "SELECT id FROM users WHERE id = $1 FOR UPDATE", params: [owner.id] },
+    { text: `INSERT INTO properties (id, owner_id, slug, status, data)
+      SELECT $1, u.id, $3, $4, $5::jsonb FROM users u WHERE u.id = $2
+      AND (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) <
+        CASE u.plan WHEN 'starter' THEN $6::int WHEN 'pro' THEN $7::int WHEN 'hotel' THEN $8::int ELSE $9::int END
+      RETURNING id`, params: [id, owner.id, slug, property.status, JSON.stringify(property), plans.starter.properties, plans.pro.properties, plans.hotel.properties, plans.free.properties] },
+  ]);
+  if (!inserted.length) throw new LimitError("Your current plan has reached its property limit. Choose a larger plan to add another property.");
   return property;
 }
 export async function updateProperty(ownerId: string, id: string, data: z.infer<typeof propertyDataSchema>) {

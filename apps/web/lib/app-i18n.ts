@@ -8,6 +8,7 @@ import type { SiteLocale } from "./site-i18n";
 type Dict = Record<string, string>;
 
 const fr: Dict = {
+  "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "La création d’un guide par IA utilise une requête IA incluse. Vérifiez votre adresse e-mail pour activer l’IA ; l’analyse manuelle reste disponible.",
   "Workspace preferences saved online.": "Préférences de l’espace enregistrées en ligne.",
   "Could not save workspace preferences. Please try again.": "Les préférences n’ont pas pu être enregistrées. Veuillez réessayer.",
   "Sending…": "Envoi…",
@@ -430,6 +431,7 @@ const fr: Dict = {
 };
 
 const es: Dict = {
+  "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "Generar una guía con IA usa una solicitud de IA incluida. Verifica tu correo para activar la IA; el análisis manual sigue disponible.",
   "Workspace preferences saved online.": "Preferencias del espacio guardadas en línea.",
   "Could not save workspace preferences. Please try again.": "No se pudieron guardar las preferencias. Inténtalo de nuevo.",
   "Sending…": "Enviando…",
@@ -840,6 +842,7 @@ const es: Dict = {
 };
 
 const de: Dict = {
+  "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "Die KI-Guide-Erstellung verbraucht eine enthaltene KI-Anfrage. Bestätigen Sie Ihre E-Mail, um KI zu aktivieren; die manuelle Auswertung bleibt verfügbar.",
   "Workspace preferences saved online.": "Arbeitsbereichseinstellungen online gespeichert.",
   "Could not save workspace preferences. Please try again.": "Die Einstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
   "Sending…": "Wird gesendet…",
@@ -1250,6 +1253,7 @@ const de: Dict = {
 };
 
 const ar: Dict = {
+  "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "يستخدم إنشاء الدليل بالذكاء الاصطناعي طلبًا واحدًا من الرصيد المتاح. تحقّق من بريدك لتفعيل الذكاء الاصطناعي؛ ويظل التحليل اليدوي متاحًا.",
   "Workspace preferences saved online.": "تم حفظ تفضيلات مساحة العمل عبر الإنترنت.",
   "Could not save workspace preferences. Please try again.": "تعذّر حفظ تفضيلات مساحة العمل. يُرجى المحاولة مرة أخرى.",
   "Sending…": "جارٍ الإرسال…",

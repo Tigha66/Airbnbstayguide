@@ -28,11 +28,13 @@ describe("repository (Neon schema on PGlite)", () => {
   });
   it("creates, lists, updates and isolates properties per owner", async () => {
     const p = await repo.createProperty(a, { name: "Sea Breeze Loft", location: "Barcelona, Spain", description: 'WI-FI: Network "Sea", password "Pw123"\nPARKING: Street only.' });
+    expect(p.status).toBe("draft");
+    expect(await repo.getPublishedProperty(p.slug)).toBeNull();
     expect(p.wifiPassword).toBe("Pw123");
     expect(p.sections.map((s) => s.type)).toEqual(["wifi", "parking"]);
     expect((await repo.listProperties(a.id)).length).toBe(1);
     expect(await repo.listProperties(b.id)).toEqual([]);
-    const data = repo.propertyDataSchema.parse({ ...p, name: "Sea Breeze Loft 2" });
+    const data = repo.propertyDataSchema.parse({ ...p, name: "Sea Breeze Loft 2", status: "published" });
     expect(await repo.updateProperty(b.id, p.id, data)).toBeNull();
     expect((await repo.updateProperty(a.id, p.id, data))?.name).toBe("Sea Breeze Loft 2");
     expect((await repo.getPublishedProperty(p.slug))?.property.name).toBe("Sea Breeze Loft 2");
@@ -42,6 +44,17 @@ describe("repository (Neon schema on PGlite)", () => {
     const free = { ...b, plan: "free" as const };
     await repo.createProperty(free, { name: "One", location: "Lisbon", description: "" });
     await expect(repo.createProperty(free, { name: "Two", location: "Lisbon", description: "" })).rejects.toBeInstanceOf(repo.LimitError);
+  });
+  it("serializes property creation and uses the stored plan rather than a stale caller plan", async () => {
+    const host = await repo.upsertUser("quota-race@example.test", "Quota Test");
+    const inflated = { ...host, plan: "hotel" as const };
+    const results = await Promise.allSettled([
+      repo.createProperty(inflated, { name: "First", location: "Here", description: "" }),
+      repo.createProperty(inflated, { name: "Second", location: "Here", description: "" }),
+    ]);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    expect(await repo.listProperties(host.id)).toHaveLength(1);
   });
   it("rate limits within a window", async () => {
     expect(await repo.consumeRateLimit("t", 2, 60)).toBe(true);
@@ -95,7 +108,8 @@ describe("repository (Neon schema on PGlite)", () => {
   it("lists every host for the owner overview", async () => {
     const hosts = await repo.adminHosts();
     const ana = hosts.find((h) => h.email === "host@example.com");
-    expect(hosts).toHaveLength(2);
+    expect(hosts).toHaveLength(3);
+    expect(hosts.find((h) => h.email === "quota-race@example.test")).toMatchObject({ plan: "free", properties: 1, published: 0 });
     expect(ana).toMatchObject({ plan: "free", properties: 1, published: 1, aiMessagesThisMonth: 1, aiMessageLimit: 25 });
     expect(hosts.find((h) => h.email === "other@example.com")).toMatchObject({ aiMessagesThisMonth: 26, aiMessageLimit: 25 });
   });

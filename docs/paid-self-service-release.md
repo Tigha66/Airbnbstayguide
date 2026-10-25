@@ -12,6 +12,8 @@ This candidate is based on the current `main` source. It is not approved for pai
 - Entitlements bind to an existing Stripe customer, not metadata user IDs. Mode checks, successful-event receipts, event watermark and subscription binding protect retries and late cancellations. Past-due/unpaid subscriptions do not receive paid entitlements. Invoice paid/failure and async checkout success are handled. Refund, dispute and fraud alerts are retained privately for review.
 - Failed provider lookups cannot silently orphan an existing subscription. Account deletion is refused while a nonterminal subscription remains; cancel through Manage billing first.
 
+New properties start as private drafts. Hosts explicitly publish after reviewing manual/AI content. Property creation locks the owner in a Read Committed transaction, checks the stored plan and inserts conditionally, so simultaneous requests cannot use a stale caller plan to exceed the property allowance. Guide-builder AI calls require a verified email, share the monthly server allowance, and have an additional ten-per-hour owner limit; the manual parser remains available. Each attempted AI guide generation uses one included AI request.
+
 ## Migration and recovery
 
 Builds no longer migrate a shared database. Schema adds `organization`, `session_version`, `billing_event_created`, event receipt/risk alert tables and a unique partial Stripe-customer index. Before migration inspect duplicate non-null Stripe customer bindings and resolve ambiguity without discarding customer records. Confirm an isolated restore and record a verified recovery point. Use a separate staging database.

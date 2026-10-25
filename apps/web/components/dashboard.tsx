@@ -1665,6 +1665,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 ? tr("Our AI will organize your text into guide sections using only what you wrote.")
                 : tr("We’ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as “WI-FI:” for best results.")}
             </div>
+            {live && <small>{tr("AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.")}</small>}
             {error && <p className="error-text">{error}</p>}
             <button className="button" disabled={creating}>
               <Sparkles size={16} />
