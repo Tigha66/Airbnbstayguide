@@ -35,7 +35,9 @@ export async function priceId(plan: "starter" | "pro", yearly: boolean) {
 export async function portalConfigurationId() {
   if (process.env.STRIPE_PORTAL_CONFIGURATION_ID?.trim()) return process.env.STRIPE_PORTAL_CONFIGURATION_ID.trim();
   const { data } = await stripeClient().billingPortal.configurations.list({ active: true, limit: 100 });
-  return data.find((item) => item.metadata?.app === "stayguide")?.id;
+  const configuration = data.find((item) => item.metadata?.app === "stayguide")?.id;
+  if (!configuration) throw new Error("Configure StayGuide's self-service billing portal first");
+  return configuration;
 }
 export function checkoutIdentity(userId: string, price: string, quantity: number, time = Date.now()) {
   const key = ["stayguide", "checkout", userId, price, quantity, Math.floor(time / 900_000)].join(":");
