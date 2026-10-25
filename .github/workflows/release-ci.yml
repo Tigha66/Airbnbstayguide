@@ -1,0 +1,36 @@
+name: StayGuide release candidate checks
+on:
+  push:
+    branches:
+      - feature/stayguide-release-ci-20261025
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10.32.1'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install locked dependencies (no live provider scripts)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Test account, tenancy, billing, and paid extras logic
+        run: pnpm --filter @stayguide/web test
+      - name: Lint
+        run: pnpm --filter @stayguide/web lint
+      - name: Type checking
+        run: pnpm --filter @stayguide/web typecheck
+      - name: Build without external accounts or migrations
+        run: pnpm --filter @stayguide/web build
