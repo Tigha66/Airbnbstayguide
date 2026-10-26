@@ -1701,7 +1701,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 ],
               });
               close();
-              notify(tr("Extra added to your demo guide."));
+              notify(tr(live ? "Extra added to your guest guide." : "Extra added to your demo guide."));
             }}
           >
             <label>

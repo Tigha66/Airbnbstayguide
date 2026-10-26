@@ -34,21 +34,19 @@ test("legacy translations cannot override the current guide", async ({ page }) =
   await page.addInitScript(() => localStorage.setItem("stayguide-translation-casa-serena-fr", JSON.stringify({
     description: "OUTDATED ACCESS CODE 1111", sections: [], extras: [],
   })));
-  await page.route("**/api/v1/guides/casa-serena/translation?lang=fr", route => route.fulfill({
-    json: { translated: true, text: { description: "Bienvenue dans votre guide actuel.", sections: [], extras: [] } },
-  }));
-  await page.goto("/demo");
+  await page.goto("/g/casa-serena");
+  await expect(page.getByRole("heading", { name: "Casa Serena", exact: true })).toBeVisible();
   await page.getByRole("combobox", { name: "Language" }).selectOption("fr");
-  await expect(page.getByText("Bienvenue dans votre guide actuel.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Langue", exact: true })).toHaveValue("fr");
+  // CI has no AI provider: a rejected stale cache must show the current original.
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toBeVisible();
   await expect(page.getByText("OUTDATED ACCESS CODE 1111")).toHaveCount(0);
 });
 
 test("account recovery and verification pages are absent from offline caches", async ({ page }) => {
-  await page.goto("/demo");
-  await page.evaluate(async () => {
-    await navigator.serviceWorker.ready;
-    if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
-  });
+  await page.goto("/g/casa-serena");
+  await expect(page.getByRole("heading", { name: "Casa Serena", exact: true })).toBeVisible();
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   for (const path of ["/forgot-password", "/reset-password?token=fixture", "/verify-email?token=fixture"])
     await page.goto(path);
   const privatePages = await page.evaluate(async () => {
