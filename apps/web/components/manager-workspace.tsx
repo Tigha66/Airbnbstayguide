@@ -24,7 +24,10 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
       setError("");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not load Manager workspace."); }
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const handle = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(handle);
+  }, [load]);
 
   async function mutate(url: string, method: "POST" | "PATCH" | "DELETE", body?: object) {
     setBusy(true);
