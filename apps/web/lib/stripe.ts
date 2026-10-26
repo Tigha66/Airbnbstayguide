@@ -17,10 +17,10 @@ export const appUrl = (_request?: Request) => { void _request; return applicatio
  * Plan prices are found in the reviewed catalogue by lookup key. Older keys without a currency suffix
  * (the original USD prices) are still recognised for existing subscriptions.
  */
-export const lookupKey = (plan: "starter" | "pro", yearly: boolean) =>
+export const lookupKey = (plan: "starter" | "pro" | "manager", yearly: boolean) =>
   `stayguide_${plan}_${yearly ? "yearly" : "monthly"}_${CURRENCY}`;
 /** Read the reviewed catalogue; customer requests never create prices or modify portal settings. */
-export async function priceId(plan: "starter" | "pro", yearly: boolean) {
+export async function priceId(plan: "starter" | "pro" | "manager", yearly: boolean) {
   const envName = "STRIPE_PRICE_" + plan.toUpperCase() + "_" + (yearly ? "YEAR" : "MONTH");
   const stripe = stripeClient();
   const configured = process.env[envName]?.trim();
@@ -49,18 +49,20 @@ export function checkoutIdentity(userId: string, price: string, quantity: number
 export function planFromSubscription(sub: Pick<Stripe.Subscription, "status" | "items">): Plan {
   if (!["active", "trialing"].includes(sub.status)) return "free";
   const price = sub.items.data[0]?.price;
-  for (const plan of ["starter", "pro"] as const) {
+  for (const plan of ["starter", "pro", "manager"] as const) {
     for (const interval of ["MONTH", "YEAR"] as const) {
       const configured = process.env["STRIPE_PRICE_" + plan.toUpperCase() + "_" + interval]?.trim();
       if (configured && price?.id === configured) return plan;
     }
   }
   const key = price?.lookup_key ?? "";
-  const match = /^stayguide_(starter|pro)_(monthly|yearly)(?:_[a-z]{3})?$/.exec(key);
+  const match = /^stayguide_(starter|pro|manager)_(monthly|yearly)(?:_[a-z]{3})?$/.exec(key);
   return match ? (match[1] as Plan) : "free";
 }
 /** Subscriptions are billed per property; never below one. */
 export const billableQuantity = (propertyCount: number) => Math.max(1, Math.min(100, propertyCount));
+/** Manager is a flat-rate subscription; Starter and Pro retain per-property billing. */
+export const subscriptionQuantity = (plan: Plan, propertyCount: number) => plan === "manager" ? 1 : billableQuantity(propertyCount);
 
 /** Checkout parameters for a guest paying for an extra; money goes to the host minus the 5% platform fee. */
 export function extraCheckoutParams(input: {

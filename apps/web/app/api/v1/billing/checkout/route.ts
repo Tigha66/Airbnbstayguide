@@ -3,9 +3,9 @@ import { z } from "zod";
 import { requireHost } from "@/lib/session";
 import { getBilling } from "@/lib/repo";
 import { ensureCustomer } from "@/lib/billing";
-import { appUrl, billableQuantity, checkoutIdentity, priceId, stripeClient, stripeConfigured } from "@/lib/stripe";
+import { appUrl, subscriptionQuantity, checkoutIdentity, priceId, stripeClient, stripeConfigured } from "@/lib/stripe";
 import { parseJson, safeOrigin, unavailable } from "@/lib/api";
-const schema = z.object({ plan: z.enum(["starter", "pro"]), yearly: z.boolean().default(false) });
+const schema = z.object({ plan: z.enum(["starter", "pro", "manager"]), yearly: z.boolean().default(false) });
 const reply = (data: unknown, status = 200) => NextResponse.json(data, { status, headers: { "Cache-Control": "private, no-store" } });
 export async function POST(request: Request) {
   if (!safeOrigin(request)) return reply({ error: "Invalid origin" }, 403);
@@ -25,7 +25,9 @@ export async function POST(request: Request) {
     if (subscriptions.data.some((sub) => !["canceled", "incomplete_expired"].includes(sub.status)))
       return reply({ error: "You already have a subscription. Use Manage billing.", code: "ALREADY_SUBSCRIBED" }, 409);
     const price = await priceId(parsed.data.plan, parsed.data.yearly);
-    const quantity = billableQuantity(billing?.propertyCount ?? 1);
+    if (parsed.data.plan === "manager" && (billing?.propertyCount ?? 0) > 50)
+      return reply({ error: "Manager supports up to 50 properties. Contact support to discuss a larger portfolio." }, 409);
+    const quantity = subscriptionQuantity(parsed.data.plan, billing?.propertyCount ?? 1);
     const open = await stripe.checkout.sessions.list({ customer, status: "open", limit: 100 });
     const pending = open.data.find((s) => s.mode === "subscription" && s.metadata?.app === "stayguide" &&
       s.metadata.user_id === host.user.id && s.metadata.price_id === price && s.metadata.quantity === String(quantity));

@@ -1,4 +1,4 @@
-import { stripeClient, stripeConfigured, billableQuantity, isMissing } from "./stripe";
+import { stripeClient, stripeConfigured, subscriptionQuantity, planFromSubscription, isMissing } from "./stripe";
 import { clearStripeAccount, clearStripeCustomer, getBilling, setStripeAccount, setStripeCustomer, type User } from "./repo";
 
 export async function ensureCustomer(user: User) {
@@ -32,7 +32,7 @@ export async function syncSubscriptionQuantity(userId: string) {
     const stripe = stripeClient();
     const sub = await stripe.subscriptions.retrieve(billing.stripeSubscriptionId);
     const item = sub.items.data[0];
-    const quantity = billableQuantity(billing.propertyCount);
+    const quantity = subscriptionQuantity(planFromSubscription(sub), billing.propertyCount);
     if (item && item.quantity !== quantity && !["canceled", "incomplete_expired"].includes(sub.status))
       await stripe.subscriptions.update(sub.id, {
         items: [{ id: item.id, quantity }],

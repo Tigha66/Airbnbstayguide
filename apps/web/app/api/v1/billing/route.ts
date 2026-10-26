@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireHost } from "@/lib/session";
 import { getBilling } from "@/lib/repo";
 import { refreshPayoutStatus } from "@/lib/billing";
-import { billableQuantity, stripeConfigured } from "@/lib/stripe";
+import { subscriptionQuantity, stripeConfigured } from "@/lib/stripe";
 export const dynamic = "force-dynamic";
 export async function GET() {
   const host = await requireHost();
@@ -18,7 +18,7 @@ export async function GET() {
     status: billing.subscriptionStatus,
     subscribed: Boolean(billing.stripeSubscriptionId && billing.subscriptionStatus !== "canceled"),
     propertyCount: billing.propertyCount,
-    billableQuantity: billableQuantity(billing.propertyCount),
+    billableQuantity: subscriptionQuantity(billing.plan, billing.propertyCount),
     payouts: { started: Boolean(billing.stripeAccountId), ready: payoutsReady },
   });
 }

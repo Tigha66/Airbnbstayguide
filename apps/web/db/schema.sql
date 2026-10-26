@@ -114,3 +114,25 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_event_created bigint NOT NULL
 CREATE UNIQUE INDEX IF NOT EXISTS users_stripe_customer_idx ON users(stripe_customer_id) WHERE stripe_customer_id IS NOT NULL;
 CREATE TABLE IF NOT EXISTS stripe_webhook_events (id text PRIMARY KEY, event_type text NOT NULL, created bigint NOT NULL, processed_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE IF NOT EXISTS billing_alerts (event_id text PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE, event_type text NOT NULL, object_id text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), resolved_at timestamptz);
+
+-- Manager-plan portfolio inbox triage. No outbound guest messages are sent by these rules.
+CREATE TABLE IF NOT EXISTS portfolio_rules (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  keyword text NOT NULL CHECK (char_length(keyword) BETWEEN 2 AND 50),
+  label text NOT NULL CHECK (char_length(label) BETWEEN 2 AND 50),
+  priority text NOT NULL CHECK (priority IN ('normal', 'urgent')),
+  enabled boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS portfolio_rules_owner_keyword_idx ON portfolio_rules(owner_id, lower(keyword));
+CREATE TABLE IF NOT EXISTS portfolio_triage (
+  thread_id uuid PRIMARY KEY,
+  owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  property_id text NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  label text NOT NULL,
+  priority text NOT NULL CHECK (priority IN ('normal', 'urgent')),
+  status text NOT NULL DEFAULT 'open' CHECK (status IN ('open','resolved')),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS portfolio_triage_owner_idx ON portfolio_triage(owner_id, updated_at DESC);

@@ -3,6 +3,8 @@ export const plans = {
   free: { name: "Free", monthly: 0, messages: 25, properties: 1 },
   starter: { name: "Starter", monthly: 9, messages: 300, properties: 20 },
   pro: { name: "Pro", monthly: 19, messages: 1500, properties: 100 },
+  /** Flat-rate portfolio operations: channel inbox + rule-based triage. */
+  manager: { name: "Manager", monthly: 199, messages: 1000, properties: 50 },
   /** Sales-led plan: custom price agreed with StayGuide, activated by the owner from /admin, invoiced separately. */
   hotel: { name: "Hotel & Multi-Unit", monthly: 0, messages: 1500, properties: 1000 },
 } as const;
@@ -23,7 +25,7 @@ export const hotelPlan = {
 export function priceFor(plan: Plan, quantity: number, annual = false) {
   if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 100)
     throw new Error("Choose between 1 and 100 properties");
-  return plans[plan].monthly * quantity * (annual ? 10 : 1);
+  return plans[plan].monthly * (plan === "manager" ? 1 : quantity) * (annual ? 10 : 1);
 }
 export function applicationFee(amountCents: number) {
   if (!Number.isSafeInteger(amountCents) || amountCents < 0)

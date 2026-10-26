@@ -119,8 +119,8 @@ export async function createProperty(
     { text: `INSERT INTO properties (id, owner_id, slug, status, data)
       SELECT $1, u.id, $3, $4, $5::jsonb FROM users u WHERE u.id = $2
       AND (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) <
-        CASE u.plan WHEN 'starter' THEN $6::int WHEN 'pro' THEN $7::int WHEN 'hotel' THEN $8::int ELSE $9::int END
-      RETURNING id`, params: [id, owner.id, slug, property.status, JSON.stringify(property), plans.starter.properties, plans.pro.properties, plans.hotel.properties, plans.free.properties] },
+        CASE u.plan WHEN 'starter' THEN $6::int WHEN 'pro' THEN $7::int WHEN 'manager' THEN $10::int WHEN 'hotel' THEN $8::int ELSE $9::int END
+      RETURNING id`, params: [id, owner.id, slug, property.status, JSON.stringify(property), plans.starter.properties, plans.pro.properties, plans.hotel.properties, plans.free.properties, plans.manager.properties] },
   ]);
   if (!inserted.length) throw new LimitError("Your current plan has reached its property limit. Choose a larger plan to add another property.");
   return property;
@@ -156,7 +156,7 @@ export async function consumeRateLimit(bucket: string, max: number, windowSecond
 export const monthKey = (d = new Date()) => d.toISOString().slice(0, 7);
 /** Monthly AI concierge allowance: the plan's messages per property (at least one property). */
 export function aiMessageLimit(plan: Plan, propertyCount: number) {
-  return (plans[plan]?.messages ?? plans.free.messages) * Math.max(1, propertyCount);
+  return plan === "manager" ? 10000 : (plans[plan]?.messages ?? plans.free.messages) * Math.max(1, propertyCount);
 }
 async function ownerAiLimit(ownerId: string) {
   const [row] = await query<{ plan: Plan; properties: string | number }>(
@@ -498,6 +498,80 @@ export async function setManagedPlan(email: string, plan: "hotel" | "free") {
         AND (stripe_subscription_id IS NULL OR subscription_status = 'canceled')
       RETURNING id`,
     [email, plan],
+  );
+  return rows.length > 0;
+}
+
+/** Rules are manager-only, scoped to the authenticated owner, and disabled by default. */
+export type PortfolioRule = { id: string; keyword: string; label: string; priority: "normal" | "urgent"; enabled: boolean };
+export async function listPortfolioRules(ownerId: string): Promise<PortfolioRule[]> {
+  return query<PortfolioRule>(
+    "SELECT id, keyword, label, priority, enabled FROM portfolio_rules WHERE owner_id = $1 ORDER BY created_at DESC",
+    [ownerId],
+  );
+}
+export async function createPortfolioRule(ownerId: string, rule: { keyword: string; label: string; priority: "normal" | "urgent" }) {
+  const [row] = await query<PortfolioRule>(
+    `INSERT INTO portfolio_rules (owner_id, keyword, label, priority)
+     SELECT u.id, $2, $3, $4 FROM users u WHERE u.id = $1 AND u.plan = 'manager'
+     AND (SELECT count(*) FROM portfolio_rules r WHERE r.owner_id = u.id) < 20
+     RETURNING id, keyword, label, priority, enabled`,
+    [ownerId, rule.keyword.toLowerCase(), rule.label, rule.priority],
+  );
+  return row ?? null;
+}
+export async function setPortfolioRuleEnabled(ownerId: string, ruleId: string, enabled: boolean) {
+  const rows = await query(
+    `UPDATE portfolio_rules r SET enabled = $3 FROM users u
+     WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND u.plan = 'manager'
+     RETURNING r.id`, [ownerId, ruleId, enabled],
+  );
+  return rows.length > 0;
+}
+export async function deletePortfolioRule(ownerId: string, ruleId: string) {
+  const rows = await query(
+    `DELETE FROM portfolio_rules r USING users u
+     WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND u.plan = 'manager'
+     RETURNING r.id`, [ownerId, ruleId],
+  );
+  return rows.length > 0;
+}
+export type PortfolioTriage = { threadId: string; propertyName: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updatedAt: string };
+export async function listPortfolioTriage(ownerId: string): Promise<PortfolioTriage[]> {
+  const rows = await query<{ thread_id: string; property_name: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updated_at: string }>(
+    `SELECT t.thread_id, p.data->>'name' AS property_name, t.label, t.priority, t.status, t.updated_at
+     FROM portfolio_triage t JOIN properties p ON p.id = t.property_id
+     WHERE t.owner_id = $1 AND p.owner_id = $1 ORDER BY t.updated_at DESC LIMIT 100`, [ownerId],
+  );
+  return rows.map(r => ({ threadId: r.thread_id, propertyName: r.property_name, label: r.label, priority: r.priority, status: r.status, updatedAt: new Date(r.updated_at).toISOString() }));
+}
+export async function setPortfolioTriageStatus(ownerId: string, threadId: string, status: "open" | "resolved") {
+  const rows = await query(
+    `UPDATE portfolio_triage t SET status = $3, updated_at = now() FROM users u
+     WHERE t.thread_id = $2 AND t.owner_id = $1 AND u.id = t.owner_id AND u.plan = 'manager'
+     RETURNING t.thread_id`, [ownerId, threadId, status],
+  );
+  return rows.length > 0;
+}
+/** Auto-triage matches operator-approved keywords on guest messages only. Never sends outbound messages. */
+export async function applyPortfolioRules(ownerId: string, propertyId: string, threadId: string, message: string) {
+  const rules = await query<Pick<PortfolioRule, "keyword" | "label" | "priority">>(
+    `SELECT r.keyword, r.label, r.priority FROM portfolio_rules r
+     JOIN users u ON u.id = r.owner_id
+     WHERE r.owner_id = $1 AND u.plan = 'manager' AND r.enabled = true
+     ORDER BY CASE r.priority WHEN 'urgent' THEN 0 ELSE 1 END, r.created_at`, [ownerId],
+  );
+  const matched = rules.find(rule => message.toLowerCase().includes(rule.keyword.toLowerCase()));
+  if (!matched) return false;
+  const rows = await query(
+    `INSERT INTO portfolio_triage (thread_id, owner_id, property_id, label, priority)
+     SELECT $3, p.owner_id, p.id, $4, $5 FROM properties p
+     WHERE p.id = $2 AND p.owner_id = $1
+     ON CONFLICT (thread_id) DO UPDATE SET
+       label = EXCLUDED.label, priority = EXCLUDED.priority, status = 'open', updated_at = now()
+     WHERE portfolio_triage.owner_id = EXCLUDED.owner_id AND portfolio_triage.property_id = EXCLUDED.property_id
+     RETURNING thread_id`,
+    [ownerId, propertyId, threadId, matched.label, matched.priority],
   );
   return rows.length > 0;
 }
