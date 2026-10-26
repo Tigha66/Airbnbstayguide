@@ -60,15 +60,27 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [reply, setReply] = useState("");
   const [onlyEscalated, setOnlyEscalated] = useState(true);
-  const threads = (data?.threads ?? []).filter((t) => !onlyEscalated || t.escalated);
+  const [propertyFilter, setPropertyFilter] = useState("all");
+  useEffect(() => {
+    const deepLinked = new URLSearchParams(window.location.search).get("thread");
+    if (deepLinked && /^[0-9a-f-]{36}$/i.test(deepLinked)) { setSelected(deepLinked); setOnlyEscalated(false); }
+  }, []);
+  const properties = [...new Set((data?.threads ?? []).map((t) => t.propertyName))].sort();
+  const threads = (data?.threads ?? []).filter((t) => (!onlyEscalated || t.escalated) && (propertyFilter === "all" || t.propertyName === propertyFilter));
   const thread = threads.find((t) => t.threadId === selected) ?? threads[0];
   return (
     <>
       <PageHeading title={tr("A little human touch")} description={tr("Your concierge takes care of the everyday. You take care of the rest.")}>
-        <label className="row" style={{ gap: 8, fontSize: 13 }}>
-          <input type="checkbox" checked={onlyEscalated} onChange={(e) => setOnlyEscalated(e.target.checked)} />
-          {tr("Needs your help only")}
-        </label>
+        <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+          <select aria-label="Filter conversations by property" value={propertyFilter} onChange={(e) => setPropertyFilter(e.target.value)}>
+            <option value="all">All properties</option>
+            {properties.map((name) => <option key={name} value={name}>{name}</option>)}
+          </select>
+          <label className="row" style={{ gap: 8, fontSize: 13 }}>
+            <input type="checkbox" checked={onlyEscalated} onChange={(e) => setOnlyEscalated(e.target.checked)} />
+            {tr("Needs your help only")}
+          </label>
+        </div>
       </PageHeading>
       {error && <div className="notice">{tr("Couldn’t load conversations. Retrying…")}</div>}
       {!data && !error && <div className="card panel">{tr("Loading conversations…")}</div>}
@@ -371,7 +383,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
             </h3>
             <small>
               {countText(data.propertyCount)} · {tr("up to {n} on this plan", { n: plans[data.plan].properties.toLocaleString() })} ·{" "}
-              {tr("{n} AI messages / property / month", { n: plans[data.plan].messages.toLocaleString() })}
+              {data.plan === "manager" ? "10,000 AI messages / portfolio / month · flat-rate billing" : tr("{n} AI messages / property / month", { n: plans[data.plan].messages.toLocaleString() })}
             </small>
           </div>
           {data.subscribed && (
@@ -427,6 +439,23 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
                 </button>
               </div>
             ))}
+            <div className="card pricing-card" key="manager">
+              <div className="eyebrow">StayGuide Manager</div>
+              <h3>Run guest communication across your portfolio</h3>
+              <div className="price">{CURRENCY_SYMBOL}{plans.manager.monthly * (yearly ? 10 : 1)}</div>
+              <small>{yearly ? "per year" : "per month"} · flat fee for up to 50 properties</small>
+              <ul>
+                <li><Check size={14} /> Unified multi-property guest inbox</li>
+                <li><Check size={14} /> Owner-controlled keyword triage automation</li>
+                <li><Check size={14} /> 10,000 AI concierge messages per month</li>
+                <li><Check size={14} /> Existing guides, extras and analytics</li>
+                <li><Check size={14} /> PMS channel integrations planned, not yet connected</li>
+              </ul>
+              <button className="button" disabled={!data.stripe || busy !== null}
+                onClick={() => run("manager", () => postForUrl("/api/v1/billing/checkout", { plan: "manager", yearly }))}>
+                {busy === "manager" ? "Opening checkout…" : "Choose Manager"}
+              </button>
+            </div>
             <HotelPlanCard text={hotelText} />
           </div>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>

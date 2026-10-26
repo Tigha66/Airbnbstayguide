@@ -91,3 +91,28 @@ pnpm test:e2e
 GitHub Actions runs lint, type checks, unit tests, and web/native export. Browser tests target the demo and deliberately check that unavailable payment integrations fail closed. A real signup → AI → Stripe purchase E2E needs test credentials and remaining integration implementation. Lighthouse ≥90 has not been certified. Logs from sandbox checks are kept in `/tmp/logs`.
 
 See [launch plan and App Store draft](docs/LAUNCH.md).
+
+## Unified StayGuide Manager (feature branch)
+
+StayGuide remains the only customer-facing product. The $199/month Manager plan is a flat
+portfolio subscription for up to 50 properties (10,000 shared AI messages/month). It includes
+all existing guide, inbox, extras and analytics features, plus an owner-scoped automation
+workspace at `/dashboard/manager`. Existing Free/Starter/Pro billing stays per-property;
+Hotel & Multi-Unit remains an administrator-managed plan.
+
+**Implemented:** Stripe Manager price lookup and webhook entitlement, fixed subscription
+quantity of one, 50-property server limit, cross-property inbox filtering, keyword rules
+and auditable open/resolved triage. New rules start disabled; enabling one classifies only
+future guest messages containing its keyword. No automation sends messages to guests,
+changes reservations or commits purchases. All API writes require an authenticated Manager
+account and same-origin requests; records are owner-scoped.
+
+**Not implemented:** Hospitable/Guesty OAuth, PMS webhooks, Airbnb/Vrbo/Booking.com channel
+messages, scheduled pre-arrival or check-out campaigns, team assignment, push alerts,
+message delivery retries, and iOS Manager screens. Do not market these as operational.
+Before enabling live Manager checkouts, provision/review Stripe prices for
+`stayguide_manager_monthly_usd` ($199 recurring monthly) and
+`stayguide_manager_yearly_usd` ($1,990 recurring yearly), update customer portal
+plan choices, take a Neon recovery point, apply `apps/web/db/schema.sql` with the
+explicit guarded migration process, and verify a full sandbox purchase/webhook plus
+2-account cross-tenant suite. Never migrate or promote this branch automatically.

@@ -72,6 +72,7 @@ import {
 import { parseManual, extractWifi, extractTime } from "@/lib/guide-parser";
 import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling, ResendVerification, LiveOverviewStats, LiveOverviewActivity } from "./live";
 import { HotelPlanCard } from "./hotel-plan";
+import { ManagerWorkspace } from "./manager-workspace";
 import { AppLanguageMenu, useAppLocale } from "./app-locale";
 import { siteDir, siteText } from "@/lib/site-i18n";
 import { signOutAction } from "@/app/actions";
@@ -81,6 +82,7 @@ const nav = [
   ["", "Overview", Home],
   ["properties", "Properties", BookOpen],
   ["inbox", "Guest inbox", MessageCircle],
+  ["manager", "Manager automation", Bell],
   ["extras", "Extras & upsells", Gift],
   ["analytics", "Analytics", BarChart3],
 ] as const;
@@ -1075,6 +1077,14 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 </div>
               )}
             </>
+          )}
+          {view === "manager" && live && liveState.user?.plan === "manager" && <ManagerWorkspace notify={notify} />}
+          {view === "manager" && (!live || liveState.user?.plan !== "manager") && (
+            <div className="card panel">
+              <PageHeading title="StayGuide Manager" description="One portfolio inbox with rules to prioritise guest requests across your properties." />
+              <p>Manager is $199 per month for up to 50 properties. Rule-based triage stays in your inbox; no messages are automatically sent to guests.</p>
+              <Link className="button" href="/dashboard/billing">Explore Manager billing <ArrowRight size={15} /></Link>
+            </div>
           )}
           {view === "inbox" && live && <LiveInbox notify={notify} />}
           {view === "inbox" && !live && (

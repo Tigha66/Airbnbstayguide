@@ -4,6 +4,7 @@ const views = [
   "properties",
   "editor",
   "inbox",
+  "manager",
   "extras",
   "analytics",
   "share",

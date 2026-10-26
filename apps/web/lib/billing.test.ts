@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { setQueryOverride, splitStatements } from "./db";
 import * as repo from "./repo";
-import { billableQuantity, extraCheckoutParams, lookupKey, planFromSubscription } from "./stripe";
+import { billableQuantity, subscriptionQuantity, extraCheckoutParams, lookupKey, planFromSubscription } from "./stripe";
 import { handleVerifiedStripeEvent, handleStripeEvent } from "./stripe-events";
 import { parseJson } from "./api";
 
@@ -50,6 +50,9 @@ describe("plans", () => {
   it("recognises current-currency prices and the original un-suffixed ones", () => {
     expect(lookupKey("starter", false)).toBe("stayguide_starter_monthly_usd");
     expect(lookupKey("pro", true)).toBe("stayguide_pro_yearly_usd");
+    expect(lookupKey("manager", false)).toBe("stayguide_manager_monthly_usd");
+    expect(planFromSubscription(sub("active", "stayguide_manager_monthly_usd"))).toBe("manager");
+    expect(planFromSubscription(sub("past_due", "stayguide_manager_monthly_usd"))).toBe("free");
     expect(planFromSubscription(sub("active", "stayguide_starter_monthly_usd"))).toBe("starter");
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly_usd"))).toBe("pro");
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly_gbp_extra"))).toBe("free");
@@ -58,6 +61,8 @@ describe("plans", () => {
     expect(billableQuantity(0)).toBe(1);
     expect(billableQuantity(7)).toBe(7);
     expect(billableQuantity(500)).toBe(100);
+    expect(subscriptionQuantity("manager", 40)).toBe(1);
+    expect(subscriptionQuantity("pro", 40)).toBe(40);
   });
 });
 

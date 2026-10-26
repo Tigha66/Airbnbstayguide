@@ -101,6 +101,7 @@ describe("repository (Neon schema on PGlite)", () => {
     expect(repo.aiMessageLimit("free", 1)).toBe(25);
     expect(repo.aiMessageLimit("starter", 7)).toBe(2100);
     expect(repo.aiMessageLimit("pro", 3)).toBe(4500);
+    expect(repo.aiMessageLimit("manager", 50)).toBe(10000);
   });
   it("stops AI answers once the monthly allowance is used", async () => {
     // b is on Free: 25 messages per property, at least one property counted.
