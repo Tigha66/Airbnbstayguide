@@ -63,7 +63,10 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
   const [propertyFilter, setPropertyFilter] = useState("all");
   useEffect(() => {
     const deepLinked = new URLSearchParams(window.location.search).get("thread");
-    if (deepLinked && /^[0-9a-f-]{36}$/i.test(deepLinked)) { setSelected(deepLinked); setOnlyEscalated(false); }
+    if (deepLinked && /^[0-9a-f-]{36}$/i.test(deepLinked)) {
+      const handle = window.setTimeout(() => { setSelected(deepLinked); setOnlyEscalated(false); }, 0);
+      return () => window.clearTimeout(handle);
+    }
   }, []);
   const properties = [...new Set((data?.threads ?? []).map((t) => t.propertyName))].sort();
   const threads = (data?.threads ?? []).filter((t) => (!onlyEscalated || t.escalated) && (propertyFilter === "all" || t.propertyName === propertyFilter));
