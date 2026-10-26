@@ -9,6 +9,7 @@ import { siteText } from "@/lib/site-i18n";
 
 type Thread = {
   threadId: string;
+  propertyId: string;
   propertyName: string;
   escalated: boolean;
   lastAt: string;
@@ -68,8 +69,9 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
       return () => window.clearTimeout(handle);
     }
   }, []);
-  const properties = [...new Set((data?.threads ?? []).map((t) => t.propertyName))].sort();
-  const threads = (data?.threads ?? []).filter((t) => (!onlyEscalated || t.escalated) && (propertyFilter === "all" || t.propertyName === propertyFilter));
+  const properties = [...new Map((data?.threads ?? []).map((t) => [t.propertyId, { id: t.propertyId, name: t.propertyName }])).values()]
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const threads = (data?.threads ?? []).filter((t) => (!onlyEscalated || t.escalated) && (propertyFilter === "all" || t.propertyId === propertyFilter));
   const thread = threads.find((t) => t.threadId === selected) ?? threads[0];
   return (
     <>
@@ -77,7 +79,7 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
         <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
           <select aria-label="Filter conversations by property" value={propertyFilter} onChange={(e) => setPropertyFilter(e.target.value)}>
             <option value="all">All properties</option>
-            {properties.map((name) => <option key={name} value={name}>{name}</option>)}
+            {properties.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
           </select>
           <label className="row" style={{ gap: 8, fontSize: 13 }}>
             <input type="checkbox" checked={onlyEscalated} onChange={(e) => setOnlyEscalated(e.target.checked)} />
