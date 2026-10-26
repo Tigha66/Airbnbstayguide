@@ -31,9 +31,13 @@ export async function syncSubscriptionQuantity(userId: string) {
     if (!billing?.stripeSubscriptionId) return;
     const stripe = stripeClient();
     const sub = await stripe.subscriptions.retrieve(billing.stripeSubscriptionId);
+    // A paused, past-due or foreign subscription must never be repriced when a property changes.
+    if (!["active", "trialing"].includes(sub.status)) return;
+    const plan = planFromSubscription(sub);
+    if (plan === "free" || plan === "hotel") return;
     const item = sub.items.data[0];
-    const quantity = subscriptionQuantity(planFromSubscription(sub), billing.propertyCount);
-    if (item && item.quantity !== quantity && !["canceled", "incomplete_expired"].includes(sub.status))
+    const quantity = subscriptionQuantity(plan, billing.propertyCount);
+    if (item && item.quantity !== quantity)
       await stripe.subscriptions.update(sub.id, {
         items: [{ id: item.id, quantity }],
         proration_behavior: "create_prorations",
