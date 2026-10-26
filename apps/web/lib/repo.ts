@@ -260,6 +260,42 @@ export async function createExtraRequest(
 export async function attachExtraCheckout(id: string, sessionId: string) {
   await query(`UPDATE extra_requests SET checkout_session_id = $2 WHERE id = $1`, [id, sessionId]);
 }
+
+/** One guest submission survives double taps, network retries and a lost checkout response. */
+export async function createGuestExtraRequest(
+  id: string,
+  propertyId: string,
+  extra: { id: string; name: string; price: number },
+  guest: { name: string; contact: string; note: string },
+  status: "pending" | "awaiting_payment",
+) {
+  const [row] = await query<{ id: string; status: string; checkout_session_id: string | null; extra_name: string }>(
+    `INSERT INTO extra_requests (id, property_id, extra_id, extra_name, price, guest_name, guest_contact, note, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+     ON CONFLICT (id) DO UPDATE SET id = extra_requests.id
+     WHERE extra_requests.property_id = EXCLUDED.property_id
+       AND extra_requests.extra_id = EXCLUDED.extra_id AND extra_requests.price = EXCLUDED.price
+       AND extra_requests.guest_name = EXCLUDED.guest_name AND extra_requests.guest_contact = EXCLUDED.guest_contact
+       AND extra_requests.note = EXCLUDED.note
+     RETURNING id, status, checkout_session_id, extra_name`,
+    [id, propertyId, extra.id, extra.name, extra.price, guest.name, guest.contact, guest.note, status],
+  );
+  return row ?? null;
+}
+
+/** The opaque Checkout ID is a receipt token. Never return guest contact details. */
+export async function guestExtraPaymentStatus(propertyId: string, sessionId: string) {
+  const [row] = await query<{ status: string; prepaid: boolean }>(
+    `SELECT status, payment_intent_id IS NOT NULL AS prepaid FROM extra_requests
+     WHERE property_id = $1 AND checkout_session_id = $2`, [propertyId, sessionId],
+  );
+  if (!row) return null;
+  if (row.status === "refunded" && row.prepaid) return "refunded";
+  if (row.status === "paid" && row.prepaid) return "paid";
+  if (row.status === "pending" && row.prepaid) return "authorized";
+  if (["declined", "expired"].includes(row.status)) return "closed";
+  return "processing";
+}
 /** Webhook: a guest finished (or abandoned) Stripe Checkout for an extra. */
 export async function settleExtraCheckout(sessionId: string, status: "pending" | "paid" | "expired", paymentIntentId: string | null) {
   const rows = await query(

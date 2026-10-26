@@ -93,9 +93,9 @@ export function extraCheckoutParams(input: {
       metadata: { app: "stayguide", extra_request_id: input.requestId, property_id: input.propertyId },
     },
     metadata: { app: "stayguide", kind: "extra", extra_request_id: input.requestId },
-    success_url: `${input.origin}/g/${input.slug}?extra=success`,
+    integration_identifier: checkoutIdentity(input.requestId, "extra", input.extra.price, 0).integrationIdentifier,
+    success_url: `${input.origin}/g/${input.slug}?extra=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${input.origin}/g/${input.slug}?extra=cancelled`,
-    expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
   };
 }
 /** True when Stripe says the object doesn't exist in this mode/account (stale test-mode ids). */

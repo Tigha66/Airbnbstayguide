@@ -70,7 +70,7 @@ describe("extras checkout", () => {
     expect(params.payment_intent_data?.transfer_data?.destination).toBe("acct_host");
     expect(params.payment_intent_data?.capture_method).toBe("automatic");
     expect(params.line_items?.[0].price_data?.unit_amount).toBe(3000);
-    expect(params.success_url).toBe("https://x.test/g/sea?extra=success");
+    expect(params.success_url).toBe("https://x.test/g/sea?extra=success&session_id={CHECKOUT_SESSION_ID}");
   });
   it("only authorises the card when the host must approve first", () => {
     const params = extraCheckoutParams({ ...base, extra: { name: "Early check-in", description: "", price: 2500, approval: true } });

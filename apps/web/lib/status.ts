@@ -3,6 +3,7 @@ import { passwordLoginConfigured } from "./password-login";
 import { aiConfigured } from "@/lib/ai";
 import { dbConfigured, query } from "@/lib/db";
 import { mailerConfigured } from "@/lib/mailer";
+import { stripeConfigured, stripeLiveMode } from "@/lib/stripe";
 
 export type ServiceStatus = { key: string; label: string; ok: boolean; detail: string };
 
@@ -25,8 +26,8 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
     appleConfigured() && "Apple",
     passwordLoginConfigured() && "email and password",
   ].filter(Boolean).join(", ");
-  const stripe = Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_") && process.env.STRIPE_WEBHOOK_SECRET);
-  const mode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_") ? "live" : "test";
+  const stripe = Boolean(stripeConfigured() && process.env.STRIPE_WEBHOOK_SECRET);
+  const mode = stripeLiveMode() ? "live" : "test";
   return [
     { key: "database", label: "Database (Neon)", ok: dbOk, detail: dbDetail },
     {
