@@ -12,7 +12,7 @@
 ## Release gate
 1. Run standard lint, typecheck, unit tests, production build and browser tests in CI.
 2. Review the Neon recovery point. Only then run the explicitly gated schema migration in a safe staging branch. Confirm legacy data survives.
-3. Create/review the Stripe Manager recurring Prices and portal configuration. Check Manager lookup keys and the Stripe signing secret in a sandbox.
+3. Create/review the Stripe Manager recurring Prices and portal configuration. Check Manager lookup keys and the Stripe signing secret in a sandbox. Do not add Manager as an unrestricted plan-switch option in the Stripe portal: Stripe portal changes could bypass the 50-property eligibility check. Manager users may manage payment methods and cancel, but tier changes require a server-enforced eligibility path.
 4. Verify checkout, signed webhooks, subscription cancellation, past-due lockout, fixed quantity, 50-property limit and no downgrade access leakage.
 5. Test two separate hosts: manager rules, guest chat classification, reply visibility and cross-tenant rejection.
 6. Check mobile and desktop dashboard, including 50-property inbox performance and rule collisions.
