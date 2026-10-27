@@ -58,3 +58,58 @@ These checks may not be substituted with a Vercel `READY` build or an HTML page 
 Verify target team/project: Vercel `hajabdelhak66/stayguide`, GitHub `Tigha66/Airbnbstayguide`, main is the live branch. Require all tests, protected database recovery and signed billing/webhook checks; stage a production build *without domain assignment* and smoke test the actual production settings first. Promote the reviewed production build only after all four prior gates pass and retain a rollback deployment. Monitor logs and provider event queues.
 
 **Do not announce GuestPulse AI as commercially ready yet.** The integrated StayGuide Manager **demo** and marketing page are publicly accessible, but paid real PMS communications are not proven operational.
+
+## Delivery queue implementation — 27 October follow-up
+
+The `agent/guestpulse-operational-20261027` branch adds `lib/pms-outbox.ts`,
+`/api/v1/manager/outbox` and the Manager delivery status panel. This is an
+**integration foundation, not a connected or commercially operational service**.
+
+Implemented:
+- Durable immutable drafts with owner-scoped idempotency keys and exact-content
+  approval hashes; tenant-owned properties and verified provider links required.
+- Server authentication, verified email, Manager entitlements, same-origin writes,
+  strict payload validation, draft rate limits, private/no-store responses.
+- Atomic `SKIP LOCKED` claims; current entitlement/property/connection rechecks;
+  pause/cancel, quiet hours, backoff and a three-attempt ceiling.
+- Ambiguous sends and crashed leases are quarantined as `unknown`, never retried
+  automatically. Provider receipts and delivery state audit entries are persisted.
+- The adapter must verify current provider account, listing, reservation,
+  conversation, consent and manual takeover before every send. No webhook or
+  client identity is accepted as that verification.
+
+**Still absent:** registered live provider adapters, credential encryption/token
+refresh/OAuth onboarding, property and reservation sync/reconciliation, scheduler
+invocation and real-provider delivery acceptance. `deliverPmsBatch` is tested
+with fixture adapters only. There is no production cron, provider credential API,
+or way to turn on live sending in the UI. `deliveryAvailable` is deliberately
+false. Do not change it merely because an environment flag exists.
+
+Before wiring a live worker:
+1. Implement and verify provider-approved OAuth, secure credential lifecycle,
+   account ownership and property links; start with read-only sync.
+2. Implement `PmsDeliveryAdapter.verify` against current provider data and channel
+   rules, not fixture flags. `send` must return a durable provider message ID;
+   timeouts and uncertain errors must remain `unknown`. Only provably pre-delivery
+   rejections may raise `PmsSendError('retryable')`.
+3. Register only verified server adapters and add an authenticated scheduler with
+   bounded batch calls. Require per-connection `delivery_enabled`, unpaused state
+   and `STAYGUIDE_PMS_DELIVERY_ENABLED=true`; all are off by default.
+4. Complete controlled test-account delivery, reply/opt-out/manual takeover,
+   cancellation and duplicate/recovery tests before authorising real guest sends.
+
+Schema rollout: review the new `pms_connections`, `pms_property_links`,
+`pms_outbox` and `pms_delivery_audit` tables after a verified backup/restore.
+No production schema has been applied in this follow-up. Existing guest records
+are not changed. Keep the prior deployment available; roll back code and switch
+the delivery flag off before investigating failures. Do not delete uncertain
+outbox records or force them back to approved; reconcile in the provider first.
+Establish customer retention/export/deletion rules for outbox bodies and restrict
+SQL access before storing real guest communication.
+
+Follow-up verification: the full suite passed 171 tests before the final
+concurrency case; the final outbox suite passed 11 cases (including concurrent
+workers), and four API boundary cases passed. Lint, strict TypeScript and the
+production build passed. The new mobile browser acceptance case is supplied,
+but could not run here: Chromium download returned a truncated/invalid archive.
+These are fixture/PGlite checks, not proof of live Guesty/Hospitable delivery.

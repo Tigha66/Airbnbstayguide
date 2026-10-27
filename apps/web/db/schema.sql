@@ -166,3 +166,58 @@ CREATE TABLE IF NOT EXISTS pms_webhook_events (
 );
 CREATE INDEX IF NOT EXISTS pms_webhook_events_pending_idx
   ON pms_webhook_events(received_at) WHERE status = 'awaiting_reconciliation';
+
+-- PMS connections are provisioned only by authorised provider onboarding.
+-- Credentials are never returned by Manager APIs or stored in these tables.
+CREATE TABLE IF NOT EXISTS pms_connections (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider text NOT NULL CHECK (provider IN ('guesty','hospitable')),
+  provider_account_id text NOT NULL,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','verified','revoked')),
+  paused boolean NOT NULL DEFAULT true,
+  delivery_enabled boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(provider, provider_account_id),
+  UNIQUE(id, owner_id)
+);
+CREATE TABLE IF NOT EXISTS pms_property_links (
+  connection_id uuid NOT NULL REFERENCES pms_connections(id) ON DELETE CASCADE,
+  property_id text NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  external_property_id text NOT NULL,
+  PRIMARY KEY(connection_id, property_id),
+  UNIQUE(connection_id, external_property_id)
+);
+CREATE TABLE IF NOT EXISTS pms_outbox (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  property_id text NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  connection_id uuid NOT NULL,
+  reservation_id text NOT NULL,
+  conversation_id text NOT NULL,
+  body text NOT NULL CHECK (length(body) BETWEEN 1 AND 2000),
+  scheduled_at timestamptz NOT NULL,
+  available_at timestamptz NOT NULL DEFAULT now(),
+  time_zone text NOT NULL,
+  content_hash text NOT NULL CHECK (content_hash ~ '^[a-f0-9]{64}$'),
+  approved_hash text,
+  approved_at timestamptz,
+  idempotency_key uuid NOT NULL,
+  status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','approved','sending','sent','cancelled','failed','unknown')),
+  attempts integer NOT NULL DEFAULT 0 CHECK (attempts BETWEEN 0 AND 3),
+  lease_token uuid,
+  claimed_at timestamptz,
+  last_error text,
+  provider_message_id text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY(connection_id, owner_id) REFERENCES pms_connections(id, owner_id) ON DELETE CASCADE,
+  UNIQUE(owner_id, idempotency_key)
+);
+CREATE INDEX IF NOT EXISTS pms_outbox_due_idx ON pms_outbox(scheduled_at) WHERE status = 'approved';
+CREATE INDEX IF NOT EXISTS pms_outbox_owner_idx ON pms_outbox(owner_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS pms_delivery_audit (
+  message_id uuid NOT NULL REFERENCES pms_outbox(id) ON DELETE CASCADE,
+  action text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY(message_id, action)
+);
