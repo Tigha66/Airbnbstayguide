@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { applicationOrigin } from "./origin";
+import { allowedRequestOrigins } from "./origin";
 export function unavailable(service: string) {
   return NextResponse.json(
     {
@@ -12,7 +12,7 @@ export function unavailable(service: string) {
 export function safeOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return !request.headers.has("cookie");
-  try { return origin === applicationOrigin() && request.headers.get("sec-fetch-site") !== "cross-site"; }
+  try { return allowedRequestOrigins().includes(origin) && request.headers.get("sec-fetch-site") !== "cross-site"; }
   catch { return false; }
 }
 export function parseJson(raw: string) {

@@ -133,3 +133,37 @@ empty. No credentials were copied from production or fabricated. These remain
 account-configuration blockers; completing deployed payment/PMS verification
 requires authorised access to the correct database, a matching Stripe test key and
 the PMS vendor account.
+
+## Fresh deployed QA acceptance — 27 October, 23:45 UTC
+
+This recheck supersedes the earlier empty-key observation: the QA Stripe key now
+has a valid test-key prefix. The webhook signing secret is still empty; the
+key's account/catalogue relationship has not been verified.
+
+- Created a fresh password customer in isolated QA and signed in successfully.
+  Billing shows Free, zero properties, one-property quota. Manager denies paid
+  functionality and directs this account to billing; no owner grant was applied.
+- Signup explicitly reported verification email delivery unavailable. Vercel
+  runtime logs confirm Resend rejected delivery with HTTP 403. No email-verification
+  bypass or database backfill was used.
+- The stable QA branch URL rejected checkout with `Invalid origin` before reaching
+  payment checks. The origin guard now accepts the exact server-provided
+  `VERCEL_BRANCH_URL` only in preview, alongside the immutable deployment origin.
+  Foreign hosts, other previews, cross-site requests, malformed branch values and
+  production use of the preview alias remain rejected. Email/payment return links
+  remain pinned to the immutable deployment. Regression coverage exercises both
+  legitimate hostnames and hostile origins.
+- The owner QA Manager page reports missing Manager/outbox schema. The existing
+  direct database variable is a non-readable Vercel secret. Both connected Neon
+  API and signed-in console expose the same organization with ten projects; the
+  intended StayGuide QA endpoint is not identified there. No unrelated database
+  was migrated and no production credentials were copied.
+- No Guesty/Hospitable account credentials or authorized provider test conversation
+  are available. `deliveryAdapters()` remains empty and delivery remains off.
+  A real provider connection/delivery test is not complete.
+
+Next access requirements: the Neon organization/project containing the existing
+`stayguide_qa` database; a matching Stripe sandbox webhook secret and catalogue;
+a Resend sender/key permitted to deliver account emails; and an authorized
+Guesty/Hospitable test account. These are prerequisites to the remaining deployed
+acceptance, not evidence that those workflows have passed.
