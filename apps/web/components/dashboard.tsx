@@ -1078,12 +1078,14 @@ export function Dashboard({ view = "" }: { view?: string }) {
               )}
             </>
           )}
-          {view === "manager" && live && liveState.user?.plan === "manager" && <ManagerWorkspace notify={notify} />}
-          {view === "manager" && (!live || liveState.user?.plan !== "manager") && (
+          {view === "manager" && live && (liveState.user?.plan === "manager" || liveState.user?.managerAccess) && <ManagerWorkspace notify={notify} complimentary={liveState.user?.plan !== "manager"} />}
+          {view === "manager" && (!live || !(liveState.user?.plan === "manager" || liveState.user?.managerAccess)) && (
             <div className="card panel">
               <PageHeading title="StayGuide Manager" description="One portfolio inbox with rules to prioritise guest requests across your properties." />
               <p>Manager is $199 per month for up to 50 properties. Rule-based triage stays in your inbox; no messages are automatically sent to guests.</p>
-              <Link className="button" href="/dashboard/billing">Explore Manager billing <ArrowRight size={15} /></Link>
+              {live && liveState.user?.plan !== "free" ? (
+                <p>Already subscribed? Manager plan changes for existing subscribers are not available here yet. Contact <a href="mailto:hello@getstayguide.com">hello@getstayguide.com</a> to arrange access. Your current subscription stays unchanged.</p>
+              ) : <Link className="button" href="/dashboard/billing">Explore Manager billing <ArrowRight size={15} /></Link>}
             </div>
           )}
           {view === "inbox" && live && <LiveInbox notify={notify} />}

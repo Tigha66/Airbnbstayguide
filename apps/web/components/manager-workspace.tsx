@@ -11,7 +11,7 @@ type Triage = { threadId: string; propertyName: string; label: string; priority:
 type ReplyTemplate = { id: string; title: string; body: string };
 type Workspace = { rules: Rule[]; triage: Triage[]; templates: ReplyTemplate[] };
 
-export function ManagerWorkspace({ notify }: { notify: (message: string) => void }) {
+export function ManagerWorkspace({ notify, complimentary = false }: { notify: (message: string) => void; complimentary?: boolean }) {
   const [data, setData] = useState<Workspace | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -74,6 +74,9 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
   return (
     <>
       <PageHeading title="StayGuide Manager" description="One guest communication workspace across your rental portfolio." />
+      {complimentary && <div className="notice" style={{ marginBottom: 16 }}>
+        Manager feature access is enabled for your account. Your existing subscription and billing are unchanged.
+      </div>}
       <div className="notice" style={{ marginBottom: 16 }}>
         Keyword rules classify conversations inside StayGuide. They do not send automatic replies, contact guests, or sync with a PMS.
       </div>

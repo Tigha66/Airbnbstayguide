@@ -6,7 +6,7 @@ async function managerSession(page: Page) {
   // UI fixtures only. Database authorization is tested separately with PGlite.
   await page.route("**/api/v1/me", route => route.fulfill({ json: {
     services: { accounts: true, ai: true },
-    user: { id: first, name: "Manager Test", email: "manager@test.local", plan: "manager", emailVerified: true }, properties: [],
+    user: { id: first, name: "Manager Test", email: "manager@test.local", plan: "pro", managerAccess: true, emailVerified: true }, properties: [],
   } }));
 }
 
@@ -23,6 +23,7 @@ test("Manager edits disable a rule and previews never mutate the queue", async (
   });
   await page.goto("/dashboard/manager");
   await expect(page.getByRole("heading", { name: "StayGuide Manager", exact: true })).toBeVisible();
+  await expect(page.getByText("Manager feature access is enabled for your account.", { exact: false })).toBeVisible();
   await page.getByLabel("Test a guest message").fill("There is a WATER LEAK");
   await expect(page.getByRole("status").filter({ hasText: "Matches Maintenance" })).toBeVisible();
   expect(mutations).toBe(0);

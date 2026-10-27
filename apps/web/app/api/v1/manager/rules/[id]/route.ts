@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireHost } from "@/lib/session";
-import { setPortfolioRuleEnabled, deletePortfolioRule, updatePortfolioRule } from "@/lib/repo";
+import { hasManagerAccess, setPortfolioRuleEnabled, deletePortfolioRule, updatePortfolioRule } from "@/lib/repo";
 import { safeOrigin, parseJson } from "@/lib/api";
 const schema = z.union([
   z.object({ enabled: z.boolean() }).strict(),
@@ -11,7 +11,7 @@ async function allowed(request: Request) {
   if (!safeOrigin(request)) return { response: NextResponse.json({ error: "Invalid origin" }, { status: 403 }) };
   const host = await requireHost();
   if ("response" in host) return host;
-  if (host.user.plan !== "manager") return { response: NextResponse.json({ error: "Manager plan required" }, { status: 403 }) };
+  if (!(await hasManagerAccess(host.user.id))) return { response: NextResponse.json({ error: "Manager plan required" }, { status: 403 }) };
   return host;
 }
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -3,6 +3,7 @@ import { plans, sectionSchema, type GuideText, type Plan, type Property } from "
 import { query, transaction } from "./db";
 import { parseManual, extractWifi, extractTime } from "./guide-parser";
 import { matchPortfolioRule } from "./portfolio-rules";
+import { managerAccessSql } from "./manager-access";
 
 export const extraSchema = z.object({
   id: z.string().min(1).max(80),
@@ -503,11 +504,20 @@ export async function setManagedPlan(email: string, plan: "hotel" | "free") {
   return rows.length > 0;
 }
 
-/** Rules are manager-only, scoped to the authenticated owner, and disabled by default. */
+export async function hasManagerAccess(ownerId: string) {
+  const [row] = await query<{ allowed: boolean }>(
+    `SELECT ${managerAccessSql()} AS allowed FROM users u WHERE u.id = $1`, [ownerId],
+  );
+  return row?.allowed === true;
+}
+
+/** Manager features are scoped to the authenticated owner. New rules start disabled. */
 export type PortfolioRule = { id: string; keyword: string; label: string; priority: "normal" | "urgent"; enabled: boolean };
 export async function listPortfolioRules(ownerId: string): Promise<PortfolioRule[]> {
   return query<PortfolioRule>(
-    "SELECT id, keyword, label, priority, enabled FROM portfolio_rules WHERE owner_id = $1 ORDER BY created_at DESC",
+    `SELECT r.id, r.keyword, r.label, r.priority, r.enabled FROM portfolio_rules r
+     JOIN users u ON u.id = r.owner_id WHERE r.owner_id = $1 AND ${managerAccessSql()}
+     ORDER BY r.created_at DESC`,
     [ownerId],
   );
 }
@@ -515,7 +525,7 @@ export async function createPortfolioRule(ownerId: string, rule: { keyword: stri
   const results = await transaction([
     { text: "SELECT id FROM users WHERE id = $1 FOR UPDATE", params: [ownerId] },
     { text: `INSERT INTO portfolio_rules (owner_id, keyword, label, priority)
-     SELECT u.id, $2, $3, $4 FROM users u WHERE u.id = $1 AND u.plan = 'manager'
+     SELECT u.id, $2, $3, $4 FROM users u WHERE u.id = $1 AND ${managerAccessSql()}
      AND (SELECT count(*) FROM portfolio_rules r WHERE r.owner_id = u.id) < 20
      RETURNING id, keyword, label, priority, enabled`,
     params: [ownerId, rule.keyword.toLowerCase(), rule.label, rule.priority] },
@@ -525,7 +535,7 @@ export async function createPortfolioRule(ownerId: string, rule: { keyword: stri
 export async function updatePortfolioRule(ownerId: string, id: string, rule: { keyword: string; label: string; priority: "normal" | "urgent" }) {
   const [row] = await query<PortfolioRule>(
     `UPDATE portfolio_rules r SET keyword = $3, label = $4, priority = $5, enabled = false
-     FROM users u WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND u.plan = 'manager'
+     FROM users u WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND ${managerAccessSql()}
      RETURNING r.id, r.keyword, r.label, r.priority, r.enabled`,
     [ownerId, id, rule.keyword.toLowerCase(), rule.label, rule.priority],
   );
@@ -534,7 +544,7 @@ export async function updatePortfolioRule(ownerId: string, id: string, rule: { k
 export async function setPortfolioRuleEnabled(ownerId: string, ruleId: string, enabled: boolean) {
   const rows = await query(
     `UPDATE portfolio_rules r SET enabled = $3 FROM users u
-     WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND u.plan = 'manager'
+     WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND ${managerAccessSql()}
      RETURNING r.id`, [ownerId, ruleId, enabled],
   );
   return rows.length > 0;
@@ -542,7 +552,7 @@ export async function setPortfolioRuleEnabled(ownerId: string, ruleId: string, e
 export async function deletePortfolioRule(ownerId: string, ruleId: string) {
   const rows = await query(
     `DELETE FROM portfolio_rules r USING users u
-     WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND u.plan = 'manager'
+     WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND ${managerAccessSql()}
      RETURNING r.id`, [ownerId, ruleId],
   );
   return rows.length > 0;
@@ -552,7 +562,8 @@ export async function listPortfolioTriage(ownerId: string): Promise<PortfolioTri
   const rows = await query<{ thread_id: string; property_name: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updated_at: string }>(
     `SELECT t.thread_id, p.data->>'name' AS property_name, t.label, t.priority, t.status, t.updated_at
      FROM portfolio_triage t JOIN properties p ON p.id = t.property_id
-     WHERE t.owner_id = $1 AND p.owner_id = $1
+     JOIN users u ON u.id = t.owner_id
+     WHERE t.owner_id = $1 AND p.owner_id = $1 AND ${managerAccessSql()}
      ORDER BY CASE t.status WHEN 'open' THEN 0 ELSE 1 END,
        CASE t.priority WHEN 'urgent' THEN 0 ELSE 1 END, t.updated_at DESC LIMIT 100`, [ownerId],
   );
@@ -561,7 +572,7 @@ export async function listPortfolioTriage(ownerId: string): Promise<PortfolioTri
 export async function setPortfolioTriageStatus(ownerId: string, threadId: string, status: "open" | "resolved") {
   const rows = await query(
     `UPDATE portfolio_triage t SET status = $3, updated_at = now() FROM users u
-     WHERE t.thread_id = $2 AND t.owner_id = $1 AND u.id = t.owner_id AND u.plan = 'manager'
+     WHERE t.thread_id = $2 AND t.owner_id = $1 AND u.id = t.owner_id AND ${managerAccessSql()}
      RETURNING t.thread_id`, [ownerId, threadId, status],
   );
   return rows.length > 0;
@@ -571,15 +582,15 @@ export async function applyPortfolioRules(ownerId: string, propertyId: string, t
   const rules = await query<Pick<PortfolioRule, "keyword" | "label" | "priority">>(
     `SELECT r.keyword, r.label, r.priority FROM portfolio_rules r
      JOIN users u ON u.id = r.owner_id
-     WHERE r.owner_id = $1 AND u.plan = 'manager' AND r.enabled = true
+     WHERE r.owner_id = $1 AND ${managerAccessSql()} AND r.enabled = true
      ORDER BY CASE r.priority WHEN 'urgent' THEN 0 ELSE 1 END, r.created_at`, [ownerId],
   );
   const matched = matchPortfolioRule(rules, message);
   if (!matched) return false;
   const rows = await query(
     `INSERT INTO portfolio_triage (thread_id, owner_id, property_id, label, priority)
-     SELECT $3, p.owner_id, p.id, $4, $5 FROM properties p
-     WHERE p.id = $2 AND p.owner_id = $1
+     SELECT $3, p.owner_id, p.id, $4, $5 FROM properties p JOIN users u ON u.id = p.owner_id
+     WHERE p.id = $2 AND p.owner_id = $1 AND ${managerAccessSql()}
      ON CONFLICT (thread_id) DO UPDATE SET
        label = CASE WHEN portfolio_triage.status = 'open' AND portfolio_triage.priority = 'urgent'
          THEN portfolio_triage.label ELSE EXCLUDED.label END,
@@ -598,7 +609,7 @@ export async function listPortfolioReplyTemplates(ownerId: string): Promise<Port
   return query<PortfolioReplyTemplate>(
     `SELECT t.id, t.title, t.body FROM portfolio_reply_templates t
      JOIN users u ON u.id = t.owner_id
-     WHERE t.owner_id = $1 AND u.plan = 'manager' ORDER BY t.title`,
+     WHERE t.owner_id = $1 AND ${managerAccessSql()} ORDER BY t.title`,
     [ownerId],
   );
 }
@@ -606,7 +617,7 @@ export async function createPortfolioReplyTemplate(ownerId: string, input: { tit
   const results = await transaction([
     { text: "SELECT id FROM users WHERE id = $1 FOR UPDATE", params: [ownerId] },
     { text: `INSERT INTO portfolio_reply_templates (owner_id, title, body)
-     SELECT u.id, $2, $3 FROM users u WHERE u.id = $1 AND u.plan = 'manager'
+     SELECT u.id, $2, $3 FROM users u WHERE u.id = $1 AND ${managerAccessSql()}
      AND (SELECT count(*) FROM portfolio_reply_templates t WHERE t.owner_id = u.id) < 30
      RETURNING id, title, body`,
     params: [ownerId, input.title, input.body] },
@@ -617,7 +628,7 @@ export async function updatePortfolioReplyTemplate(ownerId: string, id: string, 
   const [row] = await query<PortfolioReplyTemplate>(
     `UPDATE portfolio_reply_templates t SET title = $3, body = $4, updated_at = now()
      FROM users u WHERE t.id = $2 AND t.owner_id = $1 AND u.id = t.owner_id
-     AND u.plan = 'manager' RETURNING t.id, t.title, t.body`,
+     AND ${managerAccessSql()} RETURNING t.id, t.title, t.body`,
     [ownerId, id, input.title, input.body],
   );
   return row ?? null;
@@ -625,7 +636,7 @@ export async function updatePortfolioReplyTemplate(ownerId: string, id: string, 
 export async function deletePortfolioReplyTemplate(ownerId: string, id: string) {
   const rows = await query(
     `DELETE FROM portfolio_reply_templates t USING users u
-     WHERE t.id = $2 AND t.owner_id = $1 AND u.id = t.owner_id AND u.plan = 'manager'
+     WHERE t.id = $2 AND t.owner_id = $1 AND u.id = t.owner_id AND ${managerAccessSql()}
      RETURNING t.id`, [ownerId, id],
   );
   return rows.length > 0;

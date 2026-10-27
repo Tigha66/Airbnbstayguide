@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireHost } from "@/lib/session";
 import { safeOrigin, parseJson } from "@/lib/api";
-import { updatePortfolioReplyTemplate, deletePortfolioReplyTemplate } from "@/lib/repo";
+import { hasManagerAccess, updatePortfolioReplyTemplate, deletePortfolioReplyTemplate } from "@/lib/repo";
 
 const schema = z.object({ title: z.string().trim().min(2).max(60), body: z.string().trim().min(1).max(1500) });
 
@@ -10,7 +10,7 @@ async function allowed(request: Request) {
   if (!safeOrigin(request)) return { response: NextResponse.json({ error: "Invalid origin" }, { status: 403 }) };
   const host = await requireHost();
   if ("response" in host) return host;
-  if (host.user.plan !== "manager")
+  if (!(await hasManagerAccess(host.user.id)))
     return { response: NextResponse.json({ error: "Manager plan required" }, { status: 403 }) };
   return host;
 }

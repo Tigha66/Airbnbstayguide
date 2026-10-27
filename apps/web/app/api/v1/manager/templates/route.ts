@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireHost } from "@/lib/session";
 import { safeOrigin, parseJson } from "@/lib/api";
-import { listPortfolioReplyTemplates, createPortfolioReplyTemplate } from "@/lib/repo";
+import { hasManagerAccess, listPortfolioReplyTemplates, createPortfolioReplyTemplate } from "@/lib/repo";
 
 export const dynamic = "force-dynamic";
 const templateSchema = z.object({
@@ -13,7 +13,7 @@ const templateSchema = z.object({
 async function manager() {
   const host = await requireHost();
   if ("response" in host) return host;
-  if (host.user.plan !== "manager")
+  if (!(await hasManagerAccess(host.user.id)))
     return { response: NextResponse.json({ error: "Manager plan required" }, { status: 403 }) };
   return host;
 }
