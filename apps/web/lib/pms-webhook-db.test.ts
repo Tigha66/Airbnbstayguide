@@ -26,7 +26,7 @@ describe("durable PMS event intake and safe schema rollout", () => {
       }]);
       // Schema contains no message body, email or guest name columns.
       const cols = await pg.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'pms_webhook_events'");
-      expect(cols.rows.some((c) => /guest|message|body|email|contact/i.test(String(c.column_name)))).toBe(false);
+      expect(cols.rows.some((c) => /guest|message|body|email|contact/i.test(String((c as { column_name: unknown }).column_name)))).toBe(false);
       await expect(pg.query(command, ["id_bad", "reservation.messageReceived", "abc", "invalid-digest"])).rejects.toThrow();
     } finally {
       await pg.close();
