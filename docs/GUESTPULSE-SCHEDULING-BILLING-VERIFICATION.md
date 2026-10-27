@@ -8,9 +8,10 @@ No production promotion, database migration, real guest send or real-money charg
 
 `GET /api/cron/pms-delivery` verifies a server-only `CRON_SECRET` of at least 32
 characters with constant-time digest comparison, rejects Vercel previews and
-awaits the worker. `vercel.json` proposes a five-minute cadence. **This cadence
-requires Vercel Pro/Enterprise; do not merge/deploy it on Hobby.** No hosting
-upgrade was purchased. Vercel only invokes cron for production deployments.
+awaits the worker. `vercel.mjs` registers a five-minute cadence only when `VERCEL_ENV=production`
+and `STAYGUIDE_VERCEL_CRON_ENABLED=true`. Leave that flag off on Hobby.
+The five-minute cadence requires Pro/Enterprise; preview and default deployments
+now register no cron and remain compatible with Hobby. No hosting upgrade was purchased. Vercel only invokes cron for production deployments.
 
 `pms_scheduler_state` supplies a three-minute database lease around a worker with
 a 120-second function limit. Each run claims at most three approved messages.
@@ -114,3 +115,21 @@ References:
 - https://vercel.com/docs/cron-jobs/manage-cron-jobs
 - https://docs.stripe.com/billing/subscriptions/webhooks
 - https://docs.stripe.com/billing/subscriptions/acss-debit
+
+## Deployment regression fixed
+
+Vercel rejected deployment `dpl_3RbGmHWqRRcZ4An6xc3MuCgkredD` before building:
+"Hobby accounts are limited to daily cron jobs." The unconditional five-minute
+cron registration caused this failure. Replacing static `vercel.json` with
+programmatic `vercel.mjs` preserves all build settings and defaults to no cron.
+A production-only opt-in activates the schedule after suitable hosting is verified.
+Tests exercise preview, development, default production and opted-in production
+configuration. This fixes deployment eligibility without enabling guest delivery.
+
+Access recheck: the connected Neon organisation still exposes no identified
+StayGuide project. The existing isolated QA database URLs are sensitive variables
+whose values cannot be read through this connector. The QA Stripe key is confirmed
+empty. No credentials were copied from production or fabricated. These remain
+account-configuration blockers; completing deployed payment/PMS verification
+requires authorised access to the correct database, a matching Stripe test key and
+the PMS vendor account.
