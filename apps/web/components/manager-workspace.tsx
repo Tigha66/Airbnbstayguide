@@ -7,7 +7,8 @@ import { PageHeading } from "./ui";
 
 type Rule = { id: string; keyword: string; label: string; priority: "normal" | "urgent"; enabled: boolean };
 type Triage = { threadId: string; propertyName: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updatedAt: string };
-type Workspace = { rules: Rule[]; triage: Triage[] };
+type ReplyTemplate = { id: string; title: string; body: string };
+type Workspace = { rules: Rule[]; triage: Triage[]; templates: ReplyTemplate[] };
 
 export function ManagerWorkspace({ notify }: { notify: (message: string) => void }) {
   const [data, setData] = useState<Workspace | null>(null);
@@ -16,6 +17,9 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
   const [keyword, setKeyword] = useState("");
   const [label, setLabel] = useState("");
   const [priority, setPriority] = useState<"normal" | "urgent">("normal");
+  const [templateTitle, setTemplateTitle] = useState("");
+  const [templateBody, setTemplateBody] = useState("");
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const load = useCallback(async () => {
     try {
       const response = await fetch("/api/v1/manager", { cache: "no-store" });
@@ -49,6 +53,15 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
     event.preventDefault();
     const ok = await mutate("/api/v1/manager/rules", "POST", { keyword, label, priority });
     if (ok) { setKeyword(""); setLabel(""); notify("Rule saved disabled. Enable it when ready."); }
+  }
+  async function addTemplate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const ok = await mutate(editingTemplateId ? `/api/v1/manager/templates/${editingTemplateId}` : "/api/v1/manager/templates",
+      editingTemplateId ? "PATCH" : "POST", { title: templateTitle, body: templateBody });
+    if (ok) {
+      setTemplateTitle(""); setTemplateBody(""); setEditingTemplateId(null);
+      notify("Reply saved. It will only be sent if you choose to send it.");
+    }
   }
   return (
     <>
@@ -94,6 +107,46 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
                   onClick={() => void mutate(`/api/v1/manager/rules/${rule.id}`, "DELETE")}><Trash2 size={13} /></button>
               </div>
             ))}
+          </div>
+          <div className="card panel" style={{ marginBottom: 20 }}>
+            <h3>Saved replies <small>({data.templates?.length ?? 0}/30)</small></h3>
+            <p style={{ fontSize: 13 }}>Prepare reusable answers for your team. Nothing is sent automatically. Select a saved reply in the guest inbox, review it, then press Send.</p>
+            <form className="form-grid" onSubmit={(e) => void addTemplate(e)}>
+              <label>Reply title
+                <input required minLength={2} maxLength={60} value={templateTitle}
+                  onChange={(e) => setTemplateTitle(e.target.value)} placeholder="e.g. Check-out instructions" />
+              </label>
+              <label>Message
+                <textarea required rows={3} minLength={1} maxLength={1500} value={templateBody}
+                  onChange={(e) => setTemplateBody(e.target.value)} placeholder="Thanks for your message…" />
+              </label>
+              <button className="button" disabled={busy || (!editingTemplateId && (data.templates?.length ?? 0) >= 30)}>
+                <Plus size={14} /> {editingTemplateId ? "Update reply" : "Save reply"}
+              </button>
+              {editingTemplateId && <button type="button" className="button secondary" disabled={busy}
+                onClick={() => { setEditingTemplateId(null); setTemplateTitle(""); setTemplateBody(""); }}>Cancel edit</button>}
+            </form>
+            {(data.templates ?? []).length === 0 && <p>No saved replies yet.</p>}
+            {(data.templates ?? []).map((template) => (
+              <div className="activity-item" key={template.id} style={{ gap: 12, flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: 170 }}>
+                  <strong>{template.title}</strong>
+                  <div style={{ fontSize: 12, whiteSpace: "pre-wrap" }}>{template.body}</div>
+                </div>
+                <button className="button secondary small" disabled={busy} onClick={() => {
+                  setEditingTemplateId(template.id); setTemplateTitle(template.title); setTemplateBody(template.body);
+                }}>Edit</button>
+                <button className="button secondary small" disabled={busy} onClick={async () => {
+                  try { await navigator.clipboard.writeText(template.body); notify("Reply copied. Review it before sending."); }
+                  catch { notify("Copy was blocked by your browser. Select the saved text manually."); }
+                }}>Copy reply</button>
+                <button className="button secondary small" disabled={busy} aria-label={`Delete reply ${template.title}`}
+                  onClick={() => void mutate(`/api/v1/manager/templates/${template.id}`, "DELETE")}>
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+            <Link className="button secondary small" href="/dashboard/inbox">Open guest inbox <ArrowRight size={13} /></Link>
           </div>
           <div className="card panel">
             <h3>Portfolio triage <small>({data.triage.filter((t) => t.status === "open").length} open)</small></h3>

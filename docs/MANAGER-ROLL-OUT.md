@@ -7,6 +7,7 @@
 - Host inbox now filters across portfolio properties.
 - Enabled keyword automations triage incoming guide-chat messages into urgent/normal categories.
 - Triage open/resolved status, owner-scoped rules and tenant isolation; rules are disabled initially.
+- Manager saved replies (up to 30 per owner): create, edit by API, delete and select in the host inbox composer. Hosts review and explicitly send them; there is no automatic outbound delivery.
 - Does not send guest messages or enable integrations in the background.
 
 ## Release gate

@@ -575,3 +575,41 @@ export async function applyPortfolioRules(ownerId: string, propertyId: string, t
   );
   return rows.length > 0;
 }
+
+/** Saved replies assist human operators; creation or selection never sends a message. */
+export type PortfolioReplyTemplate = { id: string; title: string; body: string };
+export async function listPortfolioReplyTemplates(ownerId: string): Promise<PortfolioReplyTemplate[]> {
+  return query<PortfolioReplyTemplate>(
+    `SELECT t.id, t.title, t.body FROM portfolio_reply_templates t
+     JOIN users u ON u.id = t.owner_id
+     WHERE t.owner_id = $1 AND u.plan = 'manager' ORDER BY t.title`,
+    [ownerId],
+  );
+}
+export async function createPortfolioReplyTemplate(ownerId: string, input: { title: string; body: string }) {
+  const [row] = await query<PortfolioReplyTemplate>(
+    `INSERT INTO portfolio_reply_templates (owner_id, title, body)
+     SELECT u.id, $2, $3 FROM users u WHERE u.id = $1 AND u.plan = 'manager'
+     AND (SELECT count(*) FROM portfolio_reply_templates t WHERE t.owner_id = u.id) < 30
+     RETURNING id, title, body`,
+    [ownerId, input.title, input.body],
+  );
+  return row ?? null;
+}
+export async function updatePortfolioReplyTemplate(ownerId: string, id: string, input: { title: string; body: string }) {
+  const [row] = await query<PortfolioReplyTemplate>(
+    `UPDATE portfolio_reply_templates t SET title = $3, body = $4, updated_at = now()
+     FROM users u WHERE t.id = $2 AND t.owner_id = $1 AND u.id = t.owner_id
+     AND u.plan = 'manager' RETURNING t.id, t.title, t.body`,
+    [ownerId, id, input.title, input.body],
+  );
+  return row ?? null;
+}
+export async function deletePortfolioReplyTemplate(ownerId: string, id: string) {
+  const rows = await query(
+    `DELETE FROM portfolio_reply_templates t USING users u
+     WHERE t.id = $2 AND t.owner_id = $1 AND u.id = t.owner_id AND u.plan = 'manager'
+     RETURNING t.id`, [ownerId, id],
+  );
+  return rows.length > 0;
+}

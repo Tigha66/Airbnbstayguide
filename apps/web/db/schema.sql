@@ -136,3 +136,15 @@ CREATE TABLE IF NOT EXISTS portfolio_triage (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS portfolio_triage_owner_idx ON portfolio_triage(owner_id, updated_at DESC);
+
+-- Manager-only human-reviewed quick replies. These are never sent automatically.
+CREATE TABLE IF NOT EXISTS portfolio_reply_templates (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title text NOT NULL CHECK (char_length(title) BETWEEN 2 AND 60),
+  body text NOT NULL CHECK (char_length(body) BETWEEN 1 AND 1500),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS portfolio_reply_templates_owner_title_idx
+  ON portfolio_reply_templates(owner_id, lower(title));
