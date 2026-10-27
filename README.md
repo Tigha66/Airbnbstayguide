@@ -107,6 +107,8 @@ future guest messages containing its keyword. No automation sends messages to gu
 changes reservations or commits purchases. All API writes require an authenticated Manager
 account and same-origin requests; records are owner-scoped.
 
+**In development on a separate feature branch:** Manager saved replies with tenant-scoped storage, protected CRUD endpoints and manual insertion in the host inbox composer. This change adds the `portfolio_reply_templates` table and requires a guarded staging migration and tests before it can be released.
+
 **Not implemented:** Hospitable/Guesty OAuth, PMS webhooks, Airbnb/Vrbo/Booking.com channel
 messages, scheduled pre-arrival or check-out campaigns, team assignment, push alerts,
 message delivery retries, and iOS Manager screens. Do not market these as operational.
