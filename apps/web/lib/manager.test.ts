@@ -61,4 +61,46 @@ describe("Manager automated portfolio triage", () => {
     expect(await repo.applyPortfolioRules(stranger.id, propertyId, crypto.randomUUID(), "water leak")).toBe(false);
     expect(await repo.threadMessages(propertyId, threadId)).toEqual([]);
   });
+  it("never downgrades an open urgent issue when a later normal rule matches", async () => {
+    const rule = await repo.createPortfolioRule(manager.id, { keyword: "wifi", label: "Internet", priority: "normal" });
+    await repo.setPortfolioRuleEnabled(manager.id, rule!.id, true);
+    await repo.applyPortfolioRules(manager.id, propertyId, threadId, "water leak");
+    await repo.applyPortfolioRules(manager.id, propertyId, threadId, "wifi password?");
+    expect((await repo.listPortfolioTriage(manager.id))[0]).toMatchObject({ priority: "urgent", label: "Maintenance", status: "open" });
+    await repo.setPortfolioTriageStatus(manager.id, threadId, "resolved");
+    await repo.applyPortfolioRules(manager.id, propertyId, threadId, "wifi password?");
+    expect((await repo.listPortfolioTriage(manager.id))[0]).toMatchObject({ priority: "normal", label: "Internet", status: "open" });
+  });
+  it("requires re-enabling edited rules and refuses edits by another owner or after downgrade", async () => {
+    const rule = (await repo.listPortfolioRules(manager.id))[0];
+    const edit = { keyword: "heating", label: "Heating", priority: "urgent" as const };
+    expect(await repo.updatePortfolioRule(stranger.id, rule.id, edit)).toBeNull();
+    expect(await repo.updatePortfolioRule(manager.id, rule.id, edit)).toMatchObject({ ...edit, enabled: false });
+    await repo.setStripeCustomer(stranger.id, "cus_downgrade");
+    await repo.applySubscription({ customerId: "cus_downgrade", subscriptionId: "sub_downgrade", status: "active", plan: "manager", eventCreated: 1900000000 });
+    const own = await repo.createPortfolioRule(stranger.id, edit);
+    // Signed-webhook processing maps past_due subscriptions to the free entitlement.
+    await repo.applySubscription({ customerId: "cus_downgrade", subscriptionId: "sub_downgrade", status: "past_due", plan: "free", eventCreated: 1900000001 });
+    expect(await repo.updatePortfolioRule(stranger.id, own!.id, edit)).toBeNull();
+    expect(await repo.setPortfolioRuleEnabled(stranger.id, own!.id, true)).toBe(false);
+  });
+  it("enforces rule and template caps under concurrent creation", async () => {
+    const rules = await Promise.all(Array.from({ length: 23 }, (_, i) => repo.createPortfolioRule(manager.id, { keyword: `limit ${i}`, label: "Limit", priority: "normal" })));
+    expect(rules.filter(Boolean).length).toBe(18);
+    expect((await repo.listPortfolioRules(manager.id)).length).toBe(20);
+    const replies = await Promise.all(Array.from({ length: 33 }, (_, i) => repo.createPortfolioReplyTemplate(manager.id, { title: `Reply ${i}`, body: "Test reply" })));
+    expect(replies.filter(Boolean).length).toBe(30);
+    expect((await repo.listPortfolioReplyTemplates(manager.id)).length).toBe(30);
+  });
+  it("loads a linked conversation beyond the latest 50 without crossing owners", async () => {
+    const old = crypto.randomUUID();
+    await repo.saveMessages(propertyId, old, [{ role: "guest", content: "Old message", language: "en" }]);
+    // Explicit timestamps make this independent of clock resolution.
+    const { query } = await import("./db");
+    await query("UPDATE chat_messages SET created_at = '2020-01-01' WHERE thread_id = $1", [old]);
+    for (let i = 0; i < 51; i++) await repo.saveMessages(propertyId, crypto.randomUUID(), [{ role: "guest", content: `New ${i}`, language: "en" }]);
+    expect((await repo.inbox(manager.id)).some(t => t.threadId === old)).toBe(false);
+    expect((await repo.inbox(manager.id, old)).some(t => t.threadId === old)).toBe(true);
+    expect(await repo.inbox(stranger.id, old)).toEqual([]);
+  });
 });

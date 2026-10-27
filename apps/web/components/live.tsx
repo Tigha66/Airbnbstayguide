@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Check, X, RefreshCw, CreditCard, Landmark, ExternalLink } from "lucide-react";
 import { money, plans, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
 import { PageHeading } from "./ui";
@@ -57,9 +57,12 @@ function usePoll<T>(url: string, ms: number) {
 
 export function LiveInbox({ notify }: { notify: (m: string) => void }) {
   const { locale, tr } = useAppLocale();
-  const { data, error, reload } = usePoll<{ threads: Thread[] }>("/api/v1/inbox", 10000);
+  const [requestedThread, setRequestedThread] = useState("");
+  const { data, error, reload } = usePoll<{ threads: Thread[] }>(`/api/v1/inbox${requestedThread ? `?thread=${requestedThread}` : ""}`, 10000);
   const [selected, setSelected] = useState<string | null>(null);
-  const [reply, setReply] = useState("");
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [sending, setSending] = useState(false);
+  const sendLock = useRef(false);
   const [onlyEscalated, setOnlyEscalated] = useState(true);
   const [propertyFilter, setPropertyFilter] = useState("all");
   const [savedReplies, setSavedReplies] = useState<{ id: string; title: string; body: string }[]>([]);
@@ -76,7 +79,7 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
   useEffect(() => {
     const deepLinked = new URLSearchParams(window.location.search).get("thread");
     if (deepLinked && /^[0-9a-f-]{36}$/i.test(deepLinked)) {
-      const handle = window.setTimeout(() => { setSelected(deepLinked); setOnlyEscalated(false); }, 0);
+      const handle = window.setTimeout(() => { setSelected(deepLinked); setRequestedThread(deepLinked); setOnlyEscalated(false); }, 0);
       return () => window.clearTimeout(handle);
     }
   }, []);
@@ -84,6 +87,8 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
     .sort((a, b) => a.name.localeCompare(b.name));
   const threads = (data?.threads ?? []).filter((t) => (!onlyEscalated || t.escalated) && (propertyFilter === "all" || t.propertyId === propertyFilter));
   const thread = threads.find((t) => t.threadId === selected) ?? threads[0];
+  const reply = thread ? drafts[thread.threadId] ?? "" : "";
+  const setReply = (value: string) => { if (thread) setDrafts(current => ({ ...current, [thread.threadId]: value })); };
   return (
     <>
       <PageHeading title={tr("A little human touch")} description={tr("Your concierge takes care of the everyday. You take care of the rest.")}>
@@ -160,21 +165,28 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
               className="chat-compose"
               onSubmit={async (e) => {
                 e.preventDefault();
-                if (!reply.trim()) return;
-                const res = await fetch(`/api/v1/inbox/${thread.threadId}`, {
+                if (!reply.trim() || sendLock.current) return;
+                sendLock.current = true;
+                setSending(true);
+                const target = thread.threadId;
+                const content = reply.trim();
+                try {
+                const res = await fetch(`/api/v1/inbox/${target}`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ content: reply.trim() }),
+                  body: JSON.stringify({ content }),
                 });
                 if (res.ok) {
-                  setReply("");
+                  setDrafts(current => ({ ...current, [target]: "" }));
                   notify(tr("Reply sent. The guest sees it in their guide chat."));
                   void reload();
                 } else notify(tr("Couldn’t send your reply. Please try again."));
+                } catch { notify(tr("Couldn’t send your reply. Please try again.")); }
+                finally { sendLock.current = false; setSending(false); }
               }}
             >
-              <input aria-label={tr("Reply to guest")} placeholder={tr("A thoughtful reply…")} value={reply} onChange={(e) => setReply(e.target.value)} />
-              <button className="button" aria-label={tr("Send reply")}>
+              <input aria-label={tr("Reply to guest")} maxLength={2000} disabled={sending} placeholder={tr("A thoughtful reply…")} value={reply} onChange={(e) => setReply(e.target.value)} />
+              <button className="button" disabled={sending || !reply.trim()} aria-label={tr("Send reply")}>
                 <Send size={16} />
               </button>
             </form>

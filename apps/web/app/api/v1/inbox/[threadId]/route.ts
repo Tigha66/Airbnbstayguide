@@ -9,7 +9,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ thr
   const host = await requireHost();
   if ("response" in host) return host.response;
   const { threadId } = await params;
-  const parsed = schema.safeParse(parseJson(await request.text()));
+  let parsed;
+  try { parsed = schema.safeParse(parseJson(await request.text())); }
+  catch { return NextResponse.json({ error: "Invalid reply" }, { status: 400 }); }
   if (!parsed.success || !z.uuid().safeParse(threadId).success) return NextResponse.json({ error: "Invalid reply" }, { status: 400 });
   return (await hostReply(host.user.id, threadId, parsed.data.content))
     ? NextResponse.json({ sent: true }, { status: 201 })

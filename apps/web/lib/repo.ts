@@ -2,6 +2,7 @@ import { z } from "zod";
 import { plans, sectionSchema, type GuideText, type Plan, type Property } from "@stayguide/shared";
 import { query, transaction } from "./db";
 import { parseManual, extractWifi, extractTime } from "./guide-parser";
+import { matchPortfolioRule } from "./portfolio-rules";
 
 export const extraSchema = z.object({
   id: z.string().min(1).max(80),
@@ -215,15 +216,15 @@ export type InboxThread = {
   lastAt: string;
   messages: { role: string; content: string; createdAt: string }[];
 };
-export async function inbox(ownerId: string): Promise<InboxThread[]> {
+export async function inbox(ownerId: string, selectedThreadId: string | null = null): Promise<InboxThread[]> {
   const rows = await query<{ thread_id: string; property_id: string; name: string; role: string; content: string; escalated: boolean; created_at: string }>(
     `SELECT m.thread_id, m.property_id, p.data->>'name' AS name, m.role, m.content, m.escalated, m.created_at
      FROM chat_messages m JOIN properties p ON p.id = m.property_id
-     WHERE p.owner_id = $1 AND m.thread_id IN (
+     WHERE p.owner_id = $1 AND (m.thread_id = $2::uuid OR m.thread_id IN (
        SELECT thread_id FROM chat_messages m2 JOIN properties p2 ON p2.id = m2.property_id
-       WHERE p2.owner_id = $1 GROUP BY thread_id ORDER BY max(m2.created_at) DESC LIMIT 50)
+       WHERE p2.owner_id = $1 GROUP BY thread_id ORDER BY max(m2.created_at) DESC LIMIT 50))
      ORDER BY m.created_at, m.seq`,
-    [ownerId],
+    [ownerId, selectedThreadId],
   );
   const threads = new Map<string, InboxThread>();
   for (const r of rows) {
@@ -511,12 +512,22 @@ export async function listPortfolioRules(ownerId: string): Promise<PortfolioRule
   );
 }
 export async function createPortfolioRule(ownerId: string, rule: { keyword: string; label: string; priority: "normal" | "urgent" }) {
-  const [row] = await query<PortfolioRule>(
-    `INSERT INTO portfolio_rules (owner_id, keyword, label, priority)
+  const results = await transaction([
+    { text: "SELECT id FROM users WHERE id = $1 FOR UPDATE", params: [ownerId] },
+    { text: `INSERT INTO portfolio_rules (owner_id, keyword, label, priority)
      SELECT u.id, $2, $3, $4 FROM users u WHERE u.id = $1 AND u.plan = 'manager'
      AND (SELECT count(*) FROM portfolio_rules r WHERE r.owner_id = u.id) < 20
      RETURNING id, keyword, label, priority, enabled`,
-    [ownerId, rule.keyword.toLowerCase(), rule.label, rule.priority],
+    params: [ownerId, rule.keyword.toLowerCase(), rule.label, rule.priority] },
+  ]);
+  return (results[1][0] as PortfolioRule | undefined) ?? null;
+}
+export async function updatePortfolioRule(ownerId: string, id: string, rule: { keyword: string; label: string; priority: "normal" | "urgent" }) {
+  const [row] = await query<PortfolioRule>(
+    `UPDATE portfolio_rules r SET keyword = $3, label = $4, priority = $5, enabled = false
+     FROM users u WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND u.plan = 'manager'
+     RETURNING r.id, r.keyword, r.label, r.priority, r.enabled`,
+    [ownerId, id, rule.keyword.toLowerCase(), rule.label, rule.priority],
   );
   return row ?? null;
 }
@@ -541,7 +552,9 @@ export async function listPortfolioTriage(ownerId: string): Promise<PortfolioTri
   const rows = await query<{ thread_id: string; property_name: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updated_at: string }>(
     `SELECT t.thread_id, p.data->>'name' AS property_name, t.label, t.priority, t.status, t.updated_at
      FROM portfolio_triage t JOIN properties p ON p.id = t.property_id
-     WHERE t.owner_id = $1 AND p.owner_id = $1 ORDER BY t.updated_at DESC LIMIT 100`, [ownerId],
+     WHERE t.owner_id = $1 AND p.owner_id = $1
+     ORDER BY CASE t.status WHEN 'open' THEN 0 ELSE 1 END,
+       CASE t.priority WHEN 'urgent' THEN 0 ELSE 1 END, t.updated_at DESC LIMIT 100`, [ownerId],
   );
   return rows.map(r => ({ threadId: r.thread_id, propertyName: r.property_name, label: r.label, priority: r.priority, status: r.status, updatedAt: new Date(r.updated_at).toISOString() }));
 }
@@ -561,14 +574,17 @@ export async function applyPortfolioRules(ownerId: string, propertyId: string, t
      WHERE r.owner_id = $1 AND u.plan = 'manager' AND r.enabled = true
      ORDER BY CASE r.priority WHEN 'urgent' THEN 0 ELSE 1 END, r.created_at`, [ownerId],
   );
-  const matched = rules.find(rule => message.toLowerCase().includes(rule.keyword.toLowerCase()));
+  const matched = matchPortfolioRule(rules, message);
   if (!matched) return false;
   const rows = await query(
     `INSERT INTO portfolio_triage (thread_id, owner_id, property_id, label, priority)
      SELECT $3, p.owner_id, p.id, $4, $5 FROM properties p
      WHERE p.id = $2 AND p.owner_id = $1
      ON CONFLICT (thread_id) DO UPDATE SET
-       label = EXCLUDED.label, priority = EXCLUDED.priority, status = 'open', updated_at = now()
+       label = CASE WHEN portfolio_triage.status = 'open' AND portfolio_triage.priority = 'urgent'
+         THEN portfolio_triage.label ELSE EXCLUDED.label END,
+       priority = CASE WHEN portfolio_triage.status = 'open' AND portfolio_triage.priority = 'urgent'
+         THEN 'urgent' ELSE EXCLUDED.priority END, status = 'open', updated_at = now()
      WHERE portfolio_triage.owner_id = EXCLUDED.owner_id AND portfolio_triage.property_id = EXCLUDED.property_id
      RETURNING thread_id`,
     [ownerId, propertyId, threadId, matched.label, matched.priority],
@@ -587,14 +603,15 @@ export async function listPortfolioReplyTemplates(ownerId: string): Promise<Port
   );
 }
 export async function createPortfolioReplyTemplate(ownerId: string, input: { title: string; body: string }) {
-  const [row] = await query<PortfolioReplyTemplate>(
-    `INSERT INTO portfolio_reply_templates (owner_id, title, body)
+  const results = await transaction([
+    { text: "SELECT id FROM users WHERE id = $1 FOR UPDATE", params: [ownerId] },
+    { text: `INSERT INTO portfolio_reply_templates (owner_id, title, body)
      SELECT u.id, $2, $3 FROM users u WHERE u.id = $1 AND u.plan = 'manager'
      AND (SELECT count(*) FROM portfolio_reply_templates t WHERE t.owner_id = u.id) < 30
      RETURNING id, title, body`,
-    [ownerId, input.title, input.body],
-  );
-  return row ?? null;
+    params: [ownerId, input.title, input.body] },
+  ]);
+  return (results[1][0] as PortfolioReplyTemplate | undefined) ?? null;
 }
 export async function updatePortfolioReplyTemplate(ownerId: string, id: string, input: { title: string; body: string }) {
   const [row] = await query<PortfolioReplyTemplate>(
