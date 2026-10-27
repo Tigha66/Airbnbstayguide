@@ -9,6 +9,7 @@ Checked 27 October 2026. **HOLD production release** until all five gates below 
 - `lib/pms-webhooks.ts` plus `POST /api/v1/pms/guesty/webhook`: accepts only signed and recent Guesty `reservation.messageReceived` / `reservation.messageSent` envelopes, with 128 KiB cap, raw-body signature validation, minimal metadata and idempotent database insertion. Returns **503 if signing or database configuration is missing**, and intentionally does not update a guest-visible inbox or send messages.
 - `pms_webhook_events` stores provider event identifiers and SHA256 digest only. **No guest PII, raw message content, or provider-supplied owner identity are trusted**.
 - Unit tests cover signature tampering, stale/replayed envelopes, no automatic sending, duplicate DB events and daylight saving time.
+- Manager checkout is **fail-closed**: `STAYGUIDE_MANAGER_CHECKOUT_ENABLED=true` must be set deliberately **and** the actual database must contain all three Manager tables. No Stripe customer or Checkout Session is created when this gate is closed. Do not set the flag before completing launch acceptance.
 - No production migration, provider OAuth, signed messaging send flow or live billing has been performed by this branch.
 
 ## 1. Production database recovery / migration — BLOCKED
