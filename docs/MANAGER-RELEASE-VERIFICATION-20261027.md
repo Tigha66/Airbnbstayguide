@@ -23,9 +23,9 @@ Required: authorised access to the actual StayGuide production database. Verify 
 
 ### 2. Live Manager billing (NOT done)
 
-The only Stripe connection exposed here is **test mode**, named `https://ai-businessgrowth.com`; it is not confirmed as GetStayGuide's production billing account. No prices or live payment links have been created in that account for StayGuide.
+The connected Stripe account is **test mode**, named `https://ai-businessgrowth.com`. Existing StayGuide Starter and Pro QA subscriptions were found there. On 27 October 2026 we created a **test-only** StayGuide Manager product `prod_VWKOYGXn8zYEfE` and two recurring prices: $199/month `price_1UVHjUC6A1Vf4vwFnMF884IP` (`stayguide_manager_monthly_usd`) and $1,990/year `price_1UVHjWC6A1Vf4vwFybJaOoTP` (`stayguide_manager_yearly_usd`). These IDs are non-secret configuration metadata. **No real charge or live price has been created; no signed end-to-end billing test has passed.** This does not establish access to GetStayGuide's production Stripe account.
 
-Required: connect/confirm the correct **GetStayGuide Stripe account**. In its sandbox, create or reuse reviewed USD Manager monthly ($199) and yearly ($1,990) recurring prices. Check checkout, signed webhook grants/revocations, cancellation, failed renewal, quantity one, 50-property cap, and protected billing-portal plan switches. Validate production Stripe configuration before any live checkout is enabled. Never trigger a live charge just for a test.
+Required: confirm the correct **GetStayGuide live Stripe account** separately. The QA prices now exist; check sandbox checkout, signed webhook grants/revocations, cancellation, failed renewal, quantity one, 50-property cap, and protected billing-portal plan switches. Validate production Stripe configuration before any live checkout is enabled. Never trigger a live charge just for a test.
 
 ### 3. PMS connections and outgoing messages (NOT done)
 
