@@ -19,6 +19,7 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
   const [priority, setPriority] = useState<"normal" | "urgent">("normal");
   const [templateTitle, setTemplateTitle] = useState("");
   const [templateBody, setTemplateBody] = useState("");
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const load = useCallback(async () => {
     try {
       const response = await fetch("/api/v1/manager", { cache: "no-store" });
@@ -55,8 +56,12 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
   }
   async function addTemplate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const ok = await mutate("/api/v1/manager/templates", "POST", { title: templateTitle, body: templateBody });
-    if (ok) { setTemplateTitle(""); setTemplateBody(""); notify("Saved reply added. It will only be sent if you choose to send it."); }
+    const ok = await mutate(editingTemplateId ? `/api/v1/manager/templates/${editingTemplateId}` : "/api/v1/manager/templates",
+      editingTemplateId ? "PATCH" : "POST", { title: templateTitle, body: templateBody });
+    if (ok) {
+      setTemplateTitle(""); setTemplateBody(""); setEditingTemplateId(null);
+      notify("Reply saved. It will only be sent if you choose to send it.");
+    }
   }
   return (
     <>
@@ -115,7 +120,11 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
                 <textarea required rows={3} minLength={1} maxLength={1500} value={templateBody}
                   onChange={(e) => setTemplateBody(e.target.value)} placeholder="Thanks for your message…" />
               </label>
-              <button className="button" disabled={busy || (data.templates?.length ?? 0) >= 30}><Plus size={14} /> Save reply</button>
+              <button className="button" disabled={busy || (!editingTemplateId && (data.templates?.length ?? 0) >= 30)}>
+                <Plus size={14} /> {editingTemplateId ? "Update reply" : "Save reply"}
+              </button>
+              {editingTemplateId && <button type="button" className="button secondary" disabled={busy}
+                onClick={() => { setEditingTemplateId(null); setTemplateTitle(""); setTemplateBody(""); }}>Cancel edit</button>}
             </form>
             {(data.templates ?? []).length === 0 && <p>No saved replies yet.</p>}
             {(data.templates ?? []).map((template) => (
@@ -124,6 +133,9 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
                   <strong>{template.title}</strong>
                   <div style={{ fontSize: 12, whiteSpace: "pre-wrap" }}>{template.body}</div>
                 </div>
+                <button className="button secondary small" disabled={busy} onClick={() => {
+                  setEditingTemplateId(template.id); setTemplateTitle(template.title); setTemplateBody(template.body);
+                }}>Edit</button>
                 <button className="button secondary small" disabled={busy} onClick={async () => {
                   try { await navigator.clipboard.writeText(template.body); notify("Reply copied. Review it before sending."); }
                   catch { notify("Copy was blocked by your browser. Select the saved text manually."); }
