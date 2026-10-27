@@ -79,9 +79,9 @@ Implemented:
   client identity is accepted as that verification.
 
 **Still absent:** registered live provider adapters, credential encryption/token
-refresh/OAuth onboarding, property and reservation sync/reconciliation, scheduler
-invocation and real-provider delivery acceptance. `deliverPmsBatch` is tested
-with fixture adapters only. There is no production cron, provider credential API,
+refresh/OAuth onboarding, property and reservation sync/reconciliation, production cron
+activation and real-provider delivery acceptance. `deliverPmsBatch` is tested
+with fixture adapters only. There is no activated production cron, provider credential API,
 or way to turn on live sending in the UI. `deliveryAvailable` is deliberately
 false. Do not change it merely because an environment flag exists.
 
@@ -92,7 +92,7 @@ Before wiring a live worker:
    rules, not fixture flags. `send` must return a durable provider message ID;
    timeouts and uncertain errors must remain `unknown`. Only provably pre-delivery
    rejections may raise `PmsSendError('retryable')`.
-3. Register only verified server adapters and add an authenticated scheduler with
+3. Register only verified server adapters and activate the authenticated scheduler with
    bounded batch calls. Require per-connection `delivery_enabled`, unpaused state
    and `STAYGUIDE_PMS_DELIVERY_ENABLED=true`; all are off by default.
 4. Complete controlled test-account delivery, reply/opt-out/manual takeover,
@@ -113,3 +113,5 @@ workers), and four API boundary cases passed. Lint, strict TypeScript and the
 production build passed. The new mobile browser acceptance case is supplied,
 but could not run here: Chromium download returned a truncated/invalid archive.
 These are fixture/PGlite checks, not proof of live Guesty/Hospitable delivery.
+
+See [the scheduling and billing follow-up](GUESTPULSE-SCHEDULING-BILLING-VERIFICATION.md) for the implemented cron entrypoint, Stripe test evidence and remaining activation blockers.

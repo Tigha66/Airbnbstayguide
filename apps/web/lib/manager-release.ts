@@ -16,7 +16,12 @@ export async function managerSchemaReady(): Promise<boolean> {
       `SELECT
         (to_regclass('public.portfolio_rules') IS NOT NULL
         AND to_regclass('public.portfolio_triage') IS NOT NULL
-        AND to_regclass('public.portfolio_reply_templates') IS NOT NULL) AS ready`,
+        AND to_regclass('public.portfolio_reply_templates') IS NOT NULL
+        AND to_regclass('public.pms_connections') IS NOT NULL
+        AND to_regclass('public.pms_property_links') IS NOT NULL
+        AND to_regclass('public.pms_outbox') IS NOT NULL
+        AND to_regclass('public.pms_delivery_audit') IS NOT NULL
+        AND to_regclass('public.pms_scheduler_state') IS NOT NULL) AS ready`,
     );
     return rows[0]?.ready === true;
   } catch {

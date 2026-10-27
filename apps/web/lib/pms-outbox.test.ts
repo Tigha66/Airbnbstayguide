@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setQueryOverride, splitStatements } from "./db";
+import { runScheduledDelivery } from "./pms-scheduler";
 import { approveOutbox, cancelOutbox, createOutboxDraft, deliverPmsBatch, listOutbox, pausePmsConnection, PmsSendError, type OutboxDraft } from "./pms-outbox";
 
 let pg: PGlite;
@@ -83,6 +84,16 @@ describe("PMS durable delivery controls", () => {
     const results = await Promise.all([deliverPmsBatch(adapters), deliverPmsBatch(adapters)]);
     expect(results.reduce((sum, r) => sum + r.processed, 0)).toBe(1);
     expect(send).toHaveBeenCalledTimes(1);
+  });
+  it("runs bounded scheduled batches and leaves future drafts unsent", async () => {
+    for (let i = 0; i < 4; i++) await ready();
+    await createOutboxDraft(owner, input());
+    expect(await runScheduledDelivery(adapters)).toEqual({ status: "ok", processed: 3 });
+    expect(send).toHaveBeenCalledTimes(3);
+    expect(await runScheduledDelivery(adapters)).toEqual({ status: "ok", processed: 1 });
+    expect(await runScheduledDelivery(adapters)).toEqual({ status: "ok", processed: 0 });
+    expect(send).toHaveBeenCalledTimes(4);
+    expect((await listOutbox(owner)).filter(m => m.status === "draft")).toHaveLength(1);
   });
   it("stops on revoked entitlement, paused connection or global disabled delivery", async () => {
     await ready();

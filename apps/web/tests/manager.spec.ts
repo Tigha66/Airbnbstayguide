@@ -101,7 +101,7 @@ test("PMS queue shows disconnected delivery, preserves unknown outcomes and perm
   const queue = page.getByRole("region", { name: "PMS delivery queue" });
   await expect(queue.getByText("PMS delivery is not connected.", { exact: false })).toBeVisible();
   await expect(queue.getByRole("button", { name: "Approve this exact message" })).toBeDisabled();
-  await expect(queue.getByRole("status")).toContainText("Check the PMS before sending another message");
+  await expect(queue.getByRole("status").filter({ hasText: "Check the PMS" })).toContainText("Check the PMS before sending another message");
   await queue.getByRole("button", { name: "Cancel message" }).click();
   await expect(queue.getByRole("button", { name: "Cancel message" })).toHaveCount(0);
   expect(mutations).toBe(1);

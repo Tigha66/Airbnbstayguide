@@ -9,7 +9,7 @@ import { handleVerifiedStripeEvent, handleStripeEvent } from "./stripe-events";
 import { parseJson } from "./api";
 
 const sub = (status: string, lookup: string | null) =>
-  ({ status, items: { data: [{ price: { lookup_key: lookup } }] } }) as unknown as Stripe.Subscription;
+  ({ status, items: { data: [{ quantity: 1, price: { lookup_key: lookup, currency: "usd", unit_amount: lookup?.includes("yearly") ? 199000 : 19900, recurring: { interval: lookup?.includes("yearly") ? "year" : "month", interval_count: 1 } } }] } }) as unknown as Stripe.Subscription;
 
 describe("webhook trust boundary", () => {
   const stripe = new Stripe("sk_test_placeholder");

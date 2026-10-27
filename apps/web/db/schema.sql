@@ -221,3 +221,15 @@ CREATE TABLE IF NOT EXISTS pms_delivery_audit (
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY(message_id, action)
 );
+
+-- Scheduler heartbeat and crash-recoverable lease. Contains no guest content.
+CREATE TABLE IF NOT EXISTS pms_scheduler_state (
+  job text PRIMARY KEY CHECK (job = 'delivery'),
+  lease_token uuid NOT NULL,
+  lease_until timestamptz NOT NULL,
+  started_at timestamptz NOT NULL,
+  finished_at timestamptz,
+  last_success_at timestamptz,
+  status text NOT NULL CHECK (status IN ('running','ok','disabled','provider_not_connected','failed')),
+  processed integer NOT NULL DEFAULT 0
+);

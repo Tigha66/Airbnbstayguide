@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { schedulerHealth } from "@/lib/pms-scheduler";
 import { z } from "zod";
 import { requireHost } from "@/lib/session";
 import { safeOrigin, parseJson } from "@/lib/api";
@@ -19,8 +20,8 @@ export async function GET() {
   const host = await manager();
   if ("response" in host) return host.response;
   try {
-    const [messages, connections] = await Promise.all([listOutbox(host.user.id), listPmsConnections(host.user.id)]);
-    return response({ messages, connections, deliveryAvailable: false, setupRequired: "Authorised PMS connection and live delivery verification required" });
+    const [messages, connections, scheduler] = await Promise.all([listOutbox(host.user.id), listPmsConnections(host.user.id), schedulerHealth().catch(() => null)]);
+    return response({ messages, connections, scheduler: scheduler ? { status: scheduler.status, lastStartedAt: scheduler.lastStartedAt, lastSuccessAt: scheduler.lastSuccessAt } : null, deliveryAvailable: false, setupRequired: "Authorised PMS connection and live delivery verification required" });
   } catch { return response({ error: "PMS outbox database migration required" }, 503); }
 }
 export async function POST(request: Request) {
