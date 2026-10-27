@@ -26,3 +26,24 @@
 4. Revenue attribution from accepted upsells (not offers sent), comprehensive analytics, onboarding and iOS Manager screens.
 
 **Never infer that reservation messages are delivered from the existing guide-chat inbox; that is a separate integration.**
+
+## 27 October reliability follow-up
+
+Implemented in `finish-guestpulse-20261027`:
+- Rule editing with owner/plan validation, duplicate-keyword errors and automatic disabling after edits.
+- Literal, case-insensitive previews share their matcher with execution; previews never write messages or triage entries.
+- Queue status/priority filters, refresh/retry, urgent-first ordering, and protection against normal messages downgrading open urgent issues.
+- Owner row locks enforce 20-rule/30-reply limits under concurrent creation.
+- Per-conversation reply drafts, repeated-send protection while pending, and draft preservation on network failures.
+- Inbox deep links retrieve an owned conversation beyond the latest 50. Malformed reply JSON returns 400.
+
+Read-only deployment evidence on 27 October:
+- `www.getstayguide.com` serves `f0599413372e25a0db24edadd8c41eb7641ad3c0`, preceding Manager.
+- Manager preview `stayguide-ibq0r2uac-hajabdelhak66.vercel.app` serves `e3880b1180babd4ebdab566bf232b762d726cd15`; its health endpoint reports database/accounts unavailable.
+- Information-schema inspection confirms the shared configured database is reachable but lacks `session_version`, `billing_event_created`, and all three `portfolio_*` tables. The migration is unapplied.
+- The connected Neon account does not list the project owning that endpoint. No production schema/customer data was changed. Do not substitute an unrelated app database.
+- The public release reports account email unavailable; delivery remains unverified on the candidate.
+
+Launch gates remain: verified recovery/isolated restore, explicit migration in the correct project, sandbox billing lifecycle, delivered account emails and deployed authenticated desktop/mobile acceptance. PMS syncing, scheduled reservation messages, shared staff permissions and delivery audit still require implementation.
+
+New browser regressions use mocked APIs, not live providers. Local Chromium installation failed because the downloaded archive was empty/invalid; browser results are not claimed as passed.

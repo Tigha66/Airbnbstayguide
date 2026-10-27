@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Check, Plus, Trash2, ArrowRight } from "lucide-react";
 import { PageHeading } from "./ui";
+import { matchPortfolioRule } from "@/lib/portfolio-rules";
 
 type Rule = { id: string; keyword: string; label: string; priority: "normal" | "urgent"; enabled: boolean };
 type Triage = { threadId: string; propertyName: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updatedAt: string };
@@ -14,9 +15,14 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
   const [data, setData] = useState<Workspace | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const mutationLock = useRef(false);
   const [keyword, setKeyword] = useState("");
   const [label, setLabel] = useState("");
   const [priority, setPriority] = useState<"normal" | "urgent">("normal");
+  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+  const [testMessage, setTestMessage] = useState("");
+  const [queueStatus, setQueueStatus] = useState("open");
+  const [queuePriority, setQueuePriority] = useState("all");
   const [templateTitle, setTemplateTitle] = useState("");
   const [templateBody, setTemplateBody] = useState("");
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
@@ -34,6 +40,8 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
   }, [load]);
 
   async function mutate(url: string, method: "POST" | "PATCH" | "DELETE", body?: object) {
+    if (mutationLock.current) return false;
+    mutationLock.current = true;
     setBusy(true);
     try {
       const response = await fetch(url, {
@@ -47,12 +55,12 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
     } catch (e) {
       notify(e instanceof Error ? e.message : "Could not save the change.");
       return false;
-    } finally { setBusy(false); }
+    } finally { mutationLock.current = false; setBusy(false); }
   }
   async function addRule(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const ok = await mutate("/api/v1/manager/rules", "POST", { keyword, label, priority });
-    if (ok) { setKeyword(""); setLabel(""); notify("Rule saved disabled. Enable it when ready."); }
+    const ok = await mutate(editingRuleId ? `/api/v1/manager/rules/${editingRuleId}` : "/api/v1/manager/rules", editingRuleId ? "PATCH" : "POST", { keyword, label, priority });
+    if (ok) { setKeyword(""); setLabel(""); setEditingRuleId(null); notify("Rule saved disabled. Enable it when ready."); }
   }
   async function addTemplate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,7 +77,7 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
       <div className="notice" style={{ marginBottom: 16 }}>
         Keyword rules classify conversations inside StayGuide. They do not send automatic replies, contact guests, or sync with a PMS.
       </div>
-      {error && <div className="notice" role="alert">{error}</div>}
+      {error && <div className="notice" role="alert">{error} <button className="button secondary small" onClick={() => void load()}>Retry loading</button></div>}
       {!data && !error && <p>Loading Manager workspace…</p>}
       {data && (
         <>
@@ -89,7 +97,8 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
                   <option value="urgent">Urgent</option>
                 </select>
               </label>
-              <button className="button" disabled={busy || data.rules.length >= 20}><Plus size={14} /> Save rule</button>
+              <button className="button" disabled={busy || (!editingRuleId && data.rules.length >= 20)}><Plus size={14} /> {editingRuleId ? "Update rule" : "Save rule"}</button>
+              {editingRuleId && <button className="button secondary" type="button" disabled={busy} onClick={() => { setEditingRuleId(null); setKeyword(""); setLabel(""); }}>Cancel rule edit</button>}
             </form>
             {data.rules.length === 0 && <p>No rules yet. Add one above; it will start disabled.</p>}
             {data.rules.map((rule) => (
@@ -103,10 +112,20 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
                     onChange={(e) => void mutate(`/api/v1/manager/rules/${rule.id}`, "PATCH", { enabled: e.target.checked })} />
                   Enabled
                 </label>
+                <button className="button secondary small" disabled={busy} onClick={() => {
+                  setEditingRuleId(rule.id); setKeyword(rule.keyword); setLabel(rule.label); setPriority(rule.priority);
+                }}>Edit rule</button>
                 <button className="button secondary small" disabled={busy} aria-label={`Delete ${rule.label}`}
                   onClick={() => void mutate(`/api/v1/manager/rules/${rule.id}`, "DELETE")}><Trash2 size={13} /></button>
               </div>
             ))}
+            <label>Test a guest message
+              <textarea rows={2} maxLength={2000} value={testMessage} onChange={(e) => setTestMessage(e.target.value)} placeholder="Try a message against your enabled rules" />
+            </label>
+            {testMessage && <p role="status">{(() => {
+              const match = matchPortfolioRule(data.rules, testMessage);
+              return match ? `Matches ${match.label} · ${match.priority}. Preview only; no message or queue entry was created.` : "No enabled rule matches. Preview only; nothing was sent or saved.";
+            })()}</p>}
           </div>
           <div className="card panel" style={{ marginBottom: 20 }}>
             <h3>Saved replies <small>({data.templates?.length ?? 0}/30)</small></h3>
@@ -150,8 +169,13 @@ export function ManagerWorkspace({ notify }: { notify: (message: string) => void
           </div>
           <div className="card panel">
             <h3>Portfolio triage <small>({data.triage.filter((t) => t.status === "open").length} open)</small></h3>
+            <div className="row" style={{ gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+              <label>Queue status <select value={queueStatus} onChange={(e) => setQueueStatus(e.target.value)}><option value="open">Open</option><option value="resolved">Resolved</option><option value="all">All statuses</option></select></label>
+              <label>Queue priority <select value={queuePriority} onChange={(e) => setQueuePriority(e.target.value)}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="normal">Normal</option></select></label>
+              <button className="button secondary small" disabled={busy} onClick={() => void load()}>Refresh queue</button>
+            </div>
             {data.triage.length === 0 && <p>No matched guest messages. Once a guest writes a keyword, the conversation will be routed here.</p>}
-            {data.triage.map((item) => (
+            {data.triage.filter(item => (queueStatus === "all" || item.status === queueStatus) && (queuePriority === "all" || item.priority === queuePriority)).map((item) => (
               <div className="activity-item" key={item.threadId} style={{ gap: 10, flexWrap: "wrap" }}>
                 <div style={{ flex: 1, minWidth: 170 }}>
                   <strong>{item.propertyName}</strong> · {item.label}
