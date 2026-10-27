@@ -22,6 +22,22 @@ beforeAll(async () => {
 });
 
 describe("Manager automated portfolio triage", () => {
+  it("keeps saved replies owner-scoped and never creates guest messages", async () => {
+    const proposed = { title: "Check-out", body: "Please check out by 11 AM. Contact your host if you need help." };
+    expect(await repo.createPortfolioReplyTemplate(stranger.id, proposed)).toBeNull();
+    const template = await repo.createPortfolioReplyTemplate(manager.id, proposed);
+    expect(template).toMatchObject(proposed);
+    expect(await repo.listPortfolioReplyTemplates(stranger.id)).toEqual([]);
+    expect(await repo.listPortfolioReplyTemplates(manager.id)).toContainEqual(template);
+    expect(await repo.updatePortfolioReplyTemplate(stranger.id, template!.id, { ...proposed, body: "Altered" })).toBeNull();
+    expect(await repo.deletePortfolioReplyTemplate(stranger.id, template!.id)).toBe(false);
+    const revised = await repo.updatePortfolioReplyTemplate(manager.id, template!.id, { ...proposed, body: "New check-out text" });
+    expect(revised?.body).toBe("New check-out text");
+    expect(await repo.threadMessages(propertyId, threadId)).toEqual([]);
+    expect(await repo.deletePortfolioReplyTemplate(manager.id, template!.id)).toBe(true);
+    expect(await repo.listPortfolioReplyTemplates(manager.id)).toEqual([]);
+  });
+
   it("uses a flat 10,000-message monthly allowance and has a real Stripe-backed plan", async () => {
     expect((await repo.getUser(manager.id))?.plan).toBe("manager");
     expect(repo.aiMessageLimit("manager", 40)).toBe(10000);
