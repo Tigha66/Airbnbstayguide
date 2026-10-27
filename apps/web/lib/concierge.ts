@@ -37,7 +37,25 @@ function guideFor(property: Property) {
 const addressQuestion =
   /\b(address|located|where is the (house|property|cabin|apartment|home|place)|adresse|direccion|ubicacion|indirizzo|endereco|morada|adres|anschrift)\b/;
 const addressLabel: Record<string, string> = { en: "The address is", fr: "L’adresse est", es: "La dirección es", de: "Die Adresse lautet", it: "L’indirizzo è", pt: "A morada é", nl: "Het adres is" };
+const leakReport = /\b(water[\s-]+leak(?:s|ing)?|leak(?:s|ing)?\s+water|(?:pipe|tap|toilet|ceiling|shower|sink)\s+(?:is\s+)?leaking|flood(?:ing|ed)?|fuite\s+d['’ ]?eau|fuga\s+de\s+(?:agua|acqua)|vazamento|wasserleck|wasserschaden|waterlekkage)\b/;
+const hostAttentionText: Record<string, string> = {
+  en: "This water leak needs your host’s attention. Please contact your host directly for assistance. You can continue messaging here; no repair has been arranged automatically.",
+  fr: "Cette fuite d’eau nécessite l’attention de votre hôte. Contactez-le directement pour obtenir de l’aide. Vous pouvez continuer à écrire ici ; aucune réparation n’a été organisée automatiquement.",
+  es: "Esta fuga de agua necesita la atención de tu anfitrión. Contacta directamente con él para pedir ayuda. Puedes seguir escribiendo aquí; no se ha organizado ninguna reparación automáticamente.",
+  de: "Dieses Wasserleck benötigt die Aufmerksamkeit Ihres Gastgebers. Kontaktieren Sie ihn direkt. Sie können hier weiter schreiben; es wurde keine Reparatur automatisch veranlasst.",
+  it: "Questa perdita d’acqua richiede l’attenzione del tuo host. Contattalo direttamente per assistenza. Puoi continuare a scrivere qui; nessuna riparazione è stata organizzata automaticamente.",
+  pt: "Esta fuga de água precisa da atenção do anfitrião. Contacte-o diretamente para obter ajuda. Pode continuar a escrever aqui; nenhuma reparação foi organizada automaticamente.",
+  nl: "Dit waterlek heeft de aandacht van je host nodig. Neem rechtstreeks contact op voor hulp. Je kunt hier verder berichten sturen; er is niet automatisch een reparatie geregeld.",
+};
+/** Incident reports must not be answered from a coincidental location-word match. */
+export function hostAttentionAnswer(question: string, language: string): ConciergeAnswer | null {
+  const plain = question.toLowerCase().normalize("NFKD").replace(/\p{M}/gu, "");
+  if (!leakReport.test(plain)) return null;
+  return { answer: hostAttentionText[language] ?? hostAttentionText.en, citations: [], escalate: true };
+}
 export function keywordAnswer(property: Property, question: string, language: string): ConciergeAnswer {
+  const incident = hostAttentionAnswer(question, language);
+  if (incident) return incident;
   const plain = question.toLowerCase().normalize("NFKD").replace(/\p{M}/gu, "");
   if (property.address?.trim() && addressQuestion.test(plain))
     return { answer: `${addressLabel[language] ?? addressLabel.en} ${property.address.trim()}.`, citations: ["Stay details"], escalate: false };
@@ -47,6 +65,8 @@ export function keywordAnswer(property: Property, question: string, language: st
 }
 const schema = z.object({ answer: z.string().min(1), citations: z.array(z.string()).default([]), escalate: z.boolean().default(false) });
 export async function aiAnswer(property: Property, question: string, language: string): Promise<ConciergeAnswer> {
+  const incident = hostAttentionAnswer(question, language);
+  if (incident) return incident;
   const { sections, facts } = guideFor(property);
   const { context } = guideContext(sections, question);
   const json = await generateJson(

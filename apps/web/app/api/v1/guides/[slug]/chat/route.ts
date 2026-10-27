@@ -4,7 +4,7 @@ import { chatSchema } from "@stayguide/shared";
 import { dbConfigured } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
 import { parseJson, unavailable } from "@/lib/api";
-import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
+import { aiAnswer, hostAttentionAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
 import { detectLanguage } from "@/lib/language";
 import { applyPortfolioRules, consumeAiUsage, consumeRateLimit, getPublishedProperty, saveMessages, threadBelongsTo } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -27,7 +27,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const language = detectLanguage(body.message) ?? body.language;
   let answer: ConciergeAnswer;
   let mode: "ai" | "keyword" = "keyword";
-  if (aiConfigured() && (await consumeAiUsage(found.ownerId))) {
+  const incident = hostAttentionAnswer(body.message, language);
+  if (incident) answer = incident;
+  else if (aiConfigured() && (await consumeAiUsage(found.ownerId))) {
     try {
       answer = await aiAnswer(found.property, body.message, language);
       mode = "ai";
