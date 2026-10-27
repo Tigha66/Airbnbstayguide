@@ -62,6 +62,17 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
   const [reply, setReply] = useState("");
   const [onlyEscalated, setOnlyEscalated] = useState(true);
   const [propertyFilter, setPropertyFilter] = useState("all");
+  const [savedReplies, setSavedReplies] = useState<{ id: string; title: string; body: string }[]>([]);
+  useEffect(() => {
+    let active = true;
+    const handle = window.setTimeout(() => {
+      void fetch("/api/v1/manager/templates", { cache: "no-store" })
+        .then(async (response) => response.ok ? await response.json() as { templates: { id: string; title: string; body: string }[] } : null)
+        .then((result) => { if (active && result) setSavedReplies(result.templates); })
+        .catch(() => { /* Non-Manager accounts have no saved replies. */ });
+    }, 0);
+    return () => { active = false; window.clearTimeout(handle); };
+  }, []);
   useEffect(() => {
     const deepLinked = new URLSearchParams(window.location.search).get("thread");
     if (deepLinked && /^[0-9a-f-]{36}$/i.test(deepLinked)) {
@@ -131,6 +142,20 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
                 </div>
               ))}
             </div>
+            {savedReplies.length > 0 && (
+              <div className="row" style={{ padding: "8px 12px", gap: 10, flexWrap: "wrap" }}>
+                <label htmlFor="guest-saved-reply" style={{ fontSize: 12 }}>Insert saved reply</label>
+                <select id="guest-saved-reply" aria-label="Insert saved reply" value=""
+                  onChange={(event) => {
+                    const template = savedReplies.find((t) => t.id === event.target.value);
+                    if (template) setReply(template.body);
+                  }}>
+                  <option value="">Choose a reply to review…</option>
+                  {savedReplies.map((template) =>
+                    <option key={template.id} value={template.id}>{template.title}</option>)}
+                </select>
+              </div>
+            )}
             <form
               className="chat-compose"
               onSubmit={async (e) => {
