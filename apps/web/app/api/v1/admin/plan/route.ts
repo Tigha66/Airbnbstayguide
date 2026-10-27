@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { auth, authConfigured } from "@/auth";
+import { authConfigured } from "@/auth";
+import { requireHost } from "@/lib/session";
 import { isAdminEmail } from "@/lib/admin";
-import { getUser, setManagedPlan } from "@/lib/repo";
+import { setManagedPlan } from "@/lib/repo";
 import { parseJson, safeOrigin } from "@/lib/api";
 
 const schema = z.object({ email: z.email(), plan: z.enum(["hotel", "free"]) });
@@ -11,8 +12,8 @@ const schema = z.object({ email: z.email(), plan: z.enum(["hotel", "free"]) });
 export async function POST(request: Request) {
   if (!safeOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   if (!authConfigured()) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const session = await auth();
-  const me = session?.user?.id ? await getUser(session.user.id) : null;
+  const host = await requireHost();
+  const me = "user" in host ? host.user : null;
   if (!me || !isAdminEmail(me.email)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const parsed = schema.safeParse(parseJson(await request.text()));
   if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });

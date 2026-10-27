@@ -4,9 +4,9 @@ import { chatSchema } from "@stayguide/shared";
 import { dbConfigured } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
 import { parseJson, unavailable } from "@/lib/api";
-import { aiAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
+import { aiAnswer, hostAttentionAnswer, keywordAnswer, unknownAnswer, type ConciergeAnswer } from "@/lib/concierge";
 import { detectLanguage } from "@/lib/language";
-import { consumeAiUsage, consumeRateLimit, getPublishedProperty, saveMessages, threadBelongsTo } from "@/lib/repo";
+import { applyPortfolioRules, consumeAiUsage, consumeRateLimit, getPublishedProperty, saveMessages, threadBelongsTo } from "@/lib/repo";
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!dbConfigured()) return unavailable("Live concierge");
   const { slug } = await params;
@@ -27,7 +27,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const language = detectLanguage(body.message) ?? body.language;
   let answer: ConciergeAnswer;
   let mode: "ai" | "keyword" = "keyword";
-  if (aiConfigured() && (await consumeAiUsage(found.ownerId))) {
+  const incident = hostAttentionAnswer(body.message, language);
+  if (incident) answer = incident;
+  else if (aiConfigured() && (await consumeAiUsage(found.ownerId))) {
     try {
       answer = await aiAnswer(found.property, body.message, language);
       mode = "ai";
@@ -42,5 +44,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     { role: "guest", content: body.message, language },
     { role: "assistant", content: answer.answer, language, citations: answer.citations, escalated: answer.escalate },
   ]);
+  // Best-effort internal manager triage must never block a guest's successful chat.
+  try { await applyPortfolioRules(found.ownerId, found.property.id, threadId, body.message); }
+  catch (error) { console.error("[manager-triage] Could not classify guest thread", error); }
   return NextResponse.json({ ...answer, threadId, mode, language });
 }

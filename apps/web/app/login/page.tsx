@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { Login } from "@/components/login";
-import { appleConfigured, auth, authConfigured, googleConfigured, signIn } from "@/auth";
+import { appleConfigured, authConfigured, googleConfigured, signIn } from "@/auth";
+import { requireHost } from "@/lib/session";
 import { requestLocale } from "@/lib/request-locale";
 import { makeTr } from "@/lib/app-i18n";
 import { registerPasswordUser } from "@/lib/password-login";
@@ -32,7 +33,7 @@ export default async function Page({
   searchParams: Promise<{ error?: string; email?: string; mode?: string; created?: string; verification?: string }>;
 }) {
   const configured = authConfigured();
-  if (configured && (await auth())?.user) redirect("/dashboard");
+  if (configured && "user" in await requireHost()) redirect("/dashboard");
   const { error } = await searchParams;
   const params = await searchParams;
   async function google() {

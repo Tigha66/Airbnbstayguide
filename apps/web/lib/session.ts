@@ -9,6 +9,6 @@ export async function requireHost(): Promise<{ user: User } | { response: NextRe
   const session = await auth();
   const id = session?.user?.id;
   const user = id ? await getUser(id) : null;
-  if (!user) return { response: NextResponse.json({ error: "Sign in required" }, { status: 401 }) };
+  if (!user || Number((session as { sessionVersion?: number } | null)?.sessionVersion ?? 0) !== Number(user.sessionVersion ?? 0)) return { response: NextResponse.json({ error: "Sign in required" }, { status: 401 }) };
   return { user };
 }

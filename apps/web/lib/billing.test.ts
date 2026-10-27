@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { setQueryOverride, splitStatements } from "./db";
 import * as repo from "./repo";
-import { billableQuantity, extraCheckoutParams, lookupKey, planFromSubscription } from "./stripe";
-import { handleStripeEvent } from "./stripe-events";
+import { billableQuantity, subscriptionQuantity, extraCheckoutParams, lookupKey, planFromSubscription } from "./stripe";
+import { handleVerifiedStripeEvent, handleStripeEvent } from "./stripe-events";
 import { parseJson } from "./api";
 
 const sub = (status: string, lookup: string | null) =>
@@ -42,7 +42,7 @@ describe("plans", () => {
   it("derives the plan from the Stripe price, not from client input", () => {
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly"))).toBe("pro");
     expect(planFromSubscription(sub("trialing", "stayguide_starter_monthly"))).toBe("starter");
-    expect(planFromSubscription(sub("past_due", "stayguide_starter_monthly"))).toBe("starter");
+    expect(planFromSubscription(sub("past_due", "stayguide_starter_monthly"))).toBe("free");
     expect(planFromSubscription(sub("canceled", "stayguide_pro_monthly"))).toBe("free");
     expect(planFromSubscription(sub("unpaid", "stayguide_pro_monthly"))).toBe("free");
     expect(planFromSubscription(sub("active", "someone_else_pro"))).toBe("free");
@@ -50,6 +50,9 @@ describe("plans", () => {
   it("recognises current-currency prices and the original un-suffixed ones", () => {
     expect(lookupKey("starter", false)).toBe("stayguide_starter_monthly_usd");
     expect(lookupKey("pro", true)).toBe("stayguide_pro_yearly_usd");
+    expect(lookupKey("manager", false)).toBe("stayguide_manager_monthly_usd");
+    expect(planFromSubscription(sub("active", "stayguide_manager_monthly_usd"))).toBe("manager");
+    expect(planFromSubscription(sub("past_due", "stayguide_manager_monthly_usd"))).toBe("free");
     expect(planFromSubscription(sub("active", "stayguide_starter_monthly_usd"))).toBe("starter");
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly_usd"))).toBe("pro");
     expect(planFromSubscription(sub("active", "stayguide_pro_yearly_gbp_extra"))).toBe("free");
@@ -58,6 +61,8 @@ describe("plans", () => {
     expect(billableQuantity(0)).toBe(1);
     expect(billableQuantity(7)).toBe(7);
     expect(billableQuantity(500)).toBe(100);
+    expect(subscriptionQuantity("manager", 40)).toBe(1);
+    expect(subscriptionQuantity("pro", 40)).toBe(40);
   });
 });
 
@@ -70,7 +75,7 @@ describe("extras checkout", () => {
     expect(params.payment_intent_data?.transfer_data?.destination).toBe("acct_host");
     expect(params.payment_intent_data?.capture_method).toBe("automatic");
     expect(params.line_items?.[0].price_data?.unit_amount).toBe(3000);
-    expect(params.success_url).toBe("https://x.test/g/sea?extra=success");
+    expect(params.success_url).toBe("https://x.test/g/sea?extra=success&session_id={CHECKOUT_SESSION_ID}");
   });
   it("only authorises the card when the host must approve first", () => {
     const params = extraCheckoutParams({ ...base, extra: { name: "Early check-in", description: "", price: 2500, approval: true } });
@@ -99,6 +104,24 @@ describe("billing persistence (PGlite)", () => {
     expect(after?.plan).toBe("free");
     expect(after?.stripeSubscriptionId).toBeNull();
     expect(await repo.applySubscription({ customerId: "cus_unknown", subscriptionId: "sub_x", status: "active", plan: "pro" })).toBe(false);
+  });
+  it("does not bind a Stripe customer from metadata or overwrite a newer subscription", async () => {
+    expect(await repo.applySubscription({ customerId: "cus_attacker", userId: host.id, subscriptionId: "sub_bad", status: "active", plan: "pro", eventCreated: 100 })).toBe(false);
+    await repo.applySubscription({ customerId: "cus_1", subscriptionId: "sub_new", status: "active", plan: "pro", eventCreated: 2000000000 });
+    expect(await repo.applySubscription({ customerId: "cus_1", subscriptionId: null, previousSubscriptionId: "sub_old", status: "canceled", plan: "free", eventCreated: 2000000001 })).toBe(false);
+    expect(await repo.applySubscription({ customerId: "cus_1", subscriptionId: null, previousSubscriptionId: "sub_new", status: "canceled", plan: "free", eventCreated: 1999999999 })).toBe(false);
+    expect((await repo.getBilling(host.id))?.stripeSubscriptionId).toBe("sub_new");
+    expect((await repo.getBilling(host.id))?.plan).toBe("pro");
+  });
+  it("records successful webhook events once and rejects a mode mismatch", async () => {
+    const saved = process.env.STRIPE_SECRET_KEY;
+    process.env.STRIPE_SECRET_KEY = "sk_test_fixture";
+    try {
+      const event = { id: "evt_dedupe", type: "invoice.created", created: 2000000010, livemode: false, data: { object: {} } } as unknown as Stripe.Event;
+      expect(await handleVerifiedStripeEvent(event)).toBe("ignored");
+      expect(await handleVerifiedStripeEvent(event)).toBe("duplicate");
+      await expect(handleVerifiedStripeEvent({ ...event, id: "evt_wrongmode", livemode: true })).rejects.toThrow("mode mismatch");
+    } finally { if (saved === undefined) delete process.env.STRIPE_SECRET_KEY; else process.env.STRIPE_SECRET_KEY = saved; }
   });
   it("tracks paid extras from checkout to capture and hides abandoned checkouts", async () => {
     const p = await repo.createProperty(host, { name: "Loft", location: "Here", description: "" });

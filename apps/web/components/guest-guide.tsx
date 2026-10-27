@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -17,6 +17,8 @@ import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, 
 import { useDemo } from "@/lib/demo-store";
 import { fill, guestText, isRtl } from "@/lib/guest-i18n";
 import { Logo, GuideIcon } from "./ui";
+import { ExtraReceipt } from "./extra-receipt";
+import { readGuestSetting, writeGuestSetting, readGuestTranslation, writeGuestTranslation, translationSource } from "@/lib/guest-storage";
 type Message = {
   role: "assistant" | "user" | "host";
   content: string;
@@ -36,12 +38,13 @@ export function GuestGuide({
   const sample = !liveGuide && Boolean(original && demoProperties.some((p) => p.slug === slug));
   const [tab, setTab] = useState("guide");
   const [language, setLanguage] = useState("en");
-  const [translation, setTranslation] = useState<{ language: string; text: GuideText } | null>(null);
+  const source = original ? translationSource(original) : "";
+  const [translation, setTranslation] = useState<{ language: string; source: string; text: GuideText } | null>(null);
   const [translating, setTranslating] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
   const t = guestText(language);
   const rtl = isRtl(language);
-  const translated = Boolean(translation && translation.language === language && !showOriginal);
+  const translated = Boolean(translation && translation.language === language && translation.source === source && !showOriginal);
   const property = original && translated ? applyGuideText(original, translation!.text) : original;
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,10 +54,14 @@ export function GuestGuide({
   const [deferredInstall, setDeferredInstall] = useState<Event | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [requesting, setRequesting] = useState<Property["extras"][number] | null>(null);
+  const [submittingExtra, setSubmittingExtra] = useState(false);
+  const extraAttempt = useRef<{ id: string; fingerprint: string } | null>(null);
+  const extraInFlight = useRef(false);
+  const [receipt, setReceipt] = useState<{ sessionId: string | null } | null>(null);
   useEffect(() => {
     if (!liveGuide) return;
     void fetch(`/api/v1/guides/${slug}/view`, { method: "POST" }).catch(() => {});
-    const saved = localStorage.getItem(`stayguide-thread-${slug}`);
+    const saved = readGuestSetting(`stayguide-thread-${slug}`);
     if (saved) queueMicrotask(() => setThreadId(saved));
   }, [liveGuide, slug]);
   // Guide content in the guest's language: AI translation from the server, cached per guide version.
@@ -65,14 +72,11 @@ export function GuestGuide({
     queueMicrotask(() => {
       if (cancelled) return;
       setShowOriginal(false);
-      try {
-        const saved = localStorage.getItem(cacheKey);
-        if (saved) {
-          setTranslation({ language, text: JSON.parse(saved) as GuideText });
-          return;
-        }
-      } catch {
-        /* storage unavailable */
+      const saved = readGuestTranslation(cacheKey, source);
+      if (saved) {
+        setTranslation({ language, source, text: saved });
+        setTranslating(false);
+        return;
       }
       setTranslating(true);
       fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
@@ -80,12 +84,8 @@ export function GuestGuide({
         .then((body: { translated?: boolean; text?: GuideText } | null) => {
           if (cancelled) return;
           if (body?.translated && body.text) {
-            setTranslation({ language, text: body.text });
-            try {
-              localStorage.setItem(cacheKey, JSON.stringify(body.text));
-            } catch {
-              /* storage full */
-            }
+            setTranslation({ language, source, text: body.text });
+            writeGuestTranslation(cacheKey, source, body.text);
           } else setTranslation(null);
         })
         .catch(() => {})
@@ -96,7 +96,7 @@ export function GuestGuide({
     return () => {
       cancelled = true;
     };
-  }, [liveGuide, sample, slug, language]);
+  }, [liveGuide, sample, slug, language, source]);
   useEffect(() => {
     if (!liveGuide || !threadId) return;
     const load = async () => {
@@ -129,14 +129,12 @@ export function GuestGuide({
     if (extra === "success" || extra === "cancelled") {
       queueMicrotask(() => {
         setTab("extras");
-        const text = guestText(localStorage.getItem("stayguide-language") || navigator.language.split("-")[0]);
-        setToast(extra === "success" ? text.paid : text.paymentCancelled);
-        setTimeout(() => setToast(""), 7000);
+        setReceipt({ sessionId: extra === "success" ? params.get("session_id") : null });
       });
       history.replaceState(null, "", location.pathname);
     }
     // The guest's saved choice, otherwise the phone's language.
-    const preferred = localStorage.getItem("stayguide-language") || navigator.language.split("-")[0];
+    const preferred = readGuestSetting("stayguide-language") || navigator.language.split("-")[0];
     if (languages.includes(preferred as (typeof languages)[number]))
       queueMicrotask(() => setLanguage(preferred));
     const update = () => setOffline(!navigator.onLine);
@@ -184,7 +182,7 @@ export function GuestGuide({
           answer = body;
           if (body.threadId && body.threadId !== threadId) {
             setThreadId(body.threadId);
-            localStorage.setItem(`stayguide-thread-${slug}`, body.threadId);
+            writeGuestSetting(`stayguide-thread-${slug}`, body.threadId);
           }
         }
       } else {
@@ -244,11 +242,7 @@ export function GuestGuide({
             value={language}
             onChange={(e) => {
               setLanguage(e.target.value);
-              try {
-                localStorage.setItem("stayguide-language", e.target.value);
-              } catch {
-                /* private browsing */
-              }
+              writeGuestSetting("stayguide-language", e.target.value);
             }}
             className="guest-language"
           >
@@ -510,6 +504,7 @@ export function GuestGuide({
         )}
         {tab === "extras" && (
           <>
+            {receipt && <ExtraReceipt key={receipt.sessionId ?? "unconfirmed"} slug={slug} sessionId={receipt.sessionId} language={language} />}
             <div className="guest-welcome">
               <h2>{t.extrasTitle}</h2>
               <p>
@@ -536,11 +531,10 @@ export function GuestGuide({
                       <strong>{money(extra.price)}</strong>
                       <button
                         className="button small"
-                        onClick={() =>
-                          liveGuide
-                            ? setRequesting(extra)
-                            : notify(t.demoRequest)
-                        }
+                        onClick={() => {
+                          if (liveGuide) { extraAttempt.current = null; setRequesting(extra); }
+                          else notify(t.demoRequest);
+                        }}
                       >
                         {liveGuide ? t.request : extra.approval ? t.requestExtra : t.treat}
                         <ChevronRight size={12} />
@@ -571,25 +565,35 @@ export function GuestGuide({
             style={{ padding: 20, marginTop: 20 }}
             onSubmit={async (e) => {
               e.preventDefault();
+              if (extraInFlight.current) return;
+              extraInFlight.current = true;
+              setSubmittingExtra(true);
               const form = new FormData(e.currentTarget);
-              const res = await fetch(`/api/v1/guides/${slug}/extras`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  extraId: requesting.id,
-                  guestName: form.get("guestName"),
-                  guestContact: form.get("guestContact"),
-                  note: form.get("note") || "",
-                }),
-              });
-              const body = await res.json().catch(() => ({}));
-              if (res.ok && body.checkoutUrl) {
-                notify(t.openingCheckout);
-                location.assign(body.checkoutUrl);
-              } else if (res.ok) {
-                setRequesting(null);
-                notify(body.note || t.requestSent);
-              } else notify(body.error || t.requestFailed);
+              const input = {
+                extraId: requesting.id,
+                guestName: form.get("guestName"),
+                guestContact: form.get("guestContact"),
+                note: form.get("note") || "",
+              };
+              const fingerprint = JSON.stringify(input);
+              try {
+                if (extraAttempt.current?.fingerprint !== fingerprint)
+                  extraAttempt.current = { id: crypto.randomUUID(), fingerprint };
+                const res = await fetch(`/api/v1/guides/${slug}/extras`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ ...input, requestId: extraAttempt.current!.id }),
+                });
+                const body = await res.json().catch(() => ({}));
+                if (res.ok && body.checkoutUrl) {
+                  notify(t.openingCheckout);
+                  location.assign(body.checkoutUrl);
+                } else if (res.ok) {
+                  setRequesting(null);
+                  notify(body.note || t.requestSent);
+                } else notify(body.error || t.requestFailed);
+              } catch { notify(t.requestFailed); }
+              finally { extraInFlight.current = false; setSubmittingExtra(false); }
             }}
           >
             <h3>
@@ -610,8 +614,8 @@ export function GuestGuide({
               <input name="note" maxLength={1000} placeholder={t.notePlaceholder} />
             </label>
             <div className="row" style={{ gap: 8, marginTop: 14 }}>
-              <button className="button">{t.continue}</button>
-              <button type="button" className="button secondary" onClick={() => setRequesting(null)}>
+              <button className="button" disabled={submittingExtra}>{t.continue}</button>
+              <button type="button" className="button secondary" disabled={submittingExtra} onClick={() => { extraAttempt.current = null; setRequesting(null); }}>
                 {t.cancel}
               </button>
             </div>

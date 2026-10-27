@@ -1,4 +1,4 @@
-import { stripeClient, stripeConfigured, billableQuantity, isMissing } from "./stripe";
+import { stripeClient, stripeConfigured, subscriptionQuantity, planFromSubscription, isMissing } from "./stripe";
 import { clearStripeAccount, clearStripeCustomer, getBilling, setStripeAccount, setStripeCustomer, type User } from "./repo";
 
 export async function ensureCustomer(user: User) {
@@ -10,13 +10,15 @@ export async function ensureCustomer(user: User) {
     } catch (error) {
       if (!isMissing(error)) throw error;
     }
+    if (billing.stripeSubscriptionId && !["canceled", "incomplete_expired"].includes(billing.subscriptionStatus ?? ""))
+      throw new Error("Existing subscription could not be verified. Contact support before creating another.");
     await clearStripeCustomer(user.id);
   }
   const customer = await stripeClient().customers.create({
     email: user.email,
     name: user.name ?? undefined,
     metadata: { app: "stayguide", user_id: user.id },
-  });
+  }, { idempotencyKey: "stayguide-customer-" + user.id + "-" + (process.env.STRIPE_SECRET_KEY?.includes("_live_") ? "live" : "test") });
   await setStripeCustomer(user.id, customer.id);
   return customer.id;
 }
@@ -29,9 +31,13 @@ export async function syncSubscriptionQuantity(userId: string) {
     if (!billing?.stripeSubscriptionId) return;
     const stripe = stripeClient();
     const sub = await stripe.subscriptions.retrieve(billing.stripeSubscriptionId);
+    // A paused, past-due or foreign subscription must never be repriced when a property changes.
+    if (!["active", "trialing"].includes(sub.status)) return;
+    const plan = planFromSubscription(sub);
+    if (plan === "free" || plan === "hotel") return;
     const item = sub.items.data[0];
-    const quantity = billableQuantity(billing.propertyCount);
-    if (item && item.quantity !== quantity && !["canceled", "incomplete_expired"].includes(sub.status))
+    const quantity = subscriptionQuantity(plan, billing.propertyCount);
+    if (item && item.quantity !== quantity)
       await stripe.subscriptions.update(sub.id, {
         items: [{ id: item.id, quantity }],
         proration_behavior: "create_prorations",

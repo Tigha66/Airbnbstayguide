@@ -9,6 +9,9 @@ import Stripe from "stripe";
 const key = process.env.STRIPE_SECRET_KEY;
 const appUrl = (process.env.APP_URL || "").replace(/\/$/, "");
 if (!key || !appUrl) throw new Error("Set STRIPE_SECRET_KEY and APP_URL");
+if (/^(?:sk|rk)_live_/.test(key) && process.env.STRIPE_ALLOW_LIVE_SETUP !== "true")
+  throw new Error("Live Stripe setup requires explicit STRIPE_ALLOW_LIVE_SETUP=true after release review.");
+if (process.env.ROTATE_WEBHOOK) throw new Error("Create and verify a replacement webhook before retiring an existing endpoint; automatic rotation is disabled.");
 const stripe = new Stripe(key);
 
 const PLANS = [
@@ -30,7 +33,7 @@ for (const p of PLANS) {
   productIds.push(product.id);
   priceIdsByProduct[product.id] = [];
   for (const [interval, amount] of [["month", p.monthly], ["year", p.monthly * 10]] as const) {
-    // Prices are in USD (cents); the app also creates these on first use.
+    // Reviewed USD catalogue; runtime requests never create prices.
     const lookup = `stayguide_${p.plan}_${interval === "month" ? "monthly" : "yearly"}_usd`;
     const existing = await stripe.prices.list({ lookup_keys: [lookup], active: true });
     const price =
@@ -75,6 +78,11 @@ const url = `${appUrl}/api/stripe/webhook`;
 const events: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
   "checkout.session.completed",
   "checkout.session.expired",
+  "checkout.session.async_payment_succeeded",
+  "invoice.paid",
+  "charge.refunded",
+  "charge.dispute.created",
+  "radar.early_fraud_warning.created",
   "customer.subscription.created",
   "customer.subscription.updated",
   "customer.subscription.deleted",
@@ -84,7 +92,7 @@ const endpoints = await stripe.webhookEndpoints.list({ limit: 100 });
 const existing = endpoints.data.find((e) => e.url === url);
 if (existing && !process.env.ROTATE_WEBHOOK) {
   await stripe.webhookEndpoints.update(existing.id, { enabled_events: events });
-  console.log(`webhook ${url} already exists (set ROTATE_WEBHOOK=1 to recreate and print a new secret)`);
+  console.log(`webhook ${url} already exists (the existing secret remains unchanged)`);
 } else {
   if (existing) await stripe.webhookEndpoints.del(existing.id);
   const created = await stripe.webhookEndpoints.create({ url, enabled_events: events, metadata: { app: "stayguide" }, description: "StayGuide billing + extras" });

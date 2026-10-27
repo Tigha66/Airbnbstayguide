@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Check, X, RefreshCw, CreditCard, Landmark, ExternalLink } from "lucide-react";
 import { money, plans, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
 import { PageHeading } from "./ui";
@@ -9,6 +9,7 @@ import { siteText } from "@/lib/site-i18n";
 
 type Thread = {
   threadId: string;
+  propertyId: string;
   propertyName: string;
   escalated: boolean;
   lastAt: string;
@@ -56,19 +57,51 @@ function usePoll<T>(url: string, ms: number) {
 
 export function LiveInbox({ notify }: { notify: (m: string) => void }) {
   const { locale, tr } = useAppLocale();
-  const { data, error, reload } = usePoll<{ threads: Thread[] }>("/api/v1/inbox", 10000);
+  const [requestedThread, setRequestedThread] = useState("");
+  const { data, error, reload } = usePoll<{ threads: Thread[] }>(`/api/v1/inbox${requestedThread ? `?thread=${requestedThread}` : ""}`, 10000);
   const [selected, setSelected] = useState<string | null>(null);
-  const [reply, setReply] = useState("");
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [sending, setSending] = useState(false);
+  const sendLock = useRef(false);
   const [onlyEscalated, setOnlyEscalated] = useState(true);
-  const threads = (data?.threads ?? []).filter((t) => !onlyEscalated || t.escalated);
+  const [propertyFilter, setPropertyFilter] = useState("all");
+  const [savedReplies, setSavedReplies] = useState<{ id: string; title: string; body: string }[]>([]);
+  useEffect(() => {
+    let active = true;
+    const handle = window.setTimeout(() => {
+      void fetch("/api/v1/manager/templates", { cache: "no-store" })
+        .then(async (response) => response.ok ? await response.json() as { templates: { id: string; title: string; body: string }[] } : null)
+        .then((result) => { if (active && result) setSavedReplies(result.templates); })
+        .catch(() => { /* Non-Manager accounts have no saved replies. */ });
+    }, 0);
+    return () => { active = false; window.clearTimeout(handle); };
+  }, []);
+  useEffect(() => {
+    const deepLinked = new URLSearchParams(window.location.search).get("thread");
+    if (deepLinked && /^[0-9a-f-]{36}$/i.test(deepLinked)) {
+      const handle = window.setTimeout(() => { setSelected(deepLinked); setRequestedThread(deepLinked); setOnlyEscalated(false); }, 0);
+      return () => window.clearTimeout(handle);
+    }
+  }, []);
+  const properties = [...new Map((data?.threads ?? []).map((t) => [t.propertyId, { id: t.propertyId, name: t.propertyName }])).values()]
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const threads = (data?.threads ?? []).filter((t) => (!onlyEscalated || t.escalated) && (propertyFilter === "all" || t.propertyId === propertyFilter));
   const thread = threads.find((t) => t.threadId === selected) ?? threads[0];
+  const reply = thread ? drafts[thread.threadId] ?? "" : "";
+  const setReply = (value: string) => { if (thread) setDrafts(current => ({ ...current, [thread.threadId]: value })); };
   return (
     <>
       <PageHeading title={tr("A little human touch")} description={tr("Your concierge takes care of the everyday. You take care of the rest.")}>
-        <label className="row" style={{ gap: 8, fontSize: 13 }}>
-          <input type="checkbox" checked={onlyEscalated} onChange={(e) => setOnlyEscalated(e.target.checked)} />
-          {tr("Needs your help only")}
-        </label>
+        <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+          <select aria-label="Filter conversations by property" value={propertyFilter} onChange={(e) => setPropertyFilter(e.target.value)}>
+            <option value="all">All properties</option>
+            {properties.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+          </select>
+          <label className="row" style={{ gap: 8, fontSize: 13 }}>
+            <input type="checkbox" checked={onlyEscalated} onChange={(e) => setOnlyEscalated(e.target.checked)} />
+            {tr("Needs your help only")}
+          </label>
+        </div>
       </PageHeading>
       {error && <div className="notice">{tr("Couldn’t load conversations. Retrying…")}</div>}
       {!data && !error && <div className="card panel">{tr("Loading conversations…")}</div>}
@@ -114,25 +147,46 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
                 </div>
               ))}
             </div>
+            {savedReplies.length > 0 && (
+              <div className="row" style={{ padding: "8px 12px", gap: 10, flexWrap: "wrap" }}>
+                <label htmlFor="guest-saved-reply" style={{ fontSize: 12 }}>Insert saved reply</label>
+                <select id="guest-saved-reply" aria-label="Insert saved reply" value=""
+                  onChange={(event) => {
+                    const template = savedReplies.find((t) => t.id === event.target.value);
+                    if (template) setReply(template.body);
+                  }}>
+                  <option value="">Choose a reply to review…</option>
+                  {savedReplies.map((template) =>
+                    <option key={template.id} value={template.id}>{template.title}</option>)}
+                </select>
+              </div>
+            )}
             <form
               className="chat-compose"
               onSubmit={async (e) => {
                 e.preventDefault();
-                if (!reply.trim()) return;
-                const res = await fetch(`/api/v1/inbox/${thread.threadId}`, {
+                if (!reply.trim() || sendLock.current) return;
+                sendLock.current = true;
+                setSending(true);
+                const target = thread.threadId;
+                const content = reply.trim();
+                try {
+                const res = await fetch(`/api/v1/inbox/${target}`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ content: reply.trim() }),
+                  body: JSON.stringify({ content }),
                 });
                 if (res.ok) {
-                  setReply("");
+                  setDrafts(current => ({ ...current, [target]: "" }));
                   notify(tr("Reply sent. The guest sees it in their guide chat."));
                   void reload();
                 } else notify(tr("Couldn’t send your reply. Please try again."));
+                } catch { notify(tr("Couldn’t send your reply. Please try again.")); }
+                finally { sendLock.current = false; setSending(false); }
               }}
             >
-              <input aria-label={tr("Reply to guest")} placeholder={tr("A thoughtful reply…")} value={reply} onChange={(e) => setReply(e.target.value)} />
-              <button className="button" aria-label={tr("Send reply")}>
+              <input aria-label={tr("Reply to guest")} maxLength={2000} disabled={sending} placeholder={tr("A thoughtful reply…")} value={reply} onChange={(e) => setReply(e.target.value)} />
+              <button className="button" disabled={sending || !reply.trim()} aria-label={tr("Send reply")}>
                 <Send size={16} />
               </button>
             </form>
@@ -213,6 +267,33 @@ type Stats = {
   aiMessagesThisMonth: number;
   aiMessageLimit?: number;
 };
+/** Authenticated overview uses the same persisted analytics as the Analytics page. */
+export function LiveOverviewStats() {
+  const { tr } = useAppLocale();
+  const { data, error } = usePoll<Stats>("/api/v1/analytics", 60000);
+  const metrics = [
+    [tr("Guide views"), data?.views.toLocaleString()],
+    [tr("Guest questions"), data?.questions.toLocaleString()],
+    [tr("Extras paid"), data ? money(data.extrasRevenue) : undefined],
+    [tr("Answered from your guide"), data?.questions ? String(data.resolutionRate) + "%" : data ? "—" : undefined],
+  ];
+  return <>{metrics.map(([label, value]) => <div className="card stat-card" key={label}>
+    <div className="stat-top">{label}</div>
+    <div className="stat-value">{value ?? "—"}</div>
+    <div className="stat-foot">{error ? tr("Couldn’t load analytics.") : data ? tr("From your saved guest activity") : tr("Loading…")}</div>
+  </div>)}</>;
+}
+export function LiveOverviewActivity() {
+  const { locale, tr } = useAppLocale();
+  const { data, error } = usePoll<{ threads: Thread[] }>("/api/v1/inbox", 15000);
+  if (error) return <p role="status">{tr("Couldn’t load conversations. Retrying…")}</p>;
+  if (!data) return <p>{tr("Loading conversations…")}</p>;
+  if (!data.threads.length) return <p>{tr("No guest conversations yet. Share a published guide to get started.")}</p>;
+  return <>{data.threads.slice(0, 3).map((thread) => <div className="activity-item" key={thread.threadId}>
+    <div className="activity-copy"><p>{thread.propertyName}</p><small>{thread.messages.at(-1)?.content}</small></div>
+    <time>{when(thread.lastAt, locale)}</time>
+  </div>)}</>;
+}
 export function LiveAnalytics() {
   const { tr } = useAppLocale();
   const { data, error } = usePoll<Stats>("/api/v1/analytics", 60000);
@@ -229,7 +310,7 @@ export function LiveAnalytics() {
               [tr("Views, last 30 days"), data.views30.toLocaleString()],
               [tr("Guest questions"), data.questions.toLocaleString()],
               [tr("Answered without you"), data.questions ? `${data.resolutionRate}%` : "—"],
-              [tr("Extras approved"), money(data.extrasRevenue)],
+              [tr("Extras paid"), money(data.extrasRevenue)],
               [tr("Extra requests"), String(data.extraRequests)],
               [tr("AI messages this month"), data.aiMessageLimit ? `${data.aiMessagesThisMonth.toLocaleString()} / ${data.aiMessageLimit.toLocaleString()}` : String(data.aiMessagesThisMonth)],
             ].map(([label, value]) => (
@@ -344,7 +425,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
             </h3>
             <small>
               {countText(data.propertyCount)} · {tr("up to {n} on this plan", { n: plans[data.plan].properties.toLocaleString() })} ·{" "}
-              {tr("{n} AI messages / property / month", { n: plans[data.plan].messages.toLocaleString() })}
+              {data.plan === "manager" ? "10,000 AI messages / portfolio / month · flat-rate billing" : tr("{n} AI messages / property / month", { n: plans[data.plan].messages.toLocaleString() })}
             </small>
           </div>
           {data.subscribed && (
@@ -400,6 +481,23 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
                 </button>
               </div>
             ))}
+            <div className="card pricing-card" key="manager">
+              <div className="eyebrow">StayGuide Manager</div>
+              <h3>Run guest communication across your portfolio</h3>
+              <div className="price">{CURRENCY_SYMBOL}{plans.manager.monthly * (yearly ? 10 : 1)}</div>
+              <small>{yearly ? "per year" : "per month"} · flat fee for up to 50 properties</small>
+              <ul>
+                <li><Check size={14} /> Unified multi-property guest inbox</li>
+                <li><Check size={14} /> Owner-controlled keyword triage automation</li>
+                <li><Check size={14} /> 10,000 AI concierge messages per month</li>
+                <li><Check size={14} /> Existing guides, extras and analytics</li>
+                <li><Check size={14} /> PMS channel integrations planned, not yet connected</li>
+              </ul>
+              <button className="button" disabled={!data.stripe || busy !== null}
+                onClick={() => run("manager", () => postForUrl("/api/v1/billing/checkout", { plan: "manager", yearly }))}>
+                {busy === "manager" ? "Opening checkout…" : "Choose Manager"}
+              </button>
+            </div>
             <HotelPlanCard text={hotelText} />
           </div>
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 10 }}>
@@ -444,4 +542,21 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
       </div>
     </>
   );
+}
+
+export function ResendVerification() {
+  const { tr } = useAppLocale();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  return <div>
+    <button className="button small" disabled={busy} onClick={async () => {
+      setBusy(true); setMessage("");
+      try {
+        const response = await fetch("/api/v1/account/verification", { method: "POST" });
+        setMessage(response.ok ? tr("Check your inbox for your verification link.") : tr("Could not send the verification email. Please wait before trying again."));
+      } catch { setMessage(tr("Could not send the verification email. Please wait before trying again.")); }
+      finally { setBusy(false); }
+    }}>{busy ? tr("Sending…") : tr("Resend verification email")}</button>
+    {message && <p role="status">{message}</p>}
+  </div>;
 }

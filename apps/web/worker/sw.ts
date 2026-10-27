@@ -10,7 +10,7 @@ import {
 declare const self: ServiceWorkerGlobalScope;
 
 // Pages that show private host data or need a live server are never cached.
-const PRIVATE = ["/dashboard", "/admin", "/login", "/api", "/status"];
+const PRIVATE = ["/dashboard", "/admin", "/login", "/forgot-password", "/reset-password", "/verify-email", "/api", "/status"];
 const isPrivate = (pathname: string) =>
   PRIVATE.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 // Background saves from the site (fetch with Accept: text/html). Page navigations are handled by
@@ -163,7 +163,15 @@ self.addEventListener("fetch", (event) => {
 
 // Earlier versions turned navigation preload on; it stays on until disabled.
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.registration.navigationPreload?.disable().catch(() => {}) ?? Promise.resolve());
+  event.waitUntil(Promise.all([
+    self.registration.navigationPreload?.disable().catch(() => {}),
+    // Older workers may have saved account-recovery pages. Remove those copies.
+    ...[SITE_CACHE, GUIDES_CACHE].map(async (name) => {
+      const cache = await caches.open(name);
+      for (const key of await cache.keys())
+        if (isPrivate(new URL(key.url).pathname)) await cache.delete(key);
+    }),
+  ]));
 });
 
 const worker = new Serwist({

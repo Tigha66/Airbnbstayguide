@@ -197,6 +197,20 @@ export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
             </Link>
           </div>
         ))}
+        <div className="card pricing-card">
+          <div className="eyebrow">StayGuide Manager</div>
+          <h3>One guest communication workspace for 10–50 properties</h3>
+          <div className="price">{CURRENCY_SYMBOL}{priceFor("manager", 1, annual)}</div>
+          <small>{annual ? "per year" : "per month"} · flat portfolio rate</small>
+          <ul>
+            <li><Check size={14} /> Central inbox across all properties</li>
+            <li><Check size={14} /> Rule-based inbox classification and prioritisation</li>
+            <li><Check size={14} /> 10,000 concierge messages / month</li>
+            <li><Check size={14} /> Guest guides, upsells and analytics included</li>
+            <li><Check size={14} /> PMS integrations planned; not connected yet</li>
+          </ul>
+          <Link className="button" href="/dashboard/billing">Explore Manager <ArrowRight size={14} /></Link>
+        </div>
         <HotelPlanCard text={all.hotel} />
       </div>
       <p className="muted" style={{ fontSize: 11, textAlign: "center", marginTop: 22 }}>

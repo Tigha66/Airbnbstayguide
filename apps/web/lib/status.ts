@@ -3,6 +3,7 @@ import { passwordLoginConfigured } from "./password-login";
 import { aiConfigured } from "@/lib/ai";
 import { dbConfigured, query } from "@/lib/db";
 import { mailerConfigured } from "@/lib/mailer";
+import { stripeConfigured, stripeLiveMode } from "@/lib/stripe";
 
 export type ServiceStatus = { key: string; label: string; ok: boolean; detail: string };
 
@@ -12,7 +13,7 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
   let dbDetail = "DATABASE_URL is not set: running in browser-only demo mode.";
   if (dbConfigured()) {
     try {
-      await query("SELECT 1 FROM users LIMIT 1");
+      await query("SELECT id, session_version, billing_event_created FROM users LIMIT 1");
       dbOk = true;
       dbDetail = "Connected to Postgres; tables are in place.";
     } catch {
@@ -25,8 +26,8 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
     appleConfigured() && "Apple",
     passwordLoginConfigured() && "email and password",
   ].filter(Boolean).join(", ");
-  const stripe = Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_") && process.env.STRIPE_WEBHOOK_SECRET);
-  const mode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_") ? "live" : "test";
+  const stripe = Boolean(stripeConfigured() && process.env.STRIPE_WEBHOOK_SECRET);
+  const mode = stripeLiveMode() ? "live" : "test";
   return [
     { key: "database", label: "Database (Neon)", ok: dbOk, detail: dbDetail },
     {
@@ -39,7 +40,7 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       key: "email",
       label: "Account email",
       ok: mailerConfigured(),
-      detail: mailerConfigured() ? "Email provider configured; delivery has not been verified." : "Verification and password reset emails need RESEND_API_KEY and EMAIL_FROM (or RESEND_FROM).",
+      detail: mailerConfigured() ? "Email provider configured; delivery has not been verified." : "Verification and password reset emails need RESEND_API_KEY and EMAIL_FROM (or RESEND_FROM_EMAIL).",
     },
     {
       key: "ai",
@@ -51,7 +52,7 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       key: "payments",
       label: "Payments (Stripe)",
       ok: stripe,
-      detail: stripe ? `Stripe connected (${mode} mode): subscriptions and paid extras are on.` : "Not connected yet: needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET.",
+      detail: stripe ? `Stripe configured (${mode} mode); checkout, webhooks and payouts still need end-to-end verification.` : "Not connected yet: needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET.",
     },
   ];
 }

@@ -79,7 +79,7 @@ export function saveProperty(property: Property) {
 }
 
 /* ───────── Live mode: signed-in hosts sync with the Neon-backed API ───────── */
-export type LiveUser = { id: string; email: string; name: string | null; image: string | null; plan: string; emailVerified?: boolean };
+export type LiveUser = { id: string; email: string; name: string | null; image: string | null; plan: string; emailVerified?: boolean; managerAccess?: boolean; organization?: string };
 export type SyncState = "idle" | "saving" | "saved" | "error";
 type LiveState = {
   checked: boolean;
@@ -120,7 +120,7 @@ export async function initLive() {
         ...demoBackup,
         properties: me.properties ?? [],
         hostName: me.user.name?.split(" ")[0] || me.user.email,
-        organization: me.user.name ? `${me.user.name.split(" ")[0]}’s stays` : "My stays",
+        organization: me.user.organization || (me.user.name ? `${me.user.name.split(" ")[0]}’s stays` : "My stays"),
         selectedProperty: me.properties?.[0]?.id ?? "",
       };
       setLive({ checked: true, live: true, user: me.user, services: me.services });
@@ -174,4 +174,12 @@ export async function deleteLiveProperty(id: string) {
   const properties = cached.properties.filter((p) => p.id !== id);
   cached = { ...cached, properties, selectedProperty: properties[0]?.id ?? "" };
   listeners.forEach((l) => l());
+}
+
+export async function saveProfile(name: string, organization: string) {
+  const response = await fetch("/api/v1/account", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, organization }) });
+  if (!response.ok) throw new Error("Profile could not be saved");
+  const result = await response.json();
+  setLive({ user: { ...live.user!, ...result.user } });
+  updateDemo({ hostName: result.user.name, organization: result.user.organization });
 }

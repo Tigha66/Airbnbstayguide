@@ -62,6 +62,7 @@ import {
 import {
   useDemo,
   updateDemo,
+  saveProfile,
   saveProperty,
   useLive,
   initLive,
@@ -69,8 +70,9 @@ import {
   deleteLiveProperty,
 } from "@/lib/demo-store";
 import { parseManual, extractWifi, extractTime } from "@/lib/guide-parser";
-import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling } from "./live";
+import { LiveInbox, LiveExtraRequests, LiveAnalytics, LiveBilling, ResendVerification, LiveOverviewStats, LiveOverviewActivity } from "./live";
 import { HotelPlanCard } from "./hotel-plan";
+import { ManagerWorkspace } from "./manager-workspace";
 import { AppLanguageMenu, useAppLocale } from "./app-locale";
 import { siteDir, siteText } from "@/lib/site-i18n";
 import { signOutAction } from "@/app/actions";
@@ -80,6 +82,7 @@ const nav = [
   ["", "Overview", Home],
   ["properties", "Properties", BookOpen],
   ["inbox", "Guest inbox", MessageCircle],
+  ["manager", "Manager automation", Bell],
   ["extras", "Extras & upsells", Gift],
   ["analytics", "Analytics", BarChart3],
 ] as const;
@@ -327,11 +330,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </span>
               <span>
                 <Eye size={12} />
-                {tr("{n} demo views", { n: i < 2 ? [842, 442][i] : 0 })}
+                {live ? tr("View analytics for activity") : tr("{n} demo views", { n: i < 2 ? [842, 442][i] : 0 })}
               </span>
               <span>
                 <MessageCircle size={12} />
-                {tr("{n} chats", { n: i < 2 ? [218, 124][i] : 0 })}
+                {live ? tr("Guest inbox") : tr("{n} chats", { n: i < 2 ? [218, 124][i] : 0 })}
               </span>
             </div>
             <div className="property-bottom">
@@ -538,7 +541,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 </div>
                 <span className="button secondary date-button">
                   <CalendarDays size={13} />
-                  {tr("Demo month")}
+                  {live ? tr("All time") : tr("Demo month")}
                   <ChevronDown size={12} />
                 </span>
               </div>
@@ -632,10 +635,11 @@ export function Dashboard({ view = "" }: { view?: string }) {
               {live && liveState.user && !liveState.user.emailVerified && (
                 <div className="notice" role="status" style={{ marginBottom: 22 }}>
                   {tr("Please verify your email address. Check your inbox for the StayGuide verification link, or contact support if it did not arrive.")}
+                  <ResendVerification />
                 </div>
               )}
               <div className="stats-grid">
-                {stats.map(({ label, value, foot, detail, icon: Icon }) => (
+                {live ? <LiveOverviewStats /> : stats.map(({ label, value, foot, detail, icon: Icon }) => (
                   <div className="card stat-card" key={label}>
                     <div className="stat-top">
                       {label}
@@ -674,7 +678,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       <ArrowUpRight size={12} />
                     </Link>
                   </div>
-                  {[
+                  {live ? <LiveOverviewActivity /> : [
                     {
                       icon: Gift,
                       title: tr("A slower goodbye, booked."),
@@ -1073,6 +1077,16 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 </div>
               )}
             </>
+          )}
+          {view === "manager" && live && (liveState.user?.plan === "manager" || liveState.user?.managerAccess) && <ManagerWorkspace notify={notify} complimentary={liveState.user?.plan !== "manager"} />}
+          {view === "manager" && (!live || !(liveState.user?.plan === "manager" || liveState.user?.managerAccess)) && (
+            <div className="card panel">
+              <PageHeading title="StayGuide Manager" description="One portfolio inbox with rules to prioritise guest requests across your properties." />
+              <p>Manager is $199 per month for up to 50 properties. Rule-based triage stays in your inbox; no messages are automatically sent to guests.</p>
+              {live && liveState.user?.plan !== "free" ? (
+                <p>Already subscribed? Manager plan changes for existing subscribers are not available here yet. Contact <a href="mailto:hello@getstayguide.com">hello@getstayguide.com</a> to arrange access. Your current subscription stays unchanged.</p>
+              ) : <Link className="button" href="/dashboard/billing">Explore Manager billing <ArrowRight size={15} /></Link>}
+            </div>
           )}
           {view === "inbox" && live && <LiveInbox notify={notify} />}
           {view === "inbox" && !live && (
@@ -1510,14 +1524,17 @@ export function Dashboard({ view = "" }: { view?: string }) {
               <div className="split">
                 <form
                   className="card panel form-grid"
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
                     const form = new FormData(e.currentTarget);
-                    updateDemo({
-                      hostName: String(form.get("name")),
-                      organization: String(form.get("organization")),
-                    });
-                    notify(tr("Workspace preferences saved on this device."));
+                    const name = String(form.get("name")), organization = String(form.get("organization"));
+                    if (live) {
+                      try { await saveProfile(name, organization); notify(tr("Workspace preferences saved online.")); }
+                      catch { notify(tr("Could not save workspace preferences. Please try again.")); }
+                    } else {
+                      updateDemo({ hostName: name, organization });
+                      notify(tr("Workspace preferences saved on this device."));
+                    }
                   }}
                 >
                   <h3>{tr("Your workspace")}</h3>
@@ -1660,6 +1677,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 ? tr("Our AI will organize your text into guide sections using only what you wrote.")
                 : tr("We’ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as “WI-FI:” for best results.")}
             </div>
+            {live && <small>{tr("AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.")}</small>}
             {error && <p className="error-text">{error}</p>}
             <button className="button" disabled={creating}>
               <Sparkles size={16} />
@@ -1695,7 +1713,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                 ],
               });
               close();
-              notify(tr("Extra added to your demo guide."));
+              notify(tr(live ? "Extra added to your guest guide." : "Extra added to your demo guide."));
             }}
           >
             <label>

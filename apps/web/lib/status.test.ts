@@ -9,6 +9,13 @@ vi.mock("@/lib/db", () => ({ dbConfigured: () => true, query: vi.fn().mockResolv
 afterEach(() => vi.unstubAllEnvs());
 
 describe("account email health", () => {
+  it("recognizes a restricted Stripe key without exposing it", async () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "rk_test_private_fixture");
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_private_fixture");
+    const services = await serviceStatus();
+    expect(services.find(service => service.key === "payments")).toMatchObject({ ok: true });
+    expect(JSON.stringify(services)).not.toContain("private_fixture");
+  });
   it("reports missing email setup even when accounts are available", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
     vi.stubEnv("EMAIL_FROM", "");

@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { plans, sectionSchema, type GuideText, type Plan, type Property } from "@stayguide/shared";
-import { query } from "./db";
+import { query, transaction } from "./db";
 import { parseManual, extractWifi, extractTime } from "./guide-parser";
+import { matchPortfolioRule } from "./portfolio-rules";
+import { managerAccessSql } from "./manager-access";
 
 export const extraSchema = z.object({
   id: z.string().min(1).max(80),
@@ -29,20 +31,25 @@ export const propertyDataSchema = z.object({
   extras: z.array(extraSchema).max(40),
 });
 
-export type User = { id: string; email: string; name: string | null; plan: Plan; emailVerified: boolean };
+export type User = { id: string; email: string; name: string | null; plan: Plan; emailVerified: boolean; organization?: string; sessionVersion?: number };
 
 export async function upsertUser(email: string, name?: string | null, image?: string | null) {
   const [user] = await query<User>(
     `INSERT INTO users (email, name, image) VALUES ($1, $2, $3)
      ON CONFLICT (email) DO UPDATE SET name = COALESCE(EXCLUDED.name, users.name), image = COALESCE(EXCLUDED.image, users.image)
-     RETURNING id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified"`,
+     RETURNING id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified", session_version AS "sessionVersion", organization`,
     [email.toLowerCase(), name ?? null, image ?? null],
   );
   return user;
 }
 export async function getUser(id: string) {
-  const [user] = await query<User>(`SELECT id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified" FROM users WHERE id = $1`, [id]);
+  const [user] = await query<User>(`SELECT id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified", session_version AS "sessionVersion", organization FROM users WHERE id = $1`, [id]);
   return user ?? null;
+}
+export async function updateProfile(userId: string, input: unknown) {
+  const data = z.object({ name: z.string().trim().min(1).max(50), organization: z.string().trim().min(1).max(100) }).parse(input);
+  await query("UPDATE users SET name = $2, organization = $3 WHERE id = $1", [userId, data.name, data.organization]);
+  return getUser(userId);
 }
 export async function deleteUser(id: string) {
   await query(`DELETE FROM users WHERE id = $1`, [id]);
@@ -87,12 +94,6 @@ export async function createProperty(
   input: { name: string; location: string; address?: string; description: string },
   aiSections?: Property["sections"],
 ) {
-  const [{ count }] = await query<{ count: string | number }>(
-    `SELECT count(*) AS count FROM properties WHERE owner_id = $1`,
-    [owner.id],
-  );
-  const limit = plans[owner.plan]?.properties ?? 1;
-  if (Number(count) >= limit) throw new LimitError(`Your ${plans[owner.plan].name} plan includes ${limit} propert${limit === 1 ? "y" : "ies"}.`);
   const manual = input.description.trim();
   const sections = aiSections?.length ? aiSections : manual ? parseManual(manual) : [];
   const wifi = extractWifi(manual);
@@ -105,7 +106,7 @@ export async function createProperty(
     location: input.location,
     address: input.address?.trim() ?? "",
     image: fallbackImage,
-    status: "published",
+    status: "draft",
     description: `Welcome to ${input.name}. Everything you need for a wonderful stay is right here.`,
     checkIn: extractTime(manual, "in") || "3:00 PM",
     checkOut: extractTime(manual, "out") || "11:00 AM",
@@ -115,10 +116,15 @@ export async function createProperty(
     sections,
     extras: [],
   };
-  await query(
-    `INSERT INTO properties (id, owner_id, slug, status, data) VALUES ($1, $2, $3, $4, $5)`,
-    [id, owner.id, slug, property.status, JSON.stringify(property)],
-  );
+  const [, inserted] = await transaction([
+    { text: "SELECT id FROM users WHERE id = $1 FOR UPDATE", params: [owner.id] },
+    { text: `INSERT INTO properties (id, owner_id, slug, status, data)
+      SELECT $1, u.id, $3, $4, $5::jsonb FROM users u WHERE u.id = $2
+      AND (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) <
+        CASE u.plan WHEN 'starter' THEN $6::int WHEN 'pro' THEN $7::int WHEN 'manager' THEN $10::int WHEN 'hotel' THEN $8::int ELSE $9::int END
+      RETURNING id`, params: [id, owner.id, slug, property.status, JSON.stringify(property), plans.starter.properties, plans.pro.properties, plans.hotel.properties, plans.free.properties, plans.manager.properties] },
+  ]);
+  if (!inserted.length) throw new LimitError("Your current plan has reached its property limit. Choose a larger plan to add another property.");
   return property;
 }
 export async function updateProperty(ownerId: string, id: string, data: z.infer<typeof propertyDataSchema>) {
@@ -152,7 +158,7 @@ export async function consumeRateLimit(bucket: string, max: number, windowSecond
 export const monthKey = (d = new Date()) => d.toISOString().slice(0, 7);
 /** Monthly AI concierge allowance: the plan's messages per property (at least one property). */
 export function aiMessageLimit(plan: Plan, propertyCount: number) {
-  return (plans[plan]?.messages ?? plans.free.messages) * Math.max(1, propertyCount);
+  return plan === "manager" ? 10000 : (plans[plan]?.messages ?? plans.free.messages) * Math.max(1, propertyCount);
 }
 async function ownerAiLimit(ownerId: string) {
   const [row] = await query<{ plan: Plan; properties: string | number }>(
@@ -211,15 +217,15 @@ export type InboxThread = {
   lastAt: string;
   messages: { role: string; content: string; createdAt: string }[];
 };
-export async function inbox(ownerId: string): Promise<InboxThread[]> {
+export async function inbox(ownerId: string, selectedThreadId: string | null = null): Promise<InboxThread[]> {
   const rows = await query<{ thread_id: string; property_id: string; name: string; role: string; content: string; escalated: boolean; created_at: string }>(
     `SELECT m.thread_id, m.property_id, p.data->>'name' AS name, m.role, m.content, m.escalated, m.created_at
      FROM chat_messages m JOIN properties p ON p.id = m.property_id
-     WHERE p.owner_id = $1 AND m.thread_id IN (
+     WHERE p.owner_id = $1 AND (m.thread_id = $2::uuid OR m.thread_id IN (
        SELECT thread_id FROM chat_messages m2 JOIN properties p2 ON p2.id = m2.property_id
-       WHERE p2.owner_id = $1 GROUP BY thread_id ORDER BY max(m2.created_at) DESC LIMIT 50)
+       WHERE p2.owner_id = $1 GROUP BY thread_id ORDER BY max(m2.created_at) DESC LIMIT 50))
      ORDER BY m.created_at, m.seq`,
-    [ownerId],
+    [ownerId, selectedThreadId],
   );
   const threads = new Map<string, InboxThread>();
   for (const r of rows) {
@@ -256,6 +262,42 @@ export async function createExtraRequest(
 export async function attachExtraCheckout(id: string, sessionId: string) {
   await query(`UPDATE extra_requests SET checkout_session_id = $2 WHERE id = $1`, [id, sessionId]);
 }
+
+/** One guest submission survives double taps, network retries and a lost checkout response. */
+export async function createGuestExtraRequest(
+  id: string,
+  propertyId: string,
+  extra: { id: string; name: string; price: number },
+  guest: { name: string; contact: string; note: string },
+  status: "pending" | "awaiting_payment",
+) {
+  const [row] = await query<{ id: string; status: string; checkout_session_id: string | null; extra_name: string }>(
+    `INSERT INTO extra_requests (id, property_id, extra_id, extra_name, price, guest_name, guest_contact, note, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+     ON CONFLICT (id) DO UPDATE SET id = extra_requests.id
+     WHERE extra_requests.property_id = EXCLUDED.property_id
+       AND extra_requests.extra_id = EXCLUDED.extra_id AND extra_requests.price = EXCLUDED.price
+       AND extra_requests.guest_name = EXCLUDED.guest_name AND extra_requests.guest_contact = EXCLUDED.guest_contact
+       AND extra_requests.note = EXCLUDED.note
+     RETURNING id, status, checkout_session_id, extra_name`,
+    [id, propertyId, extra.id, extra.name, extra.price, guest.name, guest.contact, guest.note, status],
+  );
+  return row ?? null;
+}
+
+/** The opaque Checkout ID is a receipt token. Never return guest contact details. */
+export async function guestExtraPaymentStatus(propertyId: string, sessionId: string) {
+  const [row] = await query<{ status: string; prepaid: boolean }>(
+    `SELECT status, payment_intent_id IS NOT NULL AS prepaid FROM extra_requests
+     WHERE property_id = $1 AND checkout_session_id = $2`, [propertyId, sessionId],
+  );
+  if (!row) return null;
+  if (row.status === "refunded" && row.prepaid) return "refunded";
+  if (row.status === "paid" && row.prepaid) return "paid";
+  if (row.status === "pending" && row.prepaid) return "authorized";
+  if (["declined", "expired"].includes(row.status)) return "closed";
+  return "processing";
+}
 /** Webhook: a guest finished (or abandoned) Stripe Checkout for an extra. */
 export async function settleExtraCheckout(sessionId: string, status: "pending" | "paid" | "expired", paymentIntentId: string | null) {
   const rows = await query(
@@ -265,8 +307,8 @@ export async function settleExtraCheckout(sessionId: string, status: "pending" |
   return rows.length > 0;
 }
 export async function getOwnedExtraRequest(ownerId: string, id: string) {
-  const [row] = await query<{ id: string; status: string; payment_intent_id: string | null }>(
-    `SELECT r.id, r.status, r.payment_intent_id FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE r.id = $2 AND p.owner_id = $1`,
+  const [row] = await query<{ id: string; status: string; payment_intent_id: string | null; price: number }>(
+    `SELECT r.id, r.status, r.payment_intent_id, r.price FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE r.id = $2 AND p.owner_id = $1`,
     [ownerId, id],
   );
   return row ?? null;
@@ -279,10 +321,10 @@ export async function listExtraRequests(ownerId: string): Promise<ExtraRequest[]
   );
   return rows.map((r) => ({ id: String(r.id), propertyId: String(r.property_id), propertyName: String(r.property_name), extraName: String(r.extra_name), price: Number(r.price), guestName: String(r.guest_name), guestContact: String(r.guest_contact), note: String(r.note), status: String(r.status), prepaid: Boolean(r.payment_intent_id), createdAt: new Date(r.created_at as string).toISOString() }));
 }
-export async function setExtraRequestStatus(ownerId: string, id: string, status: "approved" | "declined" | "paid" | "refunded") {
+export async function setExtraRequestStatus(ownerId: string, id: string, status: "approved" | "declined" | "paid" | "refunded", expectedStatus?: string) {
   const rows = await query(
-    `UPDATE extra_requests r SET status = $3 FROM properties p WHERE r.id = $2 AND p.id = r.property_id AND p.owner_id = $1 RETURNING r.id`,
-    [ownerId, id, status],
+    `UPDATE extra_requests r SET status = $3 FROM properties p WHERE r.id = $2 AND p.id = r.property_id AND p.owner_id = $1 AND ($4::text IS NULL OR r.status = $4) RETURNING r.id`,
+    [ownerId, id, status, expectedStatus ?? null],
   );
   return rows.length > 0;
 }
@@ -297,7 +339,7 @@ export async function analytics(ownerId: string) {
     [ownerId],
   );
   const [extras] = await query<{ revenue: string | null; requests: string }>(
-    `SELECT sum(r.price) FILTER (WHERE r.status IN ('approved','paid')) AS revenue, count(*) AS requests FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE p.owner_id = $1`,
+    `SELECT sum(r.price) FILTER (WHERE r.status = 'paid') AS revenue, count(*) AS requests FROM extra_requests r JOIN properties p ON p.id = r.property_id WHERE p.owner_id = $1`,
     [ownerId],
   );
   const top = await query<{ content: string; n: string }>(
@@ -353,12 +395,11 @@ export async function setStripeCustomer(userId: string, customerId: string) {
 export async function setStripeAccount(userId: string, accountId: string, ready: boolean) {
   await query(`UPDATE users SET stripe_account_id = $2, payouts_ready = $3 WHERE id = $1`, [userId, accountId, ready]);
 }
-/** Webhook: mirror a Stripe subscription onto the host. Matches by customer id, falling back to metadata.user_id. */
-export async function applySubscription(input: { customerId: string; userId?: string; subscriptionId: string | null; status: string | null; plan: Plan }) {
+/** Only the server-bound Stripe customer can change a host's entitlement. */
+export async function applySubscription(input: { customerId: string; userId?: string; subscriptionId: string | null; previousSubscriptionId?: string; status: string | null; plan: Plan; eventCreated?: number }) {
   const rows = await query(
-    `UPDATE users SET plan = $3, stripe_subscription_id = $4, subscription_status = $5, stripe_customer_id = $1
-      WHERE stripe_customer_id = $1 OR ($2::uuid IS NOT NULL AND id = $2::uuid) RETURNING id`,
-    [input.customerId, input.userId ?? null, input.plan, input.subscriptionId, input.status],
+    "UPDATE users SET plan = $2, stripe_subscription_id = $3, subscription_status = $4, billing_event_created = $5 WHERE stripe_customer_id = $1 AND billing_event_created <= $5 AND ($6::text IS NULL OR stripe_subscription_id IS NULL OR stripe_subscription_id = $6 OR subscription_status IN ('canceled', 'incomplete_expired')) RETURNING id",
+    [input.customerId, input.plan, input.subscriptionId, input.status, input.eventCreated ?? Math.floor(Date.now() / 1000), input.previousSubscriptionId ?? null],
   );
   return rows.length > 0;
 }
@@ -459,6 +500,144 @@ export async function setManagedPlan(email: string, plan: "hotel" | "free") {
         AND (stripe_subscription_id IS NULL OR subscription_status = 'canceled')
       RETURNING id`,
     [email, plan],
+  );
+  return rows.length > 0;
+}
+
+export async function hasManagerAccess(ownerId: string) {
+  const [row] = await query<{ allowed: boolean }>(
+    `SELECT ${managerAccessSql()} AS allowed FROM users u WHERE u.id = $1`, [ownerId],
+  );
+  return row?.allowed === true;
+}
+
+/** Manager features are scoped to the authenticated owner. New rules start disabled. */
+export type PortfolioRule = { id: string; keyword: string; label: string; priority: "normal" | "urgent"; enabled: boolean };
+export async function listPortfolioRules(ownerId: string): Promise<PortfolioRule[]> {
+  return query<PortfolioRule>(
+    `SELECT r.id, r.keyword, r.label, r.priority, r.enabled FROM portfolio_rules r
+     JOIN users u ON u.id = r.owner_id WHERE r.owner_id = $1 AND ${managerAccessSql()}
+     ORDER BY r.created_at DESC`,
+    [ownerId],
+  );
+}
+export async function createPortfolioRule(ownerId: string, rule: { keyword: string; label: string; priority: "normal" | "urgent" }) {
+  const results = await transaction([
+    { text: "SELECT id FROM users WHERE id = $1 FOR UPDATE", params: [ownerId] },
+    { text: `INSERT INTO portfolio_rules (owner_id, keyword, label, priority)
+     SELECT u.id, $2, $3, $4 FROM users u WHERE u.id = $1 AND ${managerAccessSql()}
+     AND (SELECT count(*) FROM portfolio_rules r WHERE r.owner_id = u.id) < 20
+     RETURNING id, keyword, label, priority, enabled`,
+    params: [ownerId, rule.keyword.toLowerCase(), rule.label, rule.priority] },
+  ]);
+  return (results[1][0] as PortfolioRule | undefined) ?? null;
+}
+export async function updatePortfolioRule(ownerId: string, id: string, rule: { keyword: string; label: string; priority: "normal" | "urgent" }) {
+  const [row] = await query<PortfolioRule>(
+    `UPDATE portfolio_rules r SET keyword = $3, label = $4, priority = $5, enabled = false
+     FROM users u WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND ${managerAccessSql()}
+     RETURNING r.id, r.keyword, r.label, r.priority, r.enabled`,
+    [ownerId, id, rule.keyword.toLowerCase(), rule.label, rule.priority],
+  );
+  return row ?? null;
+}
+export async function setPortfolioRuleEnabled(ownerId: string, ruleId: string, enabled: boolean) {
+  const rows = await query(
+    `UPDATE portfolio_rules r SET enabled = $3 FROM users u
+     WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND ${managerAccessSql()}
+     RETURNING r.id`, [ownerId, ruleId, enabled],
+  );
+  return rows.length > 0;
+}
+export async function deletePortfolioRule(ownerId: string, ruleId: string) {
+  const rows = await query(
+    `DELETE FROM portfolio_rules r USING users u
+     WHERE r.id = $2 AND r.owner_id = $1 AND u.id = r.owner_id AND ${managerAccessSql()}
+     RETURNING r.id`, [ownerId, ruleId],
+  );
+  return rows.length > 0;
+}
+export type PortfolioTriage = { threadId: string; propertyName: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updatedAt: string };
+export async function listPortfolioTriage(ownerId: string): Promise<PortfolioTriage[]> {
+  const rows = await query<{ thread_id: string; property_name: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updated_at: string }>(
+    `SELECT t.thread_id, p.data->>'name' AS property_name, t.label, t.priority, t.status, t.updated_at
+     FROM portfolio_triage t JOIN properties p ON p.id = t.property_id
+     JOIN users u ON u.id = t.owner_id
+     WHERE t.owner_id = $1 AND p.owner_id = $1 AND ${managerAccessSql()}
+     ORDER BY CASE t.status WHEN 'open' THEN 0 ELSE 1 END,
+       CASE t.priority WHEN 'urgent' THEN 0 ELSE 1 END, t.updated_at DESC LIMIT 100`, [ownerId],
+  );
+  return rows.map(r => ({ threadId: r.thread_id, propertyName: r.property_name, label: r.label, priority: r.priority, status: r.status, updatedAt: new Date(r.updated_at).toISOString() }));
+}
+export async function setPortfolioTriageStatus(ownerId: string, threadId: string, status: "open" | "resolved") {
+  const rows = await query(
+    `UPDATE portfolio_triage t SET status = $3, updated_at = now() FROM users u
+     WHERE t.thread_id = $2 AND t.owner_id = $1 AND u.id = t.owner_id AND ${managerAccessSql()}
+     RETURNING t.thread_id`, [ownerId, threadId, status],
+  );
+  return rows.length > 0;
+}
+/** Auto-triage matches operator-approved keywords on guest messages only. Never sends outbound messages. */
+export async function applyPortfolioRules(ownerId: string, propertyId: string, threadId: string, message: string) {
+  const rules = await query<Pick<PortfolioRule, "keyword" | "label" | "priority">>(
+    `SELECT r.keyword, r.label, r.priority FROM portfolio_rules r
+     JOIN users u ON u.id = r.owner_id
+     WHERE r.owner_id = $1 AND ${managerAccessSql()} AND r.enabled = true
+     ORDER BY CASE r.priority WHEN 'urgent' THEN 0 ELSE 1 END, r.created_at`, [ownerId],
+  );
+  const matched = matchPortfolioRule(rules, message);
+  if (!matched) return false;
+  const rows = await query(
+    `INSERT INTO portfolio_triage (thread_id, owner_id, property_id, label, priority)
+     SELECT $3, p.owner_id, p.id, $4, $5 FROM properties p JOIN users u ON u.id = p.owner_id
+     WHERE p.id = $2 AND p.owner_id = $1 AND ${managerAccessSql()}
+     ON CONFLICT (thread_id) DO UPDATE SET
+       label = CASE WHEN portfolio_triage.status = 'open' AND portfolio_triage.priority = 'urgent'
+         THEN portfolio_triage.label ELSE EXCLUDED.label END,
+       priority = CASE WHEN portfolio_triage.status = 'open' AND portfolio_triage.priority = 'urgent'
+         THEN 'urgent' ELSE EXCLUDED.priority END, status = 'open', updated_at = now()
+     WHERE portfolio_triage.owner_id = EXCLUDED.owner_id AND portfolio_triage.property_id = EXCLUDED.property_id
+     RETURNING thread_id`,
+    [ownerId, propertyId, threadId, matched.label, matched.priority],
+  );
+  return rows.length > 0;
+}
+
+/** Saved replies assist human operators; creation or selection never sends a message. */
+export type PortfolioReplyTemplate = { id: string; title: string; body: string };
+export async function listPortfolioReplyTemplates(ownerId: string): Promise<PortfolioReplyTemplate[]> {
+  return query<PortfolioReplyTemplate>(
+    `SELECT t.id, t.title, t.body FROM portfolio_reply_templates t
+     JOIN users u ON u.id = t.owner_id
+     WHERE t.owner_id = $1 AND ${managerAccessSql()} ORDER BY t.title`,
+    [ownerId],
+  );
+}
+export async function createPortfolioReplyTemplate(ownerId: string, input: { title: string; body: string }) {
+  const results = await transaction([
+    { text: "SELECT id FROM users WHERE id = $1 FOR UPDATE", params: [ownerId] },
+    { text: `INSERT INTO portfolio_reply_templates (owner_id, title, body)
+     SELECT u.id, $2, $3 FROM users u WHERE u.id = $1 AND ${managerAccessSql()}
+     AND (SELECT count(*) FROM portfolio_reply_templates t WHERE t.owner_id = u.id) < 30
+     RETURNING id, title, body`,
+    params: [ownerId, input.title, input.body] },
+  ]);
+  return (results[1][0] as PortfolioReplyTemplate | undefined) ?? null;
+}
+export async function updatePortfolioReplyTemplate(ownerId: string, id: string, input: { title: string; body: string }) {
+  const [row] = await query<PortfolioReplyTemplate>(
+    `UPDATE portfolio_reply_templates t SET title = $3, body = $4, updated_at = now()
+     FROM users u WHERE t.id = $2 AND t.owner_id = $1 AND u.id = t.owner_id
+     AND ${managerAccessSql()} RETURNING t.id, t.title, t.body`,
+    [ownerId, id, input.title, input.body],
+  );
+  return row ?? null;
+}
+export async function deletePortfolioReplyTemplate(ownerId: string, id: string) {
+  const rows = await query(
+    `DELETE FROM portfolio_reply_templates t USING users u
+     WHERE t.id = $2 AND t.owner_id = $1 AND u.id = t.owner_id AND ${managerAccessSql()}
+     RETURNING t.id`, [ownerId, id],
   );
   return rows.length > 0;
 }
