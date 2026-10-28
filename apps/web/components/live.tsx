@@ -338,11 +338,15 @@ export function LiveAnalytics() {
 
 type BillingState = {
   stripe: boolean;
+  checkoutConfigured: boolean;
+  managerCheckoutAvailable: boolean;
+  emailVerified: boolean;
   plan: Plan;
   status: string | null;
   subscribed: boolean;
   propertyCount: number;
   billableQuantity: number;
+  perPropertyQuantity: number;
   payouts: { started: boolean; ready: boolean };
 };
 const COUNTRIES: [string, string][] = [
@@ -410,11 +414,14 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
   const hotelText = siteText(locale).hotel;
   const planName = (plan: Plan) => (plan === "free" ? tr("Free") : plan === "hotel" ? hotelText.name : plans[plan].name);
   const countText = (n: number) => (n === 1 ? tr("1 property") : tr("{n} properties", { n }));
-  const qty = data.billableQuantity;
+  const qty = data.perPropertyQuantity;
+  const canSubscribe = data.checkoutConfigured && data.emailVerified;
   return (
     <>
-      <PageHeading title={tr("Plans & billing")} description={tr("Simple, per-property pricing. Change or cancel any time.")} />
+      <PageHeading title={tr("Plans & billing")} description={tr("Starter and Pro are billed per property. Manager has a flat portfolio price. Cancel through Manage billing.")} />
       {!data.stripe && <div className="notice" style={{ marginBottom: 16 }}>{tr("Payments are not connected on this deployment yet.")}</div>}
+      {data.stripe && !data.checkoutConfigured && <div className="notice" role="status" style={{ marginBottom: 16 }}>{tr("New subscriptions are temporarily unavailable. You can keep setting up your free account.")}</div>}
+      {!data.emailVerified && <div className="notice" style={{ marginBottom: 16 }}>{tr("Verify your email before choosing a paid plan.")} <ResendVerification /></div>}
       <div className="card panel" style={{ marginBottom: 20 }}>
         <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
@@ -474,7 +481,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
                 </ul>
                 <button
                   className={`button ${plan === "pro" ? "" : "secondary"}`}
-                  disabled={!data.stripe || busy !== null}
+                  disabled={!canSubscribe || busy !== null}
                   onClick={() => run(plan, () => postForUrl("/api/v1/billing/checkout", { plan, yearly }))}
                 >
                   {busy === plan ? tr("Opening checkout…") : tr("Choose {plan}", { plan: plans[plan].name })}
@@ -493,9 +500,10 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
                 <li><Check size={14} /> Existing guides, extras and analytics</li>
                 <li><Check size={14} /> PMS channel integrations planned, not yet connected</li>
               </ul>
-              <button className="button" disabled={!data.stripe || busy !== null}
+              {!data.managerCheckoutAvailable && <p role="status">Manager subscriptions are not available for purchase yet.</p>}
+              <button className="button" disabled={!canSubscribe || !data.managerCheckoutAvailable || busy !== null}
                 onClick={() => run("manager", () => postForUrl("/api/v1/billing/checkout", { plan: "manager", yearly }))}>
-                {busy === "manager" ? "Opening checkout…" : "Choose Manager"}
+                {busy === "manager" ? "Opening checkout…" : data.managerCheckoutAvailable ? "Choose Manager" : "Manager coming soon"}
               </button>
             </div>
             <HotelPlanCard text={hotelText} />
@@ -512,6 +520,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
           <h3 style={{ margin: 0 }}>{tr("Get paid for extras")}</h3>
           {data.payouts.ready && <span className="pill">{tr("Active")}</span>}
         </div>
+        <p>{tr("Payout setup is optional and only needed to collect guest payments for extras. It is separate from your StayGuide subscription.")}</p>
         {data.payouts.ready ? (
           <>
             <p>{tr("Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.")}</p>

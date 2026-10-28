@@ -8,6 +8,11 @@ import type { SiteLocale } from "./site-i18n";
 type Dict = Record<string, string>;
 
 const fr: Dict = {
+  "Choose a plan when you’re ready": "Choisissez une offre quand vous êtes prêt",
+  "Starter and Pro are billed per property. Manager has a flat portfolio price. Cancel through Manage billing.": "Starter et Pro sont facturés par logement. Manager propose un forfait pour votre portefeuille. Résiliez dans Gérer la facturation.",
+  "New subscriptions are temporarily unavailable. You can keep setting up your free account.": "Les nouveaux abonnements sont temporairement indisponibles. Vous pouvez continuer à configurer votre compte gratuit.",
+  "Verify your email before choosing a paid plan.": "Vérifiez votre adresse e-mail avant de choisir une offre payante.",
+  "Payout setup is optional and only needed to collect guest payments for extras. It is separate from your StayGuide subscription.": "Les versements sont facultatifs et ne servent qu’à encaisser les extras des voyageurs. Ils sont distincts de votre abonnement StayGuide.",
   "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "La création d’un guide par IA utilise une requête IA incluse. Vérifiez votre adresse e-mail pour activer l’IA ; l’analyse manuelle reste disponible.",
   "Workspace preferences saved online.": "Préférences de l’espace enregistrées en ligne.",
   "Could not save workspace preferences. Please try again.": "Les préférences n’ont pas pu être enregistrées. Veuillez réessayer.",
@@ -431,6 +436,11 @@ const fr: Dict = {
 };
 
 const es: Dict = {
+  "Choose a plan when you’re ready": "Elige un plan cuando estés listo",
+  "Starter and Pro are billed per property. Manager has a flat portfolio price. Cancel through Manage billing.": "Starter y Pro se facturan por alojamiento. Manager tiene una tarifa fija para tu cartera. Cancela desde Gestionar facturación.",
+  "New subscriptions are temporarily unavailable. You can keep setting up your free account.": "Las nuevas suscripciones no están disponibles temporalmente. Puedes seguir configurando tu cuenta gratuita.",
+  "Verify your email before choosing a paid plan.": "Verifica tu correo antes de elegir un plan de pago.",
+  "Payout setup is optional and only needed to collect guest payments for extras. It is separate from your StayGuide subscription.": "Configurar los cobros es opcional y solo se necesita para recibir pagos de extras. Es independiente de tu suscripción a StayGuide.",
   "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "Generar una guía con IA usa una solicitud de IA incluida. Verifica tu correo para activar la IA; el análisis manual sigue disponible.",
   "Workspace preferences saved online.": "Preferencias del espacio guardadas en línea.",
   "Could not save workspace preferences. Please try again.": "No se pudieron guardar las preferencias. Inténtalo de nuevo.",
@@ -842,6 +852,11 @@ const es: Dict = {
 };
 
 const de: Dict = {
+  "Choose a plan when you’re ready": "Wählen Sie einen Tarif, wenn Sie bereit sind",
+  "Starter and Pro are billed per property. Manager has a flat portfolio price. Cancel through Manage billing.": "Starter und Pro werden pro Unterkunft berechnet. Manager hat einen festen Portfoliopreis. Kündigen Sie über die Abrechnungsverwaltung.",
+  "New subscriptions are temporarily unavailable. You can keep setting up your free account.": "Neue Abonnements sind vorübergehend nicht verfügbar. Sie können Ihr kostenloses Konto weiter einrichten.",
+  "Verify your email before choosing a paid plan.": "Bestätigen Sie Ihre E-Mail-Adresse, bevor Sie einen kostenpflichtigen Tarif wählen.",
+  "Payout setup is optional and only needed to collect guest payments for extras. It is separate from your StayGuide subscription.": "Auszahlungen sind optional und nur für Zahlungen Ihrer Gäste für Extras erforderlich. Sie sind von Ihrem StayGuide-Abonnement getrennt.",
   "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "Die KI-Guide-Erstellung verbraucht eine enthaltene KI-Anfrage. Bestätigen Sie Ihre E-Mail, um KI zu aktivieren; die manuelle Auswertung bleibt verfügbar.",
   "Workspace preferences saved online.": "Arbeitsbereichseinstellungen online gespeichert.",
   "Could not save workspace preferences. Please try again.": "Die Einstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
@@ -1253,6 +1268,11 @@ const de: Dict = {
 };
 
 const ar: Dict = {
+  "Choose a plan when you’re ready": "اختر خطة عندما تكون جاهزًا",
+  "Starter and Pro are billed per property. Manager has a flat portfolio price. Cancel through Manage billing.": "تُحتسب Starter وPro لكل عقار، بينما تعتمد Manager سعرًا ثابتًا للمحفظة. يمكنك الإلغاء عبر إدارة الفوترة.",
+  "New subscriptions are temporarily unavailable. You can keep setting up your free account.": "الاشتراكات الجديدة غير متاحة مؤقتًا. يمكنك متابعة إعداد حسابك المجاني.",
+  "Verify your email before choosing a paid plan.": "تحقق من بريدك الإلكتروني قبل اختيار خطة مدفوعة.",
+  "Payout setup is optional and only needed to collect guest payments for extras. It is separate from your StayGuide subscription.": "إعداد التحويلات اختياري ومطلوب فقط لتحصيل مدفوعات الضيوف مقابل الإضافات. وهو منفصل عن اشتراك StayGuide.",
   "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "يستخدم إنشاء الدليل بالذكاء الاصطناعي طلبًا واحدًا من الرصيد المتاح. تحقّق من بريدك لتفعيل الذكاء الاصطناعي؛ ويظل التحليل اليدوي متاحًا.",
   "Workspace preferences saved online.": "تم حفظ تفضيلات مساحة العمل عبر الإنترنت.",
   "Could not save workspace preferences. Please try again.": "تعذّر حفظ تفضيلات مساحة العمل. يُرجى المحاولة مرة أخرى.",

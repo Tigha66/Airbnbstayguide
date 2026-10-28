@@ -6,6 +6,7 @@ import { setQueryOverride, splitStatements } from "./db";
 import { upsertUser, setStripeCustomer, getBilling, type User } from "./repo";
 import { POST as checkout } from "../app/api/v1/billing/checkout/route";
 import { POST as webhook } from "../app/api/stripe/webhook/route";
+import { GET as billingState } from "../app/api/v1/billing/route";
 import { planFromSubscription } from "./stripe";
 
 const mocks = vi.hoisted(() => ({ host: vi.fn(), customer: vi.fn(), subscriptions: { list: vi.fn(), retrieve: vi.fn() }, sessions: { list: vi.fn(), create: vi.fn() }, construct: vi.fn() }));
@@ -44,6 +45,18 @@ beforeEach(async () => {
 });
 afterEach(async () => { setQueryOverride(null); await pg.close(); vi.unstubAllEnvs(); });
 describe("Manager billing acceptance with signed fixture events and isolated Postgres", () => {
+  it("reports checkout readiness and email verification without selling a gated plan", async () => {
+    vi.stubEnv("STAYGUIDE_MANAGER_CHECKOUT_ENABLED", "false");
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "");
+    mocks.host.mockResolvedValue({ user: { ...host, emailVerified: false } });
+    const response = await billingState();
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(await response.json()).toMatchObject({ checkoutConfigured: false, managerCheckoutAvailable: false, emailVerified: false, perPropertyQuantity: 1, plan: "free" });
+    expect(mocks.sessions.create).not.toHaveBeenCalled();
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", secret);
+    vi.stubEnv("STAYGUIDE_MANAGER_CHECKOUT_ENABLED", "true");
+    expect(await (await billingState()).json()).toMatchObject({ checkoutConfigured: true, managerCheckoutAvailable: true });
+  });
   it("creates flat quantity-one checkout and never grants access from the success redirect", async () => {
     expect((await checkout(request({ plan: "manager", yearly: false }))).status).toBe(200);
     expect(mocks.sessions.create).toHaveBeenCalledWith(expect.objectContaining({ mode: "subscription", line_items: [{ price: "price_manager_fixture", quantity: 1 }] }), expect.objectContaining({ idempotencyKey: expect.any(String) }));
