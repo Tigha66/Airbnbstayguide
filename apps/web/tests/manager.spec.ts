@@ -75,3 +75,35 @@ test("Manager workspace fits a phone and queue filters separate resolved issues"
   await expect(page.getByText("Open Cottage", { exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
+
+test("PMS queue shows disconnected delivery, preserves unknown outcomes and permits cancellation on mobile", async ({ page }) => {
+  await managerSession(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/v1/manager", route => route.fulfill({ json: { rules: [], templates: [], triage: [] } }));
+  let cancelled = false;
+  let mutations = 0;
+  await page.route("**/api/v1/manager/outbox", async route => {
+    if (route.request().method() === "PATCH") {
+      mutations++;
+      expect(route.request().postDataJSON()).toEqual({ action: "cancel", id: first });
+      cancelled = true;
+      return route.fulfill({ json: { updated: true } });
+    }
+    return route.fulfill({ json: {
+      deliveryAvailable: false, setupRequired: "Authorised PMS connection required", connections: [],
+      messages: [
+        { id: first, body: "Welcome to your cottage.", status: cancelled ? "cancelled" : "draft", contentHash: "a".repeat(64), scheduledAt: "2026-11-01T12:00:00Z", timeZone: "Europe/London", lastError: null },
+        { id: second, body: "Earlier arrival message.", status: "unknown", contentHash: "b".repeat(64), scheduledAt: "2026-10-27T12:00:00Z", timeZone: "Europe/London", lastError: "provider_delivery_unconfirmed" },
+      ],
+    } });
+  });
+  await page.goto("/dashboard/manager");
+  const queue = page.getByRole("region", { name: "PMS delivery queue" });
+  await expect(queue.getByText("PMS delivery is not connected.", { exact: false })).toBeVisible();
+  await expect(queue.getByRole("button", { name: "Approve this exact message" })).toBeDisabled();
+  await expect(queue.getByRole("status").filter({ hasText: "Check the PMS" })).toContainText("Check the PMS before sending another message");
+  await queue.getByRole("button", { name: "Cancel message" }).click();
+  await expect(queue.getByRole("button", { name: "Cancel message" })).toHaveCount(0);
+  expect(mutations).toBe(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+});

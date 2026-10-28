@@ -28,17 +28,23 @@ export async function priceId(plan: "starter" | "pro" | "manager", yearly: boole
     : (await stripe.prices.list({ lookup_keys: [lookupKey(plan, yearly)], active: true, limit: 1 })).data[0];
   const expected = plans[plan].monthly * 100 * (yearly ? 10 : 1);
   if (!price || !price.active || price.currency !== CURRENCY || price.unit_amount !== expected ||
+      (plan === "manager" && price.lookup_key !== lookupKey(plan, yearly)) ||
       price.recurring?.interval !== (yearly ? "year" : "month") || price.recurring.interval_count !== 1)
     throw new Error("The selected subscription price needs operator configuration");
   return price.id;
 }
 export async function portalConfigurationId() {
-  if (process.env.STRIPE_PORTAL_CONFIGURATION_ID?.trim()) return process.env.STRIPE_PORTAL_CONFIGURATION_ID.trim();
-  const { data } = await stripeClient().billingPortal.configurations.list({ active: true, limit: 100 });
-  const configuration = data.find((item) => item.metadata?.app === "stayguide")?.id;
-  if (!configuration) throw new Error("Configure StayGuide's self-service billing portal first");
-  return configuration;
+  const stripe = stripeClient();
+  const configured = process.env.STRIPE_PORTAL_CONFIGURATION_ID?.trim();
+  const configuration = configured ? await stripe.billingPortal.configurations.retrieve(configured)
+    : (await stripe.billingPortal.configurations.list({ active: true, limit: 100 })).data.find(item => item.metadata?.app === "stayguide");
+  if (!configuration?.active || configuration.metadata?.app !== "stayguide" ||
+      configuration.features.subscription_update.enabled ||
+      !configuration.features.subscription_cancel.enabled)
+    throw new Error("Configure StayGuide's reviewed cancellation-only billing portal first");
+  return configuration.id;
 }
+
 export function checkoutIdentity(userId: string, price: string, quantity: number, time = Date.now()) {
   const key = ["stayguide", "checkout", userId, price, quantity, Math.floor(time / 900_000)].join(":");
   const suffix = [...createHash("sha256").update(key).digest().subarray(0, 8)].map((b) => String.fromCharCode(97 + b % 26)).join("");
@@ -49,15 +55,23 @@ export function checkoutIdentity(userId: string, price: string, quantity: number
 export function planFromSubscription(sub: Pick<Stripe.Subscription, "status" | "items">): Plan {
   if (!["active", "trialing"].includes(sub.status)) return "free";
   const price = sub.items.data[0]?.price;
+  const validManager = () => {
+    const recurring = price?.recurring;
+    return sub.items.data.length === 1 && sub.items.data[0]?.quantity === 1 &&
+      price?.currency === CURRENCY && recurring?.interval_count === 1 &&
+      ((recurring.interval === "month" && price.unit_amount === plans.manager.monthly * 100) ||
+       (recurring.interval === "year" && price.unit_amount === plans.manager.monthly * 1000));
+  };
   for (const plan of ["starter", "pro", "manager"] as const) {
     for (const interval of ["MONTH", "YEAR"] as const) {
       const configured = process.env["STRIPE_PRICE_" + plan.toUpperCase() + "_" + interval]?.trim();
-      if (configured && price?.id === configured) return plan;
+      if (configured && price?.id === configured) return plan === "manager" && !validManager() ? "free" : plan;
     }
   }
   const key = price?.lookup_key ?? "";
   const match = /^stayguide_(starter|pro|manager)_(monthly|yearly)(?:_[a-z]{3})?$/.exec(key);
-  return match ? (match[1] as Plan) : "free";
+  if (!match || (match[1] === "manager" && !validManager())) return "free";
+  return match[1] as Plan;
 }
 /** Subscriptions are billed per property; never below one. */
 export const billableQuantity = (propertyCount: number) => Math.max(1, Math.min(100, propertyCount));

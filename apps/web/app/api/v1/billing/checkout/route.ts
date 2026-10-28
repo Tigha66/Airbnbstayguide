@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireHost } from "@/lib/session";
 import { getBilling } from "@/lib/repo";
+import { managerCheckoutEnabled, managerSchemaReady } from "@/lib/manager-release";
 import { ensureCustomer } from "@/lib/billing";
 import { appUrl, subscriptionQuantity, checkoutIdentity, priceId, stripeClient, stripeConfigured } from "@/lib/stripe";
 import { parseJson, safeOrigin, unavailable } from "@/lib/api";
@@ -17,6 +18,9 @@ export async function POST(request: Request) {
   try { parsed = schema.safeParse(parseJson(await request.text())); }
   catch { return reply({ error: "Choose a plan" }, 400); }
   if (!parsed.success) return reply({ error: "Choose a plan" }, 400);
+  // Do not take Manager payments while rollout gates are unverified.
+  if (parsed.data.plan === "manager" && (!managerCheckoutEnabled() || !(await managerSchemaReady())))
+    return reply({ error: "Manager subscriptions are not yet available for purchase.", code: "MANAGER_LAUNCH_PENDING" }, 503);
   try {
     const billing = await getBilling(host.user.id);
     const stripe = stripeClient();

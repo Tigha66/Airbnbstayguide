@@ -4,7 +4,8 @@ import { PGlite } from "@electric-sql/pglite";
 import { query, setQueryOverride, splitStatements } from "./db";
 import { registerPasswordUser, authenticatePassword } from "./password-login";
 import { getUser } from "./repo";
-import { originFromHeaders, requestPasswordReset, resetPassword, sendVerificationEmail, verifyEmailToken } from "./account-email";
+import VerificationPage from "../app/verify-email/page";
+import { originFromHeaders, requestPasswordReset, resetPassword, sendVerificationEmail, tokenLooksValid, verifyEmailToken } from "./account-email";
 const pg = new PGlite();
 const schema = readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8");
 let delivered = "";
@@ -35,6 +36,11 @@ describe("account ownership and recovery", () => {
   it("verifies once using the delivered token and refuses replay", async () => {
     await sendVerificationEmail({ userId: user.id, email: user.email, origin: "https://www.getstayguide.com" });
     const token = deliveredToken();
+    // Link previews and scanners can inspect the form without verifying ownership.
+    expect(await tokenLooksValid(token, "verify_email")).toBe(true);
+    expect(await tokenLooksValid(token, "verify_email")).toBe(true);
+    await VerificationPage({ searchParams: Promise.resolve({ token }) });
+    expect((await getUser(user.id))?.emailVerified).toBe(false);
     expect(await verifyEmailToken(token)).toBe(true);
     expect(await verifyEmailToken(token)).toBe(false);
     expect((await getUser(user.id))?.emailVerified).toBe(true);

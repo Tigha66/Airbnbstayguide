@@ -16,7 +16,8 @@ export default async function Page({
   async function sendReset(formData: FormData) {
     "use server";
     try {
-      await requestPasswordReset({ email: formData.get("email"), origin: originFromHeaders(await headers()) });
+      const available = await requestPasswordReset({ email: formData.get("email"), origin: originFromHeaders(await headers()) });
+      if (!available) throw new Error("Email unavailable");
     } catch (error) {
       console.error("[auth] password reset failed", error);
       redirect("/forgot-password?error=1");
@@ -37,7 +38,7 @@ export default async function Page({
             <a href="mailto:hello@getstayguide.com">hello@getstayguide.com</a>.
           </div>
         )}
-        {params.sent && <div className="notice" role="status">Check your email for a reset link. It expires in 1 hour.</div>}
+        {params.sent && <div className="notice" role="status">If this address has a password account, a reset link will arrive shortly. Check your spam folder too. The link expires in 1 hour.</div>}
         {params.error && <div className="notice" role="alert">We couldn’t send the reset email. Please try again or contact support.</div>}
         <form action={sendReset} className="form-grid">
           <label>
