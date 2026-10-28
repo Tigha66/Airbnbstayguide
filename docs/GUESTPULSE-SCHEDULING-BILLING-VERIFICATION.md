@@ -167,3 +167,64 @@ Next access requirements: the Neon organization/project containing the existing
 a Resend sender/key permitted to deliver account emails; and an authorized
 Guesty/Hospitable test account. These are prerequisites to the remaining deployed
 acceptance, not evidence that those workflows have passed.
+
+## QA database recovered and migrated — 28 October 2026
+
+The earlier database-access conclusion was incorrect: enumerating every compute
+endpoint located `ep-frosty-fire-b7c0esut` inside project `cool-art-66761728`
+(`neon-amethyst-globe`), branch `br-withered-sound-b7kdtovh`
+(`qa-paid-self-service-20261025-turnready`). This branch contains a separate
+`stayguide_qa` database; its branch name does not identify its only application.
+No TurnReady database, default branch or production database was migrated.
+
+Neon refused child-branch snapshots and cloning a branch with expiry. The QA
+parent expiry was removed to preserve it and allow a recovery child. The retained
+recovery branch is `br-twilight-mountain-b77xr8kg`, named
+`stayguide-qa-recovery-before-manager-20261028`. All 12 original table row counts
+and content fingerprints match between source and recovery copy. Baseline data
+included seven users, four properties, three chat messages and four extra requests.
+
+The 15 additive statements were rehearsed twice in a transaction on the recovery
+copy, producing all nine tables. Rolling back the savepoint removed those new
+tables, preserving the original recovery state. The same statements then committed
+atomically to `stayguide_qa` with database-name, lock and statement-timeout guards.
+All original table counts and fingerprints were unchanged afterward. The applied
+SQL is recorded in `apps/web/db/migrations/20261028-qa-manager-pms.sql`.
+
+Deployed acceptance: Google owner sign-in succeeded. Manager/outbox now load
+without missing-migration errors. A QA maintenance rule saved, enabled, survived
+reload and matched an urgent water-leak preview. A QA saved reply also survived
+reload. No guest message was sent. The fresh unentitled QA customer remained on
+Free and could not access Manager functionality.
+
+## QA Stripe catalogue aligned — 28 October 2026
+
+A direct authenticated test-key account check confirmed that the configured QA
+key belongs to `acct_1Rdzf0G3wnn7CPRM`, not the older MCP sandbox catalogue. Only
+test-mode catalogue objects were created/reused in that account; no payment,
+subscription or real-money action was performed by this follow-up.
+
+| QA setting | Reviewed test object |
+| --- | --- |
+| Starter monthly | `price_1UVV76G3wnn7CPRMNGeczgZY` |
+| Starter yearly | `price_1UVV7IG3wnn7CPRMmDnWPsKT` |
+| Pro monthly | `price_1UVV7ZG3wnn7CPRMMaoDF7ue` |
+| Pro yearly | `price_1UVV7lG3wnn7CPRMCs7DaBq1` |
+| Manager monthly | `price_1UVV8AG3wnn7CPRMzNUctiFb` |
+| Manager yearly | `price_1UVV8MG3wnn7CPRMB7iteF0B` |
+| Cancellation-only portal | `bpc_1UVV8aG3wnn7CPRM4SlvT7CV` |
+
+Eight corresponding catalogue/account variables were saved only for preview
+branch `agent/paid-self-service-20261025`. Amounts, currency, cadence and test mode
+were validated against the returned Stripe objects. Production settings and
+Manager sale/delivery flags were not enabled.
+
+Remaining blockers: an unauthenticated POST to QA `/api/stripe/webhook` returns
+Vercel Authentication 401 before the application. No signing secret or webhook
+delivery is certified. Do not disable project-wide protection or route QA events
+to production to work around this. Arrange a reviewed staging webhook access path,
+then register and verify its sandbox endpoint. The inspected fallback sender is
+`hello@stayguide.app`; delivered verification email previously failed HTTP 403 and
+requires verification of the actual sender/key permissions. No Guesty credentials,
+authorized provider connection, initial sync or live delivery adapter is available.
+These prevent commercial readiness even though the QA migration is now complete.
