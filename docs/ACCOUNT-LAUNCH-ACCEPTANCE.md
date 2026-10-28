@@ -69,3 +69,35 @@ No real-money charge is authorized. No production sales/delivery flags were enab
 
 Production release remains pending external acceptance. PMS partner onboarding is
 a separate dependency and Manager automation must not be advertised as connected.
+
+## Approved email configuration completed — 28 October 2026
+
+The owner explicitly approved the three DNS records and QA email key. All three
+records were saved in Cloudflare with DNS-only CNAMEs. Public DNS lookup returned
+the expected DKIM public key and both CNAME targets. The original eight records,
+including Zoho MX and root SPF, were preserved. No receiving/routing configuration
+was enabled in Resend. Resend reports `getstayguide.com` Verified and ready to send.
+
+Created `StayGuide QA transactional email`, key ID
+`4fee77b1-f124-4df5-9482-09131fc2bcde`, with Sending access restricted to
+`getstayguide.com`. The secret is stored only in Vercel's sensitive
+`RESEND_API_KEY` override for `agent/paid-self-service-20261025`; the three sender
+aliases use `StayGuide <hello@getstayguide.com>` in that same preview branch.
+Production email settings were not changed, and existing keys were not revoked.
+QA redeployment `dpl_6yqbSRyWRxQrRTxah26XExzsS1YU` is READY at
+`stayguide-fyfc0z11l-hajabdelhak66.vercel.app` using source `df92be7`.
+
+Actual deployed acceptance: the QA forgot-password form for the existing QA
+fixture returned the generic confirmation, and Gmail received the reset email
+from the correct sender. Gmail's Authentication-Results reported SPF=pass and
+DKIM=pass for getstayguide.com. The delivered immutable-deployment link opened a
+valid Create a new password form. No password was changed by the agent. An
+initial browser origin approval timed out; the permitted retry succeeded.
+
+The verification-email function was also invoked locally against the same
+unverified QA fixture, but that attempt returned HTTP 403/provider_error, so it
+is not delivery evidence. The fixture remained unverified; no database ownership
+backfill was performed. Fresh signup/verification-email delivery and final password
+submission still require the customer's UI actions before full acceptance can be
+claimed. The fresh signup screen is prepared for that next step. The Stripe
+external-webhook and production-release gates above still apply.
