@@ -27,6 +27,24 @@ describe("website translations", () => {
     expect(siteText("de").nav.pricing).toBe("Preise");
     expect(siteText("ar").faq.items).toHaveLength(6);
   });
+  it("keeps the guest-concierge sample in the visitor's selected language", () => {
+    const french = siteText("fr").langs;
+    expect(french.demoQuestion).toContain("Quel est le mot de passe");
+    expect(french.demoAnswer).toContain("Le réseau est");
+    expect(french.demoTag).toContain("français");
+    const spanish = siteText("es").langs;
+    expect(spanish.demoQuestion).toContain("¿Cuál es la contraseña");
+    expect(spanish.demoAnswer).toContain("La red es");
+    expect(spanish.demoTag).toContain("español");
+    const german = siteText("de").langs;
+    expect(german.demoQuestion).toContain("Wie lautet");
+    expect(german.demoAnswer).toContain("Das Netzwerk");
+    expect(german.demoTag).toContain("Deutsch");
+    const arabic = siteText("ar").langs;
+    expect(arabic.demoQuestion).toMatch(/[؀-ۿ]/);
+    expect(arabic.demoTag).toContain("بالعربية");
+  });
+
   it("keeps placeholders in every language", () => {
     for (const locale of siteLocales) {
       const t = siteText(locale);

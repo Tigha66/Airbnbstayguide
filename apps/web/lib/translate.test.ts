@@ -4,7 +4,8 @@ import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
 
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
-import { guideHash, guideLanguage, guideText, keepsProtected, protectedTokens, translateGuide } from "./translate";
+import { detectLanguage } from "./language";
+import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, translateGuide, translateGuideWithStatus } from "./translate";
 const mockedAi = vi.mocked(generateJson);
 
 describe("guest interface translations", () => {
@@ -85,11 +86,96 @@ describe("translateGuide", () => {
     expect(out.sections[1].body).toBe("Network SmokyRidge_Guest, password bearden2026.");
     expect(out.extras[0].name).toBe("Late checkout");
   });
+
+
+  it("never accepts Spanish guide content as a complete French translation", async () => {
+    const source = guideText(property);
+    const spanish = {
+      description: "Bienvenido a la cabaña. Aquí encontrarás todas las instrucciones para tu estancia.",
+      sections: [
+        { id: "arrival", title: "Llegada", body: "El código de la caja de llaves es 4821." },
+        { id: "wifi", title: "Wi-Fi", body: "La red es SmokyRidge_Guest y la contraseña es bearden2026." },
+      ],
+      extras: [{ id: "late", name: "Salida tardía", description: "Puede salir a las 2 PM." }],
+    };
+    expect(isExpectedGuideLanguage(spanish, "fr")).toBe(false);
+    expect(isTranslationComplete(source, spanish, "fr")).toBe(false);
+
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      if (input.body?.includes("4821")) return { title: spanish.sections[0].title, body: spanish.sections[0].body };
+      if (input.body) return { title: spanish.sections[1].title, body: spanish.sections[1].body };
+      return { description: spanish.description, extras: spanish.extras };
+    });
+    const result = await translateGuideWithStatus(source, "fr");
+    expect(result.complete).toBe(false);
+    expect(result.failedParts).toBeGreaterThan(0);
+    expect(result.text).toEqual(source);
+  });
+
+  it("reports failures instead of caching an incomplete guide", async () => {
+    mockedAi.mockRejectedValue(new Error("Provider unavailable"));
+    const outcome = await translateGuideWithStatus(guideText(property), "es");
+    expect(outcome.complete).toBe(false);
+    expect(outcome.failedParts).toBeGreaterThan(0);
+    expect(outcome.text.description).toBe("Welcome to the cabin.");
+    expect(isTranslationComplete(guideText(property), outcome.text)).toBe(false);
+  });
+  it("rejects a cached guide whose prose heading remains untranslated", () => {
+    const source = guideText(property);
+    const longer = {
+      ...source,
+      sections: source.sections.map((part, i) => i === 0 ? { ...part, title: "A little house etiquette" } : part),
+    };
+    const translated = {
+      ...longer,
+      description: "Bienvenue au chalet.",
+      sections: longer.sections.map((part, i) =>
+        i === 0 ? { ...part, body: "Le code de la boîte à clés est 4821." }
+          : { ...part, body: "Réseau SmokyRidge_Guest, mot de passe bearden2026." }),
+      extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }],
+    };
+    expect(isTranslationComplete(longer, translated)).toBe(false);
+  });
+  it("rejects partial cached translations and accepts complete ones", () => {
+    const source = guideText(property);
+    const partial = { ...source, description: "Bienvenue au chalet." };
+    expect(isTranslationComplete(source, partial)).toBe(false);
+    const complete = {
+      description: "Bienvenue au chalet.",
+      sections: [
+        { id: "arrival", title: "Arrivée", body: "Le code de la boîte à clés est 4821." },
+        { id: "wifi", title: "Wi-Fi", body: "Réseau SmokyRidge_Guest, mot de passe bearden2026." },
+      ],
+      extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }],
+    };
+    expect(isTranslationComplete(source, complete)).toBe(true);
+  });
   it("detects the guide's language and changes the cache key when the host edits", () => {
     const text = guideText(property);
     expect(guideLanguage({ ...text, sections: [{ id: "a", title: "Arrival", body: "Where is the key? The code is in the box and you can park on the street." }] })).toBe("en");
     expect(guideHash(text)).not.toBe(guideHash({ ...text, description: "Changed" }));
   });
+});
+
+
+describe("concierge language selection", () => {
+  const examples = [
+    ["en", "Where can we park?"],
+    ["fr", "Où est le parking ?"],
+    ["es", "¿Dónde está el aparcamiento?"],
+    ["de", "Wo kann ich parken?"],
+    ["it", "Dove posso parcheggiare?"],
+    ["pt", "Onde posso estacionar?"],
+    ["nl", "Waar kan ik parkeren?"],
+    ["ar", "أين الموقف؟"],
+    ["ja", "鍵はどこですか？"],
+    ["zh", "无线网络密码是什么?"],
+    ["ko", "와이파이 비밀번호가 뭐예요?"],
+    ["hi", "वाईफ़ाई पासवर्ड क्या है?"],
+  ] as const;
+  for (const [language, question] of examples)
+    it(`detects ${language} guest messages`, () => expect(detectLanguage(question)).toBe(language));
 });
 
 describe("sample guide answers", () => {

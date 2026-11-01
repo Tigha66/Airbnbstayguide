@@ -1,4 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
+import { requestLocale } from "@/lib/request-locale";
+import { isSiteLocale, siteDir } from "@/lib/site-i18n";
 import { Inter, Noto_Sans_Arabic, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
@@ -49,9 +52,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
 };
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  const explicit = (await headers()).get("x-stayguide-route-locale");
+  const locale = explicit && isSiteLocale(explicit) ? explicit : await requestLocale();
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} ${arabic.variable}`}>
+    <html lang={locale} dir={siteDir(locale)} className={`${sans.variable} ${display.variable} ${arabic.variable}`}>
       <body>
         {children}
         <Analytics />
