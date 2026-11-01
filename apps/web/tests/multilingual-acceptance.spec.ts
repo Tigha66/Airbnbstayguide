@@ -23,10 +23,10 @@ for (const locale of pages) {
 test("language choice persists across marketing and dashboard", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("combobox", { name: "Language" }).selectOption("es");
-  await expect(page).toHaveURL(/\\/es$/);
+  await expect(page).toHaveURL(new RegExp("/es$"));
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
   await page.goto("/pricing");
-  await expect(page).toHaveURL(/\\/es\\/pricing$/);
+  await expect(page).toHaveURL(new RegExp("/es/pricing$"));
   await page.goto("/dashboard");
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
   await expect(page.getByRole("combobox", { name: "Idioma" }).first()).toHaveValue("es");
