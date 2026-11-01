@@ -32,7 +32,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   if (dbConfigured()) {
     const cached = await getGuideTranslation(key, language, hash).catch(() => null);
     // Previously cached partial translations must be reattempted rather than shown as complete.
-    if (cached && isTranslationComplete(text, cached)) return NextResponse.json({ translated: true, cached: true, text: cached });
+    if (cached && isTranslationComplete(text, cached, language)) return NextResponse.json({ translated: true, cached: true, text: cached });
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const bucket = createHash("sha256").update(`translate:${ip}`).digest("hex");
     if (!(await consumeRateLimit(bucket, 20, 3600)))
@@ -40,12 +40,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
   const result = await translateGuideWithStatus(text, language);
   const changed = JSON.stringify(result.text) !== JSON.stringify(text);
-  if (!changed) {
+  if (!result.complete || !changed) {
     console.error("[guide-translation] provider returned no usable translation", { language, failedParts: result.failedParts });
     return NextResponse.json({ error: "Translation temporarily unavailable", code: "TRANSLATION_UNAVAILABLE" }, { status: 503 });
   }
-  // Never cache partially translated instructions (or change data from preview).
-  if (result.complete && dbConfigured() && process.env.VERCEL_ENV !== "preview")
+  // Serve only complete translations. Never cache or display mixed-language instructions.
+  if (dbConfigured() && process.env.VERCEL_ENV !== "preview")
     await saveGuideTranslation(key, language, hash, result.text).catch(() => {});
-  return NextResponse.json({ translated: true, partial: !result.complete, text: result.text });
+  return NextResponse.json({ translated: true, text: result.text });
 }
