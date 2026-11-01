@@ -183,9 +183,9 @@ const fr: SiteText = {
       ["Des codes toujours exacts", "Les codes d’accès, mots de passe Wi-Fi, horaires et numéros de téléphone ne sont jamais modifiés par la traduction."],
     ],
     chipsLabel: "Langues du concierge",
-    demoQuestion: "¿Cuál es la contraseña del wifi?",
-    demoAnswer: "La red es LakeHouse_Guest y la contraseña es loons2026.",
-    demoTag: "Réponse en espagnol · D’après votre guide",
+    demoQuestion: "Quel est le mot de passe du Wi-Fi ?",
+    demoAnswer: "Le réseau est LakeHouse_Guest et le mot de passe est loons2026.",
+    demoTag: "Réponse en français · D’après votre guide"
     cta: "Essayer le livret voyageur",
   },
   roi: {
@@ -303,9 +303,9 @@ const es: SiteText = {
       ["Los códigos, siempre exactos", "Los códigos de acceso, contraseñas del wifi, horarios y teléfonos nunca cambian al traducir."],
     ],
     chipsLabel: "Idiomas del conserje",
-    demoQuestion: "Quel est le mot de passe du wifi ?",
-    demoAnswer: "Le réseau est LakeHouse_Guest et le mot de passe est loons2026.",
-    demoTag: "Respondido en francés · Según tu guía",
+    demoQuestion: "¿Cuál es la contraseña del wifi?",
+    demoAnswer: "La red es LakeHouse_Guest y la contraseña es loons2026.",
+    demoTag: "Respondido en español · Según tu guía"
     cta: "Probar la guía del huésped",
   },
   roi: {
@@ -423,9 +423,9 @@ const de: SiteText = {
       ["Codes bleiben exakt", "Türcodes, WLAN-Passwörter, Uhrzeiten und Telefonnummern werden bei der Übersetzung nie verändert."],
     ],
     chipsLabel: "Sprachen des Concierge",
-    demoQuestion: "¿Cuál es la contraseña del wifi?",
-    demoAnswer: "La red es LakeHouse_Guest y la contraseña es loons2026.",
-    demoTag: "Auf Spanisch beantwortet · Aus Ihrer Gästemappe",
+    demoQuestion: "Wie lautet das WLAN-Passwort?",
+    demoAnswer: "Das Netzwerk heißt LakeHouse_Guest und das Passwort ist loons2026.",
+    demoTag: "Auf Deutsch beantwortet · Aus Ihrer Gästemappe"
     cta: "Gästemappe ausprobieren",
   },
   roi: {
