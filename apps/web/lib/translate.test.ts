@@ -4,6 +4,7 @@ import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
 
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
+import { detectLanguage } from "./language";
 import { guideHash, guideLanguage, guideText, isTranslationComplete, keepsProtected, protectedTokens, translateGuide, translateGuideWithStatus } from "./translate";
 const mockedAi = vi.mocked(generateJson);
 
@@ -113,6 +114,26 @@ describe("translateGuide", () => {
     expect(guideLanguage({ ...text, sections: [{ id: "a", title: "Arrival", body: "Where is the key? The code is in the box and you can park on the street." }] })).toBe("en");
     expect(guideHash(text)).not.toBe(guideHash({ ...text, description: "Changed" }));
   });
+});
+
+
+describe("concierge language selection", () => {
+  const examples = [
+    ["en", "Where can we park?"],
+    ["fr", "Où est le parking ?"],
+    ["es", "¿Dónde está el aparcamiento?"],
+    ["de", "Wo kann ich parken?"],
+    ["it", "Dove posso parcheggiare?"],
+    ["pt", "Onde posso estacionar?"],
+    ["nl", "Waar kan ik parkeren?"],
+    ["ar", "أين الموقف؟"],
+    ["ja", "鍵はどこですか？"],
+    ["zh", "无线网络密码是什么?"],
+    ["ko", "와이파이 비밀번호가 뭐예요?"],
+    ["hi", "वाईफ़ाई पासवर्ड क्या है?"],
+  ] as const;
+  for (const [language, question] of examples)
+    it(`detects ${language} guest messages`, () => expect(detectLanguage(question)).toBe(language));
 });
 
 describe("sample guide answers", () => {
