@@ -55,6 +55,49 @@ const extrasSchema = z.object({
   extras: z.array(z.object({ id: z.string(), name: z.string(), description: z.string() })),
 });
 
+/** Backup translator: the deployment already has a Google AI key. Never log keys or guide content. */
+async function generateTranslationJson(system: string, prompt: string, maxOutputTokens: number, timeoutMs: number): Promise<unknown> {
+  try {
+    return await generateJson(system, prompt, maxOutputTokens, timeoutMs);
+  } catch (primaryError) {
+    const key = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (!key) throw primaryError;
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json", maxOutputTokens },
+      }),
+      signal: AbortSignal.timeout(Math.min(timeoutMs, 20000)),
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`Backup translation provider returned HTTP ${response.status}`);
+    const data = (await response.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+    const output = data.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("").trim();
+    if (!output) throw new Error("Backup translation provider returned no text");
+    return JSON.parse(output);
+  }
+}
+
+export type TranslationOutcome = { text: GuideText; complete: boolean; failedParts: number };
+/** Do not assume that a 200 AI response contains a valid, complete translation. */
+export function isTranslationComplete(source: GuideText, translated: GuideText) {
+  const original = new Map(source.sections.map((s) => [s.id, s]));
+  return source.sections.length === translated.sections.length
+    && (!source.description.trim() || source.description.trim() !== translated.description.trim())
+    && translated.sections.every((s) => {
+      const from = original.get(s.id);
+      return Boolean(from && (!from.body.trim() || from.body.trim() !== s.body.trim()));
+    })
+    && source.extras.length === translated.extras.length
+    && source.extras.every((e) => {
+      const value = translated.extras.find((v) => v.id === e.id);
+      return Boolean(value && (!e.description.trim() || value.description.trim() !== e.description.trim()));
+    });
+}
+
 async function inBatches<T, R>(items: T[], size: number, run: (item: T) => Promise<R>) {
   const out: R[] = [];
   for (let i = 0; i < items.length; i += size) out.push(...(await Promise.all(items.slice(i, i + size).map(run))));
@@ -66,21 +109,27 @@ const tokensFor = (text: string) => Math.min(4000, Math.ceil(text.length / 2) + 
  * Translates a guide section by section. Any piece whose translation fails, or that would
  * change a code or number, keeps its original text.
  */
-export async function translateGuide(text: GuideText, language: string): Promise<GuideText> {
+export async function translateGuideWithStatus(text: GuideText, language: string): Promise<TranslationOutcome> {
+  let failedParts = 0;
   const target = languageNames[language] ?? "English";
   const sections = await inBatches(text.sections, 4, async (s) => {
     try {
       const out = sectionSchema.parse(
-        await generateJson(
+        await generateTranslationJson(
           `Translate this holiday-rental guide section into ${target}.\n${RULES}\nRespond with JSON only: {"title":"...","body":"..."}`,
           JSON.stringify({ title: s.title, body: s.body }),
           tokensFor(s.title + s.body),
           30000,
         ),
       );
-      if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title)) return s;
+      if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title) || (s.body.trim() && s.body.trim() === out.body.trim())) {
+        failedParts++;
+        return s;
+      }
       return { id: s.id, title: out.title.trim() || s.title, body: out.body };
-    } catch {
+    } catch (error) {
+      failedParts++;
+      console.error("[guide-translation] section failed", error instanceof Error ? error.name : "unknown");
       return s;
     }
   });
@@ -88,22 +137,32 @@ export async function translateGuide(text: GuideText, language: string): Promise
   let extras = text.extras;
   try {
     const out = extrasSchema.parse(
-      await generateJson(
+      await generateTranslationJson(
         `Translate this holiday-rental welcome text and list of paid extras into ${target}. Keep every "id" unchanged.\n${RULES}\nRespond with JSON only: {"description":"...","extras":[{"id":"...","name":"...","description":"..."}]}`,
         JSON.stringify({ description: text.description, extras: text.extras }),
         tokensFor(JSON.stringify(text.extras) + text.description),
         30000,
       ),
     );
-    if (out.description.trim() && keepsProtected(text.description, out.description)) description = out.description;
+    if (out.description.trim() && keepsProtected(text.description, out.description) && (!text.description.trim() || out.description.trim() !== text.description.trim())) description = out.description;
+    else if (text.description.trim()) failedParts++;
     extras = text.extras.map((e) => {
       const t = out.extras.find((x) => x.id === e.id);
-      return t && t.name.trim() && keepsProtected(e.name + " " + e.description, t.name + " " + t.description)
-        ? { id: e.id, name: t.name, description: t.description }
-        : e;
+      if (t && t.name.trim() && keepsProtected(e.name + " " + e.description, t.name + " " + t.description)
+        && (!e.description.trim() || t.description.trim() !== e.description.trim()))
+        return { id: e.id, name: t.name, description: t.description };
+      failedParts++;
+      return e;
     });
-  } catch {
-    /* keep originals */
+  } catch (error) {
+    failedParts += 1 + text.extras.length;
+    console.error("[guide-translation] welcome/extras failed", error instanceof Error ? error.name : "unknown");
   }
-  return { description, sections, extras };
+  return { text: { description, sections, extras }, complete: failedParts === 0, failedParts };
 }
+
+/** Kept for existing callers; use translateGuideWithStatus when serving guest content. */
+export async function translateGuide(text: GuideText, language: string): Promise<GuideText> {
+  return (await translateGuideWithStatus(text, language)).text;
+}
+
