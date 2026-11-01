@@ -17,6 +17,7 @@ export async function managerSchemaReady(): Promise<boolean> {
         (to_regclass('public.portfolio_rules') IS NOT NULL
         AND to_regclass('public.portfolio_triage') IS NOT NULL
         AND to_regclass('public.portfolio_reply_templates') IS NOT NULL
+        AND to_regclass('public.pms_webhook_events') IS NOT NULL
         AND to_regclass('public.pms_connections') IS NOT NULL
         AND to_regclass('public.pms_property_links') IS NOT NULL
         AND to_regclass('public.pms_outbox') IS NOT NULL
