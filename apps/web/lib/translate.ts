@@ -104,7 +104,7 @@ export type TranslationOutcome = { text: GuideText; complete: boolean; failedPar
 /** Do not assume that a 200 AI response contains a valid, complete translation. */
 /** Titles containing prose should not remain in the source language. Short labels and Wi-Fi names may stay the same. */
 function translatableTitle(text: string): boolean {
-  return (text.match(/[\\p{L}]{2,}/gu) ?? []).length >= 3;
+  return (text.match(/\p{L}{2,}/gu) ?? []).length >= 3;
 }
 
 export function isTranslationComplete(source: GuideText, translated: GuideText) {
