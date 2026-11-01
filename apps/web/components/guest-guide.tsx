@@ -73,12 +73,12 @@ export function GuestGuide({
   useEffect(() => {
     if (!(liveGuide || sample)) return;
     let cancelled = false;
-    const cacheKey = `stayguide-translation-${slug}-${language}`;
+    const cacheKey = `stayguide-translation-v2-${slug}-${language}`;
     queueMicrotask(() => {
       if (cancelled) return;
       setShowOriginal(false);
       setTranslationWarning(false);
-      const saved = readGuestTranslation(cacheKey, source);
+      const saved = readGuestTranslation(cacheKey, source, language);
       if (saved) {
         setTranslation({ language, source, text: saved });
         setTranslating(false);
