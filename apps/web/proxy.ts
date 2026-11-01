@@ -6,7 +6,8 @@ export function proxy(request: NextRequest) {
   if (request.method !== "GET") return;
   const pathname = request.nextUrl.pathname;
   // The root HTML element needs the actual locale of an explicit translated URL.
-  const explicit = pathname.match(/^\\/(fr|es|de|ar)(?:\\/|$)/)?.[1];
+  const segment = pathname.split("/")[1];
+  const explicit = ["fr", "es", "de", "ar"].includes(segment) ? segment : null;
   if (explicit) {
     const forwarded = new Headers(request.headers);
     forwarded.set("x-stayguide-route-locale", explicit);
