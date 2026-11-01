@@ -95,6 +95,22 @@ describe("translateGuide", () => {
     expect(outcome.text.description).toBe("Welcome to the cabin.");
     expect(isTranslationComplete(guideText(property), outcome.text)).toBe(false);
   });
+  it("rejects a cached guide whose prose heading remains untranslated", () => {
+    const source = guideText(property);
+    const longer = {
+      ...source,
+      sections: source.sections.map((part, i) => i === 0 ? { ...part, title: "A little house etiquette" } : part),
+    };
+    const translated = {
+      ...longer,
+      description: "Bienvenue au chalet.",
+      sections: longer.sections.map((part, i) =>
+        i === 0 ? { ...part, body: "Le code de la boîte à clés est 4821." }
+          : { ...part, body: "Réseau SmokyRidge_Guest, mot de passe bearden2026." }),
+      extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }],
+    };
+    expect(isTranslationComplete(longer, translated)).toBe(false);
+  });
   it("rejects partial cached translations and accepts complete ones", () => {
     const source = guideText(property);
     const partial = { ...source, description: "Bienvenue au chalet." };
