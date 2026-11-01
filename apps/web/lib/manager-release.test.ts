@@ -28,6 +28,10 @@ describe("Manager commercial checkout safety gate", () => {
       const schema = readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8");
       for (const statement of splitStatements(schema)) await pg.exec(statement);
       expect(await managerSchemaReady()).toBe(true);
+      // A missing inbound event table must also block paid Manager checkout.
+      // A partially migrated deployment cannot safely receive signed PMS events.
+      await pg.exec('DROP TABLE pms_webhook_events');
+      expect(await managerSchemaReady()).toBe(false);
     } finally {
       setQueryOverride(null);
       await pg.close();
