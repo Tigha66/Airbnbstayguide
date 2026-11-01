@@ -45,6 +45,10 @@ export function GuestGuide({
   const [showOriginal, setShowOriginal] = useState(false);
   const t = guestText(language);
   const rtl = isRtl(language);
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dir = rtl ? "rtl" : "ltr";
+  }, [language, rtl]);
   const translated = Boolean(translation && translation.language === language && translation.source === source && !showOriginal);
   const property = original && translated ? applyGuideText(original, translation!.text) : original;
   const [message, setMessage] = useState("");
