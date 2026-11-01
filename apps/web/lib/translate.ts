@@ -81,6 +81,12 @@ async function generateTranslationJson(system: string, prompt: string, maxOutput
   }
 }
 
+function translationErrorCode(error: unknown): string {
+  if (error instanceof Error && error.message.startsWith("Backup translation provider"))
+    return error.message.slice(0, 120);
+  return error instanceof Error ? error.name : "unknown";
+}
+
 export type TranslationOutcome = { text: GuideText; complete: boolean; failedParts: number };
 /** Do not assume that a 200 AI response contains a valid, complete translation. */
 export function isTranslationComplete(source: GuideText, translated: GuideText) {
@@ -129,7 +135,7 @@ export async function translateGuideWithStatus(text: GuideText, language: string
       return { id: s.id, title: out.title.trim() || s.title, body: out.body };
     } catch (error) {
       failedParts++;
-      console.error("[guide-translation] section failed", error instanceof Error ? error.name : "unknown");
+      console.error("[guide-translation] section failed", translationErrorCode(error));
       return s;
     }
   });
@@ -156,7 +162,7 @@ export async function translateGuideWithStatus(text: GuideText, language: string
     });
   } catch (error) {
     failedParts += 1 + text.extras.length;
-    console.error("[guide-translation] welcome/extras failed", error instanceof Error ? error.name : "unknown");
+    console.error("[guide-translation] welcome/extras failed", translationErrorCode(error));
   }
   return { text: { description, sections, extras }, complete: failedParts === 0, failedParts };
 }
