@@ -4,7 +4,7 @@ import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
 
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
-import { guideHash, guideLanguage, guideText, keepsProtected, protectedTokens, translateGuide } from "./translate";
+import { guideHash, guideLanguage, guideText, isTranslationComplete, keepsProtected, protectedTokens, translateGuide, translateGuideWithStatus } from "./translate";
 const mockedAi = vi.mocked(generateJson);
 
 describe("guest interface translations", () => {
@@ -84,6 +84,29 @@ describe("translateGuide", () => {
     expect(out.sections[0].body).toBe("The lockbox code is 4821.");
     expect(out.sections[1].body).toBe("Network SmokyRidge_Guest, password bearden2026.");
     expect(out.extras[0].name).toBe("Late checkout");
+  });
+
+  it("reports failures instead of caching an incomplete guide", async () => {
+    mockedAi.mockRejectedValue(new Error("Provider unavailable"));
+    const outcome = await translateGuideWithStatus(guideText(property), "es");
+    expect(outcome.complete).toBe(false);
+    expect(outcome.failedParts).toBeGreaterThan(0);
+    expect(outcome.text.description).toBe("Welcome to the cabin.");
+    expect(isTranslationComplete(guideText(property), outcome.text)).toBe(false);
+  });
+  it("rejects partial cached translations and accepts complete ones", () => {
+    const source = guideText(property);
+    const partial = { ...source, description: "Bienvenue au chalet." };
+    expect(isTranslationComplete(source, partial)).toBe(false);
+    const complete = {
+      description: "Bienvenue au chalet.",
+      sections: [
+        { id: "arrival", title: "Arrivée", body: "Le code de la boîte à clés est 4821." },
+        { id: "wifi", title: "Wi-Fi", body: "Réseau SmokyRidge_Guest, mot de passe bearden2026." },
+      ],
+      extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }],
+    };
+    expect(isTranslationComplete(source, complete)).toBe(true);
   });
   it("detects the guide's language and changes the cache key when the host edits", () => {
     const text = guideText(property);
