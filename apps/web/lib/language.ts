@@ -51,3 +51,15 @@ export function detectLanguage(text: string): Language | null {
   if (!best || best[1] === 0 || (second && second[1] === best[1])) return null;
   return best[0];
 }
+
+/**
+ * Reject a translation only when enough text clearly identifies a different language.
+ * Short labels, names, codes and otherwise ambiguous text are intentionally inconclusive.
+ */
+export function matchesRequestedLanguage(text: string, requested: string): boolean {
+  const words = text.match(/\p{L}+/gu) ?? [];
+  // A short sample cannot reliably identify a Latin-script language.
+  if (words.length < 12 && !/[؀-ۿ぀-ヿ一-鿿가-힯ऀ-ॿ]/.test(text)) return true;
+  const detected = detectLanguage(text);
+  return detected === null || detected === requested;
+}
