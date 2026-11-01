@@ -102,13 +102,19 @@ function translationErrorCode(error: unknown): string {
 
 export type TranslationOutcome = { text: GuideText; complete: boolean; failedParts: number };
 /** Do not assume that a 200 AI response contains a valid, complete translation. */
+/** Titles containing prose should not remain in the source language. Short labels and Wi-Fi names may stay the same. */
+function translatableTitle(text: string): boolean {
+  return (text.match(/[\\p{L}]{2,}/gu) ?? []).length >= 3;
+}
+
 export function isTranslationComplete(source: GuideText, translated: GuideText) {
   const original = new Map(source.sections.map((s) => [s.id, s]));
   return source.sections.length === translated.sections.length
     && (!source.description.trim() || source.description.trim() !== translated.description.trim())
     && translated.sections.every((s) => {
       const from = original.get(s.id);
-      return Boolean(from && (!from.body.trim() || from.body.trim() !== s.body.trim()));
+      return Boolean(from && (!from.body.trim() || from.body.trim() !== s.body.trim())
+        && (!translatableTitle(from.title) || from.title.trim() !== s.title.trim()));
     })
     && source.extras.length === translated.extras.length
     && source.extras.every((e) => {
@@ -141,7 +147,8 @@ export async function translateGuideWithStatus(text: GuideText, language: string
           30000,
         ),
       );
-      if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title) || (s.body.trim() && s.body.trim() === out.body.trim())) {
+      if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title) || (s.body.trim() && s.body.trim() === out.body.trim())
+        || (translatableTitle(s.title) && s.title.trim() === out.title.trim())) {
         failedParts++;
         return s;
       }
