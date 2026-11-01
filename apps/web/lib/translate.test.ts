@@ -5,7 +5,7 @@ import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
 import { detectLanguage } from "./language";
-import { guideHash, guideLanguage, guideText, isTranslationComplete, keepsProtected, protectedTokens, translateGuide, translateGuideWithStatus } from "./translate";
+import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, translateGuide, translateGuideWithStatus } from "./translate";
 const mockedAi = vi.mocked(generateJson);
 
 describe("guest interface translations", () => {
@@ -85,6 +85,32 @@ describe("translateGuide", () => {
     expect(out.sections[0].body).toBe("The lockbox code is 4821.");
     expect(out.sections[1].body).toBe("Network SmokyRidge_Guest, password bearden2026.");
     expect(out.extras[0].name).toBe("Late checkout");
+  });
+
+
+  it("never accepts Spanish guide content as a complete French translation", async () => {
+    const source = guideText(property);
+    const spanish = {
+      description: "Bienvenido a la cabaña. Aquí encontrarás todas las instrucciones para tu estancia.",
+      sections: [
+        { id: "arrival", title: "Llegada", body: "El código de la caja de llaves es 4821." },
+        { id: "wifi", title: "Wi-Fi", body: "La red es SmokyRidge_Guest y la contraseña es bearden2026." },
+      ],
+      extras: [{ id: "late", name: "Salida tardía", description: "Puede salir a las 2 PM." }],
+    };
+    expect(isExpectedGuideLanguage(spanish, "fr")).toBe(false);
+    expect(isTranslationComplete(source, spanish, "fr")).toBe(false);
+
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      if (input.body?.includes("4821")) return { title: spanish.sections[0].title, body: spanish.sections[0].body };
+      if (input.body) return { title: spanish.sections[1].title, body: spanish.sections[1].body };
+      return { description: spanish.description, extras: spanish.extras };
+    });
+    const result = await translateGuideWithStatus(source, "fr");
+    expect(result.complete).toBe(false);
+    expect(result.failedParts).toBeGreaterThan(0);
+    expect(result.text).toEqual(source);
   });
 
   it("reports failures instead of caching an incomplete guide", async () => {
