@@ -41,6 +41,7 @@ export function GuestGuide({
   const source = original ? translationSource(original) : "";
   const [translation, setTranslation] = useState<{ language: string; source: string; text: GuideText } | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [translationWarning, setTranslationWarning] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
   const t = guestText(language);
   const rtl = isRtl(language);
@@ -72,6 +73,7 @@ export function GuestGuide({
     queueMicrotask(() => {
       if (cancelled) return;
       setShowOriginal(false);
+      setTranslationWarning(false);
       const saved = readGuestTranslation(cacheKey, source);
       if (saved) {
         setTranslation({ language, source, text: saved });
@@ -80,15 +82,27 @@ export function GuestGuide({
       }
       setTranslating(true);
       fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((body: { translated?: boolean; text?: GuideText } | null) => {
-          if (cancelled) return;
-          if (body?.translated && body.text) {
-            setTranslation({ language, source, text: body.text });
-            writeGuestTranslation(cacheKey, source, body.text);
-          } else setTranslation(null);
+        .then(async (res) => {
+          if (!res.ok) throw new Error("Translation unavailable");
+          return (await res.json()) as { translated?: boolean; alreadyInLanguage?: boolean; partial?: boolean; text?: GuideText };
         })
-        .catch(() => {})
+        .then((body) => {
+          if (cancelled) return;
+          if (body.translated && body.text) {
+            setTranslation({ language, source, text: body.text });
+            setTranslationWarning(Boolean(body.partial));
+            if (!body.partial) writeGuestTranslation(cacheKey, source, body.text);
+          } else {
+            setTranslation(null);
+            setTranslationWarning(!body.alreadyInLanguage);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setTranslation(null);
+            setTranslationWarning(true);
+          }
+        })
         .finally(() => {
           if (!cancelled) setTranslating(false);
         });
@@ -281,16 +295,21 @@ export function GuestGuide({
             <div className="guest-welcome">
               <h2>{t.welcome}</h2>
               <p>{property.description}</p>
-              {(translating || translation?.language === language) && (
+              {(translating || translation?.language === language || translationWarning) && (
                 <p className="translation-note" role="status">
                   {translating ? (
                     t.translating
                   ) : (
                     <>
-                      {showOriginal ? null : <span>{t.translated} · </span>}
-                      <button type="button" onClick={() => setShowOriginal((v) => !v)}>
-                        {showOriginal ? t.showTranslation : t.showOriginal}
-                      </button>
+                      {translation?.language === language && (
+                        <>
+                          {showOriginal ? null : <span>{t.translated} · </span>}
+                          <button type="button" onClick={() => setShowOriginal((v) => !v)}>
+                            {showOriginal ? t.showTranslation : t.showOriginal}
+                          </button>
+                        </>
+                      )}
+                      {translationWarning && <span> {t.translationWarning}</span>}
                     </>
                   )}
                 </p>
