@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { GuideText, Property } from "@stayguide/shared";
 import { generateJson } from "./ai";
-import { detectLanguage } from "./language";
+import { detectLanguage, matchesRequestedLanguage } from "./language";
 
 export type { GuideText };
 
@@ -107,9 +107,20 @@ function translatableTitle(text: string): boolean {
   return (text.match(/\p{L}{2,}/gu) ?? []).length >= 3;
 }
 
-export function isTranslationComplete(source: GuideText, translated: GuideText) {
+/** Do not accept translations or caches that are clearly written in another language. */
+export function isExpectedGuideLanguage(text: GuideText, requestedLanguage: string): boolean {
+  const prose = [
+    text.description,
+    ...text.sections.flatMap((s) => [s.title, s.body]),
+    ...text.extras.flatMap((e) => [e.name, e.description]),
+  ].join(" ");
+  return matchesRequestedLanguage(prose, requestedLanguage);
+}
+
+export function isTranslationComplete(source: GuideText, translated: GuideText, requestedLanguage?: string) {
   const original = new Map(source.sections.map((s) => [s.id, s]));
-  return source.sections.length === translated.sections.length
+  return (!requestedLanguage || isExpectedGuideLanguage(translated, requestedLanguage))
+    && source.sections.length === translated.sections.length
     && (!source.description.trim() || source.description.trim() !== translated.description.trim())
     && translated.sections.every((s) => {
       const from = original.get(s.id);
@@ -184,7 +195,12 @@ export async function translateGuideWithStatus(text: GuideText, language: string
     failedParts += 1 + text.extras.length;
     console.error("[guide-translation] welcome/extras failed", translationErrorCode(error));
   }
-  return { text: { description, sections, extras }, complete: failedParts === 0, failedParts };
+  const translated = { description, sections, extras };
+  if (failedParts === 0 && !isExpectedGuideLanguage(translated, language)) {
+    console.error("[guide-translation] provider returned the wrong target language", { requestedLanguage: language });
+    return { text, complete: false, failedParts: 1 };
+  }
+  return { text: translated, complete: failedParts === 0, failedParts };
 }
 
 /** Kept for existing callers; use translateGuideWithStatus when serving guest content. */
