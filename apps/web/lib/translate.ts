@@ -73,7 +73,20 @@ async function generateTranslationJson(system: string, prompt: string, maxOutput
       signal: AbortSignal.timeout(Math.min(timeoutMs, 20000)),
       cache: "no-store",
     });
-    if (!response.ok) throw new Error(`Backup translation provider returned HTTP ${response.status}`);
+    if (!response.ok) {
+      let reason = "unknown";
+      try {
+        const payload = (await response.json()) as { error?: { status?: string; message?: string } };
+        const message = (payload.error?.message ?? "").toLowerCase();
+        const classification = message.includes("api key") ? "api-key" :
+          message.includes("model") ? "model" :
+          message.includes("quota") ? "quota" :
+          message.includes("location") ? "region" :
+          message.includes("field") ? "request-shape" : "other";
+        reason = `${payload.error?.status ?? "unknown"}:${classification}`;
+      } catch { /* No provider response body; do not log secrets. */ }
+      throw new Error(`Backup translation provider returned HTTP ${response.status} (${reason})`);
+    }
     const data = (await response.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
     const output = data.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("").trim();
     if (!output) throw new Error("Backup translation provider returned no text");
