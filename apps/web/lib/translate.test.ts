@@ -9,8 +9,8 @@ import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTransla
 const mockedAi = vi.mocked(generateJson);
 
 describe("guest interface translations", () => {
-  it("has every text in English, French, Spanish, German and Arabic", () => {
-    expect(guestUiLanguages).toEqual(["en", "fr", "es", "de", "ar"]);
+  it("has every text in all 12 guest UI languages", () => {
+    expect(guestUiLanguages).toEqual(["en", "fr", "es", "de", "it", "pt", "nl", "ar", "ja", "zh", "ko", "hi"]);
     const keys = Object.keys(guestText("en")).sort();
     for (const lang of guestUiLanguages) {
       const t = guestText(lang);
@@ -22,9 +22,21 @@ describe("guest interface translations", () => {
     }
     expect(guestText("fr").welcome).toBe("Bienvenue, faites comme chez vous.");
     expect(guestText("ar").navStay).toBe("إقامتك");
+    for (const lang of guestUiLanguages) {
+      for (const field of ["chatIntro", "wifiCopied", "wifiShow"] as const) {
+        const sourceMarkers = [...guestText("en")[field].matchAll(/\\{[^}]+\\}/g)].map(m => m[0]).sort();
+        const translatedMarkers = [...guestText(lang)[field].matchAll(/\\{[^}]+\\}/g)].map(m => m[0]).sort();
+        expect(translatedMarkers, `${lang}.${field} must preserve all placeholders`).toEqual(sourceMarkers);
+      }
+    }
   });
-  it("falls back to English for other languages and marks Arabic as right-to-left", () => {
-    expect(guestText("it")).toBe(guestText("en"));
+  it("localizes all supported languages and only falls back for unknown ones", () => {
+    for (const lang of ["it", "pt", "nl", "ja", "zh", "ko", "hi"]) {
+      expect(guestText(lang).welcome).not.toBe(guestText("en").welcome);
+      expect(guestText(lang).navStay).not.toBe(guestText("en").navStay);
+      expect(guestText(lang).requestHelp).not.toBe(guestText("en").requestHelp);
+    }
+    expect(guestText("xx")).toBe(guestText("en"));
     expect(guestText("de").welcome).toBe("Willkommen, fühlen Sie sich wie zu Hause.");
     expect(isRtl("ar")).toBe(true);
     expect(isRtl("fr")).toBe(false);
