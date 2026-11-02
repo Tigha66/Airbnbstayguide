@@ -33,8 +33,8 @@ describe("guest interface translations", () => {
   it("preserves Arabic time display without changing stored guide data", () => {
     const original = "تسجيل الوصول: 3:00 PM، تسجيل المغادرة: 11:00 AM";
     const rendered = isolateClockTimes(original, true);
-    expect(rendered).toContain("\\u20663:00 PM\\u2069");
-    expect(rendered).toContain("\\u206611:00 AM\\u2069");
+    expect(rendered).toContain(String.fromCharCode(0x2066) + "3:00 PM" + String.fromCharCode(0x2069));
+    expect(rendered).toContain(String.fromCharCode(0x2066) + "11:00 AM" + String.fromCharCode(0x2069));
     expect(isolateClockTimes(original, false)).toBe(original);
   });
   it("localizes all supported languages and only falls back for unknown ones", () => {
