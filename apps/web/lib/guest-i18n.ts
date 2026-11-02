@@ -422,3 +422,9 @@ export function guestText(language: string): GuestText {
 export function fill(template: string, values: Record<string, string>) {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
 }
+
+/** Preserve left-to-right reading of clock times inside Arabic guide prose. Presentation only. */
+export function isolateClockTimes(text: string, rtl: boolean): string {
+  if (!rtl) return text;
+  return text.replace(/\b\d{1,2}:[0-5]\d\s*(?:AM|PM)\b/gi, (clock) => `\u2066${clock}\u2069`);
+}
