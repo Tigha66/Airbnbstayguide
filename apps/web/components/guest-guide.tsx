@@ -369,13 +369,13 @@ export function GuestGuide({
             >
               <span>
                 {t.checkIn}{" "}
-                <strong style={{ color: "var(--ink)" }}>
+                <strong dir="ltr" style={{ color: "var(--ink)", unicodeBidi: "isolate" }}>
                   {property.checkIn}
                 </strong>
               </span>
               <span>
                 {t.checkOut}{" "}
-                <strong style={{ color: "var(--ink)" }}>
+                <strong dir="ltr" style={{ color: "var(--ink)", unicodeBidi: "isolate" }}>
                   {property.checkOut}
                 </strong>
               </span>
