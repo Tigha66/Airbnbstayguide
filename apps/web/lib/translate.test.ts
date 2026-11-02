@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { applyGuideText, demoAnswer, demoProperties } from "@stayguide/shared";
-import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
+import { guestText, guestUiLanguages, isRtl, fill, isolateClockTimes } from "./guest-i18n";
 
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
@@ -29,6 +29,13 @@ describe("guest interface translations", () => {
         expect(translatedMarkers, `${lang}.${field} must preserve all placeholders`).toEqual(sourceMarkers);
       }
     }
+  });
+  it("preserves Arabic time display without changing stored guide data", () => {
+    const original = "تسجيل الوصول: 3:00 PM، تسجيل المغادرة: 11:00 AM";
+    const rendered = isolateClockTimes(original, true);
+    expect(rendered).toContain("\\u20663:00 PM\\u2069");
+    expect(rendered).toContain("\\u206611:00 AM\\u2069");
+    expect(isolateClockTimes(original, false)).toBe(original);
   });
   it("localizes all supported languages and only falls back for unknown ones", () => {
     for (const lang of ["it", "pt", "nl", "ja", "zh", "ko", "hi"]) {
