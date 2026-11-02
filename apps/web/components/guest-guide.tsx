@@ -15,7 +15,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, type GuideText, type Property } from "@stayguide/shared";
 import { useDemo } from "@/lib/demo-store";
-import { fill, guestText, isRtl } from "@/lib/guest-i18n";
+import { fill, guestText, isRtl, isolateClockTimes } from "@/lib/guest-i18n";
 import { Logo, GuideIcon } from "./ui";
 import { ExtraReceipt } from "./extra-receipt";
 import { readGuestSetting, writeGuestSetting, readGuestTranslation, writeGuestTranslation, translationSource } from "@/lib/guest-storage";
@@ -392,7 +392,7 @@ export function GuestGuide({
                   <ChevronRight size={15} />
                 </summary>
                 <div className="markdown">
-                  <ReactMarkdown>{section.body}</ReactMarkdown>
+                  <ReactMarkdown>{isolateClockTimes(section.body, rtl)}</ReactMarkdown>
                 </div>
               </details>
             ))}
