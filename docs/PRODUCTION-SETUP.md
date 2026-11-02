@@ -38,12 +38,12 @@ database to repair configuration.
 | Variable | Value |
 | --- | --- |
 | `RESEND_API_KEY` | The private sending key from Resend |
-| `EMAIL_FROM` | `StayGuide <hello@getstayguide.com>` |
+| `EMAIL_FROM` | `StayGuide <notifications@getstayguide.com>` |
 | `NEXT_PUBLIC_APP_URL` | `https://www.getstayguide.com` |
 
 If you verify a subdomain instead, the sender address must use that verified
 subdomain. Resend sending-domain verification does not create a support inbox;
-keep `hello@getstayguide.com` receiving mail through your mailbox provider.
+use the real support inbox `abdelhaktirha@gmail.com` for receiving replies; the verified Resend sending address does not require a receiving mailbox.
 
 Save the variables, then deploy the repaired production source. If it is already
 deployed, use Deployments > the latest production deployment > Redeploy. Redeploying
