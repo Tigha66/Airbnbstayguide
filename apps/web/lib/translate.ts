@@ -114,7 +114,7 @@ async function inBatches<T, R>(items: T[], size: number, run: (item: T) => Promi
  */
 export function splitGuideBody(body: string, maxChars = 700): string[] {
   if (body.length <= maxChars) return [body];
-  const words = body.match(/[^\\s]+(?:[ \\t]+)?|\\s+/gu) ?? [body];
+  const words = body.match(/[^\s]+(?:[ \t]+)?|\s+/gu) ?? [body];
   const chunks: string[] = [];
   let current = "";
   for (const word of words) {
@@ -130,8 +130,8 @@ export function splitGuideBody(body: string, maxChars = 700): string[] {
 
 /** Keep the exact original whitespace around each translated chunk. */
 function keepChunkBoundaries(source: string, translated: string): string {
-  const leading = source.match(/^\\s*/u)?.[0] ?? "";
-  const trailing = source.match(/\\s*$/u)?.[0] ?? "";
+  const leading = source.match(/^\s*/u)?.[0] ?? "";
+  const trailing = source.match(/\s*$/u)?.[0] ?? "";
   return leading + translated.trim() + trailing;
 }
 
@@ -153,7 +153,7 @@ export async function translateGuideWithStatus(text: GuideText, language: string
       try {
         const out = sectionSchema.parse(
           await generateTranslationJson(
-            `Translate this holiday-rental guide section into ${target}. This is part ${index + 1} of ${inputs.length}; translate only the provided body.\\n${RULES}\\nRespond with JSON only: {"title":"...","body":"..."}`,
+            `Translate this holiday-rental guide section into ${target}. This is part ${index + 1} of ${inputs.length}; translate only the provided body.\n${RULES}\nRespond with JSON only: {"title":"...","body":"..."}`,
             JSON.stringify({ title: s.title, body }),
             tokensFor(s.title + body),
             40000,
@@ -175,7 +175,7 @@ export async function translateGuideWithStatus(text: GuideText, language: string
       }
     });
     const result = { id: s.id, title: chunks[0]?.title.trim() || s.title, body: chunks.map((p) => p.body).join("") };
-    if (s.body.trim() && result.body.trim() === s.body.trim() && failedParts === 0) failedParts++;
+    if (s.body.trim() && result.body.trim() === s.body.trim() ) failedParts++;
     return result;
   });
   // Run the separate welcome/extras translation at the same time as the guide;
