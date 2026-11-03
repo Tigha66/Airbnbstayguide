@@ -42,6 +42,7 @@ export function GuestGuide({
   const [translation, setTranslation] = useState<{ language: string; source: string; text: GuideText } | null>(null);
   const [translating, setTranslating] = useState(false);
   const [translationWarning, setTranslationWarning] = useState(false);
+  const [welcomeTranslation, setWelcomeTranslation] = useState<{ language: string; source: string; description: string } | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
   const t = guestText(language);
   const rtl = isRtl(language);
@@ -51,6 +52,10 @@ export function GuestGuide({
   }, [language, rtl]);
   const translated = Boolean(translation && translation.language === language && translation.source === source && !showOriginal);
   const property = original && translated ? applyGuideText(original, translation!.text) : original;
+  const welcomeLocalized = Boolean(!showOriginal && !translated && welcomeTranslation
+    && welcomeTranslation.language === language && welcomeTranslation.source === source);
+  const welcomeDescription = welcomeLocalized ? welcomeTranslation!.description : property?.description;
+  const welcomePending = translating && language !== "en" && !showOriginal && !translated && !welcomeLocalized;
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
@@ -74,15 +79,37 @@ export function GuestGuide({
     if (!(liveGuide || sample)) return;
     let cancelled = false;
     const cacheKey = `stayguide-translation-v2-${slug}-${language}`;
+    const welcomeKey = `stayguide-welcome-v1-${slug}-${language}`;
     queueMicrotask(() => {
       if (cancelled) return;
       setShowOriginal(false);
       setTranslationWarning(false);
+      setWelcomeTranslation(null);
       const saved = readGuestTranslation(cacheKey, source, language);
       if (saved) {
         setTranslation({ language, source, text: saved });
         setTranslating(false);
         return;
+      }
+      // A welcome-only request is independent of lengthy guide instructions.
+      // Store only validated server responses, bound to the exact current guide source.
+      let cachedWelcome = false;
+      try {
+        const stored = JSON.parse(readGuestSetting(welcomeKey) ?? "null") as { source?: string; description?: string } | null;
+        if (stored?.source === source && typeof stored.description === "string" && stored.description.trim()) {
+          setWelcomeTranslation({ language, source, description: stored.description });
+          cachedWelcome = true;
+        }
+      } catch { /* Ignore corrupt browser cache. */ }
+      if (language !== "en" && !cachedWelcome) {
+        void fetch(`/api/v1/guides/${slug}/translation?lang=${language}&scope=welcome`)
+          .then(async (res) => res.ok ? await res.json() as { translated?: boolean; description?: string } : null)
+          .then((body) => {
+            if (cancelled || !body?.translated || !body.description?.trim()) return;
+            setWelcomeTranslation({ language, source, description: body.description });
+            writeGuestSetting(welcomeKey, JSON.stringify({ source, description: body.description }));
+          })
+          .catch(() => { /* Full-guide request remains independent. */ });
       }
       setTranslating(true);
       fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
@@ -298,7 +325,7 @@ export function GuestGuide({
           <>
             <div className="guest-welcome">
               <h2>{t.welcome}</h2>
-              <p>{property.description}</p>
+              <p>{welcomePending ? t.translating : welcomeDescription}</p>
               {(translating || translation?.language === language || translationWarning) && (
                 <p className="translation-note" role="status">
                   {translating ? (
