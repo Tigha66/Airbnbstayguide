@@ -55,6 +55,21 @@ test("an independently translated welcome survives a full guide failure", async 
   await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
 });
 
+test("all 11 translated guest locales avoid silent English fallback during provider outages", async ({ page }) => {
+  await page.route("**/api/v1/guides/casa-serena/translation?*", (route) =>
+    route.fulfill({ status: 503, json: { code: "TRANSLATION_UNAVAILABLE" } }),
+  );
+  await page.goto("/g/casa-serena");
+  for (const locale of ["fr", "es", "de", "it", "pt", "nl", "ar", "ja", "zh", "ko", "hi"]) {
+    await page.locator("select.guest-language").selectOption(locale);
+    await expect(page.locator("select.guest-language")).toHaveValue(locale);
+    await expect(page).toHaveURL(new RegExp(`[?&]lang=${locale}(?:&|$)`));
+    await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+    await expect(page.locator(".guest-section")).toHaveCount(0);
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+  }
+});
+
 test("guest language and approved welcome persist through reload and a provider outage", async ({ page }) => {
   const translatedWelcome = "Bienvenido a nuestro alojamiento. Aquí encontrarás información útil para tu estancia.";
   await page.route("**/api/v1/guides/casa-serena/translation?lang=es&scope=welcome", (route) =>
