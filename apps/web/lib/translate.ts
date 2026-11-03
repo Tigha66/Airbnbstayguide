@@ -109,6 +109,32 @@ async function inBatches<T, R>(items: T[], size: number, run: (item: T) => Promi
   for (let i = 0; i < items.length; i += size) out.push(...(await Promise.all(items.slice(i, i + size).map(run))));
   return out;
 }
+/** Break long guides at whitespace boundaries so HCN can translate shorter responses.
+ * Preserve all original characters, including Markdown newlines and protected tokens.
+ */
+export function splitGuideBody(body: string, maxChars = 700): string[] {
+  if (body.length <= maxChars) return [body];
+  const words = body.match(/[^\\s]+(?:[ \\t]+)?|\\s+/gu) ?? [body];
+  const chunks: string[] = [];
+  let current = "";
+  for (const word of words) {
+    if (current && current.length + word.length > maxChars) {
+      chunks.push(current);
+      current = "";
+    }
+    current += word;
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+
+/** Keep the exact original whitespace around each translated chunk. */
+function keepChunkBoundaries(source: string, translated: string): string {
+  const leading = source.match(/^\\s*/u)?.[0] ?? "";
+  const trailing = source.match(/\\s*$/u)?.[0] ?? "";
+  return leading + translated.trim() + trailing;
+}
+
 const tokensFor = (text: string) => Math.min(4000, Math.ceil(text.length / 2) + 300);
 
 /**
@@ -118,53 +144,74 @@ const tokensFor = (text: string) => Math.min(4000, Math.ceil(text.length / 2) + 
 export async function translateGuideWithStatus(text: GuideText, language: string): Promise<TranslationOutcome> {
   let failedParts = 0;
   const target = languageNames[language] ?? "English";
-  const sections = await inBatches(text.sections, 4, async (s) => {
+  // The test apartment contains one long section; translating it in one model
+  // call has repeatedly hit the 30s HCN deadline. Translate bounded chunks.
+  const sectionsPromise = inBatches(text.sections, 2, async (s) => {
+    const inputs = splitGuideBody(s.body).map((body, index) => ({ body, index }));
+    const chunks = await inBatches(inputs, 3, async ({ body, index }) => {
+      if (!body.trim()) return { title: s.title, body };
+      try {
+        const out = sectionSchema.parse(
+          await generateTranslationJson(
+            `Translate this holiday-rental guide section into ${target}. This is part ${index + 1} of ${inputs.length}; translate only the provided body.\\n${RULES}\\nRespond with JSON only: {"title":"...","body":"..."}`,
+            JSON.stringify({ title: s.title, body }),
+            tokensFor(s.title + body),
+            40000,
+          ),
+        );
+        const translatedBody = keepChunkBoundaries(body, out.body);
+        if (!out.body.trim() || !keepsProtected(body, translatedBody) || !keepsProtected(s.title, out.title)
+          || (body.trim() && translatedBody.trim() === body.trim())
+          || (index === 0 && translatableTitle(s.title) && s.title.trim() === out.title.trim())) {
+          failedParts++;
+          console.error("[guide-translation] chunk rejected", { language, reason: "unchanged-or-unsafe" });
+          return { title: s.title, body };
+        }
+        return { title: out.title, body: translatedBody };
+      } catch (error) {
+        failedParts++;
+        console.error("[guide-translation] section failed", translationErrorCode(error));
+        return { title: s.title, body };
+      }
+    });
+    const result = { id: s.id, title: chunks[0]?.title.trim() || s.title, body: chunks.map((p) => p.body).join("") };
+    if (s.body.trim() && result.body.trim() === s.body.trim() && failedParts === 0) failedParts++;
+    return result;
+  });
+  // Run the separate welcome/extras translation at the same time as the guide;
+  // it must not add another 30 seconds after a slow section call.
+  const extrasPromise = (async () => {
+    if (!text.description.trim() && text.extras.length === 0) {
+      return { description: text.description, extras: text.extras };
+    }
+    let description = text.description;
+    let extras = text.extras;
     try {
-      const out = sectionSchema.parse(
+      const out = extrasSchema.parse(
         await generateTranslationJson(
-          `Translate this holiday-rental guide section into ${target}.\n${RULES}\nRespond with JSON only: {"title":"...","body":"..."}`,
-          JSON.stringify({ title: s.title, body: s.body }),
-          tokensFor(s.title + s.body),
+          `Translate this holiday-rental welcome text and list of paid extras into ${target}. Keep every "id" unchanged.\n${RULES}\nRespond with JSON only: {"description":"...","extras":[{"id":"...","name":"...","description":"..."}]}`,
+          JSON.stringify({ description: text.description, extras: text.extras }),
+          tokensFor(JSON.stringify(text.extras) + text.description),
           30000,
         ),
       );
-      if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title) || (s.body.trim() && s.body.trim() === out.body.trim())
-        || (translatableTitle(s.title) && s.title.trim() === out.title.trim())) {
+      if (out.description.trim() && keepsProtected(text.description, out.description) && (!text.description.trim() || out.description.trim() !== text.description.trim())) description = out.description;
+      else if (text.description.trim()) failedParts++;
+      extras = text.extras.map((e) => {
+        const t = out.extras.find((x) => x.id === e.id);
+        if (t && t.name.trim() && keepsProtected(e.name + " " + e.description, t.name + " " + t.description)
+          && (!e.description.trim() || t.description.trim() !== e.description.trim()))
+          return { id: e.id, name: t.name, description: t.description };
         failedParts++;
-        return s;
-      }
-      return { id: s.id, title: out.title.trim() || s.title, body: out.body };
+        return e;
+      });
     } catch (error) {
-      failedParts++;
-      console.error("[guide-translation] section failed", translationErrorCode(error));
-      return s;
+      failedParts += 1 + text.extras.length;
+      console.error("[guide-translation] welcome/extras failed", translationErrorCode(error));
     }
-  });
-  let description = text.description;
-  let extras = text.extras;
-  try {
-    const out = extrasSchema.parse(
-      await generateTranslationJson(
-        `Translate this holiday-rental welcome text and list of paid extras into ${target}. Keep every "id" unchanged.\n${RULES}\nRespond with JSON only: {"description":"...","extras":[{"id":"...","name":"...","description":"..."}]}`,
-        JSON.stringify({ description: text.description, extras: text.extras }),
-        tokensFor(JSON.stringify(text.extras) + text.description),
-        30000,
-      ),
-    );
-    if (out.description.trim() && keepsProtected(text.description, out.description) && (!text.description.trim() || out.description.trim() !== text.description.trim())) description = out.description;
-    else if (text.description.trim()) failedParts++;
-    extras = text.extras.map((e) => {
-      const t = out.extras.find((x) => x.id === e.id);
-      if (t && t.name.trim() && keepsProtected(e.name + " " + e.description, t.name + " " + t.description)
-        && (!e.description.trim() || t.description.trim() !== e.description.trim()))
-        return { id: e.id, name: t.name, description: t.description };
-      failedParts++;
-      return e;
-    });
-  } catch (error) {
-    failedParts += 1 + text.extras.length;
-    console.error("[guide-translation] welcome/extras failed", translationErrorCode(error));
-  }
+    return { description, extras };
+  })();
+  const [sections, { description, extras }] = await Promise.all([sectionsPromise, extrasPromise]);
   const translated = { description, sections, extras };
   if (failedParts === 0 && !isExpectedGuideLanguage(translated, language)) {
     console.error("[guide-translation] provider returned the wrong target language", { requestedLanguage: language });
