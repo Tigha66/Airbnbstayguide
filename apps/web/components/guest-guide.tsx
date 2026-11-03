@@ -16,6 +16,7 @@ import ReactMarkdown from "react-markdown";
 import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, type GuideText, type Property } from "@stayguide/shared";
 import { useDemo } from "@/lib/demo-store";
 import { fill, guestText, isRtl, isolateClockTimes } from "@/lib/guest-i18n";
+import { detectLanguage } from "@/lib/language";
 import { Logo, GuideIcon } from "./ui";
 import { ExtraReceipt } from "./extra-receipt";
 import { readGuestSetting, writeGuestSetting, readGuestTranslation, writeGuestTranslation, translationSource } from "@/lib/guest-storage";
@@ -39,6 +40,11 @@ export function GuestGuide({
   const [tab, setTab] = useState("guide");
   const [language, setLanguage] = useState("en");
   const source = original ? translationSource(original) : "";
+  // Match the server's source-language detection. Guides authored in Spanish,
+  // Arabic, etc. should remain readable in their own language without an AI call.
+  const sourceLanguage = original ? detectLanguage(
+    [original.description, ...original.sections.map((part) => `${part.title}. ${part.body}`)].join("\n").slice(0, 4000),
+  ) ?? "en" : "en";
   const [translation, setTranslation] = useState<{ language: string; source: string; text: GuideText } | null>(null);
   const [translating, setTranslating] = useState(false);
   const [translationWarning, setTranslationWarning] = useState(false);
@@ -56,7 +62,7 @@ export function GuestGuide({
     && welcomeTranslation.language === language && welcomeTranslation.source === source);
   // Never display the original English guide as though it matched the guest's locale.
   // The guest can explicitly reveal original instructions if translation is unavailable.
-  const guideNeedsTranslation = language !== "en" && !showOriginal && !translated;
+  const guideNeedsTranslation = language !== sourceLanguage && !showOriginal && !translated;
   const welcomeNeedsTranslation = guideNeedsTranslation && !welcomeLocalized;
   const welcomeDescription = welcomeLocalized ? welcomeTranslation!.description
     : welcomeNeedsTranslation ? (translationWarning ? t.translationWarning : t.translating)
@@ -106,7 +112,7 @@ export function GuestGuide({
           cachedWelcome = true;
         }
       } catch { /* Ignore corrupt browser cache. */ }
-      if (language !== "en" && !cachedWelcome) {
+      if (language !== sourceLanguage && !cachedWelcome) {
         void fetch(`/api/v1/guides/${slug}/translation?lang=${language}&scope=welcome`, { cache: "no-store" })
           .then(async (res) => res.ok ? await res.json() as { translated?: boolean; description?: string } : null)
           .then((body) => {
