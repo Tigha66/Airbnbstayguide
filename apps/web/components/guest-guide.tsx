@@ -102,7 +102,7 @@ export function GuestGuide({
         }
       } catch { /* Ignore corrupt browser cache. */ }
       if (language !== "en" && !cachedWelcome) {
-        void fetch(`/api/v1/guides/${slug}/translation?lang=${language}&scope=welcome`)
+        void fetch(`/api/v1/guides/${slug}/translation?lang=${language}&scope=welcome`, { cache: "no-store" })
           .then(async (res) => res.ok ? await res.json() as { translated?: boolean; description?: string } : null)
           .then((body) => {
             if (cancelled || !body?.translated || !body.description?.trim()) return;
@@ -112,7 +112,7 @@ export function GuestGuide({
           .catch(() => { /* Full-guide request remains independent. */ });
       }
       setTranslating(true);
-      fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
+      fetch(`/api/v1/guides/${slug}/translation?lang=${language}`, { cache: "no-store" })
         .then(async (res) => {
           if (!res.ok) throw new Error("Translation unavailable");
           return (await res.json()) as { translated?: boolean; alreadyInLanguage?: boolean; partial?: boolean; text?: GuideText };
