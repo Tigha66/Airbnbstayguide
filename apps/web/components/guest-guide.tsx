@@ -96,6 +96,12 @@ export function GuestGuide({
       setShowOriginal(false);
       setTranslationWarning(false);
       setWelcomeTranslation(null);
+      if (language === sourceLanguage) {
+        // The host's original is already in the selected language.
+        setTranslation(null);
+        setTranslating(false);
+        return;
+      }
       const saved = readGuestTranslation(cacheKey, source, language);
       if (saved) {
         setTranslation({ language, source, text: saved });
@@ -152,7 +158,7 @@ export function GuestGuide({
     return () => {
       cancelled = true;
     };
-  }, [liveGuide, sample, slug, language, source]);
+  }, [liveGuide, sample, slug, language, source, sourceLanguage]);
   useEffect(() => {
     if (!liveGuide || !threadId) return;
     const load = async () => {
