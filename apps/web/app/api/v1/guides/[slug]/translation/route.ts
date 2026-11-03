@@ -33,10 +33,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const key = sample ? `sample:${slug}` : property.id;
   const hash = guideHash(text);
   if (dbConfigured()) {
-    if (scope === "all") {
-      const cached = await getGuideTranslation(key, language, hash).catch(() => null);
-      // Previously cached partial translations must be reattempted rather than shown as complete.
-      if (cached && isTranslationComplete(text, cached, language)) return NextResponse.json({ translated: true, cached: true, text: cached });
+    const cached = await getGuideTranslation(key, language, hash).catch(() => null);
+    // Use only complete, source-matched translations; partial or stale data is rejected.
+    if (cached && isTranslationComplete(text, cached, language)) {
+      if (scope === "welcome")
+        return NextResponse.json({ translated: true, cached: true, scope: "welcome", description: cached.description },
+          { headers: { "Cache-Control": "private, no-store" } });
+      return NextResponse.json({ translated: true, cached: true, text: cached },
+        { headers: { "Cache-Control": "private, no-store" } });
     }
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const bucket = createHash("sha256").update(`translate:${ip}`).digest("hex");
