@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { applyGuideText, demoAnswer, demoProperties } from "@stayguide/shared";
 import { guestText, guestUiLanguages, isRtl, fill, isolateClockTimes } from "./guest-i18n";
 
@@ -7,6 +7,7 @@ import { generateJson } from "./ai";
 import { detectLanguage } from "./language";
 import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, translateGuide, translateGuideWithStatus } from "./translate";
 const mockedAi = vi.mocked(generateJson);
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("guest interface translations", () => {
   it("has every text in all 12 guest UI languages", () => {
@@ -130,6 +131,21 @@ describe("translateGuide", () => {
     expect(result.complete).toBe(false);
     expect(result.failedParts).toBeGreaterThan(0);
     expect(result.text).toEqual(source);
+  });
+
+  it("never calls Google when the configured HCN model fails", async () => {
+    vi.stubEnv("AI_PROVIDER", "openai-compatible");
+    vi.stubEnv("AI_BASE_URL", "https://api.hcnsec.cn/v1");
+    vi.stubEnv("GOOGLE_GENERATIVE_AI_API_KEY", "invalid-google-fallback");
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    mockedAi.mockRejectedValue(Object.assign(new Error("HCN unavailable"), { statusCode: 401 }));
+
+    const outcome = await translateGuideWithStatus(guideText(property), "fr");
+
+    expect(outcome.complete).toBe(false);
+    expect(outcome.failedParts).toBeGreaterThan(0);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("reports failures instead of caching an incomplete guide", async () => {
