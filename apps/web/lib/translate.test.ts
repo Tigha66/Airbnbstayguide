@@ -5,7 +5,7 @@ import { guestText, guestUiLanguages, isRtl, fill, isolateClockTimes } from "./g
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
 import { detectLanguage } from "./language";
-import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, translateGuide, translateGuideWithStatus } from "./translate";
+import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, splitGuideBody, translateGuide, translateGuideWithStatus } from "./translate";
 const mockedAi = vi.mocked(generateJson);
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
@@ -65,6 +65,16 @@ describe("guide translation safety", () => {
   });
 });
 
+  it("splits long Markdown at whitespace without changing codes, times or content", () => {
+    const source = ("- Close the windows before leaving.\\n- Check-out at 11:00 AM.\\n").repeat(24)
+      + "Wi-Fi password: DemoOnly2026, lockbox: 4821.";
+    const parts = splitGuideBody(source, 240);
+    expect(parts.length).toBeGreaterThan(3);
+    expect(parts.join("")).toBe(source);
+    expect(parts.every((part) => part.length <= 240)).toBe(true);
+    expect(protectedTokens(parts.join(""))).toEqual(protectedTokens(source));
+  });
+
 describe("translateGuide", () => {
   const property = {
     ...demoProperties[0],
@@ -94,6 +104,33 @@ describe("translateGuide", () => {
     expect(applied.sections[0].body).toContain("4821");
     expect(applied.extras[0].price).toBe(3500); // prices and other fields are never translated
   });
+  it("translates a long guide using small HCN-compatible chunks", async () => {
+    const source = {
+      description: "",
+      sections: [{
+        id: "arrival", title: "Arrival and house instructions",
+        body: "Please close the windows before departure.\\n".repeat(45) + "The door code is 4821.",
+      }],
+      extras: [],
+    };
+    mockedAi.mockImplementation(async (_system, prompt) => {
+      const input = JSON.parse(String(prompt)) as { title?: string; body?: string };
+      if (!input.body) throw new Error("Unexpected extras translation");
+      return {
+        title: "Llegada e instrucciones de la casa",
+        body: "Por favor, cierre las ventanas antes de salir. "
+          + (input.body.includes("4821") ? "El código de acceso es 4821." : ""),
+      };
+    });
+    const translated = await translateGuideWithStatus(source, "es");
+    expect(mockedAi.mock.calls.length).toBeGreaterThan(1);
+    expect(translated.complete).toBe(true);
+    expect(translated.failedParts).toBe(0);
+    expect(translated.text.sections[0].body).toContain("4821");
+    expect(translated.text.sections[0].body).toContain("Por favor");
+    expect(translated.text.sections[0].title).toBe("Llegada e instrucciones de la casa");
+  });
+
   it("keeps the original when the AI changes a code or fails", async () => {
     mockedAi.mockImplementation(async (...args: unknown[]) => {
       const input = JSON.parse(String(args[1]));
