@@ -54,8 +54,13 @@ export function GuestGuide({
   const property = original && translated ? applyGuideText(original, translation!.text) : original;
   const welcomeLocalized = Boolean(!showOriginal && !translated && welcomeTranslation
     && welcomeTranslation.language === language && welcomeTranslation.source === source);
-  const welcomeDescription = welcomeLocalized ? welcomeTranslation!.description : property?.description;
-  const welcomePending = translating && language !== "en" && !showOriginal && !translated && !welcomeLocalized;
+  // Never display the original English guide as though it matched the guest's locale.
+  // The guest can explicitly reveal original instructions if translation is unavailable.
+  const guideNeedsTranslation = language !== "en" && !showOriginal && !translated;
+  const welcomeNeedsTranslation = guideNeedsTranslation && !welcomeLocalized;
+  const welcomeDescription = welcomeLocalized ? welcomeTranslation!.description
+    : welcomeNeedsTranslation ? (translationWarning ? t.translationWarning : t.translating)
+    : property?.description;
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
@@ -179,7 +184,11 @@ export function GuestGuide({
       history.replaceState(null, "", location.pathname);
     }
     // The guest's saved choice, otherwise the phone's language.
-    const preferred = readGuestSetting("stayguide-language") || navigator.language.split("-")[0];
+    // A shareable ?lang= code overrides browser defaults and survives reloads.
+    // Existing saved selections still work when the query parameter is absent.
+    const requested = params.get("lang");
+    const preferred = requested && languages.includes(requested as (typeof languages)[number])
+      ? requested : readGuestSetting("stayguide-language") || navigator.language.split("-")[0];
     if (languages.includes(preferred as (typeof languages)[number]))
       queueMicrotask(() => setLanguage(preferred));
     const update = () => setOffline(!navigator.onLine);
@@ -286,8 +295,13 @@ export function GuestGuide({
             aria-label={t.languageLabel}
             value={language}
             onChange={(e) => {
-              setLanguage(e.target.value);
-              writeGuestSetting("stayguide-language", e.target.value);
+              const nextLanguage = e.target.value;
+              setLanguage(nextLanguage);
+              writeGuestSetting("stayguide-language", nextLanguage);
+              // Persist the guest's choice in the URL as well as browser storage.
+              const nextUrl = new URL(window.location.href);
+              nextUrl.searchParams.set("lang", nextLanguage);
+              window.history.replaceState(window.history.state, "", nextUrl.pathname + nextUrl.search + nextUrl.hash);
             }}
             className="guest-language"
           >
@@ -325,20 +339,20 @@ export function GuestGuide({
           <>
             <div className="guest-welcome">
               <h2>{t.welcome}</h2>
-              <p>{welcomePending ? t.translating : welcomeDescription}</p>
+              <p>{welcomeDescription}</p>
               {(translating || translation?.language === language || translationWarning) && (
                 <p className="translation-note" role="status">
-                  {translating ? (
+                  {showOriginal ? (
+                    <button type="button" onClick={() => setShowOriginal(false)}>{t.showTranslation}</button>
+                  ) : translating ? (
                     t.translating
                   ) : (
                     <>
-                      {translation?.language === language && (
-                        <>
-                          {showOriginal ? null : <span>{t.translated} · </span>}
-                          <button type="button" onClick={() => setShowOriginal((v) => !v)}>
-                            {showOriginal ? t.showTranslation : t.showOriginal}
-                          </button>
-                        </>
+                      {translated && <span>{t.translated} · </span>}
+                      {(translated || welcomeLocalized || guideNeedsTranslation) && (
+                        <button type="button" onClick={() => setShowOriginal(true)}>
+                          {t.showOriginal}
+                        </button>
                       )}
                       {translationWarning && <span> {t.translationWarning}</span>}
                     </>
@@ -411,7 +425,14 @@ export function GuestGuide({
               <h2>{t.details}</h2>
               <BookOpen size={16} color="#8e9a7e" />
             </div>
-            {property.sections.map((section) => (
+            {guideNeedsTranslation ? (
+              <div className="notice" role="status">
+                <p>{translating ? t.translating : t.translationWarning}</p>
+                <button className="text-link" type="button" onClick={() => setShowOriginal(true)}>
+                  {t.showOriginal}
+                </button>
+              </div>
+            ) : property.sections.map((section) => (
               <details className="guest-section" key={section.id}>
                 <summary>
                   <GuideIcon name={section.icon} />
@@ -568,7 +589,14 @@ export function GuestGuide({
                 {t.sampleExtras}
               </div>
             )}
-            {property.extras.length ? (
+            {guideNeedsTranslation ? (
+              <div className="notice" role="status">
+                <p>{translating ? t.translating : t.translationWarning}</p>
+                <button className="text-link" type="button" onClick={() => setShowOriginal(true)}>
+                  {t.showOriginal}
+                </button>
+              </div>
+            ) : property.extras.length ? (
               property.extras.map((extra) => (
                 <article className="card guest-extra" key={extra.id}>
                   <span className="stat-icon">
