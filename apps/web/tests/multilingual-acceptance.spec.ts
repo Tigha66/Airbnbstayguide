@@ -40,6 +40,21 @@ test("Arabic marketing is right-to-left at mobile width", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
+test("an independently translated welcome survives a full guide failure", async ({ page }) => {
+  const welcome = "Bienvenido a nuestro alojamiento. Todo está preparado para su estancia.";
+  await page.route("**/api/v1/guides/casa-serena/translation?lang=es&scope=welcome", (route) =>
+    route.fulfill({ status: 200, json: { translated: true, scope: "welcome", description: welcome } }),
+  );
+  await page.route("**/api/v1/guides/casa-serena/translation?lang=es", (route) =>
+    route.fulfill({ status: 503, json: { error: "Translation unavailable", code: "TRANSLATION_UNAVAILABLE" } }),
+  );
+  await page.goto("/g/casa-serena");
+  await page.getByRole("combobox", { name: "Language" }).selectOption("es");
+  await expect(page.getByText(welcome, { exact: true })).toBeVisible();
+  await expect(page.getByText(/No se ha podido traducir toda la información/)).toBeVisible();
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+});
+
 test("a failed guest translation shows an honest message in Spanish", async ({ page }) => {
   await page.route("**/api/v1/guides/casa-serena/translation?lang=es", (route) =>
     route.fulfill({ status: 503, json: { error: "Translation temporarily unavailable", code: "TRANSLATION_UNAVAILABLE" } }),
