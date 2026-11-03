@@ -5,7 +5,7 @@ import { guestText, guestUiLanguages, isRtl, fill, isolateClockTimes } from "./g
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
 import { detectLanguage } from "./language";
-import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, splitGuideBody, translateGuide, translateGuideWithStatus } from "./translate";
+import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, splitGuideBody, translateGuide, translateGuideWelcome, translateGuideWithStatus } from "./translate";
 const mockedAi = vi.mocked(generateJson);
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
@@ -74,6 +74,35 @@ describe("guide translation safety", () => {
     expect(parts.every((part) => part.length <= 240)).toBe(true);
     expect(protectedTokens(parts.join(""))).toEqual(protectedTokens(source));
   });
+
+describe("independent welcome translation", () => {
+  const source = "Welcome to our apartment. Check-in is at 3:00 PM. Wi-Fi StayGuide_Guest_Test, password DemoOnly2026.";
+  const translations = [
+    ["fr", "Bienvenue dans notre appartement. L'arrivée est à 3:00 PM. Le réseau Wi-Fi est StayGuide_Guest_Test et son mot de passe est DemoOnly2026."],
+    ["es", "Bienvenido a nuestro apartamento. La llegada es a las 3:00 PM. La red Wi-Fi es StayGuide_Guest_Test y la contraseña es DemoOnly2026."],
+    ["de", "Willkommen in unserem Apartment. Der Check-in ist um 3:00 PM. Das WLAN-Netzwerk ist StayGuide_Guest_Test und das Passwort lautet DemoOnly2026."],
+    ["ar", "مرحبًا بكم في شقتنا. موعد تسجيل الوصول 3:00 PM. شبكة الواي فاي هي StayGuide_Guest_Test وكلمة المرور هي DemoOnly2026."],
+  ] as const;
+  for (const [language, translated] of translations) {
+    it(`translates only the welcome to ${language} while retaining access details`, async () => {
+      mockedAi.mockReset();
+      mockedAi.mockResolvedValueOnce({ description: translated });
+      expect(await translateGuideWelcome(source, language)).toBe(translated);
+      expect(mockedAi).toHaveBeenCalledTimes(1);
+      expect(keepsProtected(source, translated)).toBe(true);
+    });
+  }
+  it("rejects an altered password instead of displaying an unsafe welcome", async () => {
+    mockedAi.mockReset();
+    mockedAi.mockResolvedValueOnce({ description: translations[1][1].replace("DemoOnly2026", "Modified2026") });
+    expect(await translateGuideWelcome(source, "es")).toBeNull();
+  });
+  it("rejects an unchanged English response", async () => {
+    mockedAi.mockReset();
+    mockedAi.mockResolvedValueOnce({ description: source });
+    expect(await translateGuideWelcome(source, "ar")).toBeNull();
+  });
+});
 
 describe("translateGuide", () => {
   const property = {
