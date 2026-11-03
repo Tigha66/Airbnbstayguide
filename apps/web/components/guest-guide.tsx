@@ -29,16 +29,18 @@ type Message = {
 export function GuestGuide({
   slug,
   initial,
+  initialLanguage,
 }: {
   slug: string;
   initial?: Property | null;
+  initialLanguage?: string;
 }) {
   const state = useDemo();
   const liveGuide = Boolean(initial);
   const original = initial ?? state.properties.find((p) => p.slug === slug);
   const sample = !liveGuide && Boolean(original && demoProperties.some((p) => p.slug === slug));
   const [tab, setTab] = useState("guide");
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState(initialLanguage || "en");
   const source = original ? translationSource(original) : "";
   // Match the server's source-language detection. Guides authored in Spanish,
   // Arabic, etc. should remain readable in their own language without an AI call.
@@ -200,7 +202,7 @@ export function GuestGuide({
     // Existing saved selections still work when the query parameter is absent.
     const requested = params.get("lang");
     const preferred = requested && languages.includes(requested as (typeof languages)[number])
-      ? requested : readGuestSetting("stayguide-language") || navigator.language.split("-")[0];
+      ? requested : readGuestSetting("stayguide-language") || initialLanguage || navigator.language.split("-")[0];
     if (languages.includes(preferred as (typeof languages)[number]))
       queueMicrotask(() => setLanguage(preferred));
     const update = () => setOffline(!navigator.onLine);
@@ -217,7 +219,7 @@ export function GuestGuide({
       window.removeEventListener("offline", update);
       window.removeEventListener("beforeinstallprompt", install);
     };
-  }, []);
+  }, [initialLanguage]);
   function notify(text: string) {
     setToast(text);
     setTimeout(() => setToast(""), 4500);
@@ -310,6 +312,9 @@ export function GuestGuide({
               const nextLanguage = e.target.value;
               setLanguage(nextLanguage);
               writeGuestSetting("stayguide-language", nextLanguage);
+              // A non-sensitive SameSite cookie makes server rendering honour the
+              // saved language before client hydration on the next visit.
+              document.cookie = `stayguide-guest-language=${encodeURIComponent(nextLanguage)}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
               // Persist the guest's choice in the URL as well as browser storage.
               const nextUrl = new URL(window.location.href);
               nextUrl.searchParams.set("lang", nextLanguage);
