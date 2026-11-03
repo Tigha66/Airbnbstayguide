@@ -51,7 +51,7 @@ test("an independently translated welcome survives a full guide failure", async 
   await page.goto("/g/casa-serena");
   await page.getByRole("combobox", { name: "Language" }).selectOption("es");
   await expect(page.getByText(welcome, { exact: true })).toBeVisible();
-  await expect(page.getByText(/No se ha podido traducir toda la información/)).toBeVisible();
+  await expect(page.getByText(/No se ha podido traducir toda la información/).first()).toBeVisible();
   await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
 });
 
@@ -125,7 +125,7 @@ test("a failed guest translation shows an honest message in Spanish", async ({ p
   );
   await page.goto("/g/casa-serena");
   await page.getByRole("combobox", { name: "Language" }).selectOption("es");
-  await expect(page.getByText(/No se ha podido traducir toda la información/)).toBeVisible();
+  await expect(page.getByText(/No se ha podido traducir toda la información/).first()).toBeVisible();
   // Failed translation cannot silently masquerade as Spanish using English text.
   await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Ver original" }).first().click();
