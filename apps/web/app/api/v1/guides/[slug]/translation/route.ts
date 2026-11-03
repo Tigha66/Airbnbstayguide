@@ -25,7 +25,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const text = guideText(property);
   // Already in the requested language: nothing to translate.
   if (guideLanguage(text) === language) return NextResponse.json({ translated: false, alreadyInLanguage: true });
-  if (!aiConfigured() && !process.env.GOOGLE_GENERATIVE_AI_API_KEY) return unavailable("Translation");
+  if (!aiConfigured()) return unavailable("Translation");
 
   const key = sample ? `sample:${slug}` : property.id;
   const hash = guideHash(text);
