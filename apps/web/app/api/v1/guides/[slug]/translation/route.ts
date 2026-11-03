@@ -28,7 +28,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const text = guideText(property);
   // Already in the requested language: nothing to translate.
   if (guideLanguage(text) === language) return NextResponse.json({ translated: false, alreadyInLanguage: true });
-  if (!aiConfigured()) return unavailable("Translation");
+  // Serve valid saved translations even during an AI provider outage.
+  // Existing translated guides must never depend on a live HCN request.
 
   const key = sample ? `sample:${slug}` : property.id;
   const hash = guideHash(text);
@@ -47,6 +48,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     if (!(await consumeRateLimit(bucket, 20, 3600)))
       return NextResponse.json({ error: "Please try again later." }, { status: 429 });
   }
+  // The live provider is required only for cache misses, not for saved translations.
+  if (!aiConfigured()) return unavailable("Translation");
+
   // A short welcome can succeed even when a longer house-instruction translation times out.
   // It is returned separately and must never be presented as a fully translated guide.
   if (scope === "welcome") {
@@ -69,7 +73,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     return NextResponse.json({ error: "Translation temporarily unavailable", code: "TRANSLATION_UNAVAILABLE" }, { status: 503 });
   }
   // Serve only complete translations. Never cache or display mixed-language instructions.
-  if (dbConfigured() && process.env.VERCEL_ENV !== "preview")
-    await saveGuideTranslation(key, language, hash, result.text).catch(() => {});
+  // Preview caching is allowed only by an explicit branch-scoped opt-in with
+  // an isolated staging DATABASE_URL; other Preview branches remain read-only.
+  const previewWriteAllowed = process.env.VERCEL_ENV === "preview"
+    && process.env.STAYGUIDE_PREVIEW_TRANSLATION_CACHE_WRITE === "true"
+    && process.env.VERCEL_GIT_COMMIT_REF === "fix/guest-ui-seven-locales-20261102";
+  if (dbConfigured() && (process.env.VERCEL_ENV !== "preview" || previewWriteAllowed))
+    await saveGuideTranslation(key, language, hash, result.text).catch(() => {
+      console.error("[guide-translation] validated cache save failed", { language });
+    });
   return NextResponse.json({ translated: true, text: result.text });
 }
