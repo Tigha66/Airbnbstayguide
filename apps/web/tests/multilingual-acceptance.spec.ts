@@ -70,6 +70,25 @@ test("all 11 translated guest locales avoid silent English fallback during provi
   }
 });
 
+test("a saved Arabic selection survives clean URL visits without an English first render", async ({ page }) => {
+  await page.route("**/api/v1/guides/casa-serena/translation?*", (route) =>
+    route.fulfill({ status: 503, json: { code: "TRANSLATION_UNAVAILABLE" } }),
+  );
+  await page.goto("/g/casa-serena");
+  await page.locator("select.guest-language").selectOption("ar");
+  await expect(page.locator(".guest-page")).toHaveAttribute("dir", "rtl");
+
+  // Reopen the guide without the query: the same-site cookie must preserve the
+  // chosen language in the HTML returned by Next.js, before any JS loads.
+  const response = await page.request.get("/g/casa-serena");
+  expect(response.ok()).toBe(true);
+  const html = await response.text();
+  expect(html).toContain('class="guest-page" dir="rtl" lang="ar"');
+  await page.goto("/g/casa-serena");
+  await expect(page.locator("select.guest-language")).toHaveValue("ar");
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+});
+
 test("guest language and approved welcome persist through reload and a provider outage", async ({ page }) => {
   const translatedWelcome = "Bienvenido a nuestro alojamiento. Aquí encontrarás información útil para tu estancia.";
   await page.route("**/api/v1/guides/casa-serena/translation?lang=es&scope=welcome", (route) =>
