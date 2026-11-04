@@ -1,0 +1,55 @@
+name: GetStayGuide production read-only smoke
+
+on:
+  push:
+    branches:
+      - fix/stayguide-resend-env-alias-20261104
+    paths:
+      - .github/workflows/stayguide-production-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-endpoints:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read-only production endpoint checks
+        shell: bash
+        env:
+          SITE: https://www.getstayguide.com
+        run: |
+          set -euo pipefail
+          for path in / /login /forgot-password /api/v1/status; do
+            code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --location --silent --show-error --output /tmp/sg-response --write-out '%{http_code}' "$SITE$path")
+            echo "$path -> HTTP $code"
+            if [[ "$code" != "200" ]]; then
+              echo "::error::Public endpoint $path returned HTTP $code"
+              exit 1
+            fi
+            if [[ "$path" == "/api/v1/status" ]]; then
+              cp /tmp/sg-response /tmp/sg-status.json
+            fi
+          done
+          node - <<'NODE'
+          const fs = require('fs');
+          const s = JSON.parse(fs.readFileSync('/tmp/sg-status.json', 'utf8'));
+          if (!Array.isArray(s.services) || typeof s.ok !== 'boolean') {
+            console.error('Invalid API status payload'); process.exit(1);
+          }
+          const expected = ['database','accounts','email','ai','payments'];
+          for (const key of expected) {
+            const v = s.services.find(x => x.key === key);
+            if (!v || typeof v.ok !== 'boolean') {
+              console.error('Missing or invalid service', key); process.exit(1);
+            }
+            console.log(key + ': ' + (v.ok ? 'configured' : 'NOT_CONFIGURED'));
+          }
+          if (!s.ok) {
+            console.error('One or more production services are not configured. Configuration is not an E2E delivery test.');
+            process.exit(1);
+          }
+          console.log('All public endpoints reachable and all expected services report configured.');
+          NODE
