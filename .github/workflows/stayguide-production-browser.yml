@@ -1,0 +1,67 @@
+name: GetStayGuide production browser locale acceptance
+
+on:
+  push:
+    branches:
+      - fix/stayguide-resend-env-alias-20261104
+    paths:
+      - .github/workflows/stayguide-production-browser.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guest-locale-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: '10.32.1'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm --filter @stayguide/web exec playwright install --with-deps chromium
+      - name: Validate live mobile language picker and Arabic RTL, without invoking paid AI
+        run: |
+          cd apps/web
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'en-GB' });
+          try {
+            // Intercept generated translations: this job verifies PUBLIC UI language
+            // controls independently from the separate HCN provider acceptance job.
+            await page.route('**/api/v1/guides/**/translation?lang=*', (route) =>
+              route.fulfill({ status: 200, contentType: 'application/json', body: '{"translated":false}' }));
+            const res = await page.goto('https://www.getstayguide.com/g/casa-serena', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            if (res?.status() !== 200) throw new Error('Guest guide did not load');
+            const chooser = page.locator('select.guest-language');
+            await chooser.waitFor({ timeout: 15000 });
+            const expectations = [
+              ['en', 'Welcome, make yourself at home.', 'ltr'],
+              ['fr', 'Bienvenue, faites comme chez vous.', 'ltr'],
+              ['es', 'Bienvenido, estás en tu casa.', 'ltr'],
+              ['de', 'Willkommen, fühlen Sie sich wie zu Hause.', 'ltr'],
+              ['ar', 'أهلًا وسهلًا، البيت بيتك.', 'rtl']
+            ];
+            for (const [lang, welcome, dir] of expectations) {
+              await chooser.selectOption(lang);
+              await page.waitForFunction(([language, text, direction]) => {
+                const root = document.querySelector('.guest-page');
+                return root?.getAttribute('lang') === language &&
+                  root?.getAttribute('dir') === direction &&
+                  document.querySelector('.guest-welcome h2')?.textContent?.trim() === text;
+              }, [lang, welcome, dir], { timeout: 15000 });
+              console.log('Production mobile guest UI: ' + lang + ' correctly rendered; direction=' + dir);
+            }
+          } finally {
+            await browser.close();
+          }
+          JS
