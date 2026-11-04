@@ -162,30 +162,45 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
     }
   }));
 
-  const extrasJob = (async () => {
+  const welcomeJob = (async () => {
     try {
-      const result = extrasSchema.parse(await generateJson(
-        `Translate this holiday-rental welcome and list of extras into ${target}. Keep every ID unchanged.\n${RULES}\nReturn JSON only: {"description":"...","extras":[{"id":"...","name":"...","description":"..."}]}`,
-        JSON.stringify({ description: text.description, extras: text.extras }),
-        Math.max(8192, tokensFor(JSON.stringify(text.extras) + text.description)),
+      const result = z.object({ description: z.string() }).parse(await generateJson(
+        `Translate this holiday-rental welcome paragraph into ${target}.\n${RULES}\nReturn JSON only: {"description":"..."}`,
+        JSON.stringify({ description: text.description }),
+        8192,
         45000,
         model,
       ));
-      const description = result.description.trim() && keepsProtected(text.description, result.description)
+      return result.description.trim() && keepsProtected(text.description, result.description)
         ? result.description : text.description;
-      const extras = text.extras.map((original) => {
+    } catch (error) {
+      reportPreviewTranslationError("welcome", error);
+      return text.description;
+    }
+  })();
+
+  const extrasJob = (async () => {
+    if (!text.extras.length) return text.extras;
+    try {
+      const result = z.object({ extras: z.array(z.object({ id: z.string(), name: z.string(), description: z.string() })) }).parse(await generateJson(
+        `Translate these holiday-rental paid extras into ${target}. Keep every ID unchanged.\n${RULES}\nReturn JSON only: {"extras":[{"id":"...","name":"...","description":"..."}]}`,
+        JSON.stringify({ extras: text.extras }),
+        8192,
+        45000,
+        model,
+      ));
+      return text.extras.map((original) => {
         const item = result.extras.find((x) => x.id === original.id);
         if (!item?.name.trim() || !keepsProtected(original.name + " " + original.description, item.name + " " + item.description))
           return original;
         return { id: original.id, name: item.name, description: item.description };
       });
-      return { description, extras };
     } catch (error) {
       reportPreviewTranslationError("extras", error);
-      return { description: text.description, extras: text.extras };
+      return text.extras;
     }
   })();
 
-  const [sectionGroups, extraResult] = await Promise.all([sectionJob, extrasJob]);
-  return { description: extraResult.description, extras: extraResult.extras, sections: sectionGroups.flat() };
+  const [sectionGroups, description, extras] = await Promise.all([sectionJob, welcomeJob, extrasJob]);
+  return { description, extras, sections: sectionGroups.flat() };
 }
