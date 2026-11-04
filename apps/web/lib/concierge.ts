@@ -85,9 +85,12 @@ export async function aiAnswer(property: Property, question: string, language: s
     conciergeSystemPrompt(`${facts}\n\n${context}`, languageNames[language] ?? "English") +
       `\nValid citation titles: ${JSON.stringify(["Stay details", ...sections.map((s) => s.title)])}.\nRespond with JSON only, for example {"answer":"...","citations":["Checkout"],"escalate":false}.`,
     question,
-    700,
-    // Guests are waiting: fall back to the keyword search rather than leave them hanging.
-    CONCIERGE_AI_TIMEOUT_MS,
+    // A branch-scoped dedicated model can use the full output budget without
+    // exhausting tokens on HCN reasoning. Production still defaults to auto.
+    process.env.AI_CONCIERGE_MODEL?.trim() ? 8192 : 700,
+    // Guests must never wait for a full-guide generation window.
+    process.env.AI_CONCIERGE_MODEL?.trim() ? 25000 : CONCIERGE_AI_TIMEOUT_MS,
+    process.env.AI_CONCIERGE_MODEL?.trim() || undefined,
   );
   const out = schema.parse(json);
   const valid = new Set(["Stay details", ...sections.map((s) => s.title)]);
