@@ -66,9 +66,9 @@ const tokensFor = (text: string) => Math.min(4000, Math.ceil(text.length / 2) + 
  * Translates a guide section by section. Any piece whose translation fails, or that would
  * change a code or number, keeps its original text.
  */
-export async function translateGuide(text: GuideText, language: string): Promise<GuideText> {
+export async function translateGuide(text: GuideText, language: string, previous?: GuideText): Promise<GuideText> {
   const translationModel = process.env.AI_TRANSLATION_MODEL?.trim();
-  if (translationModel) return translateGuideWithDedicatedModel(text, language, translationModel);
+  if (translationModel) return translateGuideWithDedicatedModel(text, language, translationModel, previous);
   const target = languageNames[language] ?? "English";
   const sections = await inBatches(text.sections, 4, async (s) => {
     try {
@@ -133,13 +133,24 @@ function reportPreviewTranslationError(part: string, error: unknown) {
     " code=" + String(e.code || "unknown").slice(0, 50));
 }
 
-async function translateGuideWithDedicatedModel(text: GuideText, language: string, model: string): Promise<GuideText> {
+async function translateGuideWithDedicatedModel(text: GuideText, language: string, model: string, previous?: GuideText): Promise<GuideText> {
   const target = languageNames[language] ?? "English";
   const batchedSchema = z.object({
     sections: z.array(z.object({ id: z.string(), title: z.string(), body: z.string() })),
   });
+  // Resume only sections that were not safely translated in the previous
+  // request. A separate partial cache is keyed to the guide's source hash.
+  const savedSections = new Map(
+    (previous?.sections ?? []).filter((cached) => {
+      const original = text.sections.find((s) => s.id === cached.id);
+      return original && Boolean(cached.body.trim()) &&
+        (cached.body !== original.body || cached.title !== original.title) &&
+        keepsProtected(original.body, cached.body) && keepsProtected(original.title, cached.title);
+    }).map((s) => [s.id, s] as const),
+  );
+  const pendingSections = text.sections.filter((s) => !savedSections.has(s.id));
   const groups: GuideText["sections"][] = [];
-  for (let i = 0; i < text.sections.length; i += 4) groups.push(text.sections.slice(i, i + 4));
+  for (let i = 0; i < pendingSections.length; i += 4) groups.push(pendingSections.slice(i, i + 4));
 
   const sectionJob = Promise.all(groups.map(async (group) => {
     try {
@@ -163,6 +174,8 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
   }));
 
   const welcomeJob = (async () => {
+    if (previous?.description && previous.description !== text.description &&
+        keepsProtected(text.description, previous.description)) return previous.description;
     try {
       const result = z.object({ description: z.string() }).parse(await generateJson(
         `Translate this holiday-rental welcome paragraph into ${target}.\n${RULES}\nReturn JSON only: {"description":"..."}`,
