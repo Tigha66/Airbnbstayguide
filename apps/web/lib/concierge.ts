@@ -4,7 +4,9 @@ import { conciergeSystemPrompt } from "@stayguide/shared";
 import { generateJson } from "./ai";
 import { guideContext, retrieve } from "./retrieval";
 import { guestText } from "./guest-i18n";
-export const CONCIERGE_AI_TIMEOUT_MS = 12000;
+// HCN auto-routing can exceed the former 12s budget. Keep a hard deadline and
+// preserve the existing grounded keyword fallback when AI is unavailable.
+export const CONCIERGE_AI_TIMEOUT_MS = 20000;
 export type ConciergeAnswer = { answer: string; citations: string[]; escalate: boolean };
 const languageNames: Record<string, string> = { en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian", pt: "Portuguese", nl: "Dutch", ar: "Arabic", ja: "Japanese", zh: "Chinese", ko: "Korean", hi: "Hindi" };
 // Shown when the guide doesn't cover a question; the conversation is escalated to the host.
