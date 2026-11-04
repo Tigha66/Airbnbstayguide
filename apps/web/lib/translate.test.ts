@@ -4,7 +4,7 @@ import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
 
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
-import { guideHash, guideLanguage, guideText, keepsProtected, protectedTokens, translateGuide } from "./translate";
+import { completeGuideTranslation, guideHash, guideLanguage, guideText, keepsProtected, protectedTokens, translateGuide } from "./translate";
 const mockedAi = vi.mocked(generateJson);
 
 describe("guest interface translations", () => {
@@ -32,6 +32,28 @@ describe("guest interface translations", () => {
 });
 
 describe("guide translation safety", () => {
+  it("does not accept incomplete or tampered legacy cached translations", () => {
+    const original = guideText(demoProperties[0]);
+    const translations = {
+      description: "Matins ensoleillés. Après-midis tranquilles. Votre coin à Lisbonne.",
+      sections: original.sections.map(section => ({
+        ...section,
+        title: "Le guide : " + section.title,
+        body: "Votre guide : " + section.body + " Merci.",
+      })),
+      extras: original.extras.map(extra => ({
+        ...extra,
+        name: "Service : " + extra.name,
+        description: "Pour vous : " + extra.description,
+      })),
+    };
+    expect(completeGuideTranslation(original, translations, "fr")).toBe(true);
+    const partial = { ...translations, sections: translations.sections.map((section, i) => i === 1 ? original.sections[i] : section) };
+    expect(completeGuideTranslation(original, partial, "fr")).toBe(false);
+    const wrongCode = { ...translations, sections: translations.sections.map((section, i) => i === 0 ? { ...section, body: "Code remplacé." } : section) };
+    expect(completeGuideTranslation(original, wrongCode, "fr")).toBe(false);
+    expect(completeGuideTranslation(original, translations, "de")).toBe(false);
+  });
   it("finds codes, passwords, times, networks, emails and links that must not change", () => {
     const tokens = protectedTokens('Lockbox code 4821. Wi-Fi "SmokyRidge_Guest", password bearden2026. Check-in 4:00 PM. Mail hi@x.com or see https://x.com/a.');
     expect(tokens).toEqual(expect.arrayContaining(["4821", "SmokyRidge_Guest", "bearden2026", "4", "00", "hi@x.com", "https://x.com/a"]));
