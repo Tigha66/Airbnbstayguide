@@ -16,6 +16,33 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
       !process.env.AI_API_KEY || !process.env.AI_TRANSLATION_MODEL)
     throw new Error("HCN acceptance requires Preview HCN model, provider URL and API key.");
 
+  // Raw OpenAI-compatible probe differentiates bad keys/model routing from
+  // JSON parser errors. Only protocol metadata is logged; never model content.
+  const raw = await fetch(process.env.AI_BASE_URL!.replace(/\\/$/, "") + "/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + process.env.AI_API_KEY, "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(45000),
+    body: JSON.stringify({
+      model: process.env.AI_TRANSLATION_MODEL,
+      max_tokens: 180,
+      messages: [{ role: "user", content: "Return only valid JSON: {\\"result\\":\\"Bonjour\\"}" }]
+    }),
+  });
+  const rawBody = await raw.json() as {
+    error?: { code?: string; type?: string };
+    choices?: Array<{ finish_reason?: string; message?: { content?: string; reasoning_content?: string } }>;
+  };
+  if (!raw.ok) {
+    console.error("HCN raw probe failed HTTP " + raw.status +
+      " providerErrorType=" + String(rawBody.error?.type || "unknown").slice(0, 50) +
+      " providerErrorCode=" + String(rawBody.error?.code || "unknown").slice(0, 50));
+    throw new Error("Preview HCN model or key was rejected by provider");
+  }
+  const first = rawBody.choices?.[0];
+  console.log("HCN raw probe HTTP 200 contentChars=" + String(first?.message?.content?.length || 0) +
+    " reasoningChars=" + String(first?.message?.reasoning_content?.length || 0) +
+    " finishReason=" + String(first?.finish_reason || "unknown").slice(0, 40) +
+    " validJson=" + (() => { try { JSON.parse(first?.message?.content || ""); return true; } catch { return false; } })());
   const original = guideText(demoProperties[0]);
   const languages = (process.env.HCN_PREVIEW_BUILD_LANGUAGES || "fr").split(",").map(x => x.trim()).filter(Boolean);
   const allowed = new Set(["fr", "de", "es", "ar"]);
