@@ -68,6 +68,10 @@ export async function generateJson(system: string, prompt: string, maxOutputToke
     maxOutputTokens,
     abortSignal: AbortSignal.timeout(timeoutMs),
   });
+  if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1")
+    console.log("[hcn-preview-ai] responseChars=" + result.text.length +
+      " containsJsonStart=" + /[\\[{]/.test(result.text) +
+      " finishReason=" + String(result.finishReason || "unknown").slice(0, 30));
   return extractJson(result.text);
 }
 
