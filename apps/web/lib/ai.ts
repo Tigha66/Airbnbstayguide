@@ -26,13 +26,14 @@ export function aiConfigured() {
       return false;
   }
 }
-export function aiModel() {
+export function aiModel(modelOverride?: string) {
   const p = provider();
+  const requestedModel = modelOverride || process.env.AI_MODEL;
   if (p === "huggingface")
-    return createOpenAI({ baseURL: HF_ROUTER, apiKey: process.env.HF_TOKEN }).chat(process.env.AI_MODEL || DEFAULT_HF_MODEL);
+    return createOpenAI({ baseURL: HF_ROUTER, apiKey: process.env.HF_TOKEN }).chat(requestedModel || DEFAULT_HF_MODEL);
   if (p === "openai-compatible")
-    return createOpenAI({ baseURL: process.env.AI_BASE_URL, apiKey: process.env.AI_API_KEY }).chat(process.env.AI_MODEL!);
-  if (p === "openai") return createOpenAI({ apiKey: process.env.OPENAI_API_KEY })(process.env.AI_MODEL!);
+    return createOpenAI({ baseURL: process.env.AI_BASE_URL, apiKey: process.env.AI_API_KEY }).chat(requestedModel!);
+  if (p === "openai") return createOpenAI({ apiKey: process.env.OPENAI_API_KEY })(requestedModel!);
   if (p === "anthropic") return createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })(process.env.AI_MODEL!);
   throw new Error("AI is not configured");
 }
@@ -58,9 +59,9 @@ export function extractJson(text: string): unknown {
   }
   throw new Error("Unterminated JSON in model output");
 }
-export async function generateJson(system: string, prompt: string, maxOutputTokens = 1200, timeoutMs = 25000) {
+export async function generateJson(system: string, prompt: string, maxOutputTokens = 1200, timeoutMs = 25000, modelOverride?: string) {
   const result = await generateText({
-    model: aiModel(),
+    model: aiModel(modelOverride),
     system,
     prompt,
     temperature: 0.2,
