@@ -37,7 +37,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     if (!(await consumeRateLimit(bucket, 20, 3600)))
       return NextResponse.json({ error: "Please try again later." }, { status: 429 });
   }
-  const translated = await translateGuide(text, language);
+  const dedicatedModel = Boolean(process.env.AI_TRANSLATION_MODEL?.trim());
+  const partialKey = `${language}:partial`;
+  // Partial work stays private to this source version and is never served as
+  // a completed translation. Retrying resumes successfully translated pieces.
+  const previous = dedicatedModel && dbConfigured()
+    ? await getGuideTranslation(key, partialKey, hash).catch(() => null)
+    : null;
+  const translated = await translateGuide(text, language, previous ?? undefined);
   const changed = JSON.stringify(translated) !== JSON.stringify(text);
   // Never cache a partially translated guide as if the selected language were
   // complete. The HCN provider may time out on just one of several sections.
@@ -54,11 +61,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       const item = translated.extras[i];
       return item?.id === extra.id && (item.name !== extra.name || item.description !== extra.description);
     });
-    if (!changed || !sectionsComplete || !descriptionComplete || !extrasComplete || guideLanguage(translated) !== language)
+    if (!changed || !sectionsComplete || !descriptionComplete || !extrasComplete || guideLanguage(translated) !== language) {
+      if (dbConfigured()) await saveGuideTranslation(key, partialKey, hash, translated).catch(() => {});
       return NextResponse.json({
-        error: "Translation is temporarily unavailable. The original guide is still available.",
-        code: "TRANSLATION_UNAVAILABLE",
-      }, { status: 503 });
+        error: "Translation is still being prepared. The original guide is available while you retry.",
+        code: "TRANSLATION_INCOMPLETE",
+        retryable: true,
+        translatedSections: text.sections.filter((section, i) => translated.sections[i]?.body !== section.body).length,
+        totalSections: text.sections.length,
+      }, { status: 503, headers: { "Retry-After": "3" } });
+    }
   }
   if (changed && dbConfigured()) await saveGuideTranslation(key, language, hash, translated).catch(() => {});
   return NextResponse.json({ translated: changed, text: changed ? translated : undefined });
