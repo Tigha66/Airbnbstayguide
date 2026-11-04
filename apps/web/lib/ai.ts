@@ -85,7 +85,7 @@ async function generateHcnTranslationJson(system: string, prompt: string, maxOut
         messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
       }),
     });
-    if (response.ok || ![429, 500, 502, 503, 504].includes(response.status) || attempt === 2) break;
+    if (response.ok || ![408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524].includes(response.status) || attempt === 2) break;
     if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1")
       console.log("[hcn-preview-raw-translation] transient HTTP " + response.status + "; retrying once");
     await new Promise(resolve => setTimeout(resolve, 350));
