@@ -87,3 +87,12 @@ jobs:
               exit 1
             fi
           done
+          # A deliberately invalid Stripe signature must be rejected before
+          # any billing event is processed. No real payment or customer ID used.
+          code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --silent --show-error             --output /tmp/sg-bad-webhook --write-out '%{http_code}'             --header 'Content-Type: application/json'             --header 'stripe-signature: t=0,v1=invalid-fixture'             --data-binary '{"id":"evt_not_real","object":"event","type":"invoice.paid","data":{"object":{}}}'             "$SITE/api/stripe/webhook")
+          echo "invalid Stripe webhook signature -> HTTP $code"
+          if [[ "$code" != '400' ]]; then
+            echo "::error::Stripe webhook did not reject an invalid signature"
+            exit 1
+          fi
+          node -e "const fs=require('fs');const body=JSON.parse(fs.readFileSync('/tmp/sg-bad-webhook','utf8'));if(body.error!=='Invalid signature')process.exit(1)"
