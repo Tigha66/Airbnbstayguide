@@ -73,7 +73,7 @@ describe("translateGuide", () => {
       return { description: "Bienvenue au chalet.", extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }] };
     });
     const result = await translateGuide(guideText(property), "fr");
-    expect(mockedAi).toHaveBeenCalledTimes(2);
+    expect(mockedAi).toHaveBeenCalledTimes(3);
     expect(mockedAi.mock.calls.every((call) => call[4] === "sensenova-6.8-flash-lite")).toBe(true);
     expect(result.sections.map((s) => s.title)).toEqual(["Arrivée", "Wi-Fi"]);
     expect(result.sections[0].body).toContain("4821");
@@ -87,7 +87,7 @@ describe("translateGuide", () => {
     const original = guideText(property);
     const out = await translateGuide(original, "de");
     expect(out).toEqual(original);
-    expect(mockedAi).toHaveBeenCalledTimes(2);
+    expect(mockedAi).toHaveBeenCalledTimes(3);
   });
 
   it("translates sections, welcome text and extras", async () => {
