@@ -1,0 +1,46 @@
+name: GetStayGuide production AI translation acceptance
+
+on:
+  push:
+    branches:
+      - fix/stayguide-resend-env-alias-20261104
+    paths:
+      - .github/workflows/stayguide-production-ai-acceptance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  french-sample-translation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Generate one French translation of a public sample guide
+        shell: bash
+        run: |
+          set -euo pipefail
+          # This endpoint may create a cached translation of the PUBLIC sample.
+          # It does not touch any customer's guide and does not perform a payment.
+          url='https://www.getstayguide.com/api/v1/guides/casa-serena/translation?lang=fr'
+          code=$(curl --connect-timeout 10 --max-time 105 --silent --show-error --output /tmp/french.json --write-out '%{http_code}' "$url")
+          echo "French sample translation: HTTP $code"
+          if [[ "$code" != '200' ]]; then
+            echo "::error::French sample guide translation is unavailable (HTTP $code)"
+            exit 1
+          fi
+          node - <<'NODE'
+          const fs = require('fs');
+          const result = JSON.parse(fs.readFileSync('/tmp/french.json', 'utf8'));
+          if (result.translated !== true || !result.text || typeof result.text.description !== 'string') {
+            console.error('French translation was not returned'); process.exit(1);
+          }
+          const description = result.text.description.trim();
+          if (!description || description === 'Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.') {
+            console.error('Original English was returned instead of translated text'); process.exit(1);
+          }
+          if (!Array.isArray(result.text.sections) || result.text.sections.length === 0) {
+            console.error('Guide section translations were not returned'); process.exit(1);
+          }
+          console.log('French sample translation returned structured translated text.');
+          NODE
