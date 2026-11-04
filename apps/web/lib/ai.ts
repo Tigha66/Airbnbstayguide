@@ -68,21 +68,31 @@ export function extractJson(text: string): unknown {
  */
 async function generateHcnTranslationJson(system: string, prompt: string, maxOutputTokens: number, timeoutMs: number, model: string) {
   const endpoint = new URL("/v1/chat/completions", process.env.AI_BASE_URL!);
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.AI_API_KEY}`, "Content-Type": "application/json" },
-    signal: AbortSignal.timeout(timeoutMs),
-    body: JSON.stringify({
-      model,
-      temperature: 0.2,
-      max_tokens: maxOutputTokens,
-      chat_template_kwargs: { enable_thinking: false },
-      messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
-    }),
-  });
-  if (!response.ok) {
+  const signal = AbortSignal.timeout(timeoutMs);
+  let response: Response | null = null;
+  // HCN can temporarily fail to route an otherwise valid model ("get_channel_failed").
+  // Retry transient gateway responses once, using the SAME overall deadline.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${process.env.AI_API_KEY}`, "Content-Type": "application/json" },
+      signal,
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        max_tokens: maxOutputTokens,
+        chat_template_kwargs: { enable_thinking: false },
+        messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
+      }),
+    });
+    if (response.ok || ![429, 500, 502, 503, 504].includes(response.status) || attempt === 2) break;
+    if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1")
+      console.log("[hcn-preview-raw-translation] transient HTTP " + response.status + "; retrying once");
+    await new Promise(resolve => setTimeout(resolve, 350));
+  }
+  if (!response?.ok) {
     // Do not leak provider response bodies, user content, or API keys.
-    throw new Error("HCN translation gateway HTTP " + response.status);
+    throw new Error("HCN translation gateway HTTP " + (response?.status ?? "no-response"));
   }
   const data = await response.json() as {
     choices?: Array<{ finish_reason?: string; message?: { content?: string | null; reasoning?: string | null } }>;
