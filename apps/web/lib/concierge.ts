@@ -4,7 +4,9 @@ import { conciergeSystemPrompt } from "@stayguide/shared";
 import { generateJson } from "./ai";
 import { guideContext, retrieve } from "./retrieval";
 import { guestText } from "./guest-i18n";
-export const CONCIERGE_AI_TIMEOUT_MS = 12000;
+// HCN's auto router can require longer than 12 seconds to select a model and respond.
+// Bound the wait; keep the existing safe keyword fallback on provider failure.
+export const CONCIERGE_AI_TIMEOUT_MS = 20000;
 export type ConciergeAnswer = { answer: string; citations: string[]; escalate: boolean };
 const languageNames: Record<string, string> = { en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian", pt: "Portuguese", nl: "Dutch", ar: "Arabic", ja: "Japanese", zh: "Chinese", ko: "Korean", hi: "Hindi" };
 // Shown when the guide doesn't cover a question; the conversation is escalated to the host.
