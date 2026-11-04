@@ -90,11 +90,15 @@ export async function aiHealthCheck(): Promise<{ ok: boolean; provider: string; 
       model: aiModel(),
       prompt: "Reply with the single word OK.",
       maxOutputTokens: 5,
-      abortSignal: AbortSignal.timeout(15000),
+      abortSignal: AbortSignal.timeout(25000),
     });
-    return { ok: true, provider: p, model, detail: `Answered: ${result.text.trim().slice(0, 40) || "(empty)"}` };
+    const answer = result.text.trim();
+    if (!answer) return { ok: false, provider: p, model, detail: "The AI provider returned an empty response." };
+    return { ok: true, provider: p, model, detail: `Answered: ${answer.slice(0, 40)}` };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (/timeout|timed out|aborted due to timeout/i.test(message) || (error instanceof Error && error.name === "TimeoutError"))
+      return { ok: false, provider: p, model, detail: "Provider request timed out after 25 seconds; the API key may still be valid. Retry or test a sample guide." };
     return { ok: false, provider: p, model, detail: message.slice(0, 300) };
   }
 }

@@ -13,6 +13,7 @@ export type AiHealth = { ok: boolean; provider: string; model: string; detail: s
 export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHealth }) {
   const paying = hosts.filter((h) => h.plan !== "free" && PAYING.has(h.subscriptionStatus ?? ""));
   const paidProperties = paying.reduce((n, h) => n + h.properties, 0);
+  const aiCheckTimedOut = Boolean(ai && !ai.ok && ai.detail.startsWith("Provider request timed out"));
   const monthly = paying.reduce((n, h) => n + plans[h.plan].monthly * Math.max(1, h.properties), 0);
   const totals = [
     ["Hosts", hosts.length],
@@ -44,7 +45,7 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
       </div>
       {ai && (
         <div className={`card admin-health ${ai.ok ? "ok" : "bad"}`} role="status">
-          <strong>{ai.ok ? "AI concierge is working" : "AI concierge is NOT working: guests get keyword answers"}</strong>
+          <strong>{ai.ok ? "AI concierge is working" : aiCheckTimedOut ? "AI check timed out — retry; guest answers may fall back to guide keywords" : "AI concierge is NOT working: guests get keyword answers"}</strong>
           <small>
             Provider: {ai.provider} · Model: {ai.model || "—"} · {ai.detail}
           </small>

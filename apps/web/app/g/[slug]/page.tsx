@@ -1,5 +1,6 @@
 import { GuestGuide } from "@/components/guest-guide";
-import { demoProperties, type Property } from "@stayguide/shared";
+import { demoProperties, languages, type Property } from "@stayguide/shared";
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 import { dbConfigured } from "@/lib/db";
 import { getPublishedProperty } from "@/lib/repo";
@@ -30,9 +31,17 @@ export async function generateMetadata({
 }
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ lang?: string }>;
 }) {
   const { slug } = await params;
-  return <GuestGuide slug={slug} initial={await loadProperty(slug)} />;
+  const query = await searchParams;
+  const saved = (await cookies()).get("stayguide-guest-language")?.value;
+  const requested = [query.lang, saved].find((value) =>
+    value && languages.includes(value as (typeof languages)[number]));
+  // Rendering in the selected locale on the server prevents an initial English
+  // flash on reload before the client restores localStorage.
+  return <GuestGuide slug={slug} initial={await loadProperty(slug)} initialLanguage={requested} />;
 }

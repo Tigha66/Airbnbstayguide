@@ -40,12 +40,94 @@ test("Arabic marketing is right-to-left at mobile width", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
+test("an independently translated welcome survives a full guide failure", async ({ page }) => {
+  const welcome = "Bienvenido a nuestro alojamiento. Todo está preparado para su estancia.";
+  await page.route("**/api/v1/guides/casa-serena/translation?lang=es&scope=welcome", (route) =>
+    route.fulfill({ status: 200, json: { translated: true, scope: "welcome", description: welcome } }),
+  );
+  await page.route("**/api/v1/guides/casa-serena/translation?lang=es", (route) =>
+    route.fulfill({ status: 503, json: { error: "Translation unavailable", code: "TRANSLATION_UNAVAILABLE" } }),
+  );
+  await page.goto("/g/casa-serena");
+  await page.getByRole("combobox", { name: "Language" }).selectOption("es");
+  await expect(page.getByText(welcome, { exact: true })).toBeVisible();
+  await expect(page.getByText(/No se ha podido traducir toda la información/).first()).toBeVisible();
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+});
+
+test("all 11 translated guest locales avoid silent English fallback during provider outages", async ({ page }) => {
+  await page.route("**/api/v1/guides/casa-serena/translation?*", (route) =>
+    route.fulfill({ status: 503, json: { code: "TRANSLATION_UNAVAILABLE" } }),
+  );
+  await page.goto("/g/casa-serena");
+  for (const locale of ["fr", "es", "de", "it", "pt", "nl", "ar", "ja", "zh", "ko", "hi"]) {
+    await page.locator("select.guest-language").selectOption(locale);
+    await expect(page.locator("select.guest-language")).toHaveValue(locale);
+    await expect(page).toHaveURL(new RegExp(`[?&]lang=${locale}(?:&|$)`));
+    await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+    await expect(page.locator(".guest-section")).toHaveCount(0);
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
+  }
+});
+
+test("a saved Arabic selection survives clean URL visits without an English first render", async ({ page }) => {
+  await page.route("**/api/v1/guides/casa-serena/translation?*", (route) =>
+    route.fulfill({ status: 503, json: { code: "TRANSLATION_UNAVAILABLE" } }),
+  );
+  await page.goto("/g/casa-serena");
+  await page.locator("select.guest-language").selectOption("ar");
+  await expect(page.locator(".guest-page")).toHaveAttribute("dir", "rtl");
+
+  // Reopen the guide without the query: the same-site cookie must preserve the
+  // chosen language in the HTML returned by Next.js, before any JS loads.
+  const response = await page.request.get("/g/casa-serena");
+  expect(response.ok()).toBe(true);
+  const html = await response.text();
+  expect(html).toContain('class="guest-page" dir="rtl" lang="ar"');
+  await page.goto("/g/casa-serena");
+  await expect(page.locator("select.guest-language")).toHaveValue("ar");
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+});
+
+test("guest language and approved welcome persist through reload and a provider outage", async ({ page }) => {
+  const translatedWelcome = "Bienvenido a nuestro alojamiento. Aquí encontrarás información útil para tu estancia.";
+  await page.route("**/api/v1/guides/casa-serena/translation?lang=es&scope=welcome", (route) =>
+    route.fulfill({ status: 200, json: { translated: true, scope: "welcome", description: translatedWelcome } }),
+  );
+  await page.route("**/api/v1/guides/casa-serena/translation?lang=es", (route) =>
+    route.fulfill({ status: 503, json: { code: "TRANSLATION_UNAVAILABLE" } }),
+  );
+  await page.goto("/g/casa-serena");
+  await page.locator("select.guest-language").selectOption("es");
+  await expect(page.getByText(translatedWelcome, { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/[?&]lang=es(?:&|$)/);
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+
+  // A failed live request after reload must not wipe the last safe translation.
+  await page.reload();
+  await expect(page.locator("select.guest-language")).toHaveValue("es");
+  await expect(page.getByText(translatedWelcome, { exact: true })).toBeVisible();
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+
+  // Switching languages and back must restore the source-matched saved welcome.
+  await page.route("**/api/v1/guides/casa-serena/translation?lang=de**", (route) =>
+    route.fulfill({ status: 503, json: { code: "TRANSLATION_UNAVAILABLE" } }),
+  );
+  await page.locator("select.guest-language").selectOption("de");
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+  await page.locator("select.guest-language").selectOption("es");
+  await expect(page.getByText(translatedWelcome, { exact: true })).toBeVisible();
+});
+
 test("a failed guest translation shows an honest message in Spanish", async ({ page }) => {
   await page.route("**/api/v1/guides/casa-serena/translation?lang=es", (route) =>
     route.fulfill({ status: 503, json: { error: "Translation temporarily unavailable", code: "TRANSLATION_UNAVAILABLE" } }),
   );
   await page.goto("/g/casa-serena");
   await page.getByRole("combobox", { name: "Language" }).selectOption("es");
-  await expect(page.getByText(/No se ha podido traducir toda la información/)).toBeVisible();
+  await expect(page.getByText(/No se ha podido traducir toda la información/).first()).toBeVisible();
+  // Failed translation cannot silently masquerade as Spanish using English text.
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Ver original" }).first().click();
   await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toBeVisible();
 });

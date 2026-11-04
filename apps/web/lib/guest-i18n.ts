@@ -1,8 +1,11 @@
-/**
- * Guest guide interface text. Fully translated into English, French, Spanish, German and Arabic;
- * other concierge languages fall back to English for the interface (their guide content
- * is still translated by AI, and the concierge answers in the guest's language).
- */
+/** Guest guide interface text. Complete dictionaries for all 12 supported languages. */
+import { it } from "./guest-locales/it";
+import { pt } from "./guest-locales/pt";
+import { nl } from "./guest-locales/nl";
+import { ja } from "./guest-locales/ja";
+import { zh } from "./guest-locales/zh";
+import { ko } from "./guest-locales/ko";
+import { hi } from "./guest-locales/hi";
 const en = {
   offline: "You’re offline. Your saved guide is still here.",
   notFoundTitle: "This guide isn’t here yet.",
@@ -406,7 +409,7 @@ const ar: GuestText = {
   translationWarning: "تعذّرت ترجمة بعض المعلومات. يُرجى مراجعة التعليمات الأصلية.",
 };
 
-const dictionaries: Record<string, GuestText> = { en, fr, es, de, ar };
+const dictionaries: Record<string, GuestText> = { en, fr, es, de, it, pt, nl, ar, ja, zh, ko, hi };
 /** Languages with a fully translated guest interface. */
 export const guestUiLanguages = Object.keys(dictionaries);
 /** Right-to-left scripts. */
@@ -418,4 +421,10 @@ export function guestText(language: string): GuestText {
 /** Fills {placeholders} in a translated string. */
 export function fill(template: string, values: Record<string, string>) {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
+}
+
+/** Preserve left-to-right reading of clock times inside Arabic guide prose. Presentation only. */
+export function isolateClockTimes(text: string, rtl: boolean): string {
+  if (!rtl) return text;
+  return text.replace(/\b\d{1,2}:[0-5]\d\s*(?:AM|PM)\b/gi, (clock) => `\u2066${clock}\u2069`);
 }

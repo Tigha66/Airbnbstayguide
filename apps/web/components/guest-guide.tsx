@@ -15,7 +15,8 @@ import {
 import ReactMarkdown from "react-markdown";
 import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, type GuideText, type Property } from "@stayguide/shared";
 import { useDemo } from "@/lib/demo-store";
-import { fill, guestText, isRtl } from "@/lib/guest-i18n";
+import { fill, guestText, isRtl, isolateClockTimes } from "@/lib/guest-i18n";
+import { detectLanguage } from "@/lib/language";
 import { Logo, GuideIcon } from "./ui";
 import { ExtraReceipt } from "./extra-receipt";
 import { readGuestSetting, writeGuestSetting, readGuestTranslation, writeGuestTranslation, translationSource } from "@/lib/guest-storage";
@@ -28,20 +29,28 @@ type Message = {
 export function GuestGuide({
   slug,
   initial,
+  initialLanguage,
 }: {
   slug: string;
   initial?: Property | null;
+  initialLanguage?: string;
 }) {
   const state = useDemo();
   const liveGuide = Boolean(initial);
   const original = initial ?? state.properties.find((p) => p.slug === slug);
   const sample = !liveGuide && Boolean(original && demoProperties.some((p) => p.slug === slug));
   const [tab, setTab] = useState("guide");
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState(initialLanguage || "en");
   const source = original ? translationSource(original) : "";
+  // Match the server's source-language detection. Guides authored in Spanish,
+  // Arabic, etc. should remain readable in their own language without an AI call.
+  const sourceLanguage = original ? detectLanguage(
+    [original.description, ...original.sections.map((part) => `${part.title}. ${part.body}`)].join("\n").slice(0, 4000),
+  ) ?? "en" : "en";
   const [translation, setTranslation] = useState<{ language: string; source: string; text: GuideText } | null>(null);
   const [translating, setTranslating] = useState(false);
   const [translationWarning, setTranslationWarning] = useState(false);
+  const [welcomeTranslation, setWelcomeTranslation] = useState<{ language: string; source: string; description: string } | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
   const t = guestText(language);
   const rtl = isRtl(language);
@@ -51,6 +60,15 @@ export function GuestGuide({
   }, [language, rtl]);
   const translated = Boolean(translation && translation.language === language && translation.source === source && !showOriginal);
   const property = original && translated ? applyGuideText(original, translation!.text) : original;
+  const welcomeLocalized = Boolean(!showOriginal && !translated && welcomeTranslation
+    && welcomeTranslation.language === language && welcomeTranslation.source === source);
+  // Never display the original English guide as though it matched the guest's locale.
+  // The guest can explicitly reveal original instructions if translation is unavailable.
+  const guideNeedsTranslation = language !== sourceLanguage && !showOriginal && !translated;
+  const welcomeNeedsTranslation = guideNeedsTranslation && !welcomeLocalized;
+  const welcomeDescription = welcomeLocalized ? welcomeTranslation!.description
+    : welcomeNeedsTranslation ? (translationWarning ? t.translationWarning : t.translating)
+    : property?.description;
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
@@ -74,18 +92,46 @@ export function GuestGuide({
     if (!(liveGuide || sample)) return;
     let cancelled = false;
     const cacheKey = `stayguide-translation-v2-${slug}-${language}`;
+    const welcomeKey = `stayguide-welcome-v1-${slug}-${language}`;
     queueMicrotask(() => {
       if (cancelled) return;
       setShowOriginal(false);
       setTranslationWarning(false);
+      setWelcomeTranslation(null);
+      if (language === sourceLanguage) {
+        // The host's original is already in the selected language.
+        setTranslation(null);
+        setTranslating(false);
+        return;
+      }
       const saved = readGuestTranslation(cacheKey, source, language);
       if (saved) {
         setTranslation({ language, source, text: saved });
         setTranslating(false);
         return;
       }
+      // A welcome-only request is independent of lengthy guide instructions.
+      // Store only validated server responses, bound to the exact current guide source.
+      let cachedWelcome = false;
+      try {
+        const stored = JSON.parse(readGuestSetting(welcomeKey) ?? "null") as { source?: string; description?: string } | null;
+        if (stored?.source === source && typeof stored.description === "string" && stored.description.trim()) {
+          setWelcomeTranslation({ language, source, description: stored.description });
+          cachedWelcome = true;
+        }
+      } catch { /* Ignore corrupt browser cache. */ }
+      if (language !== sourceLanguage && !cachedWelcome) {
+        void fetch(`/api/v1/guides/${slug}/translation?lang=${language}&scope=welcome`, { cache: "no-store" })
+          .then(async (res) => res.ok ? await res.json() as { translated?: boolean; description?: string } : null)
+          .then((body) => {
+            if (cancelled || !body?.translated || !body.description?.trim()) return;
+            setWelcomeTranslation({ language, source, description: body.description });
+            writeGuestSetting(welcomeKey, JSON.stringify({ source, description: body.description }));
+          })
+          .catch(() => { /* Full-guide request remains independent. */ });
+      }
       setTranslating(true);
-      fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
+      fetch(`/api/v1/guides/${slug}/translation?lang=${language}`, { cache: "no-store" })
         .then(async (res) => {
           if (!res.ok) throw new Error("Translation unavailable");
           return (await res.json()) as { translated?: boolean; alreadyInLanguage?: boolean; partial?: boolean; text?: GuideText };
@@ -114,7 +160,7 @@ export function GuestGuide({
     return () => {
       cancelled = true;
     };
-  }, [liveGuide, sample, slug, language, source]);
+  }, [liveGuide, sample, slug, language, source, sourceLanguage]);
   useEffect(() => {
     if (!liveGuide || !threadId) return;
     const load = async () => {
@@ -152,7 +198,11 @@ export function GuestGuide({
       history.replaceState(null, "", location.pathname);
     }
     // The guest's saved choice, otherwise the phone's language.
-    const preferred = readGuestSetting("stayguide-language") || navigator.language.split("-")[0];
+    // A shareable ?lang= code overrides browser defaults and survives reloads.
+    // Existing saved selections still work when the query parameter is absent.
+    const requested = params.get("lang");
+    const preferred = requested && languages.includes(requested as (typeof languages)[number])
+      ? requested : readGuestSetting("stayguide-language") || initialLanguage || navigator.language.split("-")[0];
     if (languages.includes(preferred as (typeof languages)[number]))
       queueMicrotask(() => setLanguage(preferred));
     const update = () => setOffline(!navigator.onLine);
@@ -169,7 +219,7 @@ export function GuestGuide({
       window.removeEventListener("offline", update);
       window.removeEventListener("beforeinstallprompt", install);
     };
-  }, []);
+  }, [initialLanguage]);
   function notify(text: string) {
     setToast(text);
     setTimeout(() => setToast(""), 4500);
@@ -259,8 +309,16 @@ export function GuestGuide({
             aria-label={t.languageLabel}
             value={language}
             onChange={(e) => {
-              setLanguage(e.target.value);
-              writeGuestSetting("stayguide-language", e.target.value);
+              const nextLanguage = e.target.value;
+              setLanguage(nextLanguage);
+              writeGuestSetting("stayguide-language", nextLanguage);
+              // A non-sensitive SameSite cookie makes server rendering honour the
+              // saved language before client hydration on the next visit.
+              document.cookie = `stayguide-guest-language=${encodeURIComponent(nextLanguage)}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+              // Persist the guest's choice in the URL as well as browser storage.
+              const nextUrl = new URL(window.location.href);
+              nextUrl.searchParams.set("lang", nextLanguage);
+              window.history.replaceState(window.history.state, "", nextUrl.pathname + nextUrl.search + nextUrl.hash);
             }}
             className="guest-language"
           >
@@ -298,20 +356,20 @@ export function GuestGuide({
           <>
             <div className="guest-welcome">
               <h2>{t.welcome}</h2>
-              <p>{property.description}</p>
+              <p>{welcomeDescription}</p>
               {(translating || translation?.language === language || translationWarning) && (
                 <p className="translation-note" role="status">
-                  {translating ? (
+                  {showOriginal ? (
+                    <button type="button" onClick={() => setShowOriginal(false)}>{t.showTranslation}</button>
+                  ) : translating ? (
                     t.translating
                   ) : (
                     <>
-                      {translation?.language === language && (
-                        <>
-                          {showOriginal ? null : <span>{t.translated} · </span>}
-                          <button type="button" onClick={() => setShowOriginal((v) => !v)}>
-                            {showOriginal ? t.showTranslation : t.showOriginal}
-                          </button>
-                        </>
+                      {translated && <span>{t.translated} · </span>}
+                      {(translated || welcomeLocalized || guideNeedsTranslation) && (
+                        <button type="button" onClick={() => setShowOriginal(true)}>
+                          {t.showOriginal}
+                        </button>
                       )}
                       {translationWarning && <span> {t.translationWarning}</span>}
                     </>
@@ -369,13 +427,13 @@ export function GuestGuide({
             >
               <span>
                 {t.checkIn}{" "}
-                <strong style={{ color: "var(--ink)" }}>
+                <strong dir="ltr" style={{ color: "var(--ink)", unicodeBidi: "isolate" }}>
                   {property.checkIn}
                 </strong>
               </span>
               <span>
                 {t.checkOut}{" "}
-                <strong style={{ color: "var(--ink)" }}>
+                <strong dir="ltr" style={{ color: "var(--ink)", unicodeBidi: "isolate" }}>
                   {property.checkOut}
                 </strong>
               </span>
@@ -384,7 +442,14 @@ export function GuestGuide({
               <h2>{t.details}</h2>
               <BookOpen size={16} color="#8e9a7e" />
             </div>
-            {property.sections.map((section) => (
+            {guideNeedsTranslation ? (
+              <div className="notice" role="status">
+                <p>{translating ? t.translating : t.translationWarning}</p>
+                <button className="text-link" type="button" onClick={() => setShowOriginal(true)}>
+                  {t.showOriginal}
+                </button>
+              </div>
+            ) : property.sections.map((section) => (
               <details className="guest-section" key={section.id}>
                 <summary>
                   <GuideIcon name={section.icon} />
@@ -392,7 +457,7 @@ export function GuestGuide({
                   <ChevronRight size={15} />
                 </summary>
                 <div className="markdown">
-                  <ReactMarkdown>{section.body}</ReactMarkdown>
+                  <ReactMarkdown>{isolateClockTimes(section.body, rtl)}</ReactMarkdown>
                 </div>
               </details>
             ))}
@@ -541,7 +606,14 @@ export function GuestGuide({
                 {t.sampleExtras}
               </div>
             )}
-            {property.extras.length ? (
+            {guideNeedsTranslation ? (
+              <div className="notice" role="status">
+                <p>{translating ? t.translating : t.translationWarning}</p>
+                <button className="text-link" type="button" onClick={() => setShowOriginal(true)}>
+                  {t.showOriginal}
+                </button>
+              </div>
+            ) : property.extras.length ? (
               property.extras.map((extra) => (
                 <article className="card guest-extra" key={extra.id}>
                   <span className="stat-icon">

@@ -1,16 +1,17 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { applyGuideText, demoAnswer, demoProperties } from "@stayguide/shared";
-import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
+import { guestText, guestUiLanguages, isRtl, fill, isolateClockTimes } from "./guest-i18n";
 
 vi.mock("./ai", () => ({ generateJson: vi.fn() }));
 import { generateJson } from "./ai";
 import { detectLanguage } from "./language";
-import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, translateGuide, translateGuideWithStatus } from "./translate";
+import { guideHash, guideLanguage, guideText, isExpectedGuideLanguage, isTranslationComplete, keepsProtected, protectedTokens, splitGuideBody, translateGuide, translateGuideWelcome, translateGuideWithStatus } from "./translate";
 const mockedAi = vi.mocked(generateJson);
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("guest interface translations", () => {
-  it("has every text in English, French, Spanish, German and Arabic", () => {
-    expect(guestUiLanguages).toEqual(["en", "fr", "es", "de", "ar"]);
+  it("has every text in all 12 guest UI languages", () => {
+    expect(guestUiLanguages).toEqual(["en", "fr", "es", "de", "it", "pt", "nl", "ar", "ja", "zh", "ko", "hi"]);
     const keys = Object.keys(guestText("en")).sort();
     for (const lang of guestUiLanguages) {
       const t = guestText(lang);
@@ -22,9 +23,28 @@ describe("guest interface translations", () => {
     }
     expect(guestText("fr").welcome).toBe("Bienvenue, faites comme chez vous.");
     expect(guestText("ar").navStay).toBe("إقامتك");
+    for (const lang of guestUiLanguages) {
+      for (const field of ["chatIntro", "wifiCopied", "wifiShow"] as const) {
+        const sourceMarkers = [...guestText("en")[field].matchAll(/\\{[^}]+\\}/g)].map(m => m[0]).sort();
+        const translatedMarkers = [...guestText(lang)[field].matchAll(/\\{[^}]+\\}/g)].map(m => m[0]).sort();
+        expect(translatedMarkers, `${lang}.${field} must preserve all placeholders`).toEqual(sourceMarkers);
+      }
+    }
   });
-  it("falls back to English for other languages and marks Arabic as right-to-left", () => {
-    expect(guestText("it")).toBe(guestText("en"));
+  it("preserves Arabic time display without changing stored guide data", () => {
+    const original = "تسجيل الوصول: 3:00 PM، تسجيل المغادرة: 11:00 AM";
+    const rendered = isolateClockTimes(original, true);
+    expect(rendered).toContain(String.fromCharCode(0x2066) + "3:00 PM" + String.fromCharCode(0x2069));
+    expect(rendered).toContain(String.fromCharCode(0x2066) + "11:00 AM" + String.fromCharCode(0x2069));
+    expect(isolateClockTimes(original, false)).toBe(original);
+  });
+  it("localizes all supported languages and only falls back for unknown ones", () => {
+    for (const lang of ["it", "pt", "nl", "ja", "zh", "ko", "hi"]) {
+      expect(guestText(lang).welcome).not.toBe(guestText("en").welcome);
+      expect(guestText(lang).navStay).not.toBe(guestText("en").navStay);
+      expect(guestText(lang).requestHelp).not.toBe(guestText("en").requestHelp);
+    }
+    expect(guestText("xx")).toBe(guestText("en"));
     expect(guestText("de").welcome).toBe("Willkommen, fühlen Sie sich wie zu Hause.");
     expect(isRtl("ar")).toBe(true);
     expect(isRtl("fr")).toBe(false);
@@ -42,6 +62,45 @@ describe("guide translation safety", () => {
     expect(keepsProtected(src, "Le code de la boîte à clés est 4821 et le départ est à 11:00 AM.")).toBe(true);
     expect(keepsProtected(src, "Le code est 4812 et le départ est à 11:00.")).toBe(false);
     expect(keepsProtected(src, "الرمز هو ٤٨٢١")).toBe(false); // Arabic-Indic digits are not accepted
+  });
+});
+
+  it("splits long Markdown at whitespace without changing codes, times or content", () => {
+    const source = ("- Close the windows before leaving.\\n- Check-out at 11:00 AM.\\n").repeat(24)
+      + "Wi-Fi password: DemoOnly2026, lockbox: 4821.";
+    const parts = splitGuideBody(source, 240);
+    expect(parts.length).toBeGreaterThan(3);
+    expect(parts.join("")).toBe(source);
+    expect(parts.every((part) => part.length <= 240)).toBe(true);
+    expect(protectedTokens(parts.join(""))).toEqual(protectedTokens(source));
+  });
+
+describe("independent welcome translation", () => {
+  const source = "Welcome to our apartment. Check-in is at 3:00 PM. Wi-Fi StayGuide_Guest_Test, password DemoOnly2026.";
+  const translations = [
+    ["fr", "Bienvenue dans notre appartement. L'arrivée est à 3:00 PM. Le réseau Wi-Fi est StayGuide_Guest_Test et son mot de passe est DemoOnly2026."],
+    ["es", "Bienvenido a nuestro apartamento. La llegada es a las 3:00 PM. La red Wi-Fi es StayGuide_Guest_Test y la contraseña es DemoOnly2026."],
+    ["de", "Willkommen in unserem Apartment. Der Check-in ist um 3:00 PM. Das WLAN-Netzwerk ist StayGuide_Guest_Test und das Passwort lautet DemoOnly2026."],
+    ["ar", "مرحبًا بكم في شقتنا. موعد تسجيل الوصول 3:00 PM. شبكة الواي فاي هي StayGuide_Guest_Test وكلمة المرور هي DemoOnly2026."],
+  ] as const;
+  for (const [language, translated] of translations) {
+    it(`translates only the welcome to ${language} while retaining access details`, async () => {
+      mockedAi.mockReset();
+      mockedAi.mockResolvedValueOnce({ description: translated });
+      expect(await translateGuideWelcome(source, language)).toBe(translated);
+      expect(mockedAi).toHaveBeenCalledTimes(1);
+      expect(keepsProtected(source, translated)).toBe(true);
+    });
+  }
+  it("rejects an altered password instead of displaying an unsafe welcome", async () => {
+    mockedAi.mockReset();
+    mockedAi.mockResolvedValueOnce({ description: translations[1][1].replace("DemoOnly2026", "Modified2026") });
+    expect(await translateGuideWelcome(source, "es")).toBeNull();
+  });
+  it("rejects an unchanged English response", async () => {
+    mockedAi.mockReset();
+    mockedAi.mockResolvedValueOnce({ description: source });
+    expect(await translateGuideWelcome(source, "ar")).toBeNull();
   });
 });
 
@@ -74,6 +133,33 @@ describe("translateGuide", () => {
     expect(applied.sections[0].body).toContain("4821");
     expect(applied.extras[0].price).toBe(3500); // prices and other fields are never translated
   });
+  it("translates a long guide using small HCN-compatible chunks", async () => {
+    const source = {
+      description: "",
+      sections: [{
+        id: "arrival", title: "Arrival and house instructions",
+        body: "Please close the windows before departure.\\n".repeat(45) + "The door code is 4821.",
+      }],
+      extras: [],
+    };
+    mockedAi.mockImplementation(async (_system, prompt) => {
+      const input = JSON.parse(String(prompt)) as { title?: string; body?: string };
+      if (!input.body) throw new Error("Unexpected extras translation");
+      return {
+        title: "Llegada e instrucciones de la casa",
+        body: "Por favor, cierre las ventanas antes de salir. "
+          + (input.body.includes("4821") ? "El código de acceso es 4821." : ""),
+      };
+    });
+    const translated = await translateGuideWithStatus(source, "es");
+    expect(mockedAi.mock.calls.length).toBeGreaterThan(1);
+    expect(translated.complete).toBe(true);
+    expect(translated.failedParts).toBe(0);
+    expect(translated.text.sections[0].body).toContain("4821");
+    expect(translated.text.sections[0].body).toContain("Por favor");
+    expect(translated.text.sections[0].title).toBe("Llegada e instrucciones de la casa");
+  });
+
   it("keeps the original when the AI changes a code or fails", async () => {
     mockedAi.mockImplementation(async (...args: unknown[]) => {
       const input = JSON.parse(String(args[1]));
@@ -111,6 +197,21 @@ describe("translateGuide", () => {
     expect(result.complete).toBe(false);
     expect(result.failedParts).toBeGreaterThan(0);
     expect(result.text).toEqual(source);
+  });
+
+  it("never calls Google when the configured HCN model fails", async () => {
+    vi.stubEnv("AI_PROVIDER", "openai-compatible");
+    vi.stubEnv("AI_BASE_URL", "https://api.hcnsec.cn/v1");
+    vi.stubEnv("GOOGLE_GENERATIVE_AI_API_KEY", "invalid-google-fallback");
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    mockedAi.mockRejectedValue(Object.assign(new Error("HCN unavailable"), { statusCode: 401 }));
+
+    const outcome = await translateGuideWithStatus(guideText(property), "fr");
+
+    expect(outcome.complete).toBe(false);
+    expect(outcome.failedParts).toBeGreaterThan(0);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("reports failures instead of caching an incomplete guide", async () => {
