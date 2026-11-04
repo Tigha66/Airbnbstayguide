@@ -6,7 +6,7 @@
  * No production data is read or modified; no new guest property is created.
  */
 import { demoProperties } from "@stayguide/shared";
-import { translateGuide, guideText } from "../lib/translate";
+import { translateGuide, guideText, guideLanguage } from "../lib/translate";
 
 if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
   if (process.env.VERCEL_ENV !== "preview")
@@ -56,14 +56,16 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
   for (const lang of languages) {
     const begin = Date.now();
     const output = await translateGuide(original, lang);
+    const detectedLanguage = guideLanguage(output);
     const changed = output.description !== original.description;
     const count = output.sections.filter((s, i) => s.body !== original.sections[i].body || s.title !== original.sections[i].title).length;
     const codesPreserved = original.sections.every((s,i) => !s.body.includes(token) || output.sections[i].body.includes(token));
     const scriptMatches = lang !== "ar" || /[\u0600-\u06FF]/.test(output.description + output.sections.map(s => s.body).join(" "));
     console.log("HCN QA language=" + lang + " durationMs=" + (Date.now() - begin) +
       " descriptionTranslated=" + changed + " sectionsTranslated=" + count + "/" + original.sections.length +
-      " codesPreserved=" + codesPreserved + " scriptMatches=" + scriptMatches);
-    if (!changed || count !== original.sections.length || !codesPreserved || !scriptMatches)
+      " codesPreserved=" + codesPreserved + " scriptMatches=" + scriptMatches +
+      " detectedLanguage=" + detectedLanguage);
+    if (!changed || count !== original.sections.length || !codesPreserved || !scriptMatches || detectedLanguage !== lang)
       throw new Error("HCN QA incomplete full-guide translation for " + lang);
   }
   console.log("HCN QA completed " + languages.length + " uncached language(s) in " + (Date.now() - started) + " ms");
