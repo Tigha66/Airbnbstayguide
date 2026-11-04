@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const text = guideText(property);
   // Already in the requested language: nothing to translate.
-  if (guideLanguage(text) === language) return NextResponse.json({ translated: false });
+  if (guideLanguage(text) === language) return NextResponse.json({ translated: false, originalLanguage: true });
   if (!aiConfigured()) return unavailable("Translation");
 
   const key = sample ? `sample:${slug}` : property.id;
