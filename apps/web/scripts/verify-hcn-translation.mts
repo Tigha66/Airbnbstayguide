@@ -16,6 +16,7 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
       !process.env.AI_API_KEY || !process.env.AI_TRANSLATION_MODEL)
     throw new Error("HCN acceptance requires Preview HCN model, provider URL and API key.");
 
+  if (process.env.HCN_PREVIEW_RAW_PROBE === "1") {
   // Raw OpenAI-compatible probe differentiates bad keys/model routing from
   // JSON parser errors. Only protocol metadata is logged; never model content.
   const raw = await fetch(new URL("/v1/chat/completions", process.env.AI_BASE_URL!).toString(), {
@@ -43,6 +44,7 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
     " reasoningChars=" + String(first?.message?.reasoning_content?.length || 0) +
     " finishReason=" + String(first?.finish_reason || "unknown").slice(0, 40) +
     " validJson=" + (() => { try { JSON.parse(first?.message?.content || ""); return true; } catch { return false; } })());
+  }
   const original = guideText(demoProperties[0]);
   const languages = (process.env.HCN_PREVIEW_BUILD_LANGUAGES || "fr").split(",").map(x => x.trim()).filter(Boolean);
   const allowed = new Set(["fr", "de", "es", "ar"]);
