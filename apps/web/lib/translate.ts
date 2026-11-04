@@ -42,6 +42,29 @@ export function keepsProtected(source: string, translated: string) {
   return protectedTokens(source).every((token) => translated.includes(token));
 }
 
+/** Full-guide acceptance gate for both fresh and previously cached translations. */
+export function completeGuideTranslation(original: GuideText, translated: GuideText, language: string): boolean {
+  if (!translated.description.trim() ||
+      (original.description.trim() && translated.description.trim() === original.description.trim()) ||
+      !keepsProtected(original.description, translated.description)) return false;
+  if (translated.sections.length !== original.sections.length || translated.extras.length !== original.extras.length)
+    return false;
+  const sectionsReady = original.sections.every((section, i) => {
+    const out = translated.sections[i];
+    if (!out || out.id !== section.id || !out.body.trim() || !out.title.trim()) return false;
+    if (!keepsProtected(section.title, out.title) || !keepsProtected(section.body, out.body)) return false;
+    // Small sections with mostly codes may have nothing linguistic to translate.
+    return section.body.trim().length < 20 || out.body !== section.body || out.title !== section.title;
+  });
+  const extrasReady = original.extras.every((extra, i) => {
+    const out = translated.extras[i];
+    return Boolean(out && out.id === extra.id && out.name.trim() && out.description.trim() &&
+      keepsProtected(extra.name + " " + extra.description, out.name + " " + out.description) &&
+      (extra.name !== out.name || extra.description !== out.description));
+  });
+  return sectionsReady && extrasReady && guideLanguage(translated) === language;
+}
+
 const RULES = `Rules:
 - Translate naturally for a hotel or holiday-rental guest.
 - Keep EXACTLY as written: all numbers and digits (use Western digits 0-9), door and lockbox codes, Wi-Fi network names and passwords, times (e.g. "4:00 PM" stays "4:00 PM"), prices, phone numbers, emails, links, street addresses, and names of places, businesses and brands.
