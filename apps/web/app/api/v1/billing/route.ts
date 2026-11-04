@@ -16,7 +16,11 @@ export async function GET() {
     stripe: stripeConfigured(),
     plan: billing.plan,
     status: billing.subscriptionStatus,
-    subscribed: Boolean(billing.stripeSubscriptionId && billing.subscriptionStatus !== "canceled"),
+    // A terminal incomplete_expired Checkout does not create a usable
+    // subscription. Hosts must be able to choose a new plan instead of
+    // being trapped in Manage billing after a failed first payment.
+    subscribed: Boolean(billing.stripeSubscriptionId &&
+      !["canceled", "incomplete_expired"].includes(billing.subscriptionStatus ?? "")),
     propertyCount: billing.propertyCount,
     billableQuantity: subscriptionQuantity(billing.plan, billing.propertyCount),
     payouts: { started: Boolean(billing.stripeAccountId), ready: payoutsReady },
