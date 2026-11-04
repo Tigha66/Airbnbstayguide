@@ -81,6 +81,38 @@ describe("translateGuide", () => {
     expect(result.description).toBe("Bienvenue au chalet.");
   });
 
+  it("resumes a partial guide without retranslating already completed parts", async () => {
+    vi.stubEnv("AI_TRANSLATION_MODEL", "sensenova-6.8-flash-lite");
+    const original = guideText(property);
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      if (input.sections) return { sections: input.sections.map((section: { id: string; title: string; body: string }) =>
+        section.id === "arrival"
+          ? { id: section.id, title: "Arrivée", body: "Le code de la boîte à clés est 4821." }
+          : section,
+      ) };
+      if (input.description) return { description: "Bienvenue au chalet." };
+      return { extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }] };
+    });
+    const partial = await translateGuide(original, "fr");
+    expect(partial.sections[0].title).toBe("Arrivée");
+    expect(partial.sections[1].body).toBe(original.sections[1].body);
+    expect(mockedAi).toHaveBeenCalledTimes(3);
+
+    mockedAi.mockReset();
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      expect(input.sections?.map((s: { id: string }) => s.id)).toEqual(["wifi"]);
+      return { sections: [{ id: "wifi", title: "Wi-Fi", body: "Réseau SmokyRidge_Guest, mot de passe bearden2026." }] };
+    });
+    const result = await translateGuide(original, "fr", partial);
+    expect(mockedAi).toHaveBeenCalledTimes(1);
+    expect(result.sections[0].title).toBe("Arrivée");
+    expect(result.sections[1].body).toContain("Réseau");
+    expect(result.description).toBe("Bienvenue au chalet.");
+    expect(result.extras[0].name).toBe("Départ tardif");
+  });
+
   it("keeps the original guide if every dedicated-model call times out", async () => {
     vi.stubEnv("AI_TRANSLATION_MODEL", "sensenova-6.8-flash-lite");
     mockedAi.mockRejectedValue(new Error("HCN timeout"));
