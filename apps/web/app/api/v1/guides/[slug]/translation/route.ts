@@ -5,7 +5,7 @@ import { dbConfigured } from "@/lib/db";
 import { aiConfigured } from "@/lib/ai";
 import { unavailable } from "@/lib/api";
 import { consumeRateLimit, getGuideTranslation, getPublishedProperty, saveGuideTranslation } from "@/lib/repo";
-import { guideHash, guideLanguage, guideText, translateGuide } from "@/lib/translate";
+import { completeGuideTranslation, guideHash, guideLanguage, guideText, translateGuide } from "@/lib/translate";
 
 export const dynamic = "force-dynamic";
 // Translating a whole guide can take a little while the first time; afterwards it's cached.
@@ -29,15 +29,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
   const key = sample ? `sample:${slug}` : property.id;
   const hash = guideHash(text);
+  const dedicatedModel = Boolean(process.env.AI_TRANSLATION_MODEL?.trim());
   if (dbConfigured()) {
     const cached = await getGuideTranslation(key, language, hash).catch(() => null);
-    if (cached) return NextResponse.json({ translated: true, cached: true, text: cached });
+    // Legacy caches could contain a mix of original English and translated
+    // sections; never serve those as a successful dedicated-model translation.
+    if (cached && (!dedicatedModel || completeGuideTranslation(text, cached, language)))
+      return NextResponse.json({ translated: true, cached: true, text: cached });
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const bucket = createHash("sha256").update(`translate:${ip}`).digest("hex");
     if (!(await consumeRateLimit(bucket, 20, 3600)))
       return NextResponse.json({ error: "Please try again later." }, { status: 429 });
   }
-  const dedicatedModel = Boolean(process.env.AI_TRANSLATION_MODEL?.trim());
   const partialKey = `${language}:partial`;
   // Partial work stays private to this source version and is never served as
   // a completed translation. Retrying resumes successfully translated pieces.
@@ -48,20 +51,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const changed = JSON.stringify(translated) !== JSON.stringify(text);
   // Never cache a partially translated guide as if the selected language were
   // complete. The HCN provider may time out on just one of several sections.
-  if (process.env.AI_TRANSLATION_MODEL?.trim()) {
-    const sectionsComplete = text.sections.length === translated.sections.length && text.sections.every((section, i) => {
-      const translatedSection = translated.sections[i];
-      if (!translatedSection || translatedSection.id !== section.id) return false;
-      // Empty or very short sections may legitimately contain no translatable prose.
-      return section.body.trim().length < 20 ||
-        (translatedSection.body.trim() && translatedSection.body !== section.body);
-    });
-    const descriptionComplete = !text.description.trim() || translated.description.trim() !== text.description.trim();
-    const extrasComplete = text.extras.length === translated.extras.length && text.extras.every((extra, i) => {
-      const item = translated.extras[i];
-      return item?.id === extra.id && (item.name !== extra.name || item.description !== extra.description);
-    });
-    if (!changed || !sectionsComplete || !descriptionComplete || !extrasComplete || guideLanguage(translated) !== language) {
+  if (dedicatedModel && !completeGuideTranslation(text, translated, language)) {
       if (dbConfigured()) await saveGuideTranslation(key, partialKey, hash, translated).catch(() => {});
       return NextResponse.json({
         error: "Translation is still being prepared. The original guide is available while you retry.",
@@ -70,7 +60,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
         translatedSections: text.sections.filter((section, i) => translated.sections[i]?.body !== section.body).length,
         totalSections: text.sections.length,
       }, { status: 503, headers: { "Retry-After": "3" } });
-    }
   }
   if (changed && dbConfigured()) await saveGuideTranslation(key, language, hash, translated).catch(() => {});
   return NextResponse.json({ translated: changed, text: changed ? translated : undefined });
