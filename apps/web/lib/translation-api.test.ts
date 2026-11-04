@@ -28,6 +28,14 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 
+it("distinguishes a guide already written in the selected language from a translation failure", async () => {
+  const response = await GET(new Request("https://example.test/api/v1/guides/casa-serena/translation?lang=en"),
+    { params: Promise.resolve({ slug: "casa-serena" }) });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ translated: false, originalLanguage: true });
+  expect(translateGuide).not.toHaveBeenCalled();
+});
+
 it("rejects unchanged default-model output instead of reporting successful original-language content", async () => {
   const response = await request();
   expect(response.status).toBe(503);
