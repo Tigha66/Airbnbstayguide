@@ -42,5 +42,25 @@ jobs:
           if (!Array.isArray(result.text.sections) || result.text.sections.length === 0) {
             console.error('Guide section translations were not returned'); process.exit(1);
           }
-          console.log('French sample translation returned structured translated text.');
+          console.log('French sample translation structured response; cached=' + Boolean(result.cached));
+          NODE
+          # A second sample/language tests a different translation-cache key.
+          # Do not log or create customer information.
+          url='https://www.getstayguide.com/api/v1/guides/olive-grove/translation?lang=de'
+          code=$(curl --connect-timeout 10 --max-time 105 --silent --show-error --output /tmp/german.json --write-out '%{http_code}' "$url")
+          echo "German second-sample translation: HTTP $code"
+          if [[ "$code" != '200' ]]; then
+            echo "::error::German second-sample guide translation failed (HTTP $code)"
+            exit 1
+          fi
+          node - <<'NODE'
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('/tmp/german.json', 'utf8'));
+          if (r.translated !== true || !r.text || typeof r.text.description !== 'string' || !Array.isArray(r.text.sections)) {
+            console.error('Second-sample translation was not returned'); process.exit(1);
+          }
+          if (r.text.description.trim() === 'A peaceful escape, tucked between olive trees and the ocean.') {
+            console.error('English original was returned for German language request'); process.exit(1);
+          }
+          console.log('German second-sample structured response; cached=' + Boolean(r.cached));
           NODE
