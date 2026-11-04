@@ -78,3 +78,12 @@ jobs:
           }
           console.log('All public endpoints reachable and all expected services report configured.');
           NODE
+          # Anonymous clients must not be allowed to read host data or billing.
+          for path in /api/v1/properties /api/v1/extra-requests /api/v1/billing; do
+            code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --silent --show-error --output /tmp/sg-protected --write-out '%{http_code}' "$SITE$path")
+            echo "anonymous $path -> HTTP $code"
+            if [[ "$code" != '401' ]]; then
+              echo "::error::Protected host endpoint $path did not deny anonymous access"
+              exit 1
+            fi
+          done
