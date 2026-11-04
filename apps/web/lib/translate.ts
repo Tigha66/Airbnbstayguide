@@ -44,8 +44,7 @@ export function keepsProtected(source: string, translated: string) {
 
 /** Full-guide acceptance gate for both fresh and previously cached translations. */
 export function completeGuideTranslation(original: GuideText, translated: GuideText, language: string): boolean {
-  if (!translated.description.trim() ||
-      (original.description.trim() && translated.description.trim() === original.description.trim()) ||
+  if ((original.description.trim() && (!translated.description.trim() || translated.description.trim() === original.description.trim())) ||
       !keepsProtected(original.description, translated.description)) return false;
   if (translated.sections.length !== original.sections.length || translated.extras.length !== original.extras.length)
     return false;
@@ -58,7 +57,7 @@ export function completeGuideTranslation(original: GuideText, translated: GuideT
   });
   const extrasReady = original.extras.every((extra, i) => {
     const out = translated.extras[i];
-    return Boolean(out && out.id === extra.id && out.name.trim() && out.description.trim() &&
+    return Boolean(out && out.id === extra.id && out.name.trim() && (out.description.trim() || !extra.description.trim()) &&
       keepsProtected(extra.name + " " + extra.description, out.name + " " + out.description) &&
       (extra.name !== out.name || extra.description !== out.description));
   });
