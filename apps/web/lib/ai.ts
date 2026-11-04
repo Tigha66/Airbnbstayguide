@@ -34,7 +34,7 @@ export function aiModel(modelOverride?: string) {
   if (p === "openai-compatible")
     return createOpenAI({ baseURL: process.env.AI_BASE_URL, apiKey: process.env.AI_API_KEY }).chat(requestedModel!);
   if (p === "openai") return createOpenAI({ apiKey: process.env.OPENAI_API_KEY })(requestedModel!);
-  if (p === "anthropic") return createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })(process.env.AI_MODEL!);
+  if (p === "anthropic") return createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })(requestedModel!);
   throw new Error("AI is not configured");
 }
 /** Extracts the first JSON object/array from model text (open models often wrap JSON in prose or fences). */
