@@ -48,7 +48,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: link.url });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    console.error("[connect] onboarding failed", error);
+    // Stripe errors can include raw headers and account metadata. Log only
+    // non-secret diagnostics; keep the user-facing error handling below.
+    const stripeFailure = error as { type?: unknown; code?: unknown; statusCode?: unknown } | null;
+    console.error("[connect] onboarding failed", {
+      type: typeof stripeFailure?.type === "string" ? stripeFailure.type : "UnknownError",
+      code: typeof stripeFailure?.code === "string" ? stripeFailure.code : undefined,
+      status: typeof stripeFailure?.statusCode === "number" ? stripeFailure.statusCode : undefined,
+    });
     if (/signed up for Connect/i.test(message))
       return NextResponse.json({ error: "Payouts aren’t enabled on the platform yet (Stripe Connect is not activated).", code: "CONNECT_NOT_ENABLED" }, { status: 503 });
     // Stripe asks the platform to finish its Connect platform profile (business model, loss liability) first.
