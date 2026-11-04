@@ -237,7 +237,8 @@ export function LiveExtraRequests({ notify }: { notify: (m: string) => void }) {
             {r.note && <div style={{ fontSize: 12, marginTop: 4 }}>“{r.note}”</div>}
           </div>
           <span className={`pill ${r.status === "pending" ? "amber" : ""}`}>{tr(r.status)}</span>
-          {r.prepaid && r.status !== "refunded" && <span className="pill">{r.status === "pending" ? tr("card authorised") : tr("paid online")}</span>}
+          {r.prepaid && r.status === "pending" && <span className="pill">{tr("card authorised")}</span>}
+          {r.prepaid && r.status === "paid" && <span className="pill">{tr("paid online")}</span>}
           {r.status === "pending" && (
             <div className="row" style={{ gap: 6 }}>
               <button className="button small" onClick={() => act(r.id, "approved")}><Check size={13} /> {r.prepaid ? tr("Approve & charge") : tr("Approve")}</button>
