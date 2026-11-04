@@ -11,8 +11,14 @@ export async function POST(request: Request) {
   if (!stripeConfigured()) return unavailable("Payouts");
   const host = await requireHost();
   if ("response" in host) return host.response;
-  const parsed = schema.safeParse(parseJson((await request.text()) || "{}"));
-  if (!parsed.success) return NextResponse.json({ error: "Choose a country" }, { status: 400 });
+  let country: string | undefined;
+  try {
+    const parsed = schema.safeParse(parseJson((await request.text()) || "{}"));
+    if (!parsed.success) return NextResponse.json({ error: "Choose a valid country" }, { status: 400 });
+    country = parsed.data.country;
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
   const stripe = stripeClient();
   try {
     const billing = await getBilling(host.user.id);
@@ -29,7 +35,7 @@ export async function POST(request: Request) {
     if (!accountId) {
       const account = await stripe.accounts.create({
         type: "express",
-        country: parsed.data.country,
+        country,
         email: host.user.email,
         capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
         business_profile: { product_description: "Short-term rental guest extras (early check-in, late checkout, transfers)" },
@@ -64,7 +70,6 @@ export async function POST(request: Request) {
         {
           error: "Payouts need one more step from StayGuide: the Stripe Connect platform profile isn’t complete yet. Please try again later.",
           code: "CONNECT_PROFILE_INCOMPLETE",
-          detail: message.slice(0, 300),
         },
         { status: 503 },
       );
@@ -72,7 +77,7 @@ export async function POST(request: Request) {
     const isStripeError = String((error as { type?: string })?.type ?? "").startsWith("Stripe");
     return NextResponse.json(
       {
-        error: isStripeError && message ? `Stripe: ${message.slice(0, 300)}` : "Could not start payout setup. Please try again.",
+        error: isStripeError ? "Stripe could not complete payout onboarding. Please contact StayGuide support." : "Could not start payout setup. Please try again.",
         code: "CONNECT_FAILED",
       },
       { status: 502 },
