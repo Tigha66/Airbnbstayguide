@@ -41,6 +41,7 @@ export function GuestGuide({
   const source = original ? translationSource(original) : "";
   const [translation, setTranslation] = useState<{ language: string; source: string; text: GuideText } | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [translationFailed, setTranslationFailed] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
   const t = guestText(language);
   const rtl = isRtl(language);
@@ -72,6 +73,7 @@ export function GuestGuide({
     queueMicrotask(() => {
       if (cancelled) return;
       setShowOriginal(false);
+      setTranslationFailed(false);
       const saved = readGuestTranslation(cacheKey, source);
       if (saved) {
         setTranslation({ language, source, text: saved });
@@ -80,7 +82,10 @@ export function GuestGuide({
       }
       setTranslating(true);
       fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
-        .then((res) => (res.ok ? res.json() : null))
+        .then((res) => {
+          if (!res.ok) throw new Error("Guide translation unavailable");
+          return res.json();
+        })
         .then((body: { translated?: boolean; text?: GuideText } | null) => {
           if (cancelled) return;
           if (body?.translated && body.text) {
@@ -88,7 +93,12 @@ export function GuestGuide({
             writeGuestTranslation(cacheKey, source, body.text);
           } else setTranslation(null);
         })
-        .catch(() => {})
+        .catch(() => {
+          if (!cancelled) {
+            setTranslation(null);
+            setTranslationFailed(true);
+          }
+        })
         .finally(() => {
           if (!cancelled) setTranslating(false);
         });
@@ -281,10 +291,12 @@ export function GuestGuide({
             <div className="guest-welcome">
               <h2>{t.welcome}</h2>
               <p>{property.description}</p>
-              {(translating || translation?.language === language) && (
+              {(translating || translation?.language === language || translationFailed) && (
                 <p className="translation-note" role="status">
                   {translating ? (
                     t.translating
+                  ) : translationFailed ? (
+                    t.translationUnavailable
                   ) : (
                     <>
                       {showOriginal ? null : <span>{t.translated} · </span>}
