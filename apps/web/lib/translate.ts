@@ -116,6 +116,15 @@ export async function translateGuide(text: GuideText, language: string): Promise
  * 60-second Hobby function limit. This is enabled only when
  * AI_TRANSLATION_MODEL is set; existing production behavior is unchanged.
  */
+function reportPreviewTranslationError(part: string, error: unknown) {
+  if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE !== "1") return;
+  const e = error && typeof error === "object" ? error as { name?: string; statusCode?: number; status?: number; code?: string } : {};
+  // Never include raw error messages, request bodies, keys, or model output in logs.
+  console.error("[hcn-preview] " + part + " rejected: type=" + String(e.name || "unknown").slice(0, 50) +
+    " http=" + String(e.statusCode ?? e.status ?? "unknown").slice(0, 20) +
+    " code=" + String(e.code || "unknown").slice(0, 50));
+}
+
 async function translateGuideWithDedicatedModel(text: GuideText, language: string, model: string): Promise<GuideText> {
   const target = languageNames[language] ?? "English";
   const batchedSchema = z.object({
@@ -139,7 +148,8 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
             !keepsProtected(original.title, item.title) || !keepsProtected(original.body, item.body)) return original;
         return { id: original.id, title: item.title.trim(), body: item.body };
       });
-    } catch {
+    } catch (error) {
+      reportPreviewTranslationError("sections", error);
       return group;
     }
   }));
@@ -162,7 +172,8 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
         return { id: original.id, name: item.name, description: item.description };
       });
       return { description, extras };
-    } catch {
+    } catch (error) {
+      reportPreviewTranslationError("extras", error);
       return { description: text.description, extras: text.extras };
     }
   })();
