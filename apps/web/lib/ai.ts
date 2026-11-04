@@ -59,7 +59,48 @@ export function extractJson(text: string): unknown {
   }
   throw new Error("Unterminated JSON in model output");
 }
+/**
+ * The HCN gateway accepts OpenAI chat completions, but some reasoning models
+ * consume the entire SDK token budget before emitting any message.content.
+ * For a dedicated translation model only, ask the gateway to use its model's
+ * non-thinking chat template. This never changes the general concierge's
+ * Production model or the other provider integrations.
+ */
+async function generateHcnTranslationJson(system: string, prompt: string, maxOutputTokens: number, timeoutMs: number, model: string) {
+  const endpoint = new URL("/v1/chat/completions", process.env.AI_BASE_URL!);
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.AI_API_KEY}`, "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(timeoutMs),
+    body: JSON.stringify({
+      model,
+      temperature: 0.2,
+      max_tokens: maxOutputTokens,
+      chat_template_kwargs: { enable_thinking: false },
+      messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
+    }),
+  });
+  if (!response.ok) {
+    // Do not leak provider response bodies, user content, or API keys.
+    throw new Error("HCN translation gateway HTTP " + response.status);
+  }
+  const data = await response.json() as {
+    choices?: Array<{ finish_reason?: string; message?: { content?: string | null; reasoning?: string | null } }>;
+  };
+  const first = data.choices?.[0];
+  const content = first?.message?.content ?? "";
+  if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1")
+    console.log("[hcn-preview-raw-translation] contentChars=" + content.length +
+      " reasoningChars=" + (first?.message?.reasoning?.length || 0) +
+      " finishReason=" + String(first?.finish_reason || "unknown").slice(0, 24));
+  return extractJson(content);
+}
+
 export async function generateJson(system: string, prompt: string, maxOutputTokens = 1200, timeoutMs = 25000, modelOverride?: string) {
+  if (modelOverride && provider() === "openai-compatible" &&
+      new URL(process.env.AI_BASE_URL || "https://invalid.example").hostname === "api.hcnsec.cn") {
+    return generateHcnTranslationJson(system, prompt, maxOutputTokens, timeoutMs, modelOverride);
+  }
   const result = await generateText({
     model: aiModel(modelOverride),
     system,
