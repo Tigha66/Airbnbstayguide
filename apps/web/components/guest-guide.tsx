@@ -100,7 +100,13 @@ export function GuestGuide({
           if (body?.translated && body.text) {
             setTranslation({ language, source, text: body.text });
             writeGuestTranslation(cacheKey, source, body.text);
-          } else setTranslation(null);
+          } else {
+            // A successful HTTP response may still mean no translation exists
+            // (for example when the AI provider is unavailable). Never leave
+            // a guest silently reading the original language.
+            setTranslation(null);
+            if (language !== "en") setTranslationFailed(true);
+          }
         })
         .catch(() => {
           if (!cancelled) {
