@@ -18,14 +18,14 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
 
   // Raw OpenAI-compatible probe differentiates bad keys/model routing from
   // JSON parser errors. Only protocol metadata is logged; never model content.
-  const raw = await fetch(process.env.AI_BASE_URL!.replace(/\\/$/, "") + "/chat/completions", {
+  const raw = await fetch(new URL("/v1/chat/completions", process.env.AI_BASE_URL!).toString(), {
     method: "POST",
     headers: { "Authorization": "Bearer " + process.env.AI_API_KEY, "Content-Type": "application/json" },
     signal: AbortSignal.timeout(45000),
     body: JSON.stringify({
       model: process.env.AI_TRANSLATION_MODEL,
       max_tokens: 180,
-      messages: [{ role: "user", content: "Return only valid JSON: {\\"result\\":\\"Bonjour\\"}" }]
+      messages: [{ role: "user", content: "Return only a JSON object with result set to Bonjour." }]
     }),
   });
   const rawBody = await raw.json() as {
