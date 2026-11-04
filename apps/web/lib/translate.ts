@@ -146,7 +146,7 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
       const translated = batchedSchema.parse(await generateJson(
         `Translate these holiday-rental guide sections into ${target}. Keep each section ID unchanged.\n${RULES}\nReturn JSON only: {"sections":[{"id":"...","title":"...","body":"..."}]}`,
         JSON.stringify({ sections: group }),
-        tokensFor(JSON.stringify(group)),
+        Math.max(8192, tokensFor(JSON.stringify(group))),
         45000,
         model,
       ));
@@ -167,7 +167,7 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
       const result = extrasSchema.parse(await generateJson(
         `Translate this holiday-rental welcome and list of extras into ${target}. Keep every ID unchanged.\n${RULES}\nReturn JSON only: {"description":"...","extras":[{"id":"...","name":"...","description":"..."}]}`,
         JSON.stringify({ description: text.description, extras: text.extras }),
-        tokensFor(JSON.stringify(text.extras) + text.description),
+        Math.max(8192, tokensFor(JSON.stringify(text.extras) + text.description)),
         45000,
         model,
       ));
