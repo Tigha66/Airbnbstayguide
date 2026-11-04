@@ -84,7 +84,23 @@ describe("translateGuide", () => {
   beforeEach(() => {
     mockedAi.mockReset();
   });
-  afterEach(() => vi.unstubAllEnvs());
+  afterEach(() => { vi.unstubAllEnvs(); vi.useRealTimers(); });
+
+  it("shares a 40-second deadline across legacy batches and skips work after exhaustion", async () => {
+    vi.stubEnv("AI_TRANSLATION_MODEL", "");
+    vi.useFakeTimers();
+    const original = guideText(demoProperties[0]);
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      await new Promise(resolve => setTimeout(resolve, Number(args[3])));
+      throw new Error("Provider timeout");
+    });
+    const pending = translateGuide(original, "de");
+    await vi.advanceTimersByTimeAsync(40000);
+    expect(await pending).toEqual(original);
+    expect(mockedAi).toHaveBeenCalledTimes(8);
+    expect(mockedAi.mock.calls.slice(0, 4).every(call => call[3] === 30000)).toBe(true);
+    expect(mockedAi.mock.calls.slice(4).every(call => call[3] === 10000)).toBe(true);
+  });
 
   it("runs section batches and extras with a dedicated model without changing codes", async () => {
     vi.stubEnv("AI_TRANSLATION_MODEL", "sensenova-6.8-flash-lite");
@@ -147,6 +163,28 @@ describe("translateGuide", () => {
     const out = await translateGuide(original, "de");
     expect(out).toEqual(original);
     expect(mockedAi).toHaveBeenCalledTimes(3);
+  });
+
+  it("splits a failed section batch on resume instead of repeating the same failing group", async () => {
+    vi.stubEnv("AI_TRANSLATION_MODEL", "qa-model");
+    const original = guideText(property);
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      if (input.sections) {
+        if (input.sections.length > 1) throw new Error("Batch response truncated");
+        const section = input.sections[0];
+        return { sections: [{ ...section, title: "Informations", body: "Informations pour votre séjour : " + section.body }] };
+      }
+      if (input.description) return { description: "Bienvenue au chalet." };
+      return { extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }] };
+    });
+    const partial = await translateGuide(original, "fr");
+    expect(partial.sections).toEqual(original.sections);
+    mockedAi.mockClear();
+    const resumed = await translateGuide(original, "fr", partial);
+    expect(mockedAi).toHaveBeenCalledTimes(2);
+    expect(mockedAi.mock.calls.every(call => JSON.parse(String(call[1])).sections.length === 1)).toBe(true);
+    expect(resumed.sections.every(section => section.title === "Informations")).toBe(true);
   });
 
   it("translates sections, welcome text and extras", async () => {

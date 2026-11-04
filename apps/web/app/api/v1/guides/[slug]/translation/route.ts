@@ -34,7 +34,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     const cached = await getGuideTranslation(key, language, hash).catch(() => null);
     // Legacy caches could contain a mix of original English and translated
     // sections; never serve those as a successful dedicated-model translation.
-    if (cached && (!dedicatedModel || completeGuideTranslation(text, cached, language)))
+    if (cached && completeGuideTranslation(text, cached, language))
       return NextResponse.json({ translated: true, cached: true, text: cached });
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const bucket = createHash("sha256").update(`translate:${ip}`).digest("hex");
@@ -51,8 +51,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const changed = JSON.stringify(translated) !== JSON.stringify(text);
   // Never cache a partially translated guide as if the selected language were
   // complete. The HCN provider may time out on just one of several sections.
-  if (dedicatedModel && !completeGuideTranslation(text, translated, language)) {
-      if (dbConfigured()) await saveGuideTranslation(key, partialKey, hash, translated).catch(() => {});
+  if (!completeGuideTranslation(text, translated, language)) {
+      if (dedicatedModel && dbConfigured()) await saveGuideTranslation(key, partialKey, hash, translated).catch(() => {});
       return NextResponse.json({
         error: "Translation is still being prepared. The original guide is available while you retry.",
         code: "TRANSLATION_INCOMPLETE",

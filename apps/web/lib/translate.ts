@@ -92,14 +92,19 @@ export async function translateGuide(text: GuideText, language: string, previous
   const translationModel = process.env.AI_TRANSLATION_MODEL?.trim();
   if (translationModel) return translateGuideWithDedicatedModel(text, language, translationModel, previous);
   const target = languageNames[language] ?? "English";
+  // Sequential batches share one request budget; a timeout in each batch must
+  // not accumulate beyond the route's 60-second limit. Leave time for DB work.
+  const deadline = Date.now() + 40000;
+  const remaining = () => Math.max(0, Math.min(30000, deadline - Date.now()));
   const sections = await inBatches(text.sections, 4, async (s) => {
+    if (!remaining()) return s;
     try {
       const out = sectionSchema.parse(
         await generateJson(
           `Translate this holiday-rental guide section into ${target}.\n${RULES}\nRespond with JSON only: {"title":"...","body":"..."}`,
           JSON.stringify({ title: s.title, body: s.body }),
           tokensFor(s.title + s.body),
-          30000,
+          remaining(),
         ),
       );
       if (!out.body.trim() || !keepsProtected(s.body, out.body) || !keepsProtected(s.title, out.title)) return s;
@@ -111,12 +116,13 @@ export async function translateGuide(text: GuideText, language: string, previous
   let description = text.description;
   let extras = text.extras;
   try {
+    if (!remaining()) return { description, sections, extras };
     const out = extrasSchema.parse(
       await generateJson(
         `Translate this holiday-rental welcome text and list of paid extras into ${target}. Keep every "id" unchanged.\n${RULES}\nRespond with JSON only: {"description":"...","extras":[{"id":"...","name":"...","description":"..."}]}`,
         JSON.stringify({ description: text.description, extras: text.extras }),
         tokensFor(JSON.stringify(text.extras) + text.description),
-        30000,
+        remaining(),
       ),
     );
     if (out.description.trim() && keepsProtected(text.description, out.description)) description = out.description;
@@ -172,7 +178,10 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
   );
   const pendingSections = text.sections.filter((s) => !savedSections.has(s.id));
   const groups: GuideText["sections"][] = [];
-  for (let i = 0; i < pendingSections.length; i += 4) groups.push(pendingSections.slice(i, i + 4));
+  // A failed multi-section response must not repeatedly block the same group.
+  // On resume, ask for each missing section separately, preserving completed work.
+  const groupSize = previous ? 1 : 4;
+  for (let i = 0; i < pendingSections.length; i += groupSize) groups.push(pendingSections.slice(i, i + groupSize));
 
   const sectionJob = Promise.all(groups.map(async (group) => {
     try {
