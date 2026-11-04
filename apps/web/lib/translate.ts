@@ -192,17 +192,27 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
     }
   })();
 
+  const savedExtras = new Map(
+    (previous?.extras ?? []).filter((item) => {
+      const original = text.extras.find((e) => e.id === item.id);
+      return original && (item.name !== original.name || item.description !== original.description) &&
+        keepsProtected(original.name + " " + original.description, item.name + " " + item.description);
+    }).map((item) => [item.id, item] as const),
+  );
+  const pendingExtras = text.extras.filter((e) => !savedExtras.has(e.id));
   const extrasJob = (async () => {
-    if (!text.extras.length) return text.extras;
+    if (!pendingExtras.length) return text.extras.map((e) => savedExtras.get(e.id) ?? e);
     try {
       const result = z.object({ extras: z.array(z.object({ id: z.string(), name: z.string(), description: z.string() })) }).parse(await generateJson(
         `Translate these holiday-rental paid extras into ${target}. Keep every ID unchanged.\n${RULES}\nReturn JSON only: {"extras":[{"id":"...","name":"...","description":"..."}]}`,
-        JSON.stringify({ extras: text.extras }),
+        JSON.stringify({ extras: pendingExtras }),
         8192,
         45000,
         model,
       ));
       return text.extras.map((original) => {
+        const saved = savedExtras.get(original.id);
+        if (saved) return saved;
         const item = result.extras.find((x) => x.id === original.id);
         if (!item?.name.trim() || !keepsProtected(original.name + " " + original.description, item.name + " " + item.description))
           return original;
@@ -210,10 +220,11 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
       });
     } catch (error) {
       reportPreviewTranslationError("extras", error);
-      return text.extras;
+      return text.extras.map((e) => savedExtras.get(e.id) ?? e);
     }
   })();
 
   const [sectionGroups, description, extras] = await Promise.all([sectionJob, welcomeJob, extrasJob]);
-  return { description, extras, sections: sectionGroups.flat() };
+  const combined = new Map([...savedSections.entries(), ...sectionGroups.flat().map((s) => [s.id, s] as const)]);
+  return { description, extras, sections: text.sections.map((s) => combined.get(s.id) ?? s) };
 }
