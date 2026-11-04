@@ -39,10 +39,27 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
   const translated = await translateGuide(text, language);
   const changed = JSON.stringify(translated) !== JSON.stringify(text);
-  // In the opt-in dedicated-model path, do not report success while returning
-  // an unchanged English guide for a different requested language.
-  if (!changed && process.env.AI_TRANSLATION_MODEL?.trim())
-    return NextResponse.json({ error: "Translation is temporarily unavailable. Please try again.", code: "TRANSLATION_UNAVAILABLE" }, { status: 503 });
+  // Never cache a partially translated guide as if the selected language were
+  // complete. The HCN provider may time out on just one of several sections.
+  if (process.env.AI_TRANSLATION_MODEL?.trim()) {
+    const sectionsComplete = text.sections.length === translated.sections.length && text.sections.every((section, i) => {
+      const translatedSection = translated.sections[i];
+      if (!translatedSection || translatedSection.id !== section.id) return false;
+      // Empty or very short sections may legitimately contain no translatable prose.
+      return section.body.trim().length < 20 ||
+        (translatedSection.body.trim() && translatedSection.body !== section.body);
+    });
+    const descriptionComplete = !text.description.trim() || translated.description.trim() !== text.description.trim();
+    const extrasComplete = text.extras.length === translated.extras.length && text.extras.every((extra, i) => {
+      const item = translated.extras[i];
+      return item?.id === extra.id && (item.name !== extra.name || item.description !== extra.description);
+    });
+    if (!changed || !sectionsComplete || !descriptionComplete || !extrasComplete || guideLanguage(translated) !== language)
+      return NextResponse.json({
+        error: "Translation is temporarily unavailable. The original guide is still available.",
+        code: "TRANSLATION_UNAVAILABLE",
+      }, { status: 503 });
+  }
   if (changed && dbConfigured()) await saveGuideTranslation(key, language, hash, translated).catch(() => {});
   return NextResponse.json({ translated: changed, text: changed ? translated : undefined });
 }
