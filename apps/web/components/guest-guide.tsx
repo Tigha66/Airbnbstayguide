@@ -81,7 +81,7 @@ export function GuestGuide({
         return;
       }
       setTranslating(true);
-      const fetchTranslation = async (attempt: number): Promise<{ translated?: boolean; text?: GuideText } | null> => {
+      const fetchTranslation = async (attempt: number): Promise<{ translated?: boolean; originalLanguage?: boolean; text?: GuideText } | null> => {
         if (cancelled) return null;
         const response = await fetch(`/api/v1/guides/${slug}/translation?lang=${language}`);
         if (response.status === 503 && attempt < 3 && !cancelled) {
@@ -95,7 +95,7 @@ export function GuestGuide({
         return response.json();
       };
       void fetchTranslation(0)
-        .then((body: { translated?: boolean; text?: GuideText } | null) => {
+        .then((body: { translated?: boolean; originalLanguage?: boolean; text?: GuideText } | null) => {
           if (cancelled) return;
           if (body?.translated && body.text) {
             setTranslation({ language, source, text: body.text });
@@ -105,7 +105,7 @@ export function GuestGuide({
             // (for example when the AI provider is unavailable). Never leave
             // a guest silently reading the original language.
             setTranslation(null);
-            if (language !== "en") setTranslationFailed(true);
+            if (!body?.originalLanguage) setTranslationFailed(true);
           }
         })
         .catch(() => {
