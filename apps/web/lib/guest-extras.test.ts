@@ -7,6 +7,11 @@ import { POST } from "@/app/api/v1/guides/[slug]/extras/route";
 import { GET } from "@/app/api/v1/guides/[slug]/extras/status/route";
 
 const provider = vi.hoisted(() => ({ create: vi.fn(), retrieve: vi.fn() }));
+const payout = vi.hoisted(() => ({ verify: vi.fn() }));
+vi.mock("./billing", async (original) => ({
+  ...await original<typeof import("./billing")>(),
+  refreshPayoutStatus: payout.verify,
+}));
 vi.mock("./stripe", async (original) => ({
   ...await original<typeof import("./stripe")>(),
   stripeConfigured: () => true,
@@ -41,6 +46,7 @@ beforeAll(async () => {
 beforeEach(() => {
   provider.create.mockReset().mockResolvedValue(session);
   provider.retrieve.mockReset().mockResolvedValue(session);
+  payout.verify.mockReset().mockResolvedValue(true);
 });
 afterAll(async () => { setQueryOverride(null); await pg.close(); });
 
@@ -48,6 +54,13 @@ describe("guest extra checkout acceptance with isolated Postgres and simulated S
   it("rejects malformed and oversized requests before writing an extra", async () => {
     expect((await post("{", "malformed", true)).status).toBe(400);
     expect((await post("x".repeat(25000), "oversized", true)).status).toBe(400);
+    expect(provider.create).not.toHaveBeenCalled();
+  });
+  it("does not open a payment when Stripe disables a previously ready Connect account", async () => {
+    payout.verify.mockResolvedValueOnce(false);
+    const response = await post({ ...guest, requestId: crypto.randomUUID() }, "payout-disabled");
+    expect(response.status).toBe(200);
+    expect((await response.json()).status).toBe("pending");
     expect(provider.create).not.toHaveBeenCalled();
   });
   it("reuses one request and Checkout after a repeated submission", async () => {
