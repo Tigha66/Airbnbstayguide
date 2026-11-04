@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { applyGuideText, demoAnswer, demoProperties } from "@stayguide/shared";
 import { guestText, guestUiLanguages, isRtl, fill } from "./guest-i18n";
 
@@ -56,6 +56,38 @@ describe("translateGuide", () => {
   };
   beforeEach(() => {
     mockedAi.mockReset();
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("runs section batches and extras with a dedicated model without changing codes", async () => {
+    vi.stubEnv("AI_TRANSLATION_MODEL", "sensenova-6.8-flash-lite");
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      if (input.sections) return {
+        sections: input.sections.map((s: { id: string; title: string; body: string }) => ({
+          id: s.id,
+          title: s.id === "arrival" ? "Arrivée" : "Wi-Fi",
+          body: s.id === "arrival" ? "Le code de la boîte à clés est 4821." : "Réseau SmokyRidge_Guest, mot de passe bearden2026.",
+        })),
+      };
+      return { description: "Bienvenue au chalet.", extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }] };
+    });
+    const result = await translateGuide(guideText(property), "fr");
+    expect(mockedAi).toHaveBeenCalledTimes(2);
+    expect(mockedAi.mock.calls.every((call) => call[4] === "sensenova-6.8-flash-lite")).toBe(true);
+    expect(result.sections.map((s) => s.title)).toEqual(["Arrivée", "Wi-Fi"]);
+    expect(result.sections[0].body).toContain("4821");
+    expect(result.sections[1].body).toContain("bearden2026");
+    expect(result.description).toBe("Bienvenue au chalet.");
+  });
+
+  it("keeps the original guide if every dedicated-model call times out", async () => {
+    vi.stubEnv("AI_TRANSLATION_MODEL", "sensenova-6.8-flash-lite");
+    mockedAi.mockRejectedValue(new Error("HCN timeout"));
+    const original = guideText(property);
+    const out = await translateGuide(original, "de");
+    expect(out).toEqual(original);
+    expect(mockedAi).toHaveBeenCalledTimes(2);
   });
 
   it("translates sections, welcome text and extras", async () => {
