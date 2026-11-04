@@ -3,6 +3,7 @@ name: GetStayGuide production read-only smoke
 on:
   push:
     branches:
+      - main
       - fix/stayguide-resend-env-alias-20261104
     paths:
       - .github/workflows/stayguide-production-smoke.yml
