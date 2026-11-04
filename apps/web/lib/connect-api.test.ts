@@ -12,10 +12,9 @@ const mocks = vi.hoisted(() => ({
   accountLink: vi.fn(),
 }));
 vi.mock("@/lib/session", () => ({ requireHost: mocks.host }));
-vi.mock("@/lib/api", () => ({
+vi.mock("@/lib/api", async (importOriginal) => ({
+  ...await importOriginal<typeof import("./api")>(),
   safeOrigin: mocks.origin,
-  parseJson: (raw: string) => JSON.parse(raw),
-  unavailable: vi.fn(),
 }));
 vi.mock("@/lib/repo", () => ({
   getBilling: mocks.getBilling,
@@ -44,7 +43,7 @@ beforeEach(() => {
 
 describe("Stripe Connect onboarding error safety", () => {
   it("rejects malformed or oversized payloads without calling Stripe", async () => {
-    for (const body of ["{", JSON.stringify({ country: "ZZZ" }), "x".repeat(25_000)]) {
+    for (const body of ["{", JSON.stringify({ country: "ZZZ" }), JSON.stringify({ payload: "x".repeat(25_000) })]) {
       const response = await POST(request(body));
       expect(response.status).toBe(400);
     }
