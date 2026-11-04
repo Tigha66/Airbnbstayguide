@@ -3,6 +3,7 @@ import type { Property } from "@stayguide/shared";
 import { conciergeSystemPrompt } from "@stayguide/shared";
 import { generateJson } from "./ai";
 import { guideContext, retrieve } from "./retrieval";
+import { guestText } from "./guest-i18n";
 export const CONCIERGE_AI_TIMEOUT_MS = 12000;
 export type ConciergeAnswer = { answer: string; citations: string[]; escalate: boolean };
 const languageNames: Record<string, string> = { en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian", pt: "Portuguese", nl: "Dutch", ar: "Arabic", ja: "Japanese", zh: "Chinese", ko: "Korean", hi: "Hindi" };
@@ -53,15 +54,26 @@ export function hostAttentionAnswer(question: string, language: string): Concier
   if (!leakReport.test(plain)) return null;
   return { answer: hostAttentionText[language] ?? hostAttentionText.en, citations: [], escalate: true };
 }
+const checkoutTimeQuestion: Record<string, RegExp> = {
+  fr: /^(?:bonjour[, ]+)?a quelle heure (?:est (?:le )?(?:depart|check-out)|(?:dois-je|faut-il) quitter (?:le logement|l['’]appartement))\s*[?!.]*$/,
+  es: /^¿?a que hora (?:es la salida|hay que dejar el apartamento)\s*[?!.]*$/,
+  de: /^um wie viel uhr (?:ist der check[- ]?out|muss ich auschecken)\s*[?!.]*$/,
+  ar: /^في اي ساعة يجب تسجيل المغادرة\s*[؟?!\.]*$/,
+};
+
 export function keywordAnswer(property: Property, question: string, language: string): ConciergeAnswer {
   const incident = hostAttentionAnswer(question, language);
   if (incident) return incident;
   const plain = question.toLowerCase().normalize("NFKD").replace(/\p{M}/gu, "");
   if (property.address?.trim() && addressQuestion.test(plain))
     return { answer: `${addressLabel[language] ?? addressLabel.en} ${property.address.trim()}.`, citations: ["Stay details"], escalate: false };
+  const localizedCheckout = checkoutTimeQuestion[language];
+  const labels = localizedCheckout ? guestText(language) : null;
+  if (labels && localizedCheckout.test(plain.trim()) && property.checkOut.trim())
+    return { answer: `${labels.checkOut}: ${property.checkOut.trim()}`, citations: ["Stay details"], escalate: false };
   const [best] = retrieve(property.sections, question, 1);
   if (!best) return unknownAnswer(language);
-  return { answer: best.body, citations: [best.title], escalate: false };
+  return { answer: labels ? `${labels.fromGuide}:\n\n${best.body}` : best.body, citations: [best.title], escalate: false };
 }
 const schema = z.object({ answer: z.string().min(1), citations: z.array(z.string()).default([]), escalate: z.boolean().default(false) });
 export async function aiAnswer(property: Property, question: string, language: string): Promise<ConciergeAnswer> {
