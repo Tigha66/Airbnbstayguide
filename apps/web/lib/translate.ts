@@ -120,7 +120,15 @@ function reportPreviewTranslationError(part: string, error: unknown) {
   if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE !== "1") return;
   const e = error && typeof error === "object" ? error as { name?: string; statusCode?: number; status?: number; code?: string } : {};
   // Never include raw error messages, request bodies, keys, or model output in logs.
-  console.error("[hcn-preview] " + part + " rejected: type=" + String(e.name || "unknown").slice(0, 50) +
+  const msg = error instanceof Error ? error.message : "";
+  const reason =
+    msg.includes("No JSON") ? "no_json" :
+    msg.includes("Unterminated JSON") ? "unterminated_json" :
+    msg.includes("Unexpected token") || msg.includes("not valid JSON") ? "invalid_json" :
+    msg.includes("timed out") || msg.includes("aborted") ? "timeout" :
+    msg.includes("Too Many Requests") ? "rate_limited" :
+    msg.includes("No output") ? "empty_response" : "other";
+  console.error("[hcn-preview] " + part + " rejected: reason=" + reason + " type=" + String(e.name || "unknown").slice(0, 50) +
     " http=" + String(e.statusCode ?? e.status ?? "unknown").slice(0, 20) +
     " code=" + String(e.code || "unknown").slice(0, 50));
 }
