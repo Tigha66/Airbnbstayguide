@@ -81,11 +81,20 @@ export function GuestGuide({
         return;
       }
       setTranslating(true);
-      fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Guide translation unavailable");
-          return res.json();
-        })
+      const fetchTranslation = async (attempt: number): Promise<{ translated?: boolean; text?: GuideText } | null> => {
+        if (cancelled) return null;
+        const response = await fetch(`/api/v1/guides/${slug}/translation?lang=${language}`);
+        if (response.status === 503 && attempt < 3 && !cancelled) {
+          // HCN can finish some sections then time out on another. The server
+          // saves partial progress, so a bounded retry only translates missing
+          // pieces. Do not display any incomplete guide as a translation.
+          await new Promise((resolve) => setTimeout(resolve, (attempt + 1) * 1200));
+          return fetchTranslation(attempt + 1);
+        }
+        if (!response.ok) throw new Error("Guide translation unavailable");
+        return response.json();
+      };
+      void fetchTranslation(0)
         .then((body: { translated?: boolean; text?: GuideText } | null) => {
           if (cancelled) return;
           if (body?.translated && body.text) {
