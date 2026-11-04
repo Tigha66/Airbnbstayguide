@@ -67,6 +67,8 @@ const tokensFor = (text: string) => Math.min(4000, Math.ceil(text.length / 2) + 
  * change a code or number, keeps its original text.
  */
 export async function translateGuide(text: GuideText, language: string): Promise<GuideText> {
+  const translationModel = process.env.AI_TRANSLATION_MODEL?.trim();
+  if (translationModel) return translateGuideWithDedicatedModel(text, language, translationModel);
   const target = languageNames[language] ?? "English";
   const sections = await inBatches(text.sections, 4, async (s) => {
     try {
@@ -106,4 +108,65 @@ export async function translateGuide(text: GuideText, language: string): Promise
     /* keep originals */
   }
   return { description, sections, extras };
+}
+
+/**
+ * Opt-in translation path for slow providers: batches guide sections and runs
+ * batches and paid extras concurrently. Every provider call stays below the
+ * 60-second Hobby function limit. This is enabled only when
+ * AI_TRANSLATION_MODEL is set; existing production behavior is unchanged.
+ */
+async function translateGuideWithDedicatedModel(text: GuideText, language: string, model: string): Promise<GuideText> {
+  const target = languageNames[language] ?? "English";
+  const batchedSchema = z.object({
+    sections: z.array(z.object({ id: z.string(), title: z.string(), body: z.string() })),
+  });
+  const groups: GuideText["sections"][] = [];
+  for (let i = 0; i < text.sections.length; i += 4) groups.push(text.sections.slice(i, i + 4));
+
+  const sectionJob = Promise.all(groups.map(async (group) => {
+    try {
+      const translated = batchedSchema.parse(await generateJson(
+        `Translate these holiday-rental guide sections into ${target}. Keep each section ID unchanged.\n${RULES}\nReturn JSON only: {"sections":[{"id":"...","title":"...","body":"..."}]}`,
+        JSON.stringify({ sections: group }),
+        tokensFor(JSON.stringify(group)),
+        45000,
+        model,
+      ));
+      return group.map((original) => {
+        const item = translated.sections.find((x) => x.id === original.id);
+        if (!item?.title.trim() || !item.body.trim() ||
+            !keepsProtected(original.title, item.title) || !keepsProtected(original.body, item.body)) return original;
+        return { id: original.id, title: item.title.trim(), body: item.body };
+      });
+    } catch {
+      return group;
+    }
+  }));
+
+  const extrasJob = (async () => {
+    try {
+      const result = extrasSchema.parse(await generateJson(
+        `Translate this holiday-rental welcome and list of extras into ${target}. Keep every ID unchanged.\n${RULES}\nReturn JSON only: {"description":"...","extras":[{"id":"...","name":"...","description":"..."}]}`,
+        JSON.stringify({ description: text.description, extras: text.extras }),
+        tokensFor(JSON.stringify(text.extras) + text.description),
+        45000,
+        model,
+      ));
+      const description = result.description.trim() && keepsProtected(text.description, result.description)
+        ? result.description : text.description;
+      const extras = text.extras.map((original) => {
+        const item = result.extras.find((x) => x.id === original.id);
+        if (!item?.name.trim() || !keepsProtected(original.name + " " + original.description, item.name + " " + item.description))
+          return original;
+        return { id: original.id, name: item.name, description: item.description };
+      });
+      return { description, extras };
+    } catch {
+      return { description: text.description, extras: text.extras };
+    }
+  })();
+
+  const [sectionGroups, extraResult] = await Promise.all([sectionJob, extrasJob]);
+  return { description: extraResult.description, extras: extraResult.extras, sections: sectionGroups.flat() };
 }
