@@ -401,7 +401,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
       await fn();
     } catch (e) {
       const err = e as Error & { code?: string };
-      if (err.code === "CONNECT_NOT_ENABLED") setConnectBlocked(true);
+      if (err.code === "CONNECT_NOT_ENABLED" || err.code === "CONNECT_PROFILE_INCOMPLETE") setConnectBlocked(true);
       notify(err.message);
       setBusy(null);
     }
