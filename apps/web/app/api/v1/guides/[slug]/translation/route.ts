@@ -39,6 +39,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
   const translated = await translateGuide(text, language);
   const changed = JSON.stringify(translated) !== JSON.stringify(text);
+  // In the opt-in dedicated-model path, do not report success while returning
+  // an unchanged English guide for a different requested language.
+  if (!changed && process.env.AI_TRANSLATION_MODEL?.trim())
+    return NextResponse.json({ error: "Translation is temporarily unavailable. Please try again.", code: "TRANSLATION_UNAVAILABLE" }, { status: 503 });
   if (changed && dbConfigured()) await saveGuideTranslation(key, language, hash, translated).catch(() => {});
   return NextResponse.json({ translated: changed, text: changed ? translated : undefined });
 }
