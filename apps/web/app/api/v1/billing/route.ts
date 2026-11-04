@@ -3,6 +3,7 @@ import { requireHost } from "@/lib/session";
 import { getBilling } from "@/lib/repo";
 import { refreshPayoutStatus } from "@/lib/billing";
 import { subscriptionQuantity, stripeConfigured } from "@/lib/stripe";
+import { managerCheckoutEnabled, managerSchemaReady } from "@/lib/manager-release";
 export const dynamic = "force-dynamic";
 export async function GET() {
   const host = await requireHost();
@@ -14,6 +15,8 @@ export async function GET() {
     : billing.payoutsReady;
   return NextResponse.json({
     stripe: stripeConfigured(),
+    managerCheckout: Boolean(stripeConfigured() && process.env.STRIPE_WEBHOOK_SECRET &&
+      managerCheckoutEnabled() && await managerSchemaReady()),
     plan: billing.plan,
     status: billing.subscriptionStatus,
     subscribed: Boolean(billing.stripeSubscriptionId && billing.subscriptionStatus !== "canceled"),

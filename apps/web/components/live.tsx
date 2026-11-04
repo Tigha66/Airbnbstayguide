@@ -338,6 +338,7 @@ export function LiveAnalytics() {
 
 type BillingState = {
   stripe: boolean;
+  managerCheckout: boolean;
   plan: Plan;
   status: string | null;
   subscribed: boolean;
@@ -493,9 +494,11 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
                 <li><Check size={14} /> Existing guides, extras and analytics</li>
                 <li><Check size={14} /> PMS channel integrations planned, not yet connected</li>
               </ul>
-              <button className="button" disabled={!data.stripe || busy !== null}
+              <button className="button" disabled={!data.managerCheckout || busy !== null}
                 onClick={() => run("manager", () => postForUrl("/api/v1/billing/checkout", { plan: "manager", yearly }))}>
-                {busy === "manager" ? "Opening checkout…" : "Choose Manager"}
+                {data.managerCheckout
+                  ? busy === "manager" ? tr("Opening checkout…") : tr("Choose {plan}", { plan: plans.manager.name })
+                  : "Manager checkout coming soon"}
               </button>
             </div>
             <HotelPlanCard text={hotelText} />
