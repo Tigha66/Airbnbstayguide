@@ -34,17 +34,22 @@ describe("guest interface translations", () => {
 describe("guide translation safety", () => {
   it("does not accept incomplete or tampered legacy cached translations", () => {
     const original = guideText(demoProperties[0]);
+    const keepTokens = (text: string) => protectedTokens(text).join(" ");
+    // This is structurally French and retains original sensitive tokens;
+    // a few prefixed French words alongside unchanged English are NOT
+    // a fully translated guide and should never be marked complete.
     const translations = {
-      description: "Matins ensoleillés. Après-midis tranquilles. Votre coin à Lisbonne.",
+      description: "Bienvenue dans votre hébergement, nous sommes ravis de vous accueillir à Lisbonne.",
       sections: original.sections.map(section => ({
-        ...section,
-        title: "Le guide : " + section.title,
-        body: "Votre guide : " + section.body + " Merci.",
+        id: section.id,
+        title: "Informations pratiques pour votre séjour " + keepTokens(section.title),
+        body: "Bienvenue dans votre logement. Pour votre séjour, voici les informations importantes et les détails de votre arrivée. " +
+          "Merci de consulter le guide pour connaître les instructions et les horaires. " + keepTokens(section.body),
       })),
       extras: original.extras.map(extra => ({
-        ...extra,
-        name: "Service : " + extra.name,
-        description: "Pour vous : " + extra.description,
+        id: extra.id,
+        name: "Service pratique pour votre séjour " + keepTokens(extra.name),
+        description: "Profitez de votre séjour et réservez votre service à la réception. " + keepTokens(extra.description),
       })),
     };
     expect(completeGuideTranslation(original, translations, "fr")).toBe(true);
