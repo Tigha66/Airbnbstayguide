@@ -33,6 +33,31 @@ jobs:
               cp /tmp/sg-response /tmp/sg-status.json
             fi
           done
+          # Public sample guides. These GET requests do not create accounts,
+          # trigger payments, or invoke metered translation generation.
+          for path in /g/casa-serena /g/olive-grove /g/casa-serena/manifest.webmanifest; do
+            code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --location --silent --show-error --output /tmp/sg-guest --write-out '%{http_code}' "$SITE$path")
+            echo "$path -> HTTP $code"
+            if [[ "$code" != "200" ]]; then
+              echo "::error::Sample guest endpoint $path returned HTTP $code"
+              exit 1
+            fi
+          done
+          # The default guide language must be accepted without paid AI generation.
+          code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --silent --show-error --output /tmp/sg-translation --write-out '%{http_code}' "$SITE/api/v1/guides/casa-serena/translation?lang=en")
+          echo "/api/v1/guides/casa-serena/translation?lang=en -> HTTP $code"
+          if [[ "$code" != "200" ]]; then
+            echo "::error::Original-language guide translation endpoint failed"
+            exit 1
+          fi
+          node -e "const fs=require('fs');const body=JSON.parse(fs.readFileSync('/tmp/sg-translation','utf8'));if(body.translated!==false) process.exit(1)"
+          # Invalid locale must be rejected before contacting any AI provider.
+          code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --silent --show-error --output /tmp/sg-invalid-locale --write-out '%{http_code}' "$SITE/api/v1/guides/casa-serena/translation?lang=invalid")
+          echo "invalid guest locale -> HTTP $code"
+          if [[ "$code" != "400" ]]; then
+            echo "::error::Invalid locale not rejected"
+            exit 1
+          fi
           node - <<'NODE'
           const fs = require('fs');
           const s = JSON.parse(fs.readFileSync('/tmp/sg-status.json', 'utf8'));
