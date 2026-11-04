@@ -51,22 +51,36 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
   if (languages.length === 0 || languages.some(lang => !allowed.has(lang)))
     throw new Error("Invalid Preview QA languages");
 
-  const token = "10:00 PM"; // Present in public demo guide and must remain unchanged.
+  const token = "10:00 PM"; // Protected sample guide time; must be preserved.
   const started = Date.now();
   for (const lang of languages) {
-    const begin = Date.now();
-    const output = await translateGuide(original, lang);
-    const detectedLanguage = guideLanguage(output);
-    const changed = output.description !== original.description;
-    const count = output.sections.filter((s, i) => s.body !== original.sections[i].body || s.title !== original.sections[i].title).length;
-    const codesPreserved = original.sections.every((s,i) => !s.body.includes(token) || output.sections[i].body.includes(token));
-    const scriptMatches = lang !== "ar" || /[\u0600-\u06FF]/.test(output.description + output.sections.map(s => s.body).join(" "));
-    console.log("HCN QA language=" + lang + " durationMs=" + (Date.now() - begin) +
-      " descriptionTranslated=" + changed + " sectionsTranslated=" + count + "/" + original.sections.length +
-      " codesPreserved=" + codesPreserved + " scriptMatches=" + scriptMatches +
-      " detectedLanguage=" + detectedLanguage);
-    if (!changed || count !== original.sections.length || !codesPreserved || !scriptMatches || detectedLanguage !== lang)
-      throw new Error("HCN QA incomplete full-guide translation for " + lang);
+    let partial: Awaited<ReturnType<typeof translateGuide>> | undefined;
+    let complete = false;
+    let previousCount = 0;
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      const begin = Date.now();
+      const output = await translateGuide(original, lang, partial);
+      partial = output; // Equivalent to the server's version-matched partial cache.
+      const detectedLanguage = guideLanguage(output);
+      const changed = output.description !== original.description;
+      const count = output.sections.filter((s, i) => s.body !== original.sections[i].body || s.title !== original.sections[i].title).length;
+      const extraCount = output.extras.filter((e, i) =>
+        e.name !== original.extras[i].name || e.description !== original.extras[i].description).length;
+      const codesPreserved = original.sections.every((s, i) =>
+        !s.body.includes(token) || output.sections[i].body.includes(token));
+      const scriptMatches = lang !== "ar" || /[\u0600-\u06FF]/.test(output.description + output.sections.map(s => s.body).join(" "));
+      console.log("HCN QA language=" + lang + " attempt=" + attempt + " durationMs=" + (Date.now() - begin) +
+        " descriptionTranslated=" + changed + " sectionsTranslated=" + count + "/" + original.sections.length +
+        " extrasTranslated=" + extraCount + "/" + original.extras.length +
+        " codesPreserved=" + codesPreserved + " scriptMatches=" + scriptMatches +
+        " detectedLanguage=" + detectedLanguage);
+      if (count < previousCount) throw new Error("Resumable HCN translation progress regressed");
+      previousCount = count;
+      complete = changed && count === original.sections.length && extraCount === original.extras.length &&
+        codesPreserved && scriptMatches && detectedLanguage === lang;
+      if (complete) break;
+    }
+    if (!complete) throw new Error("HCN QA incomplete full-guide translation after four bounded tries for " + lang);
   }
   console.log("HCN QA completed " + languages.length + " uncached language(s) in " + (Date.now() - started) + " ms");
 } else {
