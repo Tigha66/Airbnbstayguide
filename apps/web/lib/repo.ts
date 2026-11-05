@@ -474,7 +474,7 @@ export async function adminHosts(): Promise<AdminHostRow[]> {
 }
 
 /** Cached AI translation of a guide, only if it matches the guide's current text. */
-export async function getGuideTranslation(propertyKey: string, language: string, sourceHash: string) {
+export async function getGuideTranslation(propertyKey: string, language: string, sourceHash: string): Promise<GuideText | null> {
   const [row] = await query<{ data: GuideText }>(
     `SELECT data FROM guide_translations WHERE property_key = $1 AND language = $2 AND source_hash = $3`,
     [propertyKey, language, sourceHash],
