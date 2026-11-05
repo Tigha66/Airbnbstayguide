@@ -338,6 +338,7 @@ export function LiveAnalytics() {
 }
 
 type BillingState = {
+  trial?: { active: boolean; endsAt: string | null; days: number; propertyLimit: number };
   stripe: boolean;
   plan: Plan;
   status: string | null;
@@ -425,7 +426,7 @@ export function LiveBilling({ notify }: { notify: (m: string) => void }) {
               {data.status && data.status !== "active" && <span className="pill amber" style={{ marginInlineStart: 8 }}>{tr(data.status.replace("_", " "))}</span>}
             </h3>
             <small>
-              {countText(data.propertyCount)} · {tr("up to {n} on this plan", { n: plans[data.plan].properties.toLocaleString() })} ·{" "}
+              {countText(data.propertyCount)} · {tr("up to {n} on this plan", { n: (data.trial?.active ? data.trial.propertyLimit : plans[data.plan].properties).toLocaleString() })} ·{" "}
               {data.plan === "manager" ? "10,000 AI messages / portfolio / month · flat-rate billing" : tr("{n} AI messages / property / month", { n: plans[data.plan].messages.toLocaleString() })}
             </small>
           </div>

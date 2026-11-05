@@ -14,6 +14,7 @@ import {
   type SiteLocale,
   type SiteText,
 } from "@/lib/site-i18n";
+import { onboardingText } from "@/lib/onboarding-i18n";
 import { HotelPlanCard } from "./hotel-plan";
 import { Logo } from "./ui";
 
@@ -44,7 +45,7 @@ export function LanguageMenu({ locale }: { locale: SiteLocale }) {
           rememberLocale(next);
           const [, first, ...rest] = pathname.split("/");
           const page = "/" + (isSiteLocale(first) ? rest : [first, ...rest]).filter(Boolean).join("/");
-          const translated = page === "/" || page === "/pricing";
+          const translated = page === "/" || page === "/pricing" || page === "/tour";
           router.push(`${localeBase(next)}${translated ? (page === "/" ? "" : page) : ""}` || "/");
         }}
       >
@@ -78,14 +79,14 @@ export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
     <header className={`marketing-nav${open ? " menu-open" : ""}`}>
       <Logo href={base || "/"} />
       <nav id="site-menu">
-        <Link href={`${base}/#how-it-works`} onClick={close}>{t.howItWorks}</Link>
+        <Link href={`${base}/tour`} onClick={close}>{onboardingText[locale].tour}</Link>
         <Link href="/integrations" onClick={close}>{t.integrations}</Link>
         <Link href={`${base}/pricing`} onClick={close}>{t.pricing}</Link>
         <Link href="/demo" onClick={close}>{t.demo}</Link>
         <Link href="/login" onClick={close}>{t.login}</Link>
         <LanguageMenu locale={locale} />
-        <Link href="/dashboard" className="button" onClick={close}>
-          {t.explore}
+        <Link href="/login?mode=register" className="button" onClick={close}>
+          {onboardingText[locale].trial}
           <ArrowUpRight size={14} />
         </Link>
       </nav>
@@ -130,6 +131,7 @@ export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
   const unit = (n: number) => `${n} ${n === 1 ? t.property : t.properties}`;
   return (
     <>
+      <div className="notice" style={{ marginTop: 24 }}><strong>{onboardingText[locale].trial}</strong><p>{onboardingText[locale].terms}</p><small>{onboardingText[locale].scope}</small></div>
       <div className="filter-bar" style={{ maxWidth: 660, margin: "30px auto" }}>
         <label style={{ minWidth: 210 }}>
           {t.places}: {quantity}
@@ -191,8 +193,8 @@ export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
                 </li>
               )}
             </ul>
-            <Link className={`button ${key === "pro" ? "" : "secondary"}`} href="/dashboard">
-              {t.cta}
+            <Link className={`button ${key === "pro" ? "" : "secondary"}`} href="/login?mode=register">
+              {key === "pro" ? onboardingText[locale].trial : t.cta}
               <ArrowRight size={14} />
             </Link>
           </div>
