@@ -15,6 +15,7 @@ vi.mock("./billing", async (original) => ({
 vi.mock("./stripe", async (original) => ({
   ...await original<typeof import("./stripe")>(),
   stripeConfigured: () => true,
+  stripeCheckoutAllowed: () => true,
   appUrl: () => "https://guide.example.test",
   stripeClient: () => ({ checkout: { sessions: provider } }),
 }));
