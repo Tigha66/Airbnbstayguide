@@ -20,6 +20,8 @@ import { Logo } from "./ui";
 /** Remembers the visitor's website language (read by the language redirect in proxy.ts). */
 function rememberLocale(locale: SiteLocale) {
   document.cookie = `sg_lang=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  document.documentElement.lang = locale;
+  document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
   try {
     // The guest demo opens in the same language.
     localStorage.setItem("stayguide-language", locale);
@@ -32,6 +34,10 @@ function rememberLocale(locale: SiteLocale) {
 export function LanguageMenu({ locale }: { locale: SiteLocale }) {
   const router = useRouter();
   const pathname = usePathname() || "/";
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+  }, [locale]);
   return (
     <label className="language-menu">
       <Globe size={15} aria-hidden="true" />

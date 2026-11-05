@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Globe } from "lucide-react";
 import { makeTr, type Tr } from "@/lib/app-i18n";
@@ -9,6 +9,10 @@ const LocaleContext = createContext<{ locale: SiteLocale; tr: Tr }>({ locale: "e
 
 /** Provides the host app's language to every component below it. */
 export function AppLocaleProvider({ locale, children }: { locale: SiteLocale; children: React.ReactNode }) {
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+  }, [locale]);
   return <LocaleContext.Provider value={{ locale, tr: makeTr(locale) }}>{children}</LocaleContext.Provider>;
 }
 export function useAppLocale() {
@@ -29,6 +33,8 @@ export function AppLanguageMenu({ compact = false }: { compact?: boolean }) {
         onChange={(e) => {
           const next = e.target.value as SiteLocale;
           document.cookie = `sg_lang=${next}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+          document.documentElement.lang = next;
+          document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
           try {
             localStorage.setItem("stayguide-language", next);
           } catch {

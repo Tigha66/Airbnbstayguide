@@ -79,6 +79,7 @@ const en = {
   showOriginal: "Show original",
   showTranslation: "Show translation",
   translating: "Translating your guide…",
+  translationWarning: "Some information could not be translated. Please check the original instructions.",
 };
 export type GuestText = typeof en;
 
@@ -164,6 +165,7 @@ const fr: GuestText = {
   showOriginal: "Voir l’original",
   showTranslation: "Voir la traduction",
   translating: "Traduction de votre guide…",
+  translationWarning: "Certaines informations n’ont pas pu être traduites. Consultez les instructions d’origine.",
 };
 
 const es: GuestText = {
@@ -243,6 +245,7 @@ const es: GuestText = {
   showOriginal: "Ver original",
   showTranslation: "Ver traducción",
   translating: "Traduciendo tu guía…",
+  translationWarning: "No se ha podido traducir toda la información. Consulta las instrucciones originales.",
 };
 
 const de: GuestText = {
@@ -321,6 +324,7 @@ const de: GuestText = {
   showOriginal: "Original anzeigen",
   showTranslation: "Übersetzung anzeigen",
   translating: "Ihre Gästemappe wird übersetzt…",
+  translationWarning: "Einige Angaben konnten nicht übersetzt werden. Bitte lesen Sie die Originalanweisungen.",
 };
 
 const ar: GuestText = {
@@ -399,6 +403,7 @@ const ar: GuestText = {
   showOriginal: "عرض النص الأصلي",
   showTranslation: "عرض الترجمة",
   translating: "جارٍ ترجمة دليلك…",
+  translationWarning: "تعذّرت ترجمة بعض المعلومات. يُرجى مراجعة التعليمات الأصلية.",
 };
 
 const dictionaries: Record<string, GuestText> = { en, fr, es, de, ar };
