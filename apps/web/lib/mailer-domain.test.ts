@@ -19,7 +19,7 @@ describe("Resend account verification sender domain", () => {
     vi.stubGlobal("fetch", fetchMock);
     const result = await senderDomainReadiness();
     expect(result.ok).toBe(true);
-    expect(result.detail).toContain("delivery");
+    expect(result.detail).toContain("must still be delivered");
     expect(fetchMock).toHaveBeenCalledOnce();
     const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(init.method).toBe("GET");
