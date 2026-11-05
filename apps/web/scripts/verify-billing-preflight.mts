@@ -26,12 +26,24 @@ if (process.env.STAYGUIDE_PREVIEW_PREFLIGHT === "1") {
           console.log("STAYGUIDE_PRICE " + JSON.stringify({
             key, configured: Boolean(configured), configuredExists,
             catalogue: prices.data.map(price => ({
-              currency: price.currency, amount: price.unit_amount,
+              id: price.id, currency: price.currency, amount: price.unit_amount,
               interval: price.recurring?.interval, intervalCount: price.recurring?.interval_count,
             })),
           }));
         }
       }
+      const account = await stripeClient().accounts.retrieve();
+      console.log("STAYGUIDE_STRIPE_ACCOUNT " + JSON.stringify({ id: account.id, chargesEnabled: account.charges_enabled }));
+      const catalogue = await stripeClient().prices.list({ active: true, limit: 100, expand: ["data.product"] });
+      console.log("STAYGUIDE_CATALOGUE " + JSON.stringify({
+        prices: catalogue.data.filter(price => {
+          const product = typeof price.product === "object" && !price.product.deleted ? price.product : null;
+          return price.lookup_key?.startsWith("stayguide_") || price.metadata?.app === "stayguide" ||
+            product?.metadata?.app === "stayguide" || product?.name?.startsWith("StayGuide");
+        }).map(price => ({ id: price.id, lookup: price.lookup_key, amount: price.unit_amount,
+          currency: price.currency, interval: price.recurring?.interval, intervalCount: price.recurring?.interval_count })),
+        hasMore: catalogue.has_more,
+      }));
     }
     const emailKey = process.env.RESEND_API_KEY || process.env.RESENDAPIKEY;
     if (emailKey) {
