@@ -69,6 +69,12 @@ describe("guide translation safety", () => {
     expect(keepsProtected(src, "Le code est 4812 et le départ est à 11:00.")).toBe(false);
     expect(keepsProtected(src, "الرمز هو ٤٨٢١")).toBe(false); // Arabic-Indic digits are not accepted
   });
+  it("rejects clock changes even when every numeric digit is preserved", () => {
+    const source = "Check-in 4:00 PM. Checkout 11:00 AM. Late checkout 2 PM.";
+    expect(keepsProtected(source, "Arrivée 4:00 PM. Départ 11:00 AM. Départ tardif 2 PM.")).toBe(true);
+    expect(keepsProtected(source, "Arrivée 4:00 AM. Départ 11:00 PM. Départ tardif 2 PM.")).toBe(false);
+    expect(keepsProtected(source, "Arrivée 4:00. Départ 11:00. Départ tardif 2.")).toBe(false);
+  });
 });
 
 describe("translateGuide", () => {
@@ -97,9 +103,9 @@ describe("translateGuide", () => {
     const pending = translateGuide(original, "de");
     await vi.advanceTimersByTimeAsync(40000);
     expect(await pending).toEqual(original);
-    expect(mockedAi).toHaveBeenCalledTimes(8);
-    expect(mockedAi.mock.calls.slice(0, 4).every(call => call[3] === 30000)).toBe(true);
-    expect(mockedAi.mock.calls.slice(4).every(call => call[3] === 10000)).toBe(true);
+    expect(mockedAi).toHaveBeenCalledTimes(9);
+    expect(mockedAi.mock.calls.slice(0, 5).every(call => call[3] === 30000)).toBe(true);
+    expect(mockedAi.mock.calls.slice(5).every(call => call[3] === 10000)).toBe(true);
   });
 
   it("runs section batches and extras with a dedicated model without changing codes", async () => {
@@ -122,6 +128,29 @@ describe("translateGuide", () => {
     expect(result.sections[0].body).toContain("4821");
     expect(result.sections[1].body).toContain("bearden2026");
     expect(result.description).toBe("Bienvenue au chalet.");
+  });
+
+  it("preserves default-model partial progress through an outage and retries only missing pieces", async () => {
+    vi.stubEnv("AI_TRANSLATION_MODEL", "");
+    const original = guideText(property);
+    const partial = {
+      ...original,
+      description: "Bienvenue au chalet.",
+      sections: [{ id: "arrival", title: "Arrivée", body: "Le code de la boîte à clés est 4821." }, original.sections[1]],
+      extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }],
+    };
+    mockedAi.mockRejectedValue(new Error("Provider unavailable"));
+    expect(await translateGuide(original, "fr", partial)).toEqual(partial);
+    expect(mockedAi).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(String(mockedAi.mock.calls[0][1])).body).toBe(original.sections[1].body);
+    mockedAi.mockReset();
+    mockedAi.mockResolvedValue({ title: "Wi-Fi", body: "Réseau SmokyRidge_Guest, mot de passe bearden2026." });
+    const recovered = await translateGuide(original, "fr", partial);
+    expect(mockedAi).toHaveBeenCalledTimes(1);
+    expect(recovered.sections[0]).toEqual(partial.sections[0]);
+    expect(recovered.sections[1].body).toContain("Réseau");
+    expect(recovered.description).toBe(partial.description);
+    expect(recovered.extras).toEqual(partial.extras);
   });
 
   it("resumes a partial guide without retranslating already completed parts", async () => {

@@ -53,8 +53,20 @@ it("rejects incomplete legacy caches even without a dedicated model", async () =
 
 it("keeps dedicated-model progress private and never writes it as a completed language", async () => {
   vi.stubEnv("AI_TRANSLATION_MODEL", "qa-model");
+  const partial = { ...source, description: "Willkommen in Ihrer Unterkunft." };
+  vi.mocked(translateGuide).mockResolvedValueOnce(partial);
   const response = await request();
   expect(response.status).toBe(503);
   expect(repo.saveGuideTranslation).toHaveBeenCalledTimes(1);
-  expect(repo.saveGuideTranslation).toHaveBeenCalledWith("sample:casa-serena", "de:partial", expect.any(String), source);
+  expect(repo.saveGuideTranslation).toHaveBeenCalledWith("sample:casa-serena", "de:partial", expect.any(String), partial);
+});
+
+it("resumes default-model partial progress using the source-version cache", async () => {
+  const partial = { ...source, description: "Willkommen in Ihrer Unterkunft." };
+  vi.mocked(repo.getGuideTranslation).mockResolvedValueOnce(null).mockResolvedValueOnce(partial);
+  vi.mocked(translateGuide).mockResolvedValueOnce(partial);
+  expect((await request()).status).toBe(503);
+  expect(translateGuide).toHaveBeenCalledWith(source, "de", partial);
+  expect(repo.saveGuideTranslation).toHaveBeenCalledWith("sample:casa-serena", "de:partial", expect.any(String), partial);
+  expect(repo.saveGuideTranslation).not.toHaveBeenCalledWith("sample:casa-serena", "de", expect.any(String), expect.anything());
 });

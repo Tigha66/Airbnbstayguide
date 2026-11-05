@@ -34,6 +34,9 @@ export function guideLanguage(text: GuideText) {
  */
 export function protectedTokens(text: string) {
   const found = new Set<string>();
+  // Preserve the complete clock string as well as its digits: changing AM to
+  // PM (or dropping it) changes arrival/departure instructions materially.
+  for (const match of text.matchAll(/\b\d{1,2}(?::\d{2})?\s*(?:AM|PM)\b/gi)) found.add(match[0]);
   for (const m of text.matchAll(/https?:\/\/\S+|[\w.+-]+@[\w-]+\.[\w.]+|[A-Za-z0-9_-]*\d[A-Za-z0-9_-]*|[A-Za-z0-9]+_[A-Za-z0-9_]+/g))
     found.add(m[0].replace(/[.,;:!?)]+$/, ""));
   return [...found].filter(Boolean);
@@ -96,7 +99,15 @@ export async function translateGuide(text: GuideText, language: string, previous
   // not accumulate beyond the route's 60-second limit. Leave time for DB work.
   const deadline = Date.now() + 40000;
   const remaining = () => Math.max(0, Math.min(30000, deadline - Date.now()));
-  const sections = await inBatches(text.sections, 4, async (s) => {
+  const savedSections = new Map((previous?.sections ?? []).filter(cached => {
+    const original = text.sections.find(section => section.id === cached.id);
+    return original && cached.title.trim() && cached.body.trim() &&
+      (cached.body !== original.body || cached.title !== original.title) &&
+      keepsProtected(original.body, cached.body) && keepsProtected(original.title, cached.title);
+  }).map(section => [section.id, section] as const));
+  const sectionJob = inBatches(text.sections, 4, async (s) => {
+    const saved = savedSections.get(s.id);
+    if (saved) return saved;
     if (!remaining()) return s;
     try {
       const out = sectionSchema.parse(
@@ -113,20 +124,33 @@ export async function translateGuide(text: GuideText, language: string, previous
       return s;
     }
   });
-  let description = text.description;
-  let extras = text.extras;
+  // Welcome text and extras share the same deadline but must not be starved
+  // by slow section batches. At most four section calls plus this call run.
+  const welcomeJob = (async () => {
+  let description = previous?.description?.trim() && previous.description !== text.description &&
+    keepsProtected(text.description, previous.description) ? previous.description : text.description;
+  const savedExtras = new Map((previous?.extras ?? []).filter(cached => {
+    const original = text.extras.find(extra => extra.id === cached.id);
+    return original && cached.name.trim() && (cached.description.trim() || !original.description.trim()) &&
+      (cached.name !== original.name || cached.description !== original.description) &&
+      keepsProtected(original.name + " " + original.description, cached.name + " " + cached.description);
+  }).map(extra => [extra.id, extra] as const));
+  let extras = text.extras.map(extra => savedExtras.get(extra.id) ?? extra);
   try {
-    if (!remaining()) return { description, sections, extras };
+    if (description !== text.description && savedExtras.size === text.extras.length) return { description, extras };
+    if (!remaining()) return { description, extras };
     const out = extrasSchema.parse(
       await generateJson(
         `Translate this holiday-rental welcome text and list of paid extras into ${target}. Keep every "id" unchanged.\n${RULES}\nRespond with JSON only: {"description":"...","extras":[{"id":"...","name":"...","description":"..."}]}`,
-        JSON.stringify({ description: text.description, extras: text.extras }),
+        JSON.stringify({ description: text.description, extras: text.extras.filter(extra => !savedExtras.has(extra.id)) }),
         tokensFor(JSON.stringify(text.extras) + text.description),
         remaining(),
       ),
     );
-    if (out.description.trim() && keepsProtected(text.description, out.description)) description = out.description;
+    if (description === text.description && out.description.trim() && keepsProtected(text.description, out.description)) description = out.description;
     extras = text.extras.map((e) => {
+      const saved = savedExtras.get(e.id);
+      if (saved) return saved;
       const t = out.extras.find((x) => x.id === e.id);
       return t && t.name.trim() && keepsProtected(e.name + " " + e.description, t.name + " " + t.description)
         ? { id: e.id, name: t.name, description: t.description }
@@ -135,6 +159,9 @@ export async function translateGuide(text: GuideText, language: string, previous
   } catch {
     /* keep originals */
   }
+  return { description, extras };
+  })();
+  const [sections, { description, extras }] = await Promise.all([sectionJob, welcomeJob]);
   return { description, sections, extras };
 }
 
