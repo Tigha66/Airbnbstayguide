@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Apple, ArrowRight } from "lucide-react";
+import { onboardingText } from "@/lib/onboarding-i18n";
+import { localeBase } from "@/lib/site-i18n";
 import { Logo } from "./ui";
 import { makeTr } from "@/lib/app-i18n";
 import { siteDir, type SiteLocale } from "@/lib/site-i18n";
@@ -83,6 +85,7 @@ export function Login({
         <Logo />
         <h1>{tr(register ? "Create account" : "Sign in to your account")}</h1>
         <p>{tr(register ? "Create your StayGuide account." : "Welcome back. Choose a secure sign-in option to continue.")}</p>
+        {register && <div className="notice"><strong>{onboardingText[locale].trial}</strong><p>{onboardingText[locale].terms}</p><small>{onboardingText[locale].scope}</small><p><Link href={`${localeBase(locale)}/tour`}>{onboardingText[locale].learn}</Link></p></div>}
         {configured ? (
           <div className="login-options">
             {googleConfigured && (

@@ -15,6 +15,7 @@ export async function GET() {
   return NextResponse.json({
     stripe: stripeConfigured(),
     plan: billing.plan,
+    trial: { active: Boolean(billing.trialActive), endsAt: billing.trialEndsAt ?? null, days: 14, propertyLimit: 1 },
     status: billing.subscriptionStatus,
     subscribed: Boolean(billing.stripeSubscriptionId && billing.subscriptionStatus !== "canceled"),
     propertyCount: billing.propertyCount,

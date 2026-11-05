@@ -3,6 +3,8 @@ import { ArrowRight, ArrowUpRight, BookOpen, Languages, Leaf, MessageCircle, Shi
 import { demoProperties } from "@stayguide/shared";
 import { MarketingNav, MarketingFooter, Pricing, RoiCalculator } from "./marketing";
 import { guestLanguageChips, siteDir, siteText, type SiteLocale } from "@/lib/site-i18n";
+import { onboardingText } from "@/lib/onboarding-i18n";
+import { localeBase } from "@/lib/site-i18n";
 import { integrationCategories, integrationDisclaimer } from "@/lib/integrations";
 
 const pointIcons = [BookOpen, MessageCircle, ShieldCheck];
@@ -26,18 +28,18 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
             </h1>
             <p>{t.hero.body}</p>
             <div className="row">
-              <Link className="button" href="/dashboard">
-                {t.hero.primary}
+              <Link className="button" href="/login?mode=register">
+                {onboardingText[locale].trial}
                 <ArrowRight size={16} />
               </Link>
-              <Link className="button secondary" href="/demo">
-                {t.hero.secondary}
+              <Link className="button secondary" href={`${localeBase(locale)}/tour`}>
+                {onboardingText[locale].learn}
                 <ArrowUpRight size={14} />
               </Link>
             </div>
             <small>
               <ShieldCheck size={13} style={{ display: "inline", marginInlineEnd: 5 }} />
-              {t.hero.small}
+              {onboardingText[locale].terms}
             </small>
           </div>
           <div className="marketing-visual">

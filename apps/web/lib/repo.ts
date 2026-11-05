@@ -4,6 +4,7 @@ import { query, transaction } from "./db";
 import { parseManual, extractWifi, extractTime } from "./guide-parser";
 import { matchPortfolioRule } from "./portfolio-rules";
 import { managerAccessSql } from "./manager-access";
+import { effectivePlanSql, trialActiveSql, trialEndsSql } from "./trial";
 
 export const extraSchema = z.object({
   id: z.string().min(1).max(80),
@@ -31,7 +32,7 @@ export const propertyDataSchema = z.object({
   extras: z.array(extraSchema).max(40),
 });
 
-export type User = { id: string; email: string; name: string | null; plan: Plan; emailVerified: boolean; organization?: string; sessionVersion?: number };
+export type User = { id: string; email: string; name: string | null; plan: Plan; emailVerified: boolean; organization?: string; sessionVersion?: number; trialActive?: boolean; trialExpired?: boolean; trialEndsAt?: string | null };
 
 export async function upsertUser(email: string, name?: string | null, image?: string | null) {
   const [user] = await query<User>(
@@ -43,7 +44,8 @@ export async function upsertUser(email: string, name?: string | null, image?: st
   return user;
 }
 export async function getUser(id: string) {
-  const [user] = await query<User>(`SELECT id, email, name, plan, email_verified_at IS NOT NULL AS "emailVerified", session_version AS "sessionVersion", organization FROM users WHERE id = $1`, [id]);
+  const [user] = await query<User>(`SELECT id, email, name, ${effectivePlanSql} AS plan, email_verified_at IS NOT NULL AS "emailVerified", session_version AS "sessionVersion", organization,
+    ${trialActiveSql} AS "trialActive", COALESCE(${trialEndsSql} <= now(), false) AS "trialExpired", ${trialEndsSql} AS "trialEndsAt" FROM users u WHERE id = $1`, [id]);
   return user ?? null;
 }
 export async function updateProfile(userId: string, input: unknown) {
@@ -162,7 +164,7 @@ export function aiMessageLimit(plan: Plan, propertyCount: number) {
 }
 async function ownerAiLimit(ownerId: string) {
   const [row] = await query<{ plan: Plan; properties: string | number }>(
-    `SELECT u.plan, (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) AS properties FROM users u WHERE u.id = $1`,
+    `SELECT ${effectivePlanSql} AS plan, (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) AS properties FROM users u WHERE u.id = $1`,
     [ownerId],
   );
   return aiMessageLimit(row?.plan ?? "free", Number(row?.properties ?? 0));
@@ -364,6 +366,8 @@ export async function analytics(ownerId: string) {
 
 export type Billing = {
   plan: Plan;
+  trialActive: boolean;
+  trialEndsAt: string | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   subscriptionStatus: string | null;
@@ -373,7 +377,7 @@ export type Billing = {
 };
 export async function getBilling(userId: string): Promise<Billing | null> {
   const [r] = await query<Record<string, unknown>>(
-    `SELECT u.plan, u.stripe_customer_id, u.stripe_subscription_id, u.subscription_status, u.stripe_account_id, u.payouts_ready,
+    `SELECT ${effectivePlanSql} AS plan, ${trialActiveSql} AS trial_active, ${trialEndsSql} AS trial_ends_at, u.stripe_customer_id, u.stripe_subscription_id, u.subscription_status, u.stripe_account_id, u.payouts_ready,
             (SELECT count(*) FROM properties p WHERE p.owner_id = u.id) AS property_count
        FROM users u WHERE u.id = $1`,
     [userId],
@@ -381,6 +385,8 @@ export async function getBilling(userId: string): Promise<Billing | null> {
   if (!r) return null;
   return {
     plan: r.plan as Plan,
+    trialActive: Boolean(r.trial_active),
+    trialEndsAt: r.trial_ends_at ? new Date(r.trial_ends_at as string).toISOString() : null,
     stripeCustomerId: (r.stripe_customer_id as string) ?? null,
     stripeSubscriptionId: (r.stripe_subscription_id as string) ?? null,
     subscriptionStatus: (r.subscription_status as string) ?? null,

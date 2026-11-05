@@ -77,6 +77,9 @@ import { AppLanguageMenu, useAppLocale } from "./app-locale";
 import { siteDir, siteText } from "@/lib/site-i18n";
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
+import { TrialNotice } from "./trial-notice";
+import { onboardingText } from "@/lib/onboarding-i18n";
+import { localeBase } from "@/lib/site-i18n";
 import { Modal } from "./modal";
 const nav = [
   ["", "Overview", Home],
@@ -418,6 +421,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
         </nav>
         <div className="nav-divider" />
         <nav>
+          <Link className="nav-item" href={`${localeBase(locale)}/tour`} onClick={() => setMobile(false)}><LifeBuoy size={17} />{onboardingText[locale].tour}</Link>
           {secondNav.map(([path, label, Icon]) => (
             <Link
               key={path}
@@ -523,6 +527,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
           </div>
         </header>
         <main className="dashboard-content">
+          <TrialNotice />
           {view === "" && (
             <>
               <div className="page-heading">
