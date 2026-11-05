@@ -144,7 +144,8 @@ describe("translateGuide", () => {
     mockedAi.mockRejectedValue(new Error("Provider unavailable"));
     expect(await translateGuide(original, "fr", partial)).toEqual(partial);
     expect(mockedAi).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(String(mockedAi.mock.calls[0][1])).body).toBe(original.sections[1].body);
+    expect(JSON.parse(String(mockedAi.mock.calls[0][1])).title).toBe(original.sections[1].title);
+    expect(JSON.parse(String(mockedAi.mock.calls[0][1])).body).toContain("__SG_");
     mockedAi.mockReset();
     mockedAi.mockResolvedValue({ title: "Wi-Fi", body: "Réseau SmokyRidge_Guest, mot de passe bearden2026." });
     const recovered = await translateGuide(original, "fr", partial);
@@ -153,6 +154,44 @@ describe("translateGuide", () => {
     expect(recovered.sections[1].body).toContain("Réseau");
     expect(recovered.description).toBe(partial.description);
     expect(recovered.extras).toEqual(partial.extras);
+  });
+
+  it.each(["", "fixture-model"])("restores protected Arabic data locally with model override %s", async model => {
+    vi.stubEnv("AI_TRANSLATION_MODEL", model);
+    const markers = (text = "") => (text.match(/__SG_[a-f0-9]+_\d+__/g) ?? []).join(" ");
+    mockedAi.mockImplementation(async (...args: unknown[]) => {
+      const input = JSON.parse(String(args[1]));
+      const section = (item: { id: string; body: string }) => ({
+        id: item.id, title: "معلومات الإقامة", body: "يرجى استخدام المعلومات التالية أثناء إقامتك: " + markers(item.body),
+      });
+      if (input.sections) return { sections: input.sections.map(section) };
+      if (input.body) return section(input);
+      return {
+        description: "مرحبا بكم في مكان إقامتكم المميز. " + markers(input.description),
+        extras: (input.extras ?? []).map((extra: { id: string; description: string }) => ({
+          id: extra.id, name: "خدمة إضافية", description: "يمكن طلب الخدمة في هذا الموعد: " + markers(extra.description),
+        })),
+      };
+    });
+    const out = await translateGuide(guideText(property), "ar");
+    const sent = mockedAi.mock.calls.map(call => String(call[1])).join(" ");
+    expect(sent).not.toContain("4821");
+    expect(sent).not.toContain("bearden2026");
+    expect(sent).not.toContain("2 PM");
+    expect(out.sections[0].body).toContain("4821");
+    expect(out.sections[1].body).toContain("SmokyRidge_Guest");
+    expect(out.sections[1].body).toContain("bearden2026");
+    expect(out.extras[0].description).toContain("2 PM");
+    expect(out.sections.map(section => section.id)).toEqual(["arrival", "wifi"]);
+    expect(JSON.stringify(out)).not.toContain("__SG_");
+  });
+
+  it("refuses Arabic output that drops a protected marker", async () => {
+    vi.stubEnv("AI_TRANSLATION_MODEL", "");
+    mockedAi.mockResolvedValue({ title: "الوصول", body: "رمز الدخول غير موجود" });
+    const out = await translateGuide(guideText(property), "ar");
+    expect(out.sections[0]).toEqual(guideText(property).sections[0]);
+    expect(out.sections[1]).toEqual(guideText(property).sections[1]);
   });
 
   it("resumes a partial guide without retranslating already completed parts", async () => {
@@ -221,7 +260,7 @@ describe("translateGuide", () => {
   it("translates sections, welcome text and extras", async () => {
     mockedAi.mockImplementation(async (...args: unknown[]) => {
       const input = JSON.parse(String(args[1]));
-      if (input.body?.includes("4821")) return { title: "Arrivée", body: "Le code de la boîte à clés est 4821." };
+      if (input.title === "Arrival") return { title: "Arrivée", body: "Le code de la boîte à clés est 4821." };
       if (input.body) return { title: "Wi-Fi", body: "Réseau SmokyRidge_Guest, mot de passe bearden2026." };
       return { description: "Bienvenue au chalet.", extras: [{ id: "late", name: "Départ tardif", description: "Partez à 2 PM." }] };
     });
@@ -236,7 +275,7 @@ describe("translateGuide", () => {
   it("keeps the original when the AI changes a code or fails", async () => {
     mockedAi.mockImplementation(async (...args: unknown[]) => {
       const input = JSON.parse(String(args[1]));
-      if (input.body?.includes("4821")) return { title: "Arrivée", body: "Le code est 4812." }; // wrong code
+      if (input.title === "Arrival") return { title: "Arrivée", body: "Le code est 4812." }; // wrong code
       if (input.body) throw new Error("AI timeout");
       return { description: "Bienvenue.", extras: [] };
     });
