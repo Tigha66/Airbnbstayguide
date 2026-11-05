@@ -72,7 +72,7 @@ for (const account of ["paid", "active-trial", "unverified-trial", "existing-fre
     await expect(card.getByRole("link", { name: "How to use StayGuide", exact: true })).toBeVisible();
     if (account === "paid") await expect(card).toContainText("there is no trial to start on this account");
     if (account === "existing-free") await expect(card).toContainText("has no active trial");
-    if (account === "active-trial") { await expect(card).toContainText("Your 14-day Pro trial"); await expect(card).toContainText("19 November 2026"); }
+    if (account === "active-trial") { await expect(card).toContainText("Your 14-day Pro trial"); await expect(card).toContainText("November 19, 2026"); }
     if (account === "unverified-trial") await expect(card.getByRole("link", { name: "Verify your email to activate your trial.", exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
