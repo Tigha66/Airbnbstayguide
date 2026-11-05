@@ -77,7 +77,7 @@ import { AppLanguageMenu, useAppLocale } from "./app-locale";
 import { siteDir, siteText } from "@/lib/site-i18n";
 import { signOutAction } from "@/app/actions";
 import { Logo, PageHeading, GuideIcon, Empty } from "./ui";
-import { DashboardOnboarding, TrialNotice } from "./trial-notice";
+import { BillingTrialPanel, DashboardOnboarding, TrialNotice } from "./trial-notice";
 import { onboardingText } from "@/lib/onboarding-i18n";
 import { localeBase } from "@/lib/site-i18n";
 import { Modal } from "./modal";
@@ -528,7 +528,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
         </header>
         <main className="dashboard-content">
           {view === "" && <DashboardOnboarding />}
-          <TrialNotice />
+          {view !== "billing" && <TrialNotice />}
           {view === "" && (
             <>
               <div className="page-heading">
@@ -1421,6 +1421,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
             </>
           )}
+          {view === "billing" && <BillingTrialPanel />}
           {view === "billing" && live && <LiveBilling notify={notify} />}
           {view === "billing" && !live && (
             <>
