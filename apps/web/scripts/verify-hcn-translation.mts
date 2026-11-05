@@ -6,7 +6,7 @@
  * No production data is read or modified; no new guest property is created.
  */
 import { demoProperties } from "@stayguide/shared";
-import { translateGuide, guideText, guideLanguage } from "../lib/translate";
+import { translateGuide, guideText, guideLanguage, completeGuideTranslation } from "../lib/translate";
 
 if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
   if (process.env.VERCEL_ENV !== "preview")
@@ -15,6 +15,20 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
       new URL(process.env.AI_BASE_URL || "https://invalid.example").hostname !== "api.hcnsec.cn" ||
       !process.env.AI_API_KEY || !process.env.AI_MODEL)
     throw new Error("HCN acceptance requires Preview HCN default model, provider URL and API key.");
+
+  // Read-only routing inventory for an unavailable/slow provider model. Log
+  // model IDs only, never credentials, provider payloads or guide content.
+  try {
+    const response = await fetch(new URL("/v1/models", process.env.AI_BASE_URL!), {
+      headers: { Authorization: "Bearer " + process.env.AI_API_KEY },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (response.ok) {
+      const body = await response.json() as { data?: { id?: string }[] };
+      console.log("HCN available fast models=" + JSON.stringify((body.data ?? [])
+        .map(model => model.id).filter((id): id is string => typeof id === "string" && /flash|mini|deepseek/i.test(id)).slice(0, 60)));
+    }
+  } catch { console.log("HCN model inventory unavailable"); }
 
   if (process.env.HCN_PREVIEW_RAW_PROBE === "1") {
   // Raw OpenAI-compatible probe differentiates bad keys/model routing from
@@ -77,7 +91,7 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
       if (count < previousCount) throw new Error("Resumable HCN translation progress regressed");
       previousCount = count;
       complete = changed && count === original.sections.length && extraCount === original.extras.length &&
-        codesPreserved && scriptMatches && detectedLanguage === lang;
+        codesPreserved && scriptMatches && detectedLanguage === lang && completeGuideTranslation(original, output, lang);
       if (complete) break;
     }
     if (!complete) throw new Error("HCN QA incomplete full-guide translation after four bounded tries for " + lang);

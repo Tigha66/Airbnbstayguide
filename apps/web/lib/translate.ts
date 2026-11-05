@@ -56,7 +56,7 @@ export function completeGuideTranslation(original: GuideText, translated: GuideT
     if (!out || out.id !== section.id || !out.body.trim() || !out.title.trim()) return false;
     if (!keepsProtected(section.title, out.title) || !keepsProtected(section.body, out.body)) return false;
     // Small sections with mostly codes may have nothing linguistic to translate.
-    return section.body.trim().length < 20 || out.body !== section.body || out.title !== section.title;
+    return section.body.trim().length < 20 || out.body !== section.body;
   });
   const extrasReady = original.extras.every((extra, i) => {
     const out = translated.extras[i];
@@ -103,6 +103,7 @@ export async function translateGuide(text: GuideText, language: string, previous
     const original = text.sections.find(section => section.id === cached.id);
     return original && cached.title.trim() && cached.body.trim() &&
       (cached.body !== original.body || cached.title !== original.title) &&
+      (original.body.trim().length < 20 || cached.body !== original.body) &&
       keepsProtected(original.body, cached.body) && keepsProtected(original.title, cached.title);
   }).map(section => [section.id, section] as const));
   const sectionJob = inBatches(text.sections, 4, async (s) => {
@@ -200,6 +201,7 @@ async function translateGuideWithDedicatedModel(text: GuideText, language: strin
       const original = text.sections.find((s) => s.id === cached.id);
       return original && Boolean(cached.body.trim()) &&
         (cached.body !== original.body || cached.title !== original.title) &&
+        (original.body.trim().length < 20 || cached.body !== original.body) &&
         keepsProtected(original.body, cached.body) && keepsProtected(original.title, cached.title);
     }).map((s) => [s.id, s] as const),
   );

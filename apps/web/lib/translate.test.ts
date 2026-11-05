@@ -55,6 +55,8 @@ describe("guide translation safety", () => {
     expect(completeGuideTranslation(original, translations, "fr")).toBe(true);
     const partial = { ...translations, sections: translations.sections.map((section, i) => i === 1 ? original.sections[i] : section) };
     expect(completeGuideTranslation(original, partial, "fr")).toBe(false);
+    const titleOnly = { ...translations, sections: translations.sections.map((section, i) => i === 1 ? { ...section, body: original.sections[i].body } : section) };
+    expect(completeGuideTranslation(original, titleOnly, "fr")).toBe(false);
     const wrongCode = { ...translations, sections: translations.sections.map((section, i) => i === 0 ? { ...section, body: "Code remplacé." } : section) };
     expect(completeGuideTranslation(original, wrongCode, "fr")).toBe(false);
     expect(completeGuideTranslation(original, translations, "de")).toBe(false);
