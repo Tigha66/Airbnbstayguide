@@ -59,14 +59,44 @@ export const chatSchema = z.object({
   accessCode: z.string().max(100).optional(),
   threadId: z.uuid().optional(),
 });
+export type MediaItem = {
+  id: string;
+  url: string;
+  caption?: string;
+  alt?: string;
+};
+export type LocationPoint = {
+  latitude: number;
+  longitude: number;
+  address?: string;
+};
 export const sectionSchema = z.object({
   id: z.string(),
   type: z.string(),
   title: z.string().min(1).max(120),
   body: z.string().max(20000),
   icon: z.string(),
+  media: z.array(z.object({
+    id: z.string(),
+    url: z.string(),
+    caption: z.string().optional(),
+    alt: z.string().optional(),
+  })).optional(),
+  location: z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+    address: z.string().optional(),
+  }).optional(),
 });
 export type Section = z.infer<typeof sectionSchema>;
+export type SectionTemplate = {
+  id: string;
+  category: "basics" | "house-rules" | "amenities" | "local" | "custom";
+  title: string;
+  icon: string;
+  body: string;
+  featured: boolean;
+};
 export type Extra = {
   id: string;
   name: string;
@@ -119,7 +149,247 @@ export type Property = {
   hostPhone: string;
   sections: Section[];
   extras: Extra[];
+  workspaceId?: string;
 };
+
+/** Team roles for workspace members */
+export type TeamRole = "owner" | "editor" | "viewer";
+
+/** Workspace member invitation and membership */
+export type WorkspaceMember = {
+  id: string;
+  workspaceId: string;
+  userId?: string;
+  email: string;
+  role: TeamRole;
+  invitedAt: string;
+  joinedAt?: string;
+  status: "pending" | "accepted" | "rejected";
+};
+
+/** Workspace aggregates properties and team */
+export type Workspace = {
+  id: string;
+  ownerId: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Activity log entry for audit trail */
+export type ActivityEntry = {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  action: "create" | "update" | "delete" | "publish" | "duplicate" | "invite" | "remove";
+  resourceType: "guide" | "extra" | "member" | "workspace";
+  resourceId: string;
+  changes?: Record<string, unknown>;
+  timestamp: string;
+};
+
+/** Analytics metrics for dashboard */
+export type AnalyticsMetrics = {
+  period: "7d" | "30d" | "90d";
+  viewCount: number;
+  viewTrend: Array<{ date: string; count: number }>;
+  questionsCount: number;
+  questionsByCategory: Array<{ category: string; count: number }>;
+  extrasRevenue: number;
+  extrasCount: number;
+  guestSatisfaction: number;
+  topGuides: Array<{ id: string; name: string; views: number }>;
+};
+
+/** Webhook configuration */
+export type Webhook = {
+  id: string;
+  workspaceId: string;
+  url: string;
+  events: Array<"guide.published" | "extra.purchased" | "question.escalated" | "member.joined">;
+  active: boolean;
+  createdAt: string;
+  lastFiredAt?: string;
+};
+export const sectionTemplates: SectionTemplate[] = [
+  {
+    id: "arrival-standard",
+    category: "basics",
+    title: "A lovely arrival",
+    icon: "key",
+    body: "Welcome to your home away from home! Check-in is from **3:00 PM**. The entrance is on the garden side. Your private door code is sent directly by your host before arrival. Please do not share it.\n\nIf you arrive early, leave your bags with us while we get everything ready.",
+    featured: true,
+  },
+  {
+    id: "checkout-standard",
+    category: "basics",
+    title: "Until next time",
+    icon: "sun",
+    body: "Check-out is by **11:00 AM**. No need for a big clean — you are on holiday!\n\n- Put used dishes in the dishwasher.\n- Leave used towels in the bathroom.\n- Take out any food waste.\n- Turn off lights and air conditioning.\n- Close the windows and lock the door.",
+    featured: true,
+  },
+  {
+    id: "wifi-standard",
+    category: "basics",
+    title: "Make yourself connected",
+    icon: "wifi",
+    body: "Wi-Fi is available throughout the home. Find the network and password on the card inside the entryway.\n\nIf the connection is slow, unplug the router in the living room for 30 seconds, then plug it back in.",
+    featured: true,
+  },
+  {
+    id: "rules-standard",
+    category: "house-rules",
+    title: "A little house etiquette",
+    icon: "heart",
+    body: "We want you to feel completely at home. A few small things help us look after the space:\n\n- Quiet hours are **10:00 PM–8:00 AM**.\n- No smoking indoors.\n- No parties or unregistered overnight guests.\n- Please close the windows when the air conditioning is on.",
+    featured: true,
+  },
+  {
+    id: "appliances-standard",
+    category: "amenities",
+    title: "The comforts of home",
+    icon: "coffee",
+    body: "**Coffee:** Lift the handle, insert a capsule, close the handle, and press the large cup button.\n\n**Air conditioning:** Use the wall remote. We recommend 22°C.\n\n**Washer:** Laundry detergent is under the sink. Select the quick wash cycle.",
+    featured: true,
+  },
+  {
+    id: "parking-standard",
+    category: "amenities",
+    title: "Your parking spot",
+    icon: "car",
+    body: "One complimentary parking space is available beside the garden gate, marked **Guest**. Please keep the driveway clear for emergency access.",
+    featured: false,
+  },
+  {
+    id: "trash-standard",
+    category: "house-rules",
+    title: "A lighter footprint",
+    icon: "leaf",
+    body: "Recycling goes in the blue bin, general waste in the gray bin. Both are beside the garden gate. Please rinse recyclable containers. Collection is on Tuesday morning.",
+    featured: false,
+  },
+  {
+    id: "emergency-standard",
+    category: "basics",
+    title: "Here when you need us",
+    icon: "shield",
+    body: "For an immediate emergency, call **112**. The first-aid kit is in the kitchen cabinet labeled First Aid. The fire extinguisher is beside the kitchen entrance.\n\nFor property issues, message your host.",
+    featured: false,
+  },
+  {
+    id: "local-standard",
+    category: "local",
+    title: "Live like a local",
+    icon: "map",
+    body: "Start your morning with a pastry and an espresso at a neighborhood café. Wander the old town on foot, then make time for sunset by the water.\n\nAsk your host for current restaurant recommendations and opening hours.",
+    featured: true,
+  },
+  {
+    id: "entertainment",
+    category: "amenities",
+    title: "Entertainment & relaxation",
+    icon: "book",
+    body: "- **Smart TV:** Remote is on the coffee table. Stream your favorite shows.\n- **Books:** Fiction and travel guides on the living room shelf.\n- **Games:** Board games in the sideboard drawer.\n- **Music:** Bluetooth speaker in the kitchen for your playlist.",
+    featured: false,
+  },
+  {
+    id: "kitchen-detailed",
+    category: "amenities",
+    title: "Kitchen essentials",
+    icon: "coffee",
+    body: "Everything you need is here. Coffee and tea are in the top cupboard. Snacks we've left as a welcome gift are in the blue basket.\n\n- **Dishwasher:** Load bottom rack first, use eco setting.\n- **Oven:** Preheats to any temperature you set.\n- **Stove:** Hob switches are clearly labeled.\n- **Fridge:** Please take what you like.",
+    featured: false,
+  },
+  {
+    id: "heating-cooling",
+    category: "amenities",
+    title: "Heating & air conditioning",
+    icon: "coffee",
+    body: "**Summer cooling:** Use the wall-mounted AC remote. Set to 22°C for comfort. Don't leave AC on if windows are open.\n\n**Winter heating:** Central heating is controlled via the hallway thermostat. Set your ideal temperature — usually 20°C is perfect.",
+    featured: false,
+  },
+  {
+    id: "pets",
+    category: "house-rules",
+    title: "If you're traveling with pets",
+    icon: "heart",
+    body: "Pets are welcome! Please keep them off the furniture and clean up any accidents immediately.\n\n- Outdoor space is fenced for safety.\n- Doggy treats are in the kitchen (feel free to use).\n- Waste bags are by the back door.",
+    featured: false,
+  },
+  {
+    id: "laundry-detail",
+    category: "amenities",
+    title: "Laundry care",
+    icon: "coffee",
+    body: "The washer and dryer are in the utility room.\n\n- **Wash:** Load detergent, select temperature, press start.\n- **Dry:** Separate delicates. Low heat for sweaters.\n- **Detergent:** Under the sink; use 1 scoop per load.\n- **Hangers:** Wardrobe space in the bedroom closet.",
+    featured: false,
+  },
+  {
+    id: "garden-outdoor",
+    category: "amenities",
+    title: "Outdoor space & garden",
+    icon: "leaf",
+    body: "Feel free to enjoy the garden! Sunbathe on the deck, relax under the pergola.\n\n- Outdoor furniture is available year-round.\n- Water the plants occasionally in summer (the hose is by the shed).\n- Check the grill before use; propane is in the shed.",
+    featured: false,
+  },
+  {
+    id: "bedrooms",
+    category: "amenities",
+    title: "Bedroom comfort",
+    icon: "sun",
+    body: "- **Linens:** Fresh sheets on all beds. Extra sets in the hallway closet.\n- **Pillows:** Hypoallergenic pillows available in the linen closet.\n- **Blackout curtains:** In every bedroom for a good night's sleep.\n- **Climate:** Set your room temperature with the individual AC unit.",
+    featured: false,
+  },
+  {
+    id: "bathrooms",
+    category: "amenities",
+    title: "Bathroom essentials",
+    icon: "sun",
+    body: "- **Towels:** Fresh towels daily; use the hamper for laundry.\n- **Toiletries:** Complimentary shampoo and soap.\n- **Hairdryer:** In the bathroom drawer.\n- **Water heater:** Takes about 5 minutes to warm up in the morning.",
+    featured: false,
+  },
+  {
+    id: "local-restaurants",
+    category: "local",
+    title: "Dining & restaurants",
+    icon: "map",
+    body: "Our favorite local spots:\n\n- **Bruno's**: Authentic pasta, 5-min walk. Open 6pm–midnight.\n- **The Market**: Fresh produce, sandwiches, & coffee. Open 8am–3pm.\n- **Casa Tua**: Rooftop views, perfect for sunset. Reservations recommended.\n\nAsk us for more suggestions!",
+    featured: false,
+  },
+  {
+    id: "local-activities",
+    category: "local",
+    title: "Things to do & explore",
+    icon: "map",
+    body: "- **Old town**: 15-min walk, beautiful streets & galleries.\n- **Beach**: 20-min walk or quick drive. Quiet cove on the north side.\n- **Hiking**: Mountain trails 30 min away. Maps on the table.\n- **Markets**: Local market every Friday morning in the plaza.",
+    featured: false,
+  },
+  {
+    id: "getting-around",
+    category: "local",
+    title: "Getting around town",
+    icon: "car",
+    body: "- **Public transport:** Bus stop is 2 min walk. Tickets at the corner shop.\n- **Parking:** Your spot is reserved. Free street parking on residential streets.\n- **Taxi:** Call +1 555 0123 or use the apps on the tablet.\n- **Rentals:** Car rental office 1 km away. Bike rentals near the beach.",
+    featured: false,
+  },
+  {
+    id: "grocery-shopping",
+    category: "local",
+    title: "Markets & grocery shopping",
+    icon: "map",
+    body: "- **Supermarket**: 5-min walk, open 7am–9pm daily.\n- **Fresh market**: 10-min walk, best fruits & vegetables, Wednesday–Sunday mornings.\n- **Bakery**: Next door to supermarket, opens 6am.\n- **Pharmacy**: Corner of Main Street, delivery available.",
+    featured: false,
+  },
+  {
+    id: "welcome",
+    category: "basics",
+    title: "Welcome to your stay",
+    icon: "book",
+    body: "We're so glad you're here! This guide has everything you need for a wonderful stay. If you have any questions, please reach out — we're happy to help.\n\nOur goal is for you to feel completely at home. Enjoy every moment!",
+    featured: false,
+  },
+];
 export const sections: Section[] = [
   {
     id: "arrival",
