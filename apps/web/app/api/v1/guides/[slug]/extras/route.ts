@@ -4,7 +4,7 @@ import { z } from "zod";
 import { dbConfigured } from "@/lib/db";
 import { parseJson, unavailable } from "@/lib/api";
 import { attachExtraCheckout, consumeRateLimit, createGuestExtraRequest, getPayoutAccount, getPublishedProperty } from "@/lib/repo";
-import { appUrl, extraCheckoutParams, stripeClient, stripeConfigured } from "@/lib/stripe";
+import { appUrl, extraCheckoutParams, stripeClient, stripeCheckoutAllowed } from "@/lib/stripe";
 import { refreshPayoutStatus } from "@/lib/billing";
 const schema = z.object({
   requestId: z.uuid().optional(),
@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   if (!found || !extra) return NextResponse.json({ error: "This extra is no longer available." }, { status: 404 });
   const guest = { name: input.guestName, contact: input.guestContact, note: input.note };
   // Hosts with a ready Stripe Connect account get paid online; others confirm requests manually.
-  const previouslyReady = stripeConfigured() && extra.price > 0 ? await getPayoutAccount(found.ownerId) : null;
+  const previouslyReady = stripeCheckoutAllowed() && extra.price > 0 ? await getPayoutAccount(found.ownerId) : null;
   // Cached payout flags can become stale when Stripe disables an account.
   // Check live Stripe eligibility before creating a new paid request.
   const destination = previouslyReady && await refreshPayoutStatus(found.ownerId, previouslyReady)
