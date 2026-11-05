@@ -34,7 +34,7 @@ export default async function Page({
         {!mailerConfigured() && (
           <div className="notice" role="status">
             Password reset email is not configured on this deployment yet. Contact{" "}
-            <a href="mailto:hello@getstayguide.com">hello@getstayguide.com</a>.
+            <a href="mailto:abdelhaktirha@gmail.com">abdelhaktirha@gmail.com</a>.
           </div>
         )}
         {params.sent && <div className="notice" role="status">Check your email for a reset link. It expires in 1 hour.</div>}

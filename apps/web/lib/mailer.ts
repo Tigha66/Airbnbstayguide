@@ -1,4 +1,4 @@
-export const supportEmail = "hello@getstayguide.com";
+export const supportEmail = "abdelhaktirha@gmail.com";
 
 export function mailerConfigured() {
   return Boolean(process.env.RESEND_API_KEY && (process.env.EMAIL_FROM || process.env.RESEND_FROM_EMAIL || process.env.RESEND_FROM));
