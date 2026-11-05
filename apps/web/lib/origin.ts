@@ -12,3 +12,13 @@ export function applicationOrigin(): string {
     throw new Error("Application origin must be an HTTPS origin");
   return url.origin;
 }
+
+/** Vercel's branch alias serves this preview too. Trust only its exact
+ * server-provided hostname, never Host/forwarded headers or arbitrary previews.
+ * Email and payment return links still use the immutable deployment above. */
+export function allowedRequestOrigins(): string[] {
+  const canonical = applicationOrigin();
+  const branch = process.env.VERCEL_ENV === "preview" ? process.env.VERCEL_BRANCH_URL : undefined;
+  return branch && /^[a-z0-9-]+\.vercel\.app$/.test(branch)
+    ? [canonical, `https://${branch}`] : [canonical];
+}

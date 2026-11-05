@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import Link from "next/link";
 import { Check, Plus, Trash2, ArrowRight } from "lucide-react";
 import { PageHeading } from "./ui";
+import { PmsOutbox } from "./pms-outbox";
 import { matchPortfolioRule } from "@/lib/portfolio-rules";
 
 type Rule = { id: string; keyword: string; label: string; priority: "normal" | "urgent"; enabled: boolean };
@@ -74,6 +75,7 @@ export function ManagerWorkspace({ notify, complimentary = false }: { notify: (m
   return (
     <>
       <PageHeading title="StayGuide Manager" description="One guest communication workspace across your rental portfolio." />
+      <PmsOutbox />
       {complimentary && <div className="notice" style={{ marginBottom: 16 }}>
         Manager feature access is enabled for your account. Your existing subscription and billing are unchanged.
       </div>}

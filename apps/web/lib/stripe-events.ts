@@ -8,12 +8,20 @@ const customerId = (c: string | { id: string } | null) => (typeof c === "string"
 async function syncSubscription(sub: Stripe.Subscription, deleted = false, eventCreated?: number) {
   const customer = customerId(sub.customer);
   if (!customer) return;
+  // Active status alone is not proof of payment for asynchronous methods.
+  // Resolve the latest invoice through Stripe's object graph before granting.
+  let plan = deleted ? "free" as const : planFromSubscription(sub);
+  if (!deleted && sub.status === "active" && plan !== "free") {
+    const invoice = typeof sub.latest_invoice === "string"
+      ? await stripeClient().invoices.retrieve(sub.latest_invoice) : sub.latest_invoice;
+    if (invoice?.status !== "paid") plan = "free";
+  }
   await applySubscription({
     customerId: customer,
     userId: sub.metadata?.user_id || undefined,
     subscriptionId: deleted ? null : sub.id,
     status: deleted ? "canceled" : sub.status,
-    plan: deleted ? "free" : planFromSubscription(sub),
+    plan,
     previousSubscriptionId: sub.id,
     eventCreated,
   });
@@ -36,6 +44,7 @@ export async function handleStripeEvent(event: Stripe.Event) {
         return `extra:${status}`;
       }
       if (session.mode === "subscription" && session.subscription) {
+        if (!["paid", "no_payment_required"].includes(session.payment_status)) return "payment-pending";
         const subId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
         await syncSubscription(await stripeClient().subscriptions.retrieve(subId), false, event.created);
         return "subscription";
