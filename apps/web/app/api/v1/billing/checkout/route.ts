@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireHost } from "@/lib/session";
 import { getBilling } from "@/lib/repo";
 import { ensureCustomer } from "@/lib/billing";
-import { appUrl, subscriptionQuantity, checkoutIdentity, priceId, stripeClient, stripeConfigured } from "@/lib/stripe";
+import { appUrl, subscriptionQuantity, checkoutIdentity, priceId, portalConfigurationId, stripeClient, stripeConfigured } from "@/lib/stripe";
 import { parseJson, safeOrigin, unavailable } from "@/lib/api";
 const schema = z.object({ plan: z.enum(["starter", "pro", "manager"]), yearly: z.boolean().default(false) });
 const reply = (data: unknown, status = 200) => NextResponse.json(data, { status, headers: { "Cache-Control": "private, no-store" } });
@@ -19,6 +19,9 @@ export async function POST(request: Request) {
   if (!parsed.success) return reply({ error: "Choose a plan" }, 400);
   try {
     const billing = await getBilling(host.user.id);
+    // Do not take a first payment unless the customer can manage/cancel
+    // that subscription through a configured StayGuide billing portal.
+    await portalConfigurationId();
     const stripe = stripeClient();
     const customer = await ensureCustomer(host.user);
     const subscriptions = await stripe.subscriptions.list({ customer, status: "all", limit: 100 });
