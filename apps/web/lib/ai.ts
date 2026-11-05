@@ -88,7 +88,11 @@ async function generateHcnTranslationJson(system: string, prompt: string, maxOut
         model,
         temperature: 0.2,
         max_tokens: maxOutputTokens,
-        chat_template_kwargs: { enable_thinking: false },
+        // DeepSeek's documented switch differs from Qwen-compatible templates:
+        // https://api-docs.deepseek.com/guides/thinking_mode/
+        ...(model.toLowerCase().startsWith("deepseek")
+          ? { thinking: { type: "disabled" } }
+          : { chat_template_kwargs: { enable_thinking: false } }),
         messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
       }),
       });

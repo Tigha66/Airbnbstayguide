@@ -68,4 +68,17 @@ describe("HCN gateway transient failures", () => {
       .rejects.toThrow("HCN translation gateway HTTP 401");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("uses DeepSeek's non-thinking switch for its advertised HCN model route", async () => {
+    configureHcn();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      choices: [{ message: { content: '{"answer":"Ready"}' } }],
+    })));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await generateJson("Use guide facts", "Question", 200, 1000, "DeepSeek-V4-Flash"))
+      .toEqual({ answer: "Ready" });
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.thinking).toEqual({ type: "disabled" });
+    expect(body).not.toHaveProperty("chat_template_kwargs");
+  });
 });
