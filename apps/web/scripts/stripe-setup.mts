@@ -30,7 +30,9 @@ for (const p of PLANS) {
     found.data[0] ??
     (await stripe.products.create({
       name: p.name,
-      description: "Per property, per month. Digital guidebook, AI concierge and extras store.",
+      description: p.plan === "manager"
+        ? "Flat-rate portfolio subscription for up to 50 properties, with unified inbox and guest concierge."
+        : "Per-property digital guidebook, AI concierge and extras store.",
       metadata: { app: "stayguide", plan: p.plan },
     }));
   productIds.push(product.id);
