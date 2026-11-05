@@ -5,6 +5,9 @@ import { applicationFee, plans, CURRENCY, type Plan } from "@stayguide/shared";
 
 export const stripeConfigured = () => /^(?:sk|rk)_(?:test|live)_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 export const stripeLiveMode = () => /^(?:sk|rk)_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
+/** Never let a protected Preview environment take real Stripe payments. */
+export const stripeCheckoutAllowed = () => stripeConfigured() &&
+  !(process.env.VERCEL_ENV === "preview" && stripeLiveMode());
 let client: Stripe | null = null;
 export function stripeClient() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");
