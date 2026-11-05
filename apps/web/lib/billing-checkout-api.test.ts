@@ -16,6 +16,7 @@ vi.mock("@/lib/repo", () => ({ getBilling: mocks.billing }));
 vi.mock("@/lib/billing", () => ({ ensureCustomer: mocks.customer }));
 vi.mock("@/lib/stripe", () => ({
   stripeConfigured: () => true,
+  stripeCheckoutAllowed: () => true,
   appUrl: () => "https://www.getstayguide.com",
   subscriptionQuantity: () => 1,
   checkoutIdentity: () => ({ idempotencyKey: "fixture:checkout", integrationIdentifier: "fixture_integration" }),
