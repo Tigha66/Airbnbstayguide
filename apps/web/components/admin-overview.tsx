@@ -30,6 +30,7 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
         <Logo />
         <div className="row">
           <span className="demo-badge">OWNER ONLY</span>
+          <Link className="button secondary small" href="/admin/readiness">Launch checks</Link>
           <Link className="button secondary small" href="/dashboard">
             Dashboard
           </Link>
