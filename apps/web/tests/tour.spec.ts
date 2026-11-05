@@ -54,3 +54,26 @@ test("new trial hosts see automatic activation and the tutorial on mobile", asyn
   await expect(page.getByRole("complementary", { name: "Your 14-day Pro trial" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+
+for (const account of ["paid", "active-trial", "unverified-trial", "existing-free"] as const) {
+  test(`Plans & billing always shows the 14-day trial card for ${account}`, async ({ page }) => {
+    const trial = account === "active-trial" || account === "unverified-trial";
+    const verified = account !== "unverified-trial";
+    const plan = account === "paid" || account === "active-trial" ? "pro" : "free";
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.route("**/api/v1/me", route => route.fulfill({ json: { services: { accounts: true, ai: false }, user: { id: "billing-fixture", name: "Billing Host", email: "billing@example.test", plan, emailVerified: verified, trialActive: trial && verified, trialEndsAt: trial ? "2026-11-19T00:00:00Z" : null }, properties: [] } }));
+    await page.route("**/api/v1/billing", route => route.fulfill({ json: { stripe: true, plan, status: account === "paid" ? "active" : null, subscribed: account === "paid", trial: { active: trial && verified, endsAt: trial ? "2026-11-19T00:00:00Z" : null, days: 14, propertyLimit: 1 }, propertyCount: 0, billableQuantity: 1, payouts: { started: false, ready: false } } }));
+    await page.goto("/dashboard/billing");
+    const card = page.getByRole("region", { name: "14-day free trial", exact: true });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("$0");
+    await expect(card).toContainText("No credit card. No automatic charge.");
+    await expect(card.getByRole("link", { name: "How to use StayGuide", exact: true })).toBeVisible();
+    if (account === "paid") await expect(card).toContainText("there is no trial to start on this account");
+    if (account === "existing-free") await expect(card).toContainText("has no active trial");
+    if (account === "active-trial") { await expect(card).toContainText("Your 14-day Pro trial"); await expect(card).toContainText("19 November 2026"); }
+    if (account === "unverified-trial") await expect(card.getByRole("link", { name: "Verify your email to activate your trial.", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
