@@ -7,12 +7,13 @@ const mocks = vi.hoisted(() => ({
   price: vi.fn(),
   portal: vi.fn(),
   endpoints: vi.fn(),
+  sender: vi.fn(),
   host: vi.fn(),
 }));
 vi.mock("./db", () => ({
   dbConfigured: () => true, query: mocks.query,
 }));
-vi.mock("./mailer", () => ({ mailerConfigured: () => true }));
+vi.mock("./mailer", () => ({ mailerConfigured: () => true, senderDomainReadiness: mocks.sender }));
 vi.mock("./stripe", () => ({
   stripeConfigured: () => true,
   stripeLiveMode: () => true,
@@ -43,6 +44,7 @@ beforeEach(() => {
   mocks.price.mockResolvedValue("price_qa");
   mocks.portal.mockResolvedValue("bpc_qa");
   mocks.endpoints.mockResolvedValue({ data: [enabledWebhook] });
+  mocks.sender.mockResolvedValue({ ok: true, detail: "Resend sender domain verified; delivery not tested." });
   mocks.host.mockResolvedValue({ user: { email: "founder@example.test" } });
 });
 afterEach(() => vi.unstubAllEnvs());
@@ -72,6 +74,14 @@ describe("owner Stripe subscriptions launch preflight", () => {
     expect(report.configurationReady).toBe(false);
     expect(report.checks.find(c => c.key === "price_manager_year")?.ok).toBe(false);
     expect(report.checks.find(c => c.key === "price_pro_month")?.ok).toBe(true);
+  });
+
+  it("reports a missing/unverified Resend sender domain without claiming account delivery", async () => {
+    mocks.sender.mockResolvedValueOnce({ ok: false, detail: "Sender domain not verified" });
+    const report = await billingPreflight();
+    expect(report.configurationReady).toBe(false);
+    expect(report.checks.find(c => c.key === "email_sender_domain")?.ok).toBe(false);
+    expect(report.emailDeliveryVerified).toBe(false);
   });
 
   it("fails safely for wrong webhook endpoint or inaccessible billing portal", async () => {
