@@ -11,6 +11,7 @@ vi.mock("@/lib/repo", () => ({ getBilling: mocks.getBilling }));
 vi.mock("@/lib/billing", () => ({ refreshPayoutStatus: mocks.refreshPayouts }));
 vi.mock("@/lib/stripe", () => ({
   stripeConfigured: () => true,
+  stripeCheckoutAllowed: () => true,
   subscriptionQuantity: () => 1,
 }));
 const billing = {
