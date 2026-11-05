@@ -31,3 +31,26 @@ test("phone tour fits, switches language on the same route and preserves the gue
   await page.goto("/demo");
   await expect(page).toHaveURL(/\/g\//);
 });
+
+
+test("existing paid hosts see the tutorial and an explanation of trial eligibility immediately after login", async ({ page }) => {
+  await page.route("**/api/v1/me", route => route.fulfill({ json: { services: { accounts: true, ai: false }, user: { id: "paid-host", name: "Paid Host", email: "paid@example.test", plan: "pro", emailVerified: true, trialActive: false, trialEndsAt: null }, properties: [] } }));
+  await page.goto("/dashboard");
+  const welcome = page.getByRole("region", { name: "How to use StayGuide" });
+  await expect(welcome.getByRole("link", { name: "How to use StayGuide", exact: true })).toBeVisible();
+  await expect(welcome).toContainText("there is no trial to start on this account");
+  await expect(welcome).toContainText("Current plan: Pro");
+  await welcome.getByRole("link", { name: "How to use StayGuide", exact: true }).click();
+  await expect(page).toHaveURL(/\/tour$/);
+});
+
+test("new trial hosts see automatic activation and the tutorial on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/v1/me", route => route.fulfill({ json: { services: { accounts: true, ai: false }, user: { id: "trial-host", name: "Trial Host", email: "trial@example.test", plan: "pro", emailVerified: true, trialActive: true, trialEndsAt: "2026-11-19T00:00:00Z" }, properties: [] } }));
+  await page.goto("/dashboard");
+  const welcome = page.getByRole("region", { name: "How to use StayGuide" });
+  await expect(welcome).toContainText("Your trial starts automatically at signup");
+  await expect(welcome.getByRole("link", { name: "How to use StayGuide", exact: true })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Your 14-day Pro trial" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
