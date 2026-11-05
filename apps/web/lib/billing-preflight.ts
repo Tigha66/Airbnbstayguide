@@ -1,6 +1,6 @@
 import { applicationOrigin } from "./origin";
 import { dbConfigured, query } from "./db";
-import { mailerConfigured } from "./mailer";
+import { mailerConfigured, senderDomainReadiness } from "./mailer";
 import { portalConfigurationId, priceId, stripeClient, stripeConfigured, stripeLiveMode } from "./stripe";
 
 type Check = { key: string; ok: boolean; detail: string };
@@ -42,6 +42,10 @@ export async function billingPreflight(): Promise<BillingPreflight> {
   const emailOk = mailerConfigured();
   add("account_email_config", emailOk,
     emailOk ? "Email sender is configured; actual delivery remains unverified." : "Account verification email sender is not configured.");
+  const sender = emailOk
+    ? await senderDomainReadiness()
+    : { ok: false, detail: "Configure Resend sender and API key before domain verification." };
+  add("email_sender_domain", sender.ok, sender.detail);
 
   const stripe = stripeConfigured();
   const live = stripe && stripeLiveMode();
