@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireHost } from "@/lib/session";
 import { getBilling } from "@/lib/repo";
 import { refreshPayoutStatus } from "@/lib/billing";
-import { subscriptionQuantity, stripeConfigured } from "@/lib/stripe";
+import { subscriptionQuantity, stripeCheckoutAllowed } from "@/lib/stripe";
 export const dynamic = "force-dynamic";
 export async function GET() {
   const host = await requireHost();
@@ -13,7 +13,7 @@ export async function GET() {
     ? await refreshPayoutStatus(host.user.id, billing.stripeAccountId)
     : billing.payoutsReady;
   return NextResponse.json({
-    stripe: stripeConfigured(),
+    stripe: stripeCheckoutAllowed(),
     plan: billing.plan,
     status: billing.subscriptionStatus,
     // A terminal incomplete_expired Checkout does not create a usable
