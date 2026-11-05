@@ -69,14 +69,21 @@ export function extractJson(text: string): unknown {
 async function generateHcnTranslationJson(system: string, prompt: string, maxOutputTokens: number, timeoutMs: number, model: string) {
   const endpoint = new URL("/v1/chat/completions", process.env.AI_BASE_URL!);
   const signal = AbortSignal.timeout(timeoutMs);
+  const deadline = Date.now() + timeoutMs;
   let response: Response | null = null;
   // HCN can temporarily fail to route an otherwise valid model ("get_channel_failed").
   // Retry transient gateway responses once, using the SAME overall deadline.
   for (let attempt = 1; attempt <= 2; attempt++) {
-    response = await fetch(endpoint, {
+    // Reserve part of the single request budget for recovery when the first
+    // connection stalls. A retry must never restart the guest's overall clock.
+    const attemptSignal = attempt === 1
+      ? AbortSignal.any([signal, AbortSignal.timeout(Math.max(1, Math.floor(timeoutMs * 0.6)))])
+      : signal;
+    try {
+      response = await fetch(endpoint, {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.AI_API_KEY}`, "Content-Type": "application/json" },
-      signal,
+      signal: attemptSignal,
       body: JSON.stringify({
         model,
         temperature: 0.2,
@@ -84,10 +91,19 @@ async function generateHcnTranslationJson(system: string, prompt: string, maxOut
         chat_template_kwargs: { enable_thinking: false },
         messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
       }),
-    });
-    if (response.ok || ![408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524].includes(response.status) || attempt === 2) break;
+      });
+    } catch (error) {
+      const transportFailure = error instanceof TypeError ||
+        (error instanceof Error && ["AbortError", "TimeoutError"].includes(error.name));
+      if (!transportFailure || attempt === 2 || signal.aborted)
+        throw new Error("HCN gateway request unavailable within its deadline");
+      response = null;
+    }
+    if (response && (response.ok || ![408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526].includes(response.status) || attempt === 2)) break;
+    if (signal.aborted || Date.now() + 350 >= deadline)
+      throw new Error("HCN gateway request unavailable within its deadline");
     if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1")
-      console.log("[hcn-preview-raw-translation] transient HTTP " + response.status + "; retrying once");
+      console.log("[hcn-preview-raw-translation] transient " + (response ? "HTTP " + response.status : "transport failure") + "; retrying once");
     await new Promise(resolve => setTimeout(resolve, 350));
   }
   if (!response?.ok) {
