@@ -10,7 +10,7 @@ if (process.env.HCN_PREVIEW_CONCIERGE_ACCEPTANCE === "1") {
   if (process.env.VERCEL_ENV !== "preview") throw new Error("Concierge QA is Preview-only");
   if (process.env.AI_PROVIDER !== "openai-compatible" ||
       new URL(process.env.AI_BASE_URL || "https://invalid.example").hostname !== "api.hcnsec.cn" ||
-      !process.env.AI_API_KEY || !process.env.AI_CONCIERGE_MODEL)
+      !process.env.AI_API_KEY || !process.env.AI_MODEL)
     throw new Error("Concierge QA provider is not fully configured");
 
   const started = Date.now();

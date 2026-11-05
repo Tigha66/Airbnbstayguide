@@ -13,8 +13,8 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
     throw new Error("HCN acceptance may only run on Vercel Preview.");
   if (process.env.AI_PROVIDER !== "openai-compatible" ||
       new URL(process.env.AI_BASE_URL || "https://invalid.example").hostname !== "api.hcnsec.cn" ||
-      !process.env.AI_API_KEY || !process.env.AI_TRANSLATION_MODEL)
-    throw new Error("HCN acceptance requires Preview HCN model, provider URL and API key.");
+      !process.env.AI_API_KEY || !process.env.AI_MODEL)
+    throw new Error("HCN acceptance requires Preview HCN default model, provider URL and API key.");
 
   if (process.env.HCN_PREVIEW_RAW_PROBE === "1") {
   // Raw OpenAI-compatible probe differentiates bad keys/model routing from
@@ -24,7 +24,7 @@ if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1") {
     headers: { "Authorization": "Bearer " + process.env.AI_API_KEY, "Content-Type": "application/json" },
     signal: AbortSignal.timeout(45000),
     body: JSON.stringify({
-      model: process.env.AI_TRANSLATION_MODEL,
+      model: process.env.AI_TRANSLATION_MODEL?.trim() || process.env.AI_MODEL,
       max_tokens: 180,
       messages: [{ role: "user", content: "Return only a JSON object with result set to Bonjour." }]
     }),
