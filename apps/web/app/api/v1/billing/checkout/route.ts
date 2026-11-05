@@ -3,13 +3,17 @@ import { z } from "zod";
 import { requireHost } from "@/lib/session";
 import { getBilling } from "@/lib/repo";
 import { ensureCustomer } from "@/lib/billing";
-import { appUrl, subscriptionQuantity, checkoutIdentity, priceId, portalConfigurationId, stripeClient, stripeConfigured } from "@/lib/stripe";
+import { appUrl, subscriptionQuantity, checkoutIdentity, priceId, portalConfigurationId, stripeClient, stripeConfigured, stripeCheckoutAllowed } from "@/lib/stripe";
 import { parseJson, safeOrigin, unavailable } from "@/lib/api";
 const schema = z.object({ plan: z.enum(["starter", "pro", "manager"]), yearly: z.boolean().default(false) });
 const reply = (data: unknown, status = 200) => NextResponse.json(data, { status, headers: { "Cache-Control": "private, no-store" } });
 export async function POST(request: Request) {
   if (!safeOrigin(request)) return reply({ error: "Invalid origin" }, 403);
   if (!stripeConfigured() || !process.env.STRIPE_WEBHOOK_SECRET) return unavailable("Billing");
+  if (!stripeCheckoutAllowed()) return reply({
+    error: "Live Stripe checkout is disabled on Preview deployments. Use an isolated test-mode Stripe key.",
+    code: "PREVIEW_LIVE_CHECKOUT_DISABLED",
+  }, 503);
   const host = await requireHost();
   if ("response" in host) return host.response;
   if (!host.user.emailVerified) return reply({ error: "Verify your email address before starting a paid subscription.", code: "EMAIL_NOT_VERIFIED" }, 403);
