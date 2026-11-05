@@ -5,6 +5,9 @@ import { Logo } from "./ui";
 import { AdminPlanButton } from "./admin-plan-button";
 
 const PAYING = new Set(["active", "trialing", "past_due"]);
+// Manager has one flat-rate subscription per portfolio, not per property.
+const monthlyCharge = (plan: keyof typeof plans, properties: number) =>
+  plans[plan].monthly * (plan === "manager" ? 1 : Math.max(1, properties));
 const statusLabel = (plan: string, status: string | null) =>
   plan === "hotel" ? "Invoiced" : plan === "free" ? "Free" : !status ? "Complimentary" : status === "past_due" ? "Payment failed (retrying)" : status === "trialing" ? "Trial" : status ? status[0].toUpperCase() + status.slice(1) : "Active";
 
@@ -13,7 +16,7 @@ export type AiHealth = { ok: boolean; provider: string; model: string; detail: s
 export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHealth }) {
   const paying = hosts.filter((h) => h.plan !== "free" && PAYING.has(h.subscriptionStatus ?? ""));
   const paidProperties = paying.reduce((n, h) => n + h.properties, 0);
-  const monthly = paying.reduce((n, h) => n + plans[h.plan].monthly * Math.max(1, h.properties), 0);
+  const monthly = paying.reduce((n, h) => n + monthlyCharge(h.plan, h.properties), 0);
   const totals = [
     ["Hosts", hosts.length],
     ["Paying hosts", paying.length],
@@ -99,7 +102,7 @@ export function AdminOverview({ hosts, ai }: { hosts: AdminHostRow[]; ai?: AiHea
                   </td>
                   <td className="num">{h.properties}</td>
                   <td className="num">{h.published}</td>
-                  <td className="num">{isPaying ? `${CURRENCY_SYMBOL}${plans[h.plan].monthly * Math.max(1, h.properties)}` : "—"}</td>
+                  <td className="num">{isPaying ? `${CURRENCY_SYMBOL}${monthlyCharge(h.plan, h.properties)}` : "—"}</td>
                   <td className={`num ${nearLimit ? "warn" : ""}`}>
                     {h.aiMessagesThisMonth.toLocaleString(CURRENCY_LOCALE)} / {h.aiMessageLimit.toLocaleString(CURRENCY_LOCALE)}
                   </td>
