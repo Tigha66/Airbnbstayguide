@@ -148,3 +148,21 @@ CREATE TABLE IF NOT EXISTS portfolio_reply_templates (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS portfolio_reply_templates_owner_title_idx
   ON portfolio_reply_templates(owner_id, lower(title));
+
+-- GuestPulse provider webhook inbox (transport metadata only). No guest PII is
+-- stored here; events require authenticated provider reconciliation and
+-- property ownership checks before any user can see messages or create drafts.
+-- No external delivery is enabled by this table.
+CREATE TABLE IF NOT EXISTS pms_webhook_events (
+  event_id text PRIMARY KEY,
+  provider text NOT NULL CHECK (provider = 'guesty'),
+  event_type text NOT NULL CHECK (event_type IN ('reservation.messageReceived','reservation.messageSent')),
+  external_reservation_id text NOT NULL,
+  payload_sha256 text NOT NULL CHECK (char_length(payload_sha256) = 64),
+  status text NOT NULL DEFAULT 'awaiting_reconciliation'
+    CHECK (status IN ('awaiting_reconciliation','reconciled','discarded')),
+  received_at timestamptz NOT NULL DEFAULT now(),
+  reconciled_at timestamptz
+);
+CREATE INDEX IF NOT EXISTS pms_webhook_events_pending_idx
+  ON pms_webhook_events(received_at) WHERE status = 'awaiting_reconciliation';
