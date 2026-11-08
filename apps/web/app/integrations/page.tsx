@@ -42,7 +42,7 @@ export default function Page() {
                 Build a guide
                 <ArrowRight size={16} />
               </Link>
-              <a className="button secondary" href="mailto:hajabdelhak66@gmail.com?subject=StayGuide integration onboarding">
+              <a className="button secondary" href="mailto:abdelhaktirha@gmail.com?subject=StayGuide integration onboarding">
                 Ask about onboarding
               </a>
             </div>
@@ -136,7 +136,7 @@ export default function Page() {
               Tell us your booking stack. We will map where StayGuide fits today and use that demand to
               prioritize native integrations next.
             </p>
-            <a className="button cream" href="mailto:hajabdelhak66@gmail.com?subject=StayGuide integration request">
+            <a className="button cream" href="mailto:abdelhaktirha@gmail.com?subject=StayGuide integration request">
               Request an integration
               <ArrowRight size={16} />
             </a>
