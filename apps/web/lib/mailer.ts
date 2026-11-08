@@ -1,4 +1,4 @@
-export const supportEmail = "hello@getstayguide.com";
+export const supportEmail = "hajabdelhak66@gmail.com";
 
 export function mailerConfigured() {
   return Boolean(process.env.RESEND_API_KEY && (process.env.EMAIL_FROM || process.env.RESEND_FROM_EMAIL || process.env.RESEND_FROM));
@@ -23,7 +23,7 @@ export async function sendEmail({
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from, to: [to], subject, text }),
+    body: JSON.stringify({ from, to: [to], reply_to: supportEmail, subject, text }),
   });
   if (!res.ok) {
     throw new Error("Email provider rejected delivery (" + res.status + ")");
