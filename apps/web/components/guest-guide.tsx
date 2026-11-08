@@ -41,6 +41,7 @@ export function GuestGuide({
   const source = original ? translationSource(original) : "";
   const [translation, setTranslation] = useState<{ language: string; source: string; text: GuideText } | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [translationFailed, setTranslationFailed] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
   const t = guestText(language);
   const rtl = isRtl(language);
@@ -72,6 +73,7 @@ export function GuestGuide({
     queueMicrotask(() => {
       if (cancelled) return;
       setShowOriginal(false);
+      setTranslationFailed(false);
       const saved = readGuestTranslation(cacheKey, source);
       if (saved) {
         setTranslation({ language, source, text: saved });
@@ -79,16 +81,39 @@ export function GuestGuide({
         return;
       }
       setTranslating(true);
-      fetch(`/api/v1/guides/${slug}/translation?lang=${language}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((body: { translated?: boolean; text?: GuideText } | null) => {
+      const fetchTranslation = async (attempt: number): Promise<{ translated?: boolean; originalLanguage?: boolean; text?: GuideText } | null> => {
+        if (cancelled) return null;
+        const response = await fetch(`/api/v1/guides/${slug}/translation?lang=${language}`);
+        if (response.status === 503 && attempt < 3 && !cancelled) {
+          // HCN can finish some sections then time out on another. The server
+          // saves partial progress, so a bounded retry only translates missing
+          // pieces. Do not display any incomplete guide as a translation.
+          await new Promise((resolve) => setTimeout(resolve, (attempt + 1) * 1200));
+          return fetchTranslation(attempt + 1);
+        }
+        if (!response.ok) throw new Error("Guide translation unavailable");
+        return response.json();
+      };
+      void fetchTranslation(0)
+        .then((body: { translated?: boolean; originalLanguage?: boolean; text?: GuideText } | null) => {
           if (cancelled) return;
           if (body?.translated && body.text) {
             setTranslation({ language, source, text: body.text });
             writeGuestTranslation(cacheKey, source, body.text);
-          } else setTranslation(null);
+          } else {
+            // A successful HTTP response may still mean no translation exists
+            // (for example when the AI provider is unavailable). Never leave
+            // a guest silently reading the original language.
+            setTranslation(null);
+            if (!body?.originalLanguage) setTranslationFailed(true);
+          }
         })
-        .catch(() => {})
+        .catch(() => {
+          if (!cancelled) {
+            setTranslation(null);
+            setTranslationFailed(true);
+          }
+        })
         .finally(() => {
           if (!cancelled) setTranslating(false);
         });
@@ -281,10 +306,12 @@ export function GuestGuide({
             <div className="guest-welcome">
               <h2>{t.welcome}</h2>
               <p>{property.description}</p>
-              {(translating || translation?.language === language) && (
+              {(translating || translation?.language === language || translationFailed) && (
                 <p className="translation-note" role="status">
                   {translating ? (
                     t.translating
+                  ) : translationFailed ? (
+                    t.translationUnavailable
                   ) : (
                     <>
                       {showOriginal ? null : <span>{t.translated} · </span>}

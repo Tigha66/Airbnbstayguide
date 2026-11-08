@@ -9,6 +9,19 @@ vi.mock("@/lib/db", () => ({ dbConfigured: () => true, query: vi.fn().mockResolv
 afterEach(() => vi.unstubAllEnvs());
 
 describe("account email health", () => {
+  it("does not claim billing or recovery are ready without a trusted production origin", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_live_private_fixture");
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_private_fixture");
+    const services = await serviceStatus();
+    expect(services.find(service => service.key === "accounts")?.ok).toBe(false);
+    expect(services.find(service => service.key === "payments")?.ok).toBe(false);
+    expect(services.find(service => service.key === "payments")?.detail).toContain("Trusted application URL");
+    expect(JSON.stringify(services)).not.toContain("private_fixture");
+  });
   it("recognizes a restricted Stripe key without exposing it", async () => {
     vi.stubEnv("STRIPE_SECRET_KEY", "rk_test_private_fixture");
     vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_private_fixture");
