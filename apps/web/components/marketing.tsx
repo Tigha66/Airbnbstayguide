@@ -116,7 +116,7 @@ export function MarketingFooter({ locale = "en" }: { locale?: SiteLocale }) {
         <Link href="/blog">{t.journal}</Link>
         <Link href="/legal/privacy">{t.privacy}</Link>
         <Link href="/legal/terms">{t.terms}</Link>
-        <a href="mailto:hello@getstayguide.com">{t.contact}</a>
+        <a href="mailto:hajabdelhak66@gmail.com">{t.contact}</a>
       </nav>
     </footer>
   );
@@ -219,8 +219,8 @@ export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
         {fillSite(t.note, { code: CURRENCY.toUpperCase(), symbol: CURRENCY_SYMBOL })}
       </p>
       <p className="pricing-contact">
-        {t.questions.split("hello@getstayguide.com")[0]}
-        <a href="mailto:hello@getstayguide.com">hello@getstayguide.com</a>
+        {t.questions.split("hajabdelhak66@gmail.com")[0]}
+        <a href="mailto:hajabdelhak66@gmail.com">hajabdelhak66@gmail.com</a>
       </p>
     </>
   );
