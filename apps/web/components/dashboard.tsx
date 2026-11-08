@@ -253,6 +253,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
       icon: HeartIcon,
     },
   ];
+  const publishedProperty = state.properties.find((p) => p.status === "published");
   const onboarding = [
     {
       label: tr("Verify your email"),
@@ -269,7 +270,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
     {
       label: tr("Publish and preview the guest guide"),
       done: state.properties.some((p) => p.status === "published"),
-      href: property ? `/g/${property.slug}` : "/dashboard/properties",
+      href: publishedProperty ? `/g/${publishedProperty.slug}` : "/dashboard/properties",
       detail: tr("Open the same link your guests will receive."),
     },
     {
@@ -279,7 +280,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
       detail: tr("Late checkout, breakfast baskets, transfers and paid services."),
     },
     {
-      label: tr("Choose a plan and set up payouts"),
+      label: tr("Choose a plan when you’re ready"),
       done: live && liveState.user?.plan !== "free",
       href: "/dashboard/billing",
       detail: tr("Upgrade when you need more properties or AI answers."),

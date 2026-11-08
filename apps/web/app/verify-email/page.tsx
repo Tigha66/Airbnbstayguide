@@ -1,28 +1,41 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui";
-import { verifyEmailToken } from "@/lib/account-email";
+import { redirect } from "next/navigation";
+import { tokenLooksValid, verifyEmailToken } from "@/lib/account-email";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; done?: string }>;
 }) {
-  const { token } = await searchParams;
-  const ok = token ? await verifyEmailToken(token).catch(() => false) : false;
+  const { token, done } = await searchParams;
+  // Opening a link (including email security scanners) must not consume it.
+  const valid = token && token.length <= 256 ? await tokenLooksValid(token, "verify_email").catch(() => false) : false;
+  async function confirm(formData: FormData) {
+    "use server";
+    const token = String(formData.get("token") ?? "");
+    const ok = token.length <= 256 && await verifyEmailToken(token).catch(() => false);
+    redirect(ok ? "/verify-email?done=1" : "/verify-email");
+  }
   return (
     <main className="auth-simple">
       <Logo />
       <section className="card panel form-grid">
         <div>
-          <h1>{ok ? "Email verified" : "Verification link expired"}</h1>
+          <h1>{done === "1" ? "Email verification complete" : valid ? "Verify your email" : "Verification link expired"}</h1>
           <p>
-            {ok
-              ? "Your StayGuide account email is verified."
-              : "This verification link is invalid or expired. Sign in and use the dashboard notice to request help if needed."}
+            {done === "1"
+              ? "Sign in to see your account’s current verification status."
+              : valid ? "Confirm below to verify your StayGuide email address."
+              : "This link is invalid, expired or already used. Sign in and request a new verification email from your dashboard."}
           </p>
         </div>
+        {valid && done !== "1" && <form action={confirm}>
+          <input type="hidden" name="token" value={token} />
+          <button className="button">Verify my email</button>
+        </form>}
         <Link className="button" href="/dashboard">Go to dashboard</Link>
       </section>
     </main>
