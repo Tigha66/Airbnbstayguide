@@ -1090,7 +1090,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
               <PageHeading title="StayGuide Manager" description="One portfolio inbox with rules to prioritise guest requests across your properties." />
               <p>Manager is $199 per month for up to 50 properties. Rule-based triage stays in your inbox; no messages are automatically sent to guests.</p>
               {live && liveState.user?.plan !== "free" ? (
-                <p>Already subscribed? Manager plan changes for existing subscribers are not available here yet. Contact <a href="mailto:hajabdelhak66@gmail.com">hajabdelhak66@gmail.com</a> to arrange access. Your current subscription stays unchanged.</p>
+                <p>Already subscribed? Manager plan changes for existing subscribers are not available here yet. Contact <a href="mailto:abdelhaktirha@gmail.com">abdelhaktirha@gmail.com</a> to arrange access. Your current subscription stays unchanged.</p>
               ) : <Link className="button" href="/dashboard/billing">Explore Manager billing <ArrowRight size={15} /></Link>}
             </div>
           )}
@@ -1607,9 +1607,9 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   <p className="muted" style={{ fontSize: 13 }}>
                     {tr("Need help setting up a property, billing, payouts, or a guest guide? Email us and we’ll help you get unstuck.")}
                   </p>
-                  <a className="button secondary" href="mailto:hajabdelhak66@gmail.com?subject=StayGuide%20support">
+                  <a className="button secondary" href="mailto:abdelhaktirha@gmail.com?subject=StayGuide%20support">
                     <Mail size={15} />
-                    hajabdelhak66@gmail.com
+                    abdelhaktirha@gmail.com
                   </a>
                   <div className="row" style={{ alignItems: "flex-start" }}>
                     <LifeBuoy size={16} />
