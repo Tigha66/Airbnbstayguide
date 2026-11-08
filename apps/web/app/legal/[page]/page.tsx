@@ -27,8 +27,8 @@ export default async function Page({
               StayGuide is available at{" "}
               <a href="https://www.getstayguide.com">www.getstayguide.com</a>.
               For privacy, support, billing, or legal questions, contact{" "}
-              <a href="mailto:hello@getstayguide.com">
-                hello@getstayguide.com
+              <a href="mailto:hajabdelhak66@gmail.com">
+                hajabdelhak66@gmail.com
               </a>
               .
             </p>
@@ -64,8 +64,8 @@ export default async function Page({
               subject to records that must be retained for security, billing,
               tax, fraud prevention or legal compliance. For privacy requests
               including access, correction or deletion, contact{" "}
-              <a href="mailto:hello@getstayguide.com">
-                hello@getstayguide.com
+              <a href="mailto:hajabdelhak66@gmail.com">
+                hajabdelhak66@gmail.com
               </a>
               .
             </p>
@@ -106,8 +106,8 @@ export default async function Page({
             <h2>Contact</h2>
             <p>
               For legal questions about these terms, reach us at{" "}
-              <a href="mailto:hello@getstayguide.com">
-                hello@getstayguide.com
+              <a href="mailto:hajabdelhak66@gmail.com">
+                hajabdelhak66@gmail.com
               </a>
               .
             </p>
