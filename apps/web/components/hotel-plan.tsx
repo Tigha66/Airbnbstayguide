@@ -25,7 +25,7 @@ const english: HotelPlanText = {
 
 /** Where "Talk to us" goes. Set NEXT_PUBLIC_SALES_URL (e.g. a Cal.com booking link) to change it. */
 export const salesUrl = (subject = english.mailSubject) =>
-  process.env.NEXT_PUBLIC_SALES_URL || "mailto:hello@getstayguide.com?subject=" + encodeURIComponent(subject);
+  process.env.NEXT_PUBLIC_SALES_URL || "mailto:abdelhaktirha@gmail.com?subject=" + encodeURIComponent(subject);
 
 /** The sales-led plan for hotels, resorts and multi-unit operators. */
 export function HotelPlanCard({ current = false, text = english }: { current?: boolean; text?: HotelPlanText }) {
