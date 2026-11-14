@@ -1,26 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Arabic, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { ServiceWorker } from "@/components/service-worker";
-const sans = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-const display = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-display",
-  display: "swap",
-});
-// Arabic guest guides; only downloaded when Arabic text is shown.
-const arabic = Noto_Sans_Arabic({
-  subsets: ["arabic"],
-  variable: "--font-arabic",
-  display: "swap",
-  preload: false,
-});
+// QA-only: use system font stacks to avoid external font downloads at build time.
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "https://www.getstayguide.com",
@@ -51,7 +33,7 @@ export const viewport: Viewport = {
 };
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} ${arabic.variable}`}>
+    <html lang="en" className="qa-system-fonts">
       <body>
         {children}
         <Analytics />

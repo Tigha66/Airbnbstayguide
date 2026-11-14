@@ -1,5 +1,8 @@
 @import "tailwindcss";
 :root {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --font-arabic: "Noto Sans Arabic", Tahoma, Arial, sans-serif;
   --teal: #0f766e;
   --teal-dark: #0b5b55;
   --teal-bright: #14b8a6;
