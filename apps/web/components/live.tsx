@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { WhatsAppInbox } from "./whatsapp-inbox";
 import { Send, Check, X, RefreshCw, CreditCard, Landmark, ExternalLink } from "lucide-react";
 import { money, plans, CURRENCY, CURRENCY_SYMBOL, type Plan } from "@stayguide/shared";
 import { PageHeading } from "./ui";
@@ -91,6 +92,7 @@ export function LiveInbox({ notify }: { notify: (m: string) => void }) {
   const setReply = (value: string) => { if (thread) setDrafts(current => ({ ...current, [thread.threadId]: value })); };
   return (
     <>
+      <WhatsAppInbox />
       <PageHeading title={tr("A little human touch")} description={tr("Your concierge takes care of the everyday. You take care of the rest.")}>
         <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
           <select aria-label="Filter conversations by property" value={propertyFilter} onChange={(e) => setPropertyFilter(e.target.value)}>

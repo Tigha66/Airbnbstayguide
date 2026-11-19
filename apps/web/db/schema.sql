@@ -148,3 +148,26 @@ CREATE TABLE IF NOT EXISTS portfolio_reply_templates (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS portfolio_reply_templates_owner_title_idx
   ON portfolio_reply_templates(owner_id, lower(title));
+
+CREATE TABLE IF NOT EXISTS whatsapp_threads (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id text NOT NULL,
+  guest text NOT NULL,
+  property_id text NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  consent_code text NOT NULL DEFAULT replace(gen_random_uuid()::text,'-',''),
+  consent_at timestamptz,
+  expires_at timestamptz NOT NULL DEFAULT now() + interval '24 hours',
+  UNIQUE(session_id, guest)
+);
+CREATE TABLE IF NOT EXISTS whatsapp_messages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  thread_id uuid NOT NULL REFERENCES whatsapp_threads(id) ON DELETE CASCADE,
+  event_key text NOT NULL,
+  role text NOT NULL CHECK (role IN ('guest','host')),
+  body text NOT NULL,
+  status text NOT NULL,
+  unread boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(thread_id,role,event_key)
+);
