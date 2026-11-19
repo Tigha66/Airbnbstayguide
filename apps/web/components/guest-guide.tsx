@@ -17,6 +17,7 @@ import { applyGuideText, demoAnswer, demoProperties, languages, mapsUrl, money, 
 import { useDemo } from "@/lib/demo-store";
 import { fill, guestText, isRtl } from "@/lib/guest-i18n";
 import { Logo, GuideIcon } from "./ui";
+import { guestWhatsAppLink } from "@/lib/whatsapp";
 import { ExtraReceipt } from "./extra-receipt";
 import { readGuestSetting, writeGuestSetting, readGuestTranslation, writeGuestTranslation, translationSource } from "@/lib/guest-storage";
 type Message = {
@@ -28,9 +29,11 @@ type Message = {
 export function GuestGuide({
   slug,
   initial,
+  guestWhatsAppPhone,
 }: {
   slug: string;
   initial?: Property | null;
+  guestWhatsAppPhone?: string | null;
 }) {
   const state = useDemo();
   const liveGuide = Boolean(initial);
@@ -46,6 +49,9 @@ export function GuestGuide({
   const rtl = isRtl(language);
   const translated = Boolean(translation && translation.language === language && translation.source === source && !showOriginal);
   const property = original && translated ? applyGuideText(original, translation!.text) : original;
+  const guestWhatsAppUrl = liveGuide && property && guestWhatsAppPhone
+    ? guestWhatsAppLink(guestWhatsAppPhone, property.name, t.whatsappMessage)
+    : null;
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
@@ -335,6 +341,23 @@ export function GuestGuide({
                 <small>{t.hereForYou}</small>
               </button>
             </div>
+            {guestWhatsAppUrl && (
+              <div style={{ marginTop: 14, marginBottom: 16 }}>
+                <a
+                  href={guestWhatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="button secondary"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%" }}
+                >
+                  <MessageCircle size={18} />
+                  {t.whatsappContact}
+                </a>
+                <p className="muted" style={{ fontSize: 11, textAlign: "center", marginTop: 8 }}>
+                  {t.whatsappOpen}
+                </p>
+              </div>
+            )}
             <div
               className="row"
               style={{
@@ -500,6 +523,18 @@ export function GuestGuide({
                 <Send size={17} />
               </button>
             </form>
+            {guestWhatsAppUrl && (
+              <a
+                href={guestWhatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button secondary"
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 14, width: "100%" }}
+              >
+                <MessageCircle size={17} />
+                {t.whatsappContact}
+              </a>
+            )}
           </div>
         )}
         {tab === "extras" && (

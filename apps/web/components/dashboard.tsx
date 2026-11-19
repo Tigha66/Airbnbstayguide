@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import QRCode from "qrcode";
+import { WhatsAppGuideShare } from "./whatsapp-guide-share";
 import {
   demoProperties,
   sections,
@@ -1365,6 +1366,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       {tr("Copy welcome message")}
                     </button>
                   </div>
+                  {live && <WhatsAppGuideShare key={property.id} id={property.id} name={property.name} slug={property.slug} published={property.status === "published"} />}
                   {!live && (
                     <div className="notice">
                       {tr("Local demo changes are visible on this device only. A QR code for a sample property works on any device.")}
