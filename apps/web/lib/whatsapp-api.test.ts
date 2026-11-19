@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "../app/api/v1/properties/[id]/whatsapp/route";
-import { normaliseWhatsAppNumber } from "./whatsapp";
+import { guestWhatsAppLink, normaliseWhatsAppNumber } from "./whatsapp";
 
 const mocks = vi.hoisted(() => ({ host: vi.fn(), origin: vi.fn(), owned: vi.fn(), limit: vi.fn(), fetch: vi.fn() }));
 vi.mock("@/lib/session", () => ({ requireHost: mocks.host }));
@@ -28,6 +28,11 @@ describe("WhatsApp guest guide sending", () => {
     expect(normaliseWhatsAppNumber("0044 7901 921642")).toBe("447901921642");
     expect(normaliseWhatsAppNumber("07901921642")).toBeNull();
     expect(normaliseWhatsAppNumber("4479@example.test")).toBeNull();
+  });
+  it("opens WhatsApp only for valid phone numbers with an encoded property-specific message", () => {
+    expect(guestWhatsAppLink("+44 7901 921642", "Sea View & Loft", "Hello about {name}"))
+      .toBe("https://wa.me/447901921642?text=Hello%20about%20Sea%20View%20%26%20Loft");
+    expect(guestWhatsAppLink("07901921642", "Sea View", "Hello {name}")).toBeNull();
   });
   it("requires same-origin requests and an enabled sender account", async () => {
     mocks.origin.mockReturnValue(false);
