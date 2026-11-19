@@ -1,0 +1,28 @@
+name: Temporary VPS SSH connectivity probe
+
+on:
+  push:
+    branches:
+      - codex/vps-ssh-connectivity-probe
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check TCP port reachability only
+        run: |
+          python3 - <<'PY'
+          import socket
+          host = "76.13.252.4"
+          port = 22
+          try:
+              with socket.create_connection((host, port), timeout=6):
+                  print("TCP_PORT_22_REACHABLE")
+          except OSError as error:
+              print(f"TCP_PORT_22_UNREACHABLE: {type(error).__name__}: {error}")
+              raise SystemExit(1)
+          PY
