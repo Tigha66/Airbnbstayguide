@@ -41,7 +41,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   // Reserve before sending. Ambiguous responses stay reserved to prevent duplicate sends.
   if (!(await consumeRateLimit(`whatsapp:send:${fingerprint}`, 1, 600)))
     return NextResponse.json({ error: "This message was already attempted recently. Check WhatsApp before sending again." }, { status: 409 });
-  text += await invitation(host.user.id,id,phone);
+  const consentInvite = await invitation(host.user.id, id, phone);
+  if (consentInvite === null) return NextResponse.json({ error: "This pilot guest already has a different property conversation." }, { status: 409 });
+  text += consentInvite;
   try {
     const response = await fetch(endpoint, {
       method: "POST", headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
