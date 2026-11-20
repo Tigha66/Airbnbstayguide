@@ -8,7 +8,7 @@ vi.mock("@/lib/api", () => ({ safeOrigin: mocks.origin, parseJson: JSON.parse })
 vi.mock("@/lib/repo", () => ({ getOwnedProperty: mocks.owned, consumeRateLimit: mocks.limit }));
 vi.mock("@/lib/origin", () => ({ applicationOrigin: () => "https://www.getstayguide.com" }));
 const context = { params: Promise.resolve({ id: "guide-1" }) };
-const request = (body = { phone: "+44 7901 921642", consent: true }) => new Request("https://www.getstayguide.com/api/v1/properties/guide-1/whatsapp", { method: "POST", body: JSON.stringify(body) });
+const request = (body = { phone: "+44 7700 900123", consent: true }) => new Request("https://www.getstayguide.com/api/v1/properties/guide-1/whatsapp", { method: "POST", body: JSON.stringify(body) });
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -25,14 +25,14 @@ beforeEach(() => {
 
 describe("WhatsApp guest guide sending", () => {
   it("normalises international numbers and rejects local numbers", () => {
-    expect(normaliseWhatsAppNumber("0044 7901 921642")).toBe("447901921642");
-    expect(normaliseWhatsAppNumber("07901921642")).toBeNull();
+    expect(normaliseWhatsAppNumber("0044 7700 900123")).toBe("447700900123");
+    expect(normaliseWhatsAppNumber("07700900123")).toBeNull();
     expect(normaliseWhatsAppNumber("4479@example.test")).toBeNull();
   });
   it("opens WhatsApp only for valid phone numbers with an encoded property-specific message", () => {
-    expect(guestWhatsAppLink("+44 7901 921642", "Sea View & Loft", "Hello about {name}"))
-      .toBe("https://wa.me/447901921642?text=Hello%20about%20Sea%20View%20%26%20Loft");
-    expect(guestWhatsAppLink("07901921642", "Sea View", "Hello {name}")).toBeNull();
+    expect(guestWhatsAppLink("+44 7700 900123", "Sea View & Loft", "Hello about {name}"))
+      .toBe("https://wa.me/447700900123?text=Hello%20about%20Sea%20View%20%26%20Loft");
+    expect(guestWhatsAppLink("07700900123", "Sea View", "Hello {name}")).toBeNull();
   });
   it("requires same-origin requests and an enabled sender account", async () => {
     mocks.origin.mockReturnValue(false);
@@ -43,7 +43,7 @@ describe("WhatsApp guest guide sending", () => {
     expect(mocks.fetch).not.toHaveBeenCalled();
   });
   it("checks consent, ownership and publication before contacting the gateway", async () => {
-    expect((await POST(request({ phone: "447901921642", consent: false }), context)).status).toBe(400);
+    expect((await POST(request({ phone: "447700900123", consent: false }), context)).status).toBe(400);
     mocks.owned.mockResolvedValue(null);
     expect((await POST(request(), context)).status).toBe(404);
     mocks.owned.mockResolvedValue({ status: "draft" });
@@ -55,7 +55,7 @@ describe("WhatsApp guest guide sending", () => {
     expect((await POST(request(), context)).status).toBe(200);
     const [url, options] = mocks.fetch.mock.calls[0];
     expect(String(url)).toBe("https://gateway.example.test/api/sessions/session-1/messages/send-text");
-    expect(JSON.parse(options.body)).toMatchObject({ chatId: "447901921642@c.us", text: expect.stringContaining("https://www.getstayguide.com/g/sea-view") });
+    expect(JSON.parse(options.body)).toMatchObject({ chatId: "447700900123@c.us", text: expect.stringContaining("https://www.getstayguide.com/g/sea-view") });
     expect(options.headers["X-API-Key"]).toBe("test-key");
   });
   it("blocks concurrent or repeated attempts using the database reservation", async () => {

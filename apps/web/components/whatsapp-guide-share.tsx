@@ -34,7 +34,7 @@ export function WhatsAppGuideShare({ id, name, slug, published }: { id: string; 
     <div className="card panel">
       <h3>Send guide by WhatsApp</h3>
       <label>Guest phone number
-        <input type="tel" autoComplete="off" placeholder="+44 7901 921642" value={phone} disabled={busy || attempted} onChange={(event) => setPhone(event.target.value)} />
+        <input type="tel" autoComplete="off" placeholder="+44 7700 900123" value={phone} disabled={busy || attempted} onChange={(event) => setPhone(event.target.value)} />
       </label>
       <p style={{ whiteSpace: "pre-wrap", margin: "16px 0" }}>{message}</p>
       <label className="row">
