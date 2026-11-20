@@ -1,0 +1,99 @@
+name: GetStayGuide production read-only smoke
+
+on:
+  push:
+    branches:
+      - main
+      - fix/stayguide-resend-env-alias-20261104
+    paths:
+      - .github/workflows/stayguide-production-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-endpoints:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read-only production endpoint checks
+        shell: bash
+        env:
+          SITE: https://www.getstayguide.com
+        run: |
+          set -euo pipefail
+          for path in / /login /forgot-password /api/v1/status; do
+            code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --location --silent --show-error --output /tmp/sg-response --write-out '%{http_code}' "$SITE$path")
+            echo "$path -> HTTP $code"
+            if [[ "$code" != "200" ]]; then
+              echo "::error::Public endpoint $path returned HTTP $code"
+              exit 1
+            fi
+            if [[ "$path" == "/api/v1/status" ]]; then
+              cp /tmp/sg-response /tmp/sg-status.json
+            fi
+          done
+          # Public sample guides. These GET requests do not create accounts,
+          # trigger payments, or invoke metered translation generation.
+          for path in /g/casa-serena /g/olive-grove /g/casa-serena/manifest.webmanifest; do
+            code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --location --silent --show-error --output /tmp/sg-guest --write-out '%{http_code}' "$SITE$path")
+            echo "$path -> HTTP $code"
+            if [[ "$code" != "200" ]]; then
+              echo "::error::Sample guest endpoint $path returned HTTP $code"
+              exit 1
+            fi
+          done
+          # The default guide language must be accepted without paid AI generation.
+          code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --silent --show-error --output /tmp/sg-translation --write-out '%{http_code}' "$SITE/api/v1/guides/casa-serena/translation?lang=en")
+          echo "/api/v1/guides/casa-serena/translation?lang=en -> HTTP $code"
+          if [[ "$code" != "200" ]]; then
+            echo "::error::Original-language guide translation endpoint failed"
+            exit 1
+          fi
+          node -e "const fs=require('fs');const body=JSON.parse(fs.readFileSync('/tmp/sg-translation','utf8'));if(body.translated!==false) process.exit(1)"
+          # Invalid locale must be rejected before contacting any AI provider.
+          code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --silent --show-error --output /tmp/sg-invalid-locale --write-out '%{http_code}' "$SITE/api/v1/guides/casa-serena/translation?lang=invalid")
+          echo "invalid guest locale -> HTTP $code"
+          if [[ "$code" != "400" ]]; then
+            echo "::error::Invalid locale not rejected"
+            exit 1
+          fi
+          node - <<'NODE'
+          const fs = require('fs');
+          const s = JSON.parse(fs.readFileSync('/tmp/sg-status.json', 'utf8'));
+          if (!Array.isArray(s.services) || typeof s.ok !== 'boolean') {
+            console.error('Invalid API status payload'); process.exit(1);
+          }
+          const expected = ['database','accounts','email','ai','payments'];
+          for (const key of expected) {
+            const v = s.services.find(x => x.key === key);
+            if (!v || typeof v.ok !== 'boolean') {
+              console.error('Missing or invalid service', key); process.exit(1);
+            }
+            console.log(key + ': ' + (v.ok ? 'configured' : 'NOT_CONFIGURED'));
+          }
+          if (!s.ok) {
+            console.error('One or more production services are not configured. Configuration is not an E2E delivery test.');
+            process.exit(1);
+          }
+          console.log('All public endpoints reachable and all expected services report configured.');
+          NODE
+          # Anonymous clients must not be allowed to read host data or billing.
+          for path in /api/v1/properties /api/v1/extra-requests /api/v1/billing; do
+            code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --silent --show-error --output /tmp/sg-protected --write-out '%{http_code}' "$SITE$path")
+            echo "anonymous $path -> HTTP $code"
+            if [[ "$code" != '401' ]]; then
+              echo "::error::Protected host endpoint $path did not deny anonymous access"
+              exit 1
+            fi
+          done
+          # A deliberately invalid Stripe signature must be rejected before
+          # any billing event is processed. No real payment or customer ID used.
+          code=$(curl --retry 1 --connect-timeout 10 --max-time 35 --silent --show-error             --output /tmp/sg-bad-webhook --write-out '%{http_code}'             --header 'Content-Type: application/json'             --header 'stripe-signature: t=0,v1=invalid-fixture'             --data-binary '{"id":"evt_not_real","object":"event","type":"invoice.paid","data":{"object":{}}}'             "$SITE/api/stripe/webhook")
+          echo "invalid Stripe webhook signature -> HTTP $code"
+          if [[ "$code" != '400' ]]; then
+            echo "::error::Stripe webhook did not reject an invalid signature"
+            exit 1
+          fi
+          node -e "const fs=require('fs');const body=JSON.parse(fs.readFileSync('/tmp/sg-bad-webhook','utf8'));if(body.error!=='Invalid signature')process.exit(1)"

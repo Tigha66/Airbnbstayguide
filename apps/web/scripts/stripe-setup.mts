@@ -5,6 +5,7 @@
  * Prints STRIPE_WEBHOOK_SECRET when a new endpoint is created. Everything is tagged metadata.app=stayguide.
  */
 import Stripe from "stripe";
+import { plans } from "@stayguide/shared";
 
 const key = process.env.STRIPE_SECRET_KEY;
 const appUrl = (process.env.APP_URL || "").replace(/\/$/, "");
@@ -15,8 +16,10 @@ if (process.env.ROTATE_WEBHOOK) throw new Error("Create and verify a replacement
 const stripe = new Stripe(key);
 
 const PLANS = [
-  { plan: "starter", name: "StayGuide Starter", monthly: 900 },
-  { plan: "pro", name: "StayGuide Pro", monthly: 1900 },
+  { plan: "starter", name: "StayGuide Starter", monthly: plans.starter.monthly * 100 },
+  { plan: "pro", name: "StayGuide Pro", monthly: plans.pro.monthly * 100 },
+  // Manager is a flat $199/month per portfolio, not a per-property charge.
+  { plan: "manager", name: "StayGuide Manager", monthly: plans.manager.monthly * 100 },
 ] as const;
 
 const productIds: string[] = [];
@@ -27,7 +30,9 @@ for (const p of PLANS) {
     found.data[0] ??
     (await stripe.products.create({
       name: p.name,
-      description: "Per property, per month. Digital guidebook, AI concierge and extras store.",
+      description: p.plan === "manager"
+        ? "Flat-rate portfolio subscription for up to 50 properties, with unified inbox and guest concierge."
+        : "Per-property digital guidebook, AI concierge and extras store.",
       metadata: { app: "stayguide", plan: p.plan },
     }));
   productIds.push(product.id);
@@ -64,7 +69,12 @@ const portalParams: Stripe.BillingPortal.ConfigurationCreateParams = {
       enabled: true,
       default_allowed_updates: ["price"],
       proration_behavior: "create_prorations",
-      products: productIds.map((product) => ({ product, prices: priceIdsByProduct[product] })),
+      // Price switching between Starter and Pro is safe because both use
+      // the same per-property quantity. Manager is flat-rate; do NOT offer
+      // portal switches into Manager that could inherit a multiplied quantity.
+      products: productIds
+        .filter((_, index) => PLANS[index].plan !== "manager")
+        .map((product) => ({ product, prices: priceIdsByProduct[product] })),
     },
   },
   metadata: { app: "stayguide" },

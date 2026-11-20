@@ -1,0 +1,41 @@
+name: Build illustrated StayGuide demo video
+
+on:
+  push:
+    branches:
+      - feature/stayguide-demo-video-20261105
+    paths:
+      - .github/workflows/stayguide-demo-video.yml
+      - apps/web/scripts/build-demo-video.sh
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  demo-video:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install video renderer and fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+      - name: Generate MP4 with captions already tracked
+        run: |
+          ffmpeg -version | head -n 1
+          bash apps/web/scripts/build-demo-video.sh
+          test -s apps/web/public/videos/getstayguide-demo.mp4
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 apps/web/public/videos/getstayguide-demo.mp4
+      - name: Commit generated MP4 to this feature branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/public/videos/getstayguide-demo.mp4
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add generated 32-second StayGuide demo MP4'
+            git push origin HEAD:feature/stayguide-demo-video-20261105
+          fi

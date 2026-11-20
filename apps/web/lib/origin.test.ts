@@ -6,6 +6,22 @@ describe("trusted application origins", () => {
     vi.stubEnv("NEXT_PUBLIC_APP_URL", " https://www.getstayguide.com/\n");
     expect(applicationOrigin()).toBe("https://www.getstayguide.com");
   });
+  it("uses the existing production NEXT_PUBLIC_SITE_URL when the canonical app URL is absent", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://www.getstayguide.com/");
+    expect(applicationOrigin()).toBe("https://www.getstayguide.com");
+  });
+  it("fails closed for missing or unsafe production origins", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
+    expect(applicationOrigin).toThrow("Application origin must be an HTTPS origin");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://attacker:password@example.test/");
+    expect(applicationOrigin).toThrow("Application origin must be an HTTPS origin");
+  });
   it("keeps Preview links on the exact deployment", () => {
     vi.stubEnv("VERCEL_ENV", "preview");
     vi.stubEnv("VERCEL_URL", "stayguide-test.vercel.app");
