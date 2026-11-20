@@ -52,7 +52,14 @@ export async function refreshPayoutStatus(userId: string, accountId: string | nu
   if (!accountId || !stripeConfigured()) return false;
   try {
     const account = await stripeClient().accounts.retrieve(accountId);
-    const ready = Boolean(account.charges_enabled && account.details_submitted);
+    // Destination-charge hosts must be fully enabled to receive both
+    // card payments and bank payouts; submitting a profile alone is not enough.
+    const ready = Boolean(
+      account.charges_enabled &&
+      account.payouts_enabled &&
+      account.details_submitted &&
+      account.capabilities?.transfers === "active"
+    );
     await setStripeAccount(userId, accountId, ready);
     return ready;
   } catch (error) {
