@@ -40,8 +40,8 @@ export default function WhatsAppSalesDemo() {
   // open a real guide on the same host instead of a hard-coded hostname.
   useEffect(() => {
     const url = new URL("/g/casa-serena", window.location.origin).toString();
-    setGuestUrl(url);
     let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) setGuestUrl(url); });
     void QRCode.toDataURL(url, {
       width: 200,
       margin: 2,
