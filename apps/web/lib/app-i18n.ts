@@ -1,1676 +1,75 @@
-/**
- * Host app text (sign-in page and dashboard) in French, Spanish, German and Arabic.
- * Keys are the English text used in the components via tr("â€¦"); English needs no entry.
- * lib/app-i18n.test.ts checks that every tr("â€¦") in the app has all four translations.
- */
-import type { SiteLocale } from "./site-i18n";
-
-type Dict = Record<string, string>;
-
-const fr: Dict = {
-  "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "La crÃ©ation dâ€™un guide par IA utilise une requÃªte IA incluse. VÃ©rifiez votre adresse e-mail pour activer lâ€™IA ; lâ€™analyse manuelle reste disponible.",
-  "Workspace preferences saved online.": "PrÃ©fÃ©rences de lâ€™espace enregistrÃ©es en ligne.",
-  "Could not save workspace preferences. Please try again.": "Les prÃ©fÃ©rences nâ€™ont pas pu Ãªtre enregistrÃ©es. Veuillez rÃ©essayer.",
-  "Sendingâ€¦": "Envoiâ€¦",
-  "Resend verification email": "Renvoyer lâ€™e-mail de vÃ©rification",
-  "Check your inbox for your verification link.": "Consultez votre boÃ®te de rÃ©ception pour le lien de vÃ©rification.",
-  "Could not send the verification email. Please wait before trying again.": "Lâ€™e-mail de vÃ©rification nâ€™a pas pu Ãªtre envoyÃ©. Veuillez patienter avant de rÃ©essayer.",
-  "View analytics for activity": "Voir les statistiques dâ€™activitÃ©",
-  "All time": "Depuis le dÃ©but",
-  "Extras paid": "Extras payÃ©s",
-  "Answered from your guide": "RÃ©ponses issues de votre guide",
-  "From your saved guest activity": "Dâ€™aprÃ¨s lâ€™activitÃ© enregistrÃ©e des voyageurs",
-  "No guest conversations yet. Share a published guide to get started.": "Aucune conversation voyageur pour le moment. Partagez un guide publiÃ© pour commencer.",
-  "Use 12 to 128 characters.": "Utilisez entre 12 et 128 caractÃ¨res.",
-  "Account created. You can sign in with your password. We couldnâ€™t send a verification email; contact support for help.": "Compte crÃ©Ã©. Vous pouvez vous connecter avec votre mot de passe. Nous nâ€™avons pas pu envoyer lâ€™e-mail de vÃ©rification ; contactez lâ€™assistance.",
-  "Verify your email": "VÃ©rifiez votre adresse e-mail",
-  "Keeps account recovery and support safe.": "ProtÃ¨ge la rÃ©cupÃ©ration du compte et lâ€™assistance.",
-  "Demo mode uses sample account details.": "Le mode dÃ©mo utilise des informations de compte fictives.",
-  "Create your first property": "CrÃ©ez votre premier logement",
-  "Add the address, arrival notes, Wi-Fi, rules and checkout.": "Ajoutez lâ€™adresse, les consignes dâ€™arrivÃ©e, le Wi-Fi, les rÃ¨gles et le dÃ©part.",
-  "Publish and preview the guest guide": "Publiez et prÃ©visualisez le guide voyageur",
-  "Open the same link your guests will receive.": "Ouvrez le mÃªme lien que vos voyageurs recevront.",
-  "Add one extra or upsell": "Ajoutez un extra ou une vente additionnelle",
-  "Late checkout, breakfast baskets, transfers and paid services.": "DÃ©part tardif, paniers petit-dÃ©jeuner, transferts et services payants.",
-  "Choose a plan and set up payouts": "Choisissez une offre et configurez les versements",
-  "Upgrade when you need more properties or AI answers.": "Passez Ã  lâ€™offre supÃ©rieure pour plus de logements ou de rÃ©ponses IA.",
-  "GET READY TO HOST": "PRÃ‰PAREZ VOTRE ACCUEIL",
-  "Launch checklist": "Liste de lancement",
-  "Keep building": "Continuer la configuration",
-  "Please verify your email address. Check your inbox for the StayGuide verification link, or contact support if it did not arrive.": "Veuillez vÃ©rifier votre adresse e-mail. Consultez votre boÃ®te de rÃ©ception pour le lien de vÃ©rification StayGuide, ou contactez lâ€™assistance sâ€™il nâ€™est pas arrivÃ©.",
-  "Support": "Assistance",
-  "Need help setting up a property, billing, payouts, or a guest guide? Email us and weâ€™ll help you get unstuck.": "Besoin dâ€™aide pour configurer un logement, la facturation, les versements ou un guide voyageur ? Ã‰crivez-nous et nous vous aiderons.",
-  "Support replies are handled by the StayGuide team. Do not send door codes or guest payment details by email.": "Lâ€™Ã©quipe StayGuide traite les demandes dâ€™assistance. Nâ€™envoyez pas de codes dâ€™accÃ¨s ni de dÃ©tails de paiement des voyageurs par e-mail.",
-  "Could not create this account. Check your details, or sign in if you already have an account. Existing Google accounts should continue with Google.": "Impossible de crÃ©er ce compte. VÃ©rifiez vos informations ou connectez-vous si vous avez dÃ©jÃ  un compte. Les comptes Google existants doivent continuer avec Google.",
-  "That email and password did not sign in. If this is your first time, create an account first, or continue with Google.": "Cette adresse e-mail et ce mot de passe nâ€™ont pas permis la connexion. CrÃ©ez dâ€™abord un compte si câ€™est votre premiÃ¨re visite, ou continuez avec Google.",
-  "Choose account action": "Choisir lâ€™action du compte",
-  "Create account": "CrÃ©er un compte",
-  "Password": "Mot de passe",
-  "Use 12 to 128 characters. Weâ€™ll email you a verification link after signup.": "Utilisez 12 Ã  128 caractÃ¨res. Nous vous enverrons un lien de vÃ©rification aprÃ¨s lâ€™inscription.",
-  "Already registered? Use Sign in above.": "DÃ©jÃ  inscrit ? Utilisez Connexion ci-dessus.",
-  "First time using email and password? Use Create account above.": "PremiÃ¨re utilisation de lâ€™e-mail et du mot de passe ? Utilisez CrÃ©er un compte ci-dessus.",
-  "Forgot password?": "Mot de passe oubliÃ© ?",
-  "Account created. Check your email to verify your address, then sign in with your password.": "Compte crÃ©Ã©. Consultez votre e-mail pour vÃ©rifier votre adresse, puis connectez-vous avec votre mot de passe.",
-  "Sample guide views for the week": "Vues du guide de la semaine (exemple)",
-  // Navigation & frame
-  "Overview": "Vue dâ€™ensemble",
-  "Properties": "Logements",
-  "Guest inbox": "Messages voyageurs",
-  "Extras & upsells": "Extras & ventes additionnelles",
-  "Analytics": "Statistiques",
-  "Share kit": "Kit de partage",
-  "Plans & billing": "Offres & facturation",
-  "Settings": "ParamÃ¨tres",
-  "Guide editor": "Ã‰diteur de guide",
-  "WORKSPACE": "ESPACE DE TRAVAIL",
-  "Workspace": "Espace de travail",
-  "Host workspace": "Espace hÃ´te",
-  "Close navigation": "Fermer le menu",
-  "Open navigation": "Ouvrir le menu",
-  "A little more possibility.": "Un peu plus de possibilitÃ©s.",
-  "More properties. More AI answers.": "Plus de logements. Plus de rÃ©ponses IA.",
-  "Even better guest experiences.": "Des sÃ©jours encore plus rÃ©ussis.",
-  "Explore Pro": "DÃ©couvrir Pro",
-  "Workspace owner": "PropriÃ©taire de lâ€™espace",
-  "Demo host account": "Compte hÃ´te de dÃ©mo",
-  "Workspace owner Â· Demo": "PropriÃ©taire de lâ€™espace Â· DÃ©mo",
-  "Workspace owner Â· {email}": "PropriÃ©taire de lâ€™espace Â· {email}",
-  "SAVINGâ€¦": "ENREGISTREMENTâ€¦",
-  "NOT SAVED Â· RETRYING ON NEXT EDIT": "NON ENREGISTRÃ‰ Â· NOUVEL ESSAI Ã€ LA PROCHAINE MODIFICATION",
-  "ALL CHANGES SAVED": "TOUT EST ENREGISTRÃ‰",
-  "DEMO WORKSPACE": "ESPACE DE DÃ‰MO",
-  "Sign in": "Se connecter",
-  "View guest experience": "Voir cÃ´tÃ© voyageur",
-  "Toggle dark mode": "Basculer le mode sombre",
-  "Guest notifications": "Notifications voyageurs",
-  "Signed in as {email}. Click to sign out.": "ConnectÃ© en tant que {email}. Cliquez pour vous dÃ©connecter.",
-  "Sign out {email}": "DÃ©connecter {email}",
-  "Language": "Langue",
-  "Made for thoughtful hosts. Built for memorable stays.": "ConÃ§u pour les hÃ´tes attentionnÃ©s. PensÃ© pour des sÃ©jours mÃ©morables.",
-  "Demo data Â· Saved on this device": "DonnÃ©es de dÃ©mo Â· EnregistrÃ©es sur cet appareil",
-  "Saved securely online": "EnregistrÃ© en ligne en toute sÃ©curitÃ©",
-  "Close dialog": "Fermer",
-  // Overview
-  "YOUR LITTLE HOSTING HEADQUARTERS": "VOTRE PETIT QUARTIER GÃ‰NÃ‰RAL Dâ€™HÃ”TE",
-  "Good things start with a": "Les belles choses commencent par un",
-  "great stay.": "beau sÃ©jour.",
-  "Welcome back, {name}. Hereâ€™s how your properties are doing.": "Bon retour, {name}. Voici comment se portent vos logements.",
-  "Demo month": "Mois de dÃ©mo",
-  "LESS MANAGING. MORE HOSTING.": "MOINS DE GESTION. PLUS Dâ€™HOSPITALITÃ‰.",
-  "A thoughtful stay,": "Un sÃ©jour soignÃ©,",
-  "without the extra work.": "sans travail en plus.",
-  "Your guides handle the little questions.": "Vos guides rÃ©pondent aux petites questions.",
-  "You focus on making guests feel at home.": "Vous, vous faites sentir vos voyageurs chez eux.",
-  "Create a guide": "CrÃ©er un guide",
-  "YOUR HOME AWAY FROM HOME": "VOTRE MAISON LOIN DE CHEZ VOUS",
-  "OlÃ¡, welcome home.": "Bonjour, bienvenue chez vous.",
-  "Wi-Fi": "Wi-Fi",
-  "Explore": "Explorer",
-  "Your stay": "Votre sÃ©jour",
-  "Little extras": "Petits extras",
-  "Happy guests. Happy host.": "Voyageurs heureux. HÃ´te heureux.",
-  "Thoughtful details, all in one place.": "Des attentions, rÃ©unies au mÃªme endroit.",
-  "Guide views": "Vues du guide",
-  "AI conversations": "Conversations IA",
-  "Extras revenue": "Revenus des extras",
-  "Happy guests": "Voyageurs satisfaits",
-  "vs. previous month": "vs. mois prÃ©cÃ©dent",
-  "answered without you": "rÃ©pondues sans vous",
-  "average guest rating": "note moyenne des voyageurs",
-  "Your properties": "Vos logements",
-  "{n} little places. Endless possibilities.": "{n} petits lieux. Des possibilitÃ©s infinies.",
-  "View all properties": "Voir tous les logements",
-  "Around your properties": "Autour de vos logements",
-  "View inbox": "Voir les messages",
-  "A slower goodbye, booked.": "Un dÃ©part en douceur, rÃ©servÃ©.",
-  "Late checkout": "DÃ©part tardif",
-  "One less question on your plate.": "Une question de moins Ã  gÃ©rer.",
-  "Wi-Fi details shared by concierge": "Infos Wi-Fi partagÃ©es par le concierge",
-  "A warm welcome, delivered.": "Un accueil chaleureux, dÃ©livrÃ©.",
-  "A guest opened their guide": "Un voyageur a ouvert son guide",
-  "12 min ago": "il y a 12 min",
-  "34 min ago": "il y a 34 min",
-  "1 hour ago": "il y a 1 heure",
-  "A LITTLE HOSTING INSPIRATION": "UN PEU Dâ€™INSPIRATION",
-  "Small extras.": "De petits extras.",
-  "Memorable experiences.": "Des expÃ©riences mÃ©morables.",
-  "A late checkout. A local breakfast.": "Un dÃ©part tardif. Un petit-dÃ©jeuner local.",
-  "Turn thoughtful touches into extra income, and give guests a stay to remember.": "Transformez vos attentions en revenus supplÃ©mentaires et offrez un sÃ©jour inoubliable.",
-  "Explore your extras": "Voir vos extras",
-  // Property cards & properties view
-  "Published": "PubliÃ©",
-  "Draft": "Brouillon",
-  "Edit {name}": "Modifier {name}",
-  "Preview {name}": "AperÃ§u de {name}",
-  "Share {name}": "Partager {name}",
-  "{name}, a welcoming holiday home": "{name}, une location accueillante",
-  "{n} sections": "{n} sections",
-  "{n} demo views": "{n} vues (dÃ©mo)",
-  "{n} chats": "{n} conversations",
-  "Made with a little extra care": "PrÃ©parÃ© avec un soin particulier",
-  "Edit guide": "Modifier le guide",
-  "Beautiful places deserve a thoughtful welcome.": "Les beaux lieux mÃ©ritent un accueil attentionnÃ©.",
-  "Add property": "Ajouter un logement",
-  "Search properties": "Rechercher des logements",
-  "Find a little placeâ€¦": "Trouver un logementâ€¦",
-  "All": "Tous",
-  "No properties here yet": "Aucun logement pour lâ€™instant",
-  "Create a property or try another search.": "CrÃ©ez un logement ou essayez une autre recherche.",
-  "Add a property": "Ajouter un logement",
-  // Editor
-  "A little local knowledge goes a long way.": "Un peu de savoir local change tout.",
-  "Guest preview": "AperÃ§u voyageur",
-  "Delete": "Supprimer",
-  "Delete {name} and its guide? This cannot be undone.": "Supprimer {name} et son guide ? Cette action est irrÃ©versible.",
-  "Property deleted.": "Logement supprimÃ©.",
-  "Couldnâ€™t delete the property. Please try again.": "Impossible de supprimer le logement. Veuillez rÃ©essayer.",
-  "Select property to edit": "Choisir le logement Ã  modifier",
-  "Saved on this device": "EnregistrÃ© sur cet appareil",
-  "Guide moved to draft.": "Guide repassÃ© en brouillon.",
-  "Guide published. Guests can open it now.": "Guide publiÃ©. Vos voyageurs peuvent lâ€™ouvrir dÃ¨s maintenant.",
-  "Demo guide published on this device.": "Guide de dÃ©mo publiÃ© sur cet appareil.",
-  "Unpublish": "DÃ©publier",
-  "Publish guide": "Publier le guide",
-  "Property details": "Informations du logement",
-  "Shown to guests and used by the concierge. Changes save automatically.": "AffichÃ©es aux voyageurs et utilisÃ©es par le concierge. Enregistrement automatique.",
-  "Street address": "Adresse",
-  "City, country": "Ville, pays",
-  "Check-in time": "Heure dâ€™arrivÃ©e",
-  "Checkout time": "Heure de dÃ©part",
-  "Wi-Fi network": "RÃ©seau Wi-Fi",
-  "Wi-Fi password": "Mot de passe Wi-Fi",
-  "Host phone": "TÃ©lÃ©phone de lâ€™hÃ´te",
-  "A new little detail": "Un nouveau petit dÃ©tail",
-  "Add section": "Ajouter une section",
-  "Make it feel like you.": "Faites-le Ã  votre image.",
-  "Write": "Ã‰crire",
-  "Preview": "AperÃ§u",
-  "Section title": "Titre de la section",
-  "Icon": "IcÃ´ne",
-  "Your local knowledge": "Vos conseils",
-  "All the details that make a stay effortless. Markdown is welcome.": "Tous les dÃ©tails pour un sÃ©jour sans souci. Le Markdown est acceptÃ©.",
-  "Use **bold**, bullet lists, and links. Drag sections to reorder, or use the arrow buttons.": "Utilisez le **gras**, les listes et les liens. Faites glisser les sections pour les rÃ©ordonner, ou utilisez les flÃ¨ches.",
-  "Move section up": "Monter la section",
-  "Move section down": "Descendre la section",
-  "All changes are saved automatically on this device.": "Toutes les modifications sont enregistrÃ©es automatiquement sur cet appareil.",
-  "All changes are saved automatically.": "Toutes les modifications sont enregistrÃ©es automatiquement.",
-  "Save changes": "Enregistrer",
-  "Demo editor Â· Changes are stored in this browser. Sign in to save guides online and share them with real guests.": "Ã‰diteur de dÃ©mo Â· Les modifications restent dans ce navigateur. Connectez-vous pour enregistrer vos guides en ligne et les partager avec de vrais voyageurs.",
-  // Inbox
-  "A little human touch": "Une touche humaine",
-  "Your concierge takes care of the everyday. You take care of the rest.": "Votre concierge gÃ¨re le quotidien. Vous gÃ©rez le reste.",
-  "Needs your help": "Votre aide est requise",
-  "Sample conversation": "Conversation dâ€™exemple",
-  "The concierge couldnâ€™t find this answer in the guide and passed it to you.": "Le concierge nâ€™a pas trouvÃ© la rÃ©ponse dans le guide et vous a transmis la question.",
-  "Reply saved in the demo. No guest message was sent.": "RÃ©ponse enregistrÃ©e dans la dÃ©mo. Aucun message nâ€™a Ã©tÃ© envoyÃ©.",
-  "Reply to guest": "RÃ©pondre au voyageur",
-  "A thoughtful replyâ€¦": "Une rÃ©ponse attentionnÃ©eâ€¦",
-  "Send demo reply": "Envoyer la rÃ©ponse de dÃ©mo",
-  "Needs your help only": "Seulement celles qui ont besoin de vous",
-  "Couldnâ€™t load conversations. Retryingâ€¦": "Impossible de charger les conversations. Nouvel essaiâ€¦",
-  "Loading conversationsâ€¦": "Chargement des conversationsâ€¦",
-  "All quiet for now": "Tout est calme pour lâ€™instant",
-  "When a guest asks something your guide doesnâ€™t answer, the conversation appears here so you can reply.": "Quand un voyageur pose une question Ã  laquelle votre guide ne rÃ©pond pas, la conversation apparaÃ®t ici pour que vous puissiez rÃ©pondre.",
-  "Guest": "Voyageur",
-  "You": "Vous",
-  "Concierge": "Concierge",
-  "Reply sent. The guest sees it in their guide chat.": "RÃ©ponse envoyÃ©e. Le voyageur la voit dans la conversation de son guide.",
-  "Couldnâ€™t send your reply. Please try again.": "Impossible dâ€™envoyer votre rÃ©ponse. Veuillez rÃ©essayer.",
-  "Send reply": "Envoyer la rÃ©ponse",
-  // Extras
-  "The little extras": "Les petits extras",
-  "Thoughtful touches for guests. A little more income for you.": "Des attentions pour vos voyageurs. Un petit revenu en plus pour vous.",
-  "Create extra": "CrÃ©er un extra",
-  "Demo catalog Â· Sign in to receive real guest requests for your extras.": "Catalogue de dÃ©mo Â· Connectez-vous pour recevoir de vraies demandes dâ€™extras.",
-  "per stay": "par sÃ©jour",
-  "Host approval required": "Accord de lâ€™hÃ´te requis",
-  "Instant purchase": "Achat immÃ©diat",
-  "See guest experience": "Voir cÃ´tÃ© voyageur",
-  "Payment captured. The money is on its way to your bank.": "Paiement encaissÃ©. Lâ€™argent est en route vers votre banque.",
-  "Request approved. Let your guest know how to pay.": "Demande acceptÃ©e. Indiquez au voyageur comment payer.",
-  "Request declined. Any card hold has been released.": "Demande refusÃ©e. Lâ€™Ã©ventuelle prÃ©-autorisation a Ã©tÃ© libÃ©rÃ©e.",
-  "Refund issued to the guest.": "Remboursement envoyÃ© au voyageur.",
-  "Request updated.": "Demande mise Ã  jour.",
-  "Couldnâ€™t update the request.": "Impossible de mettre Ã  jour la demande.",
-  "Guest requests": "Demandes des voyageurs",
-  "Refresh requests": "Actualiser les demandes",
-  "Loading requestsâ€¦": "Chargement des demandesâ€¦",
-  "No requests yet. Guests can request extras from the â€œLittle extrasâ€ tab of your guide.": "Aucune demande pour lâ€™instant. Les voyageurs peuvent demander des extras depuis lâ€™onglet Â« Petits extras Â» de votre guide.",
-  "pending": "en attente",
-  "approved": "acceptÃ©e",
-  "declined": "refusÃ©e",
-  "paid": "payÃ©e",
-  "refunded": "remboursÃ©e",
-  "card authorised": "carte prÃ©-autorisÃ©e",
-  "paid online": "payÃ© en ligne",
-  "Approve & charge": "Accepter et encaisser",
-  "Approve": "Accepter",
-  "Decline & release": "Refuser et libÃ©rer",
-  "Decline": "Refuser",
-  "Mark as paid": "Marquer comme payÃ©e",
-  "Refund this guest in full?": "Rembourser entiÃ¨rement ce voyageur ?",
-  "Refund": "Rembourser",
-  // Analytics
-  "Good stays, by the numbers": "Les beaux sÃ©jours, en chiffres",
-  "A little insight into what makes your guests feel at home.": "Un aperÃ§u de ce qui fait se sentir chez eux vos voyageurs.",
-  "Sample analytics for demonstration. Sign in to see your real numbers.": "Statistiques dâ€™exemple. Connectez-vous pour voir vos vrais chiffres.",
-  "Guide views this week": "Vues du guide cette semaine",
-  "Mon": "Lun",
-  "Tue": "Mar",
-  "Wed": "Mer",
-  "Thu": "Jeu",
-  "Fri": "Ven",
-  "Sat": "Sam",
-  "Sun": "Dim",
-  "The things guests ask": "Ce que demandent les voyageurs",
-  "Wi-Fi & getting connected": "Wi-Fi et connexion",
-  "Check-in & arrival": "ArrivÃ©e",
-  "Local recommendations": "Recommandations locales",
-  "Check-out details": "Infos de dÃ©part",
-  "Couldnâ€™t load analytics.": "Impossible de charger les statistiques.",
-  "Loadingâ€¦": "Chargementâ€¦",
-  "Guide views (all time)": "Vues du guide (total)",
-  "Views, last 30 days": "Vues, 30 derniers jours",
-  "Guest questions": "Questions des voyageurs",
-  "Answered without you": "RÃ©pondues sans vous",
-  "Extras approved": "Extras acceptÃ©s",
-  "Extra requests": "Demandes dâ€™extras",
-  "AI messages this month": "Messages IA ce mois-ci",
-  "Questions will appear here once guests start chatting.": "Les questions apparaÃ®tront ici dÃ¨s que les voyageurs commenceront Ã  discuter.",
-  // Share kit
-  "A warm welcome, shared": "Un accueil chaleureux, partagÃ©",
-  "One little link. Everything your guests need.": "Un seul lien. Tout ce dont vos voyageurs ont besoin.",
-  "Your property": "Votre logement",
-  "Send a little hello": "Envoyez un petit bonjour",
-  "Add your guest guide to a welcome message or booking confirmation.": "Ajoutez votre guide Ã  un message de bienvenue ou Ã  une confirmation de rÃ©servation.",
-  "Guest guide link": "Lien du guide voyageur",
-  "Copy guest link": "Copier le lien",
-  "Guest link copied.": "Lien copiÃ©.",
-  "Select the link and copy it manually.": "SÃ©lectionnez le lien et copiez-le manuellement.",
-  "Weâ€™re looking forward to welcoming you to {name}! Hereâ€™s your personal guide with everything you need for a lovely stay: {link}\nSafe travels â€” see you soon!": "Nous avons hÃ¢te de vous accueillir Ã  {name} ! Voici votre guide personnel avec tout ce quâ€™il faut pour un sÃ©jour rÃ©ussi : {link}\nBon voyage, Ã  trÃ¨s vite !",
-  "Welcome message copied.": "Message de bienvenue copiÃ©.",
-  "Clipboard unavailable in this browser.": "Presse-papiers indisponible dans ce navigateur.",
-  "Copy welcome message": "Copier le message de bienvenue",
-  "Local demo changes are visible on this device only. A QR code for a sample property works on any device.": "Les modifications de dÃ©mo ne sont visibles que sur cet appareil. Le QR code dâ€™un logement dâ€™exemple fonctionne partout.",
-  "Make yourself at home.": "Faites comme chez vous.",
-  "Your guide to a lovely stay at {name}.": "Votre guide pour un beau sÃ©jour Ã  {name}.",
-  "Scan for all the little details.": "Scannez pour tous les petits dÃ©tails.",
-  "QR code for {name}": "QR code pour {name}",
-  "Generate QR card": "GÃ©nÃ©rer la carte QR",
-  "Print / save PDF": "Imprimer / enregistrer en PDF",
-  // Billing
-  "A plan for every kind of host": "Une offre pour chaque hÃ´te",
-  "Simple, per-property pricing. More time for what you love.": "Des tarifs simples par logement. Plus de temps pour ce que vous aimez.",
-  "Properties: {n}": "Logements : {n}",
-  "Monthly": "Mensuel",
-  "Yearly Â· 2 months free": "Annuel Â· 2 mois offerts",
-  "Free": "Gratuit",
-  "A thoughtful beginning": "Un dÃ©but attentionnÃ©",
-  "For the independent host": "Pour lâ€™hÃ´te indÃ©pendant",
-  "Your hospitality, elevated": "Votre hospitalitÃ©, sublimÃ©e",
-  "per year": "par an",
-  "per month": "par mois",
-  "1 property": "1 logement",
-  "{n} properties": "{n} logements",
-  "{n} AI messages / property / month": "{n} messages IA / logement / mois",
-  "Beautiful offline guest guides": "De beaux guides consultables hors ligne",
-  "Extras store Â· 5% platform fee": "Boutique dâ€™extras Â· 5 % de frais de plateforme",
-  "Priority support": "Support prioritaire",
-  "This is a demo workspace. Sign in with Google to choose a plan.": "Ceci est un espace de dÃ©mo. Connectez-vous avec Google pour choisir une offre.",
-  "This is a demo workspace. Sign in to choose a plan.": "Ceci est un espace de dÃ©mo. Connectez-vous pour choisir une offre.",
-  "Try the demo": "Essayer la dÃ©mo",
-  "Choose {plan}": "Choisir {plan}",
-  "Demo workspace Â· Sign in with Google to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.": "Espace de dÃ©mo Â· Connectez-vous avec Google pour choisir une offre. Prix en {code} ({symbol}), facturation sÃ©curisÃ©e par Stripe.",
-  "Demo workspace Â· Sign in to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.": "Espace de dÃ©mo Â· Connectez-vous pour choisir une offre. Prix en {code} ({symbol}), facturation sÃ©curisÃ©e par Stripe.",
-  "Thank you! Your plan is being activated. This can take a few seconds.": "Merci ! Votre offre est en cours dâ€™activation. Cela peut prendre quelques secondes.",
-  "Checkout cancelled. Nothing was charged.": "Paiement annulÃ©. Rien nâ€™a Ã©tÃ© dÃ©bitÃ©.",
-  "Payout details saved. Stripe may take a moment to verify them.": "Informations de versement enregistrÃ©es. Stripe peut prendre un moment pour les vÃ©rifier.",
-  "That setup link expired. Please continue payout setup.": "Ce lien a expirÃ©. Veuillez poursuivre la configuration des versements.",
-  "Couldnâ€™t load billing. Please refresh the page.": "Impossible de charger la facturation. Veuillez actualiser la page.",
-  "Loading billingâ€¦": "Chargement de la facturationâ€¦",
-  "Simple, per-property pricing. Change or cancel any time.": "Des tarifs simples par logement. Modifiable ou rÃ©siliable Ã  tout moment.",
-  "Payments are not connected on this deployment yet.": "Les paiements ne sont pas encore connectÃ©s.",
-  "Current plan": "Offre actuelle",
-  "up to {n} on this plan": "jusquâ€™Ã  {n} avec cette offre",
-  "Openingâ€¦": "Ouvertureâ€¦",
-  "Manage billing": "GÃ©rer la facturation",
-  "Your last payment failed. Please update your card in â€œManage billingâ€ to keep your plan.": "Votre dernier paiement a Ã©chouÃ©. Mettez Ã  jour votre carte dans Â« GÃ©rer la facturation Â» pour conserver votre offre.",
-  "Your Hotel & Multi-Unit plan is managed by StayGuide and invoiced separately. Contact us to change it.": "Votre offre HÃ´tels & multi-logements est gÃ©rÃ©e par StayGuide et facturÃ©e sÃ©parÃ©ment. Contactez-nous pour la modifier.",
-  "Billed for {n} Â· updates automatically as you add or remove properties": "FacturÃ© pour {n} Â· mis Ã  jour automatiquement quand vous ajoutez ou supprimez des logements",
-  "Up to {n} properties": "Jusquâ€™Ã  {n} logements",
-  "{n} AI concierge messages / property / month": "{n} messages du concierge IA / logement / mois",
-  "Paid extras Â· 5% platform fee": "Extras payants Â· 5 % de frais de plateforme",
-  "Opening checkoutâ€¦": "Ouverture du paiementâ€¦",
-  "{price}/property/month": "{price}/logement/mois",
-  ", billed yearly": ", facturÃ© annuellement",
-  "Prices in {code} ({symbol}). Secure payment by Stripe. Cancel any time from â€œManage billingâ€.": "Prix en {code} ({symbol}). Paiement sÃ©curisÃ© par Stripe. RÃ©siliable Ã  tout moment depuis Â« GÃ©rer la facturation Â».",
-  "Get paid for extras": "Encaissez vos extras",
-  "Active": "Actif",
-  "Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.": "Les voyageurs paient leurs extras par carte, Apple Pay ou Google Pay. Lâ€™argent arrive directement sur votre compte via Stripe, moins 5 % de frais StayGuide. Les extras soumis Ã  votre accord ne sont dÃ©bitÃ©s quâ€™aprÃ¨s votre acceptation.",
-  "Open payouts dashboard": "Ouvrir le tableau des versements",
-  "Online payments for extras are coming soon. Until then, guests send requests and you confirm how they pay.": "Le paiement en ligne des extras arrive bientÃ´t. En attendant, les voyageurs envoient des demandes et vous confirmez le mode de paiement.",
-  "Connect a bank account with Stripe so guests can pay for extras online. Until then, guests send requests and you confirm payment yourself.": "Connectez un compte bancaire avec Stripe pour que les voyageurs paient leurs extras en ligne. En attendant, ils envoient des demandes et vous confirmez le paiement vous-mÃªme.",
-  "Country of your bank account": "Pays de votre compte bancaire",
-  "Opening Stripeâ€¦": "Ouverture de Stripeâ€¦",
-  "Continue payout setup": "Poursuivre la configuration des versements",
-  "Set up payouts": "Configurer les versements",
-  "past due": "paiement en retard",
-  "trialing": "pÃ©riode dâ€™essai",
-  "canceled": "rÃ©siliÃ©e",
-  "unpaid": "impayÃ©e",
-  // Settings
-  "Your workspace, your way.": "Votre espace, Ã  votre faÃ§on.",
-  "Workspace preferences saved on this device.": "PrÃ©fÃ©rences enregistrÃ©es sur cet appareil.",
-  "Your workspace": "Votre espace",
-  "Your first name": "Votre prÃ©nom",
-  "Organization name": "Nom de votre entreprise",
-  "Save preferences": "Enregistrer les prÃ©fÃ©rences",
-  "The people behind the welcome": "Les personnes derriÃ¨re lâ€™accueil",
-  "Team access for co-hosts and staff is coming soon.": "Lâ€™accÃ¨s dâ€™Ã©quipe pour co-hÃ´tes et personnel arrive bientÃ´t.",
-  "This is a demo workspace saved in your browser. Sign in with Google to create your real account.": "Ceci est un espace de dÃ©mo enregistrÃ© dans votre navigateur. Connectez-vous avec Google pour crÃ©er votre vrai compte.",
-  "This is a demo workspace saved in your browser. Sign in to create your real account.": "Ceci est un espace de dÃ©mo enregistrÃ© dans votre navigateur. Connectez-vous pour crÃ©er votre vrai compte.",
-  "Switch to light mode": "Passer en mode clair",
-  "Switch to dark mode": "Passer en mode sombre",
-  "Connect your account": "Connecter votre compte",
-  "Dashboard language": "Langue du tableau de bord",
-  // Modals
-  "A new place. A new welcome.": "Un nouveau lieu. Un nouvel accueil.",
-  "Add the basics and bring your guest guide to life.": "Ajoutez lâ€™essentiel et donnez vie Ã  votre guide.",
-  "Property name": "Nom du logement",
-  "Optional Â· used for â€œOpen in Mapsâ€": "Facultatif Â· utilisÃ©e pour Â« Ouvrir dans Maps Â»",
-  "Your house manual": "Votre livret dâ€™accueil",
-  "Optional Â· Only content you own": "Facultatif Â· uniquement un contenu qui vous appartient",
-  "Paste your arrival details, house rules, and favorite local tipsâ€¦": "Collez vos infos dâ€™arrivÃ©e, votre rÃ¨glement et vos bonnes adressesâ€¦",
-  "Our AI will organize your text into guide sections using only what you wrote.": "Notre IA organisera votre texte en sections en nâ€™utilisant que ce que vous avez Ã©crit.",
-  "Weâ€™ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as â€œWI-FI:â€ for best results.": "Nous dÃ©couperons votre texte en sections comme ArrivÃ©e, Wi-Fi et DÃ©part. Utilisez des intitulÃ©s comme Â« WI-FI: Â» pour un meilleur rÃ©sultat.",
-  "Building your guideâ€¦": "CrÃ©ation de votre guideâ€¦",
-  "Create my guide": "CrÃ©er mon guide",
-  "Property created. AI organized your guide â€” have a look.": "Logement crÃ©Ã©. Lâ€™IA a organisÃ© votre guide â€” jetez un Å“il.",
-  "Property created. Your guide is ready to edit.": "Logement crÃ©Ã©. Votre guide est prÃªt Ã  Ãªtre modifiÃ©.",
-  "Could not create the property.": "Impossible de crÃ©er le logement.",
-  "Add your propertyâ€™s {type} information here.": "Ajoutez ici les informations Â« {type} Â» de votre logement.",
-  "A thoughtful little extra": "Un petit extra attentionnÃ©",
-  "Give your guests one more reason to love their stay.": "Donnez Ã  vos voyageurs une raison de plus dâ€™aimer leur sÃ©jour.",
-  "Property": "Logement",
-  "Name": "Nom",
-  "Description": "Description",
-  "Price ({symbol})": "Prix ({symbol})",
-  "Require my approval before payment": "Demander mon accord avant le paiement",
-  "Extra added to your demo guide.": "Extra ajoutÃ© Ã  votre guide de dÃ©mo.",
-  "e.g. The Little Olive House": "ex. La Petite Maison des Oliviers",
-  "e.g. Gatlinburg, Tennessee": "ex. Annecy, France",
-  "A basket of local favorites": "Un panier de produits locaux",
-  // Sign-in page
-  "Welcome back": "Bon retour",
-  "Good hosts make": "Les bons hÃ´tes font",
-  "great stays.": "les beaux sÃ©jours.",
-  "Welcome home.": "Bienvenue chez vous.",
-  "A little less work. A little more hospitality.": "Un peu moins de travail. Un peu plus dâ€™hospitalitÃ©.",
-  "A warm and welcoming living room": "Un salon chaleureux et accueillant",
-  "Thoughtful hosting starts here.": "Lâ€™accueil attentionnÃ© commence ici.",
-  "Sign in to your account": "Connectez-vous Ã  votre compte",
-  "Welcome back. Sign in with your Google account to continue.": "Bon retour. Connectez-vous avec votre compte Google pour continuer.",
-  "Welcome back. Choose a secure sign-in option to continue.": "Bon retour. Choisissez une option de connexion sÃ©curisÃ©e pour continuer.",
-  "Continue with Google": "Continuer avec Google",
-  "Continue with Apple": "Continuer avec Apple",
-  "Email address": "Adresse e-mail",
-  "Send code": "Envoyer le code",
-  "Sign-in code": "Code de connexion",
-  "Continue": "Continuer",
-  "We sent a 6-digit code to your email. It expires in 10 minutes.": "Nous avons envoyÃ© un code Ã  6 chiffres Ã  votre e-mail. Il expire dans 10 minutes.",
-  "Live accounts are not connected yet. Explore the demo below.": "Les comptes ne sont pas encore connectÃ©s. Explorez la dÃ©mo ci-dessous.",
-  "We couldnâ€™t send the code. Try Google while email sign-in is being fixed.": "Nous nâ€™avons pas pu envoyer le code. Essayez Google pendant que la connexion par e-mail est corrigÃ©e.",
-  "That code did not work. Request a new code or try again.": "Ce code nâ€™a pas fonctionnÃ©. Demandez un nouveau code ou rÃ©essayez.",
-  "We couldnâ€™t sign you in. Please try again.": "Nous nâ€™avons pas pu vous connecter. Veuillez rÃ©essayer.",
-  "or explore without signing in": "ou explorez sans vous connecter",
-  "Explore the demo": "Explorer la dÃ©mo",
-  "By continuing, you agree to our": "En continuant, vous acceptez nos",
-  "Terms": "Conditions",
-  "and": "et notre",
-  "Privacy Policy": "Politique de confidentialitÃ©",
-};
-
-const es: Dict = {
-  "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "Generar una guÃ­a con IA usa una solicitud de IA incluida. Verifica tu correo para activar la IA; el anÃ¡lisis manual sigue disponible.",
-  "Workspace preferences saved online.": "Preferencias del espacio guardadas en lÃ­nea.",
-  "Could not save workspace preferences. Please try again.": "No se pudieron guardar las preferencias. IntÃ©ntalo de nuevo.",
-  "Sendingâ€¦": "Enviandoâ€¦",
-  "Resend verification email": "Reenviar el correo de verificaciÃ³n",
-  "Check your inbox for your verification link.": "Revisa tu correo para encontrar el enlace de verificaciÃ³n.",
-  "Could not send the verification email. Please wait before trying again.": "No se pudo enviar el correo de verificaciÃ³n. Espera antes de volver a intentarlo.",
-  "View analytics for activity": "Ver estadÃ­sticas de actividad",
-  "All time": "Todo el perÃ­odo",
-  "Extras paid": "Extras pagados",
-  "Answered from your guide": "Respondidas desde tu guÃ­a",
-  "From your saved guest activity": "SegÃºn la actividad guardada de tus huÃ©spedes",
-  "No guest conversations yet. Share a published guide to get started.": "AÃºn no hay conversaciones. Comparte una guÃ­a publicada para empezar.",
-  "Use 12 to 128 characters.": "Usa entre 12 y 128 caracteres.",
-  "Account created. You can sign in with your password. We couldnâ€™t send a verification email; contact support for help.": "Cuenta creada. Puedes iniciar sesiÃ³n con tu contraseÃ±a. No pudimos enviar el correo de verificaciÃ³n; contacta con soporte.",
-  "Verify your email": "Verifica tu correo electrÃ³nico",
-  "Keeps account recovery and support safe.": "Protege la recuperaciÃ³n de la cuenta y la asistencia.",
-  "Demo mode uses sample account details.": "El modo demo utiliza datos de cuenta de ejemplo.",
-  "Create your first property": "Crea tu primer alojamiento",
-  "Add the address, arrival notes, Wi-Fi, rules and checkout.": "AÃ±ade la direcciÃ³n, las instrucciones de llegada, el wifi, las normas y la salida.",
-  "Publish and preview the guest guide": "Publica y previsualiza la guÃ­a del huÃ©sped",
-  "Open the same link your guests will receive.": "Abre el mismo enlace que recibirÃ¡n tus huÃ©spedes.",
-  "Add one extra or upsell": "AÃ±ade un extra o servicio adicional",
-  "Late checkout, breakfast baskets, transfers and paid services.": "Salida tardÃ­a, cestas de desayuno, traslados y servicios de pago.",
-  "Choose a plan and set up payouts": "Elige un plan y configura los cobros",
-  "Upgrade when you need more properties or AI answers.": "Mejora tu plan cuando necesites mÃ¡s alojamientos o respuestas de IA.",
-  "GET READY TO HOST": "PREPÃRATE PARA RECIBIR HUÃ‰SPEDES",
-  "Launch checklist": "Lista de lanzamiento",
-  "Keep building": "Continuar la configuraciÃ³n",
-  "Please verify your email address. Check your inbox for the StayGuide verification link, or contact support if it did not arrive.": "Verifica tu correo electrÃ³nico. Busca el enlace de verificaciÃ³n de StayGuide en tu bandeja de entrada o contacta con asistencia si no ha llegado.",
-  "Support": "Asistencia",
-  "Need help setting up a property, billing, payouts, or a guest guide? Email us and weâ€™ll help you get unstuck.": "Â¿Necesitas ayuda para configurar un alojamiento, la facturaciÃ³n, los cobros o una guÃ­a? EscrÃ­benos y te ayudaremos.",
-  "Support replies are handled by the StayGuide team. Do not send door codes or guest payment details by email.": "El equipo de StayGuide responde a las consultas. No envÃ­es cÃ³digos de acceso ni datos de pago de huÃ©spedes por correo electrÃ³nico.",
-  "Could not create this account. Check your details, or sign in if you already have an account. Existing Google accounts should continue with Google.": "No se pudo crear esta cuenta. Comprueba tus datos o inicia sesiÃ³n si ya tienes una cuenta. Las cuentas de Google existentes deben continuar con Google.",
-  "That email and password did not sign in. If this is your first time, create an account first, or continue with Google.": "El correo y la contraseÃ±a no permitieron iniciar sesiÃ³n. Si es tu primera vez, crea una cuenta o continÃºa con Google.",
-  "Choose account action": "Elige una acciÃ³n de cuenta",
-  "Create account": "Crear cuenta",
-  "Password": "ContraseÃ±a",
-  "Use 12 to 128 characters. Weâ€™ll email you a verification link after signup.": "Usa entre 12 y 128 caracteres. Te enviaremos un enlace de verificaciÃ³n despuÃ©s del registro.",
-  "Already registered? Use Sign in above.": "Â¿Ya estÃ¡s registrado? Usa Iniciar sesiÃ³n arriba.",
-  "First time using email and password? Use Create account above.": "Â¿Primera vez con correo y contraseÃ±a? Usa Crear cuenta arriba.",
-  "Forgot password?": "Â¿Olvidaste tu contraseÃ±a?",
-  "Account created. Check your email to verify your address, then sign in with your password.": "Cuenta creada. Revisa tu correo para verificar tu direcciÃ³n e inicia sesiÃ³n con tu contraseÃ±a.",
-  "Sample guide views for the week": "Vistas de la guÃ­a de la semana (ejemplo)",
-  "Overview": "Resumen",
-  "Properties": "Alojamientos",
-  "Guest inbox": "Mensajes de huÃ©spedes",
-  "Extras & upsells": "Extras y ventas adicionales",
-  "Analytics": "EstadÃ­sticas",
-  "Share kit": "Kit para compartir",
-  "Plans & billing": "Planes y facturaciÃ³n",
-  "Settings": "Ajustes",
-  "Guide editor": "Editor de guÃ­a",
-  "WORKSPACE": "ESPACIO DE TRABAJO",
-  "Workspace": "Espacio de trabajo",
-  "Host workspace": "Espacio del anfitriÃ³n",
-  "Close navigation": "Cerrar menÃº",
-  "Open navigation": "Abrir menÃº",
-  "A little more possibility.": "Un poco mÃ¡s de posibilidades.",
-  "More properties. More AI answers.": "MÃ¡s alojamientos. MÃ¡s respuestas de IA.",
-  "Even better guest experiences.": "Estancias aÃºn mejores.",
-  "Explore Pro": "Descubrir Pro",
-  "Workspace owner": "Propietario del espacio",
-  "Demo host account": "Cuenta de anfitriÃ³n de demo",
-  "Workspace owner Â· Demo": "Propietario del espacio Â· Demo",
-  "Workspace owner Â· {email}": "Propietario del espacio Â· {email}",
-  "SAVINGâ€¦": "GUARDANDOâ€¦",
-  "NOT SAVED Â· RETRYING ON NEXT EDIT": "NO GUARDADO Â· SE REINTENTARÃ EN LA PRÃ“XIMA EDICIÃ“N",
-  "ALL CHANGES SAVED": "TODO GUARDADO",
-  "DEMO WORKSPACE": "ESPACIO DE DEMO",
-  "Sign in": "Iniciar sesiÃ³n",
-  "View guest experience": "Ver como huÃ©sped",
-  "Toggle dark mode": "Cambiar modo oscuro",
-  "Guest notifications": "Notificaciones de huÃ©spedes",
-  "Signed in as {email}. Click to sign out.": "SesiÃ³n iniciada como {email}. Haz clic para cerrar sesiÃ³n.",
-  "Sign out {email}": "Cerrar sesiÃ³n de {email}",
-  "Language": "Idioma",
-  "Made for thoughtful hosts. Built for memorable stays.": "Hecho para anfitriones atentos. Pensado para estancias memorables.",
-  "Demo data Â· Saved on this device": "Datos de demo Â· Guardados en este dispositivo",
-  "Saved securely online": "Guardado de forma segura en lÃ­nea",
-  "Close dialog": "Cerrar",
-  "YOUR LITTLE HOSTING HEADQUARTERS": "TU PEQUEÃ‘O CUARTEL GENERAL DE ANFITRIÃ“N",
-  "Good things start with a": "Lo bueno empieza con una",
-  "great stay.": "gran estancia.",
-  "Welcome back, {name}. Hereâ€™s how your properties are doing.": "Hola de nuevo, {name}. AsÃ­ van tus alojamientos.",
-  "Demo month": "Mes de demo",
-  "LESS MANAGING. MORE HOSTING.": "MENOS GESTIÃ“N. MÃS HOSPITALIDAD.",
-  "A thoughtful stay,": "Una estancia cuidada,",
-  "without the extra work.": "sin trabajo extra.",
-  "Your guides handle the little questions.": "Tus guÃ­as responden las pequeÃ±as preguntas.",
-  "You focus on making guests feel at home.": "TÃº te centras en que tus huÃ©spedes se sientan en casa.",
-  "Create a guide": "Crear una guÃ­a",
-  "YOUR HOME AWAY FROM HOME": "TU HOGAR LEJOS DE CASA",
-  "OlÃ¡, welcome home.": "Hola, bienvenido a casa.",
-  "Wi-Fi": "Wi-Fi",
-  "Explore": "Explorar",
-  "Your stay": "Tu estancia",
-  "Little extras": "Extras",
-  "Happy guests. Happy host.": "HuÃ©spedes felices. AnfitriÃ³n feliz.",
-  "Thoughtful details, all in one place.": "Todos los detalles, en un solo lugar.",
-  "Guide views": "Vistas de la guÃ­a",
-  "AI conversations": "Conversaciones con IA",
-  "Extras revenue": "Ingresos por extras",
-  "Happy guests": "HuÃ©spedes satisfechos",
-  "vs. previous month": "vs. mes anterior",
-  "answered without you": "respondidas sin ti",
-  "average guest rating": "valoraciÃ³n media",
-  "Your properties": "Tus alojamientos",
-  "{n} little places. Endless possibilities.": "{n} pequeÃ±os lugares. Posibilidades infinitas.",
-  "View all properties": "Ver todos los alojamientos",
-  "Around your properties": "En tus alojamientos",
-  "View inbox": "Ver mensajes",
-  "A slower goodbye, booked.": "Una salida sin prisas, reservada.",
-  "Late checkout": "Salida tardÃ­a",
-  "One less question on your plate.": "Una pregunta menos para ti.",
-  "Wi-Fi details shared by concierge": "Datos del wifi enviados por el conserje",
-  "A warm welcome, delivered.": "Una cÃ¡lida bienvenida, entregada.",
-  "A guest opened their guide": "Un huÃ©sped abriÃ³ su guÃ­a",
-  "12 min ago": "hace 12 min",
-  "34 min ago": "hace 34 min",
-  "1 hour ago": "hace 1 hora",
-  "A LITTLE HOSTING INSPIRATION": "UN POCO DE INSPIRACIÃ“N",
-  "Small extras.": "PequeÃ±os extras.",
-  "Memorable experiences.": "Experiencias memorables.",
-  "A late checkout. A local breakfast.": "Una salida tardÃ­a. Un desayuno local.",
-  "Turn thoughtful touches into extra income, and give guests a stay to remember.": "Convierte los pequeÃ±os detalles en ingresos extra y regala una estancia inolvidable.",
-  "Explore your extras": "Ver tus extras",
-  "Published": "Publicada",
-  "Draft": "Borrador",
-  "Edit {name}": "Editar {name}",
-  "Preview {name}": "Vista previa de {name}",
-  "Share {name}": "Compartir {name}",
-  "{name}, a welcoming holiday home": "{name}, un alojamiento acogedor",
-  "{n} sections": "{n} secciones",
-  "{n} demo views": "{n} vistas (demo)",
-  "{n} chats": "{n} chats",
-  "Made with a little extra care": "Hecho con un cariÃ±o especial",
-  "Edit guide": "Editar guÃ­a",
-  "Beautiful places deserve a thoughtful welcome.": "Los lugares bonitos merecen una bienvenida cuidada.",
-  "Add property": "AÃ±adir alojamiento",
-  "Search properties": "Buscar alojamientos",
-  "Find a little placeâ€¦": "Buscar un alojamientoâ€¦",
-  "All": "Todos",
-  "No properties here yet": "AÃºn no hay alojamientos",
-  "Create a property or try another search.": "Crea un alojamiento o prueba otra bÃºsqueda.",
-  "Add a property": "AÃ±adir un alojamiento",
-  "A little local knowledge goes a long way.": "Un poco de conocimiento local marca la diferencia.",
-  "Guest preview": "Vista del huÃ©sped",
-  "Delete": "Eliminar",
-  "Delete {name} and its guide? This cannot be undone.": "Â¿Eliminar {name} y su guÃ­a? No se puede deshacer.",
-  "Property deleted.": "Alojamiento eliminado.",
-  "Couldnâ€™t delete the property. Please try again.": "No se pudo eliminar el alojamiento. IntÃ©ntalo de nuevo.",
-  "Select property to edit": "Elegir alojamiento para editar",
-  "Saved on this device": "Guardado en este dispositivo",
-  "Guide moved to draft.": "GuÃ­a pasada a borrador.",
-  "Guide published. Guests can open it now.": "GuÃ­a publicada. Tus huÃ©spedes ya pueden abrirla.",
-  "Demo guide published on this device.": "GuÃ­a de demo publicada en este dispositivo.",
-  "Unpublish": "Despublicar",
-  "Publish guide": "Publicar guÃ­a",
-  "Property details": "Datos del alojamiento",
-  "Shown to guests and used by the concierge. Changes save automatically.": "Se muestran a los huÃ©spedes y los usa el conserje. Se guardan automÃ¡ticamente.",
-  "Street address": "DirecciÃ³n",
-  "City, country": "Ciudad, paÃ­s",
-  "Check-in time": "Hora de entrada",
-  "Checkout time": "Hora de salida",
-  "Wi-Fi network": "Red wifi",
-  "Wi-Fi password": "ContraseÃ±a del wifi",
-  "Host phone": "TelÃ©fono del anfitriÃ³n",
-  "A new little detail": "Un nuevo detalle",
-  "Add section": "AÃ±adir secciÃ³n",
-  "Make it feel like you.": "Dale tu toque personal.",
-  "Write": "Escribir",
-  "Preview": "Vista previa",
-  "Section title": "TÃ­tulo de la secciÃ³n",
-  "Icon": "Icono",
-  "Your local knowledge": "Tus consejos",
-  "All the details that make a stay effortless. Markdown is welcome.": "Todos los detalles para una estancia sin complicaciones. Se admite Markdown.",
-  "Use **bold**, bullet lists, and links. Drag sections to reorder, or use the arrow buttons.": "Usa **negrita**, listas y enlaces. Arrastra las secciones para reordenarlas o usa las flechas.",
-  "Move section up": "Subir secciÃ³n",
-  "Move section down": "Bajar secciÃ³n",
-  "All changes are saved automatically on this device.": "Todos los cambios se guardan automÃ¡ticamente en este dispositivo.",
-  "All changes are saved automatically.": "Todos los cambios se guardan automÃ¡ticamente.",
-  "Save changes": "Guardar cambios",
-  "Demo editor Â· Changes are stored in this browser. Sign in to save guides online and share them with real guests.": "Editor de demo Â· Los cambios se guardan en este navegador. Inicia sesiÃ³n para guardar tus guÃ­as en lÃ­nea y compartirlas con huÃ©spedes reales.",
-  "A little human touch": "Un toque humano",
-  "Your concierge takes care of the everyday. You take care of the rest.": "Tu conserje se ocupa del dÃ­a a dÃ­a. TÃº, del resto.",
-  "Needs your help": "Necesita tu ayuda",
-  "Sample conversation": "ConversaciÃ³n de ejemplo",
-  "The concierge couldnâ€™t find this answer in the guide and passed it to you.": "El conserje no encontrÃ³ la respuesta en la guÃ­a y te ha pasado la pregunta.",
-  "Reply saved in the demo. No guest message was sent.": "Respuesta guardada en la demo. No se ha enviado ningÃºn mensaje.",
-  "Reply to guest": "Responder al huÃ©sped",
-  "A thoughtful replyâ€¦": "Una respuesta amableâ€¦",
-  "Send demo reply": "Enviar respuesta de demo",
-  "Needs your help only": "Solo las que necesitan tu ayuda",
-  "Couldnâ€™t load conversations. Retryingâ€¦": "No se pudieron cargar las conversaciones. Reintentandoâ€¦",
-  "Loading conversationsâ€¦": "Cargando conversacionesâ€¦",
-  "All quiet for now": "Todo tranquilo por ahora",
-  "When a guest asks something your guide doesnâ€™t answer, the conversation appears here so you can reply.": "Cuando un huÃ©sped pregunte algo que tu guÃ­a no responde, la conversaciÃ³n aparecerÃ¡ aquÃ­ para que puedas contestar.",
-  "Guest": "HuÃ©sped",
-  "You": "TÃº",
-  "Concierge": "Conserje",
-  "Reply sent. The guest sees it in their guide chat.": "Respuesta enviada. El huÃ©sped la verÃ¡ en el chat de su guÃ­a.",
-  "Couldnâ€™t send your reply. Please try again.": "No se pudo enviar tu respuesta. IntÃ©ntalo de nuevo.",
-  "Send reply": "Enviar respuesta",
-  "The little extras": "Los pequeÃ±os extras",
-  "Thoughtful touches for guests. A little more income for you.": "Detalles para tus huÃ©spedes. Un poco mÃ¡s de ingresos para ti.",
-  "Create extra": "Crear extra",
-  "Demo catalog Â· Sign in to receive real guest requests for your extras.": "CatÃ¡logo de demo Â· Inicia sesiÃ³n para recibir solicitudes reales de extras.",
-  "per stay": "por estancia",
-  "Host approval required": "Requiere aprobaciÃ³n del anfitriÃ³n",
-  "Instant purchase": "Compra inmediata",
-  "See guest experience": "Ver como huÃ©sped",
-  "Payment captured. The money is on its way to your bank.": "Pago cobrado. El dinero va de camino a tu banco.",
-  "Request approved. Let your guest know how to pay.": "Solicitud aprobada. Indica al huÃ©sped cÃ³mo pagar.",
-  "Request declined. Any card hold has been released.": "Solicitud rechazada. Se ha liberado la retenciÃ³n de la tarjeta.",
-  "Refund issued to the guest.": "Reembolso enviado al huÃ©sped.",
-  "Request updated.": "Solicitud actualizada.",
-  "Couldnâ€™t update the request.": "No se pudo actualizar la solicitud.",
-  "Guest requests": "Solicitudes de huÃ©spedes",
-  "Refresh requests": "Actualizar solicitudes",
-  "Loading requestsâ€¦": "Cargando solicitudesâ€¦",
-  "No requests yet. Guests can request extras from the â€œLittle extrasâ€ tab of your guide.": "AÃºn no hay solicitudes. Los huÃ©spedes pueden pedir extras desde la pestaÃ±a Â«ExtrasÂ» de tu guÃ­a.",
-  "pending": "pendiente",
-  "approved": "aprobada",
-  "declined": "rechazada",
-  "paid": "pagada",
-  "refunded": "reembolsada",
-  "card authorised": "tarjeta autorizada",
-  "paid online": "pagado en lÃ­nea",
-  "Approve & charge": "Aprobar y cobrar",
-  "Approve": "Aprobar",
-  "Decline & release": "Rechazar y liberar",
-  "Decline": "Rechazar",
-  "Mark as paid": "Marcar como pagada",
-  "Refund this guest in full?": "Â¿Reembolsar el importe completo a este huÃ©sped?",
-  "Refund": "Reembolsar",
-  "Good stays, by the numbers": "Grandes estancias, en cifras",
-  "A little insight into what makes your guests feel at home.": "Un vistazo a lo que hace que tus huÃ©spedes se sientan en casa.",
-  "Sample analytics for demonstration. Sign in to see your real numbers.": "EstadÃ­sticas de ejemplo. Inicia sesiÃ³n para ver tus cifras reales.",
-  "Guide views this week": "Vistas de la guÃ­a esta semana",
-  "Mon": "Lun",
-  "Tue": "Mar",
-  "Wed": "MiÃ©",
-  "Thu": "Jue",
-  "Fri": "Vie",
-  "Sat": "SÃ¡b",
-  "Sun": "Dom",
-  "The things guests ask": "Lo que preguntan los huÃ©spedes",
-  "Wi-Fi & getting connected": "Wifi y conexiÃ³n",
-  "Check-in & arrival": "Entrada y llegada",
-  "Local recommendations": "Recomendaciones locales",
-  "Check-out details": "Detalles de salida",
-  "Couldnâ€™t load analytics.": "No se pudieron cargar las estadÃ­sticas.",
-  "Loadingâ€¦": "Cargandoâ€¦",
-  "Guide views (all time)": "Vistas de la guÃ­a (total)",
-  "Views, last 30 days": "Vistas, Ãºltimos 30 dÃ­as",
-  "Guest questions": "Preguntas de huÃ©spedes",
-  "Answered without you": "Respondidas sin ti",
-  "Extras approved": "Extras aprobados",
-  "Extra requests": "Solicitudes de extras",
-  "AI messages this month": "Mensajes de IA este mes",
-  "Questions will appear here once guests start chatting.": "Las preguntas aparecerÃ¡n aquÃ­ cuando los huÃ©spedes empiecen a chatear.",
-  "A warm welcome, shared": "Una cÃ¡lida bienvenida, compartida",
-  "One little link. Everything your guests need.": "Un solo enlace. Todo lo que tus huÃ©spedes necesitan.",
-  "Your property": "Tu alojamiento",
-  "Send a little hello": "EnvÃ­a un saludo",
-  "Add your guest guide to a welcome message or booking confirmation.": "AÃ±ade tu guÃ­a a un mensaje de bienvenida o a la confirmaciÃ³n de la reserva.",
-  "Guest guide link": "Enlace de la guÃ­a",
-  "Copy guest link": "Copiar enlace",
-  "Guest link copied.": "Enlace copiado.",
-  "Select the link and copy it manually.": "Selecciona el enlace y cÃ³pialo manualmente.",
-  "Weâ€™re looking forward to welcoming you to {name}! Hereâ€™s your personal guide with everything you need for a lovely stay: {link}\nSafe travels â€” see you soon!": "Â¡Tenemos muchas ganas de recibirte en {name}! AquÃ­ tienes tu guÃ­a personal con todo lo necesario para una estancia estupenda: {link}\nÂ¡Buen viaje y hasta pronto!",
-  "Welcome message copied.": "Mensaje de bienvenida copiado.",
-  "Clipboard unavailable in this browser.": "El portapapeles no estÃ¡ disponible en este navegador.",
-  "Copy welcome message": "Copiar mensaje de bienvenida",
-  "Local demo changes are visible on this device only. A QR code for a sample property works on any device.": "Los cambios de la demo solo se ven en este dispositivo. El cÃ³digo QR de un alojamiento de ejemplo funciona en cualquier dispositivo.",
-  "Make yourself at home.": "EstÃ¡s en tu casa.",
-  "Your guide to a lovely stay at {name}.": "Tu guÃ­a para una gran estancia en {name}.",
-  "Scan for all the little details.": "Escanea para ver todos los detalles.",
-  "QR code for {name}": "CÃ³digo QR de {name}",
-  "Generate QR card": "Generar tarjeta QR",
-  "Print / save PDF": "Imprimir / guardar PDF",
-  "A plan for every kind of host": "Un plan para cada anfitriÃ³n",
-  "Simple, per-property pricing. More time for what you love.": "Precios sencillos por alojamiento. MÃ¡s tiempo para lo que te gusta.",
-  "Properties: {n}": "Alojamientos: {n}",
-  "Monthly": "Mensual",
-  "Yearly Â· 2 months free": "Anual Â· 2 meses gratis",
-  "Free": "Gratis",
-  "A thoughtful beginning": "Un buen comienzo",
-  "For the independent host": "Para el anfitriÃ³n independiente",
-  "Your hospitality, elevated": "Tu hospitalidad, a otro nivel",
-  "per year": "al aÃ±o",
-  "per month": "al mes",
-  "1 property": "1 alojamiento",
-  "{n} properties": "{n} alojamientos",
-  "{n} AI messages / property / month": "{n} mensajes de IA / alojamiento / mes",
-  "Beautiful offline guest guides": "Preciosas guÃ­as disponibles sin conexiÃ³n",
-  "Extras store Â· 5% platform fee": "Tienda de extras Â· comisiÃ³n del 5 %",
-  "Priority support": "Soporte prioritario",
-  "This is a demo workspace. Sign in with Google to choose a plan.": "Este es un espacio de demo. Inicia sesiÃ³n con Google para elegir un plan.",
-  "This is a demo workspace. Sign in to choose a plan.": "Este es un espacio de demo. Inicia sesiÃ³n para elegir un plan.",
-  "Try the demo": "Probar la demo",
-  "Choose {plan}": "Elegir {plan}",
-  "Demo workspace Â· Sign in with Google to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.": "Espacio de demo Â· Inicia sesiÃ³n con Google para elegir un plan. Precios en {code} ({symbol}), cobro seguro con Stripe.",
-  "Demo workspace Â· Sign in to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.": "Espacio de demo Â· Inicia sesiÃ³n para elegir un plan. Precios en {code} ({symbol}), cobro seguro con Stripe.",
-  "Thank you! Your plan is being activated. This can take a few seconds.": "Â¡Gracias! Estamos activando tu plan. Puede tardar unos segundos.",
-  "Checkout cancelled. Nothing was charged.": "Pago cancelado. No se ha cobrado nada.",
-  "Payout details saved. Stripe may take a moment to verify them.": "Datos de cobro guardados. Stripe puede tardar un momento en verificarlos.",
-  "That setup link expired. Please continue payout setup.": "Ese enlace ha caducado. ContinÃºa con la configuraciÃ³n de cobros.",
-  "Couldnâ€™t load billing. Please refresh the page.": "No se pudo cargar la facturaciÃ³n. Actualiza la pÃ¡gina.",
-  "Loading billingâ€¦": "Cargando facturaciÃ³nâ€¦",
-  "Simple, per-property pricing. Change or cancel any time.": "Precios sencillos por alojamiento. Cambia o cancela cuando quieras.",
-  "Payments are not connected on this deployment yet.": "Los pagos aÃºn no estÃ¡n conectados.",
-  "Current plan": "Plan actual",
-  "up to {n} on this plan": "hasta {n} con este plan",
-  "Openingâ€¦": "Abriendoâ€¦",
-  "Manage billing": "Gestionar facturaciÃ³n",
-  "Your last payment failed. Please update your card in â€œManage billingâ€ to keep your plan.": "Tu Ãºltimo pago ha fallado. Actualiza tu tarjeta en Â«Gestionar facturaciÃ³nÂ» para mantener tu plan.",
-  "Your Hotel & Multi-Unit plan is managed by StayGuide and invoiced separately. Contact us to change it.": "Tu plan Hoteles y multiunidad lo gestiona StayGuide y se factura aparte. ContÃ¡ctanos para cambiarlo.",
-  "Billed for {n} Â· updates automatically as you add or remove properties": "Facturado por {n} Â· se actualiza automÃ¡ticamente al aÃ±adir o quitar alojamientos",
-  "Up to {n} properties": "Hasta {n} alojamientos",
-  "{n} AI concierge messages / property / month": "{n} mensajes del conserje IA / alojamiento / mes",
-  "Paid extras Â· 5% platform fee": "Extras de pago Â· comisiÃ³n del 5 %",
-  "Opening checkoutâ€¦": "Abriendo el pagoâ€¦",
-  "{price}/property/month": "{price}/alojamiento/mes",
-  ", billed yearly": ", facturado anualmente",
-  "Prices in {code} ({symbol}). Secure payment by Stripe. Cancel any time from â€œManage billingâ€.": "Precios en {code} ({symbol}). Pago seguro con Stripe. Cancela cuando quieras desde Â«Gestionar facturaciÃ³nÂ».",
-  "Get paid for extras": "Cobra tus extras",
-  "Active": "Activo",
-  "Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.": "Los huÃ©spedes pagan los extras con tarjeta, Apple Pay o Google Pay. El dinero llega directamente a tu banco a travÃ©s de Stripe, menos una comisiÃ³n del 5 % de StayGuide. Los extras que requieren tu aprobaciÃ³n solo se cobran cuando los apruebas.",
-  "Open payouts dashboard": "Abrir panel de cobros",
-  "Online payments for extras are coming soon. Until then, guests send requests and you confirm how they pay.": "Los pagos en lÃ­nea de extras llegarÃ¡n pronto. Mientras tanto, los huÃ©spedes envÃ­an solicitudes y tÃº confirmas cÃ³mo pagan.",
-  "Connect a bank account with Stripe so guests can pay for extras online. Until then, guests send requests and you confirm payment yourself.": "Conecta una cuenta bancaria con Stripe para que los huÃ©spedes paguen los extras en lÃ­nea. Mientras tanto, envÃ­an solicitudes y tÃº confirmas el pago.",
-  "Country of your bank account": "PaÃ­s de tu cuenta bancaria",
-  "Opening Stripeâ€¦": "Abriendo Stripeâ€¦",
-  "Continue payout setup": "Continuar configuraciÃ³n de cobros",
-  "Set up payouts": "Configurar cobros",
-  "past due": "pago atrasado",
-  "trialing": "periodo de prueba",
-  "canceled": "cancelada",
-  "unpaid": "impagada",
-  "Your workspace, your way.": "Tu espacio, a tu manera.",
-  "Workspace preferences saved on this device.": "Preferencias guardadas en este dispositivo.",
-  "Your workspace": "Tu espacio",
-  "Your first name": "Tu nombre",
-  "Organization name": "Nombre de tu empresa",
-  "Save preferences": "Guardar preferencias",
-  "The people behind the welcome": "Las personas detrÃ¡s de la bienvenida",
-  "Team access for co-hosts and staff is coming soon.": "El acceso para coanfitriones y personal llegarÃ¡ pronto.",
-  "This is a demo workspace saved in your browser. Sign in with Google to create your real account.": "Este es un espacio de demo guardado en tu navegador. Inicia sesiÃ³n con Google para crear tu cuenta real.",
-  "This is a demo workspace saved in your browser. Sign in to create your real account.": "Este es un espacio de demo guardado en tu navegador. Inicia sesiÃ³n para crear tu cuenta real.",
-  "Switch to light mode": "Cambiar a modo claro",
-  "Switch to dark mode": "Cambiar a modo oscuro",
-  "Connect your account": "Conectar tu cuenta",
-  "Dashboard language": "Idioma del panel",
-  "A new place. A new welcome.": "Un nuevo lugar. Una nueva bienvenida.",
-  "Add the basics and bring your guest guide to life.": "AÃ±ade lo bÃ¡sico y da vida a tu guÃ­a.",
-  "Property name": "Nombre del alojamiento",
-  "Optional Â· used for â€œOpen in Mapsâ€": "Opcional Â· se usa para Â«Abrir en MapsÂ»",
-  "Your house manual": "Tu manual de la casa",
-  "Optional Â· Only content you own": "Opcional Â· solo contenido propio",
-  "Paste your arrival details, house rules, and favorite local tipsâ€¦": "Pega tus instrucciones de llegada, normas de la casa y recomendaciones localesâ€¦",
-  "Our AI will organize your text into guide sections using only what you wrote.": "Nuestra IA organizarÃ¡ tu texto en secciones usando solo lo que escribiste.",
-  "Weâ€™ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as â€œWI-FI:â€ for best results.": "Dividiremos tu texto en secciones como Llegada, Wifi y Salida. Usa etiquetas como Â«WI-FI:Â» para obtener mejores resultados.",
-  "Building your guideâ€¦": "Creando tu guÃ­aâ€¦",
-  "Create my guide": "Crear mi guÃ­a",
-  "Property created. AI organized your guide â€” have a look.": "Alojamiento creado. La IA ha organizado tu guÃ­a: Ã©chale un vistazo.",
-  "Property created. Your guide is ready to edit.": "Alojamiento creado. Tu guÃ­a estÃ¡ lista para editar.",
-  "Could not create the property.": "No se pudo crear el alojamiento.",
-  "Add your propertyâ€™s {type} information here.": "AÃ±ade aquÃ­ la informaciÃ³n de Â«{type}Â» de tu alojamiento.",
-  "A thoughtful little extra": "Un pequeÃ±o extra especial",
-  "Give your guests one more reason to love their stay.": "Dale a tus huÃ©spedes un motivo mÃ¡s para disfrutar su estancia.",
-  "Property": "Alojamiento",
-  "Name": "Nombre",
-  "Description": "DescripciÃ³n",
-  "Price ({symbol})": "Precio ({symbol})",
-  "Require my approval before payment": "Requerir mi aprobaciÃ³n antes del pago",
-  "Extra added to your demo guide.": "Extra aÃ±adido a tu guÃ­a de demo.",
-  "e.g. The Little Olive House": "p. ej. La Casita de los Olivos",
-  "e.g. Gatlinburg, Tennessee": "p. ej. MÃ¡laga, EspaÃ±a",
-  "A basket of local favorites": "Una cesta de productos locales",
-  "Welcome back": "Hola de nuevo",
-  "Good hosts make": "Los buenos anfitriones crean",
-  "great stays.": "grandes estancias.",
-  "Welcome home.": "Bienvenido a casa.",
-  "A little less work. A little more hospitality.": "Un poco menos de trabajo. Un poco mÃ¡s de hospitalidad.",
-  "A warm and welcoming living room": "Un salÃ³n cÃ¡lido y acogedor",
-  "Thoughtful hosting starts here.": "La hospitalidad cuidada empieza aquÃ­.",
-  "Sign in to your account": "Inicia sesiÃ³n en tu cuenta",
-  "Welcome back. Sign in with your Google account to continue.": "Hola de nuevo. Inicia sesiÃ³n con tu cuenta de Google para continuar.",
-  "Welcome back. Choose a secure sign-in option to continue.": "Hola de nuevo. Elige una opciÃ³n segura para continuar.",
-  "Continue with Google": "Continuar con Google",
-  "Continue with Apple": "Continuar con Apple",
-  "Email address": "Correo electrÃ³nico",
-  "Send code": "Enviar cÃ³digo",
-  "Sign-in code": "CÃ³digo de acceso",
-  "Continue": "Continuar",
-  "We sent a 6-digit code to your email. It expires in 10 minutes.": "Hemos enviado un cÃ³digo de 6 dÃ­gitos a tu correo. Caduca en 10 minutos.",
-  "Live accounts are not connected yet. Explore the demo below.": "Las cuentas aÃºn no estÃ¡n conectadas. Explora la demo a continuaciÃ³n.",
-  "We couldnâ€™t send the code. Try Google while email sign-in is being fixed.": "No pudimos enviar el cÃ³digo. Usa Google mientras se corrige el inicio de sesiÃ³n por correo.",
-  "That code did not work. Request a new code or try again.": "Ese cÃ³digo no funcionÃ³. Solicita uno nuevo o intÃ©ntalo de nuevo.",
-  "We couldnâ€™t sign you in. Please try again.": "No pudimos iniciar tu sesiÃ³n. IntÃ©ntalo de nuevo.",
-  "or explore without signing in": "o explora sin iniciar sesiÃ³n",
-  "Explore the demo": "Explorar la demo",
-  "By continuing, you agree to our": "Al continuar, aceptas nuestros",
-  "Terms": "TÃ©rminos",
-  "and": "y nuestra",
-  "Privacy Policy": "PolÃ­tica de privacidad",
-};
-
-const de: Dict = {
-  "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "Die KI-Guide-Erstellung verbraucht eine enthaltene KI-Anfrage. BestÃ¤tigen Sie Ihre E-Mail, um KI zu aktivieren; die manuelle Auswertung bleibt verfÃ¼gbar.",
-  "Workspace preferences saved online.": "Arbeitsbereichseinstellungen online gespeichert.",
-  "Could not save workspace preferences. Please try again.": "Die Einstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
-  "Sendingâ€¦": "Wird gesendetâ€¦",
-  "Resend verification email": "BestÃ¤tigungs-E-Mail erneut senden",
-  "Check your inbox for your verification link.": "Der BestÃ¤tigungslink wurde an Ihr Postfach gesendet.",
-  "Could not send the verification email. Please wait before trying again.": "Die BestÃ¤tigungs-E-Mail konnte nicht gesendet werden. Bitte warten Sie vor einem erneuten Versuch.",
-  "View analytics for activity": "AktivitÃ¤tsanalyse ansehen",
-  "All time": "Gesamter Zeitraum",
-  "Extras paid": "Bezahlte Extras",
-  "Answered from your guide": "Aus Ihrem Guide beantwortet",
-  "From your saved guest activity": "Aus Ihrer gespeicherten GÃ¤steaktivitÃ¤t",
-  "No guest conversations yet. Share a published guide to get started.": "Noch keine GÃ¤stegesprÃ¤che. Teilen Sie zunÃ¤chst einen verÃ¶ffentlichten Guide.",
-  "Use 12 to 128 characters.": "Verwenden Sie 12 bis 128 Zeichen.",
-  "Account created. You can sign in with your password. We couldnâ€™t send a verification email; contact support for help.": "Konto erstellt. Sie kÃ¶nnen sich mit Ihrem Passwort anmelden. Die BestÃ¤tigungs-E-Mail konnte nicht gesendet werden; kontaktieren Sie den Support.",
-  "Verify your email": "E-Mail-Adresse bestÃ¤tigen",
-  "Keeps account recovery and support safe.": "SchÃ¼tzt die Kontowiederherstellung und den Support.",
-  "Demo mode uses sample account details.": "Der Demomodus verwendet beispielhafte Kontodaten.",
-  "Create your first property": "Erste Unterkunft erstellen",
-  "Add the address, arrival notes, Wi-Fi, rules and checkout.": "Adresse, Anreisehinweise, WLAN, Regeln und Abreise hinzufÃ¼gen.",
-  "Publish and preview the guest guide": "GÃ¤stefÃ¼hrer verÃ¶ffentlichen und ansehen",
-  "Open the same link your guests will receive.": "Ã–ffne denselben Link, den deine GÃ¤ste erhalten.",
-  "Add one extra or upsell": "Ein Extra oder Zusatzangebot hinzufÃ¼gen",
-  "Late checkout, breakfast baskets, transfers and paid services.": "SpÃ¤te Abreise, FrÃ¼hstÃ¼ckskÃ¶rbe, Transfers und kostenpflichtige Leistungen.",
-  "Choose a plan and set up payouts": "Tarif wÃ¤hlen und Auszahlungen einrichten",
-  "Upgrade when you need more properties or AI answers.": "Wechsle den Tarif, wenn du mehr UnterkÃ¼nfte oder KI-Antworten brauchst.",
-  "GET READY TO HOST": "BEREIT FÃœR DEINE GÃ„STE",
-  "Launch checklist": "Checkliste zum Start",
-  "Keep building": "Einrichtung fortsetzen",
-  "Please verify your email address. Check your inbox for the StayGuide verification link, or contact support if it did not arrive.": "Bitte bestÃ¤tige deine E-Mail-Adresse. Suche in deinem Posteingang nach dem BestÃ¤tigungslink von StayGuide oder kontaktiere den Support, falls er nicht angekommen ist.",
-  "Support": "Support",
-  "Need help setting up a property, billing, payouts, or a guest guide? Email us and weâ€™ll help you get unstuck.": "Brauchst du Hilfe bei einer Unterkunft, Abrechnung, Auszahlungen oder einem GÃ¤stefÃ¼hrer? Schreib uns eine E-Mail, wir helfen dir weiter.",
-  "Support replies are handled by the StayGuide team. Do not send door codes or guest payment details by email.": "Das StayGuide-Team beantwortet Supportanfragen. Sende keine TÃ¼rcodes oder Zahlungsdaten von GÃ¤sten per E-Mail.",
-  "Could not create this account. Check your details, or sign in if you already have an account. Existing Google accounts should continue with Google.": "Dieses Konto konnte nicht erstellt werden. PrÃ¼fe deine Angaben oder melde dich an, falls du bereits ein Konto hast. Bestehende Google-Konten mÃ¼ssen mit Google fortfahren.",
-  "That email and password did not sign in. If this is your first time, create an account first, or continue with Google.": "Die Anmeldung mit dieser E-Mail-Adresse und diesem Passwort ist fehlgeschlagen. Erstelle zuerst ein Konto, falls du neu bist, oder fahre mit Google fort.",
-  "Choose account action": "Kontoaktion wÃ¤hlen",
-  "Create account": "Konto erstellen",
-  "Password": "Passwort",
-  "Use 12 to 128 characters. Weâ€™ll email you a verification link after signup.": "Verwende 12 bis 128 Zeichen. Nach der Registrierung senden wir dir einen BestÃ¤tigungslink.",
-  "Already registered? Use Sign in above.": "Bereits registriert? Nutze oben Anmelden.",
-  "First time using email and password? Use Create account above.": "Zum ersten Mal mit E-Mail und Passwort? Nutze oben Konto erstellen.",
-  "Forgot password?": "Passwort vergessen?",
-  "Account created. Check your email to verify your address, then sign in with your password.": "Konto erstellt. BestÃ¤tige deine Adresse Ã¼ber die E-Mail und melde dich dann mit deinem Passwort an.",
-  "Sample guide views for the week": "Aufrufe der Woche (Beispiel)",
-  "Overview": "Ãœbersicht",
-  "Properties": "UnterkÃ¼nfte",
-  "Guest inbox": "GÃ¤ste-Posteingang",
-  "Extras & upsells": "Extras & ZusatzverkÃ¤ufe",
-  "Analytics": "Statistiken",
-  "Share kit": "Teilen",
-  "Plans & billing": "Tarife & Abrechnung",
-  "Settings": "Einstellungen",
-  "Guide editor": "Editor",
-  "WORKSPACE": "ARBEITSBEREICH",
-  "Workspace": "Arbeitsbereich",
-  "Host workspace": "Gastgeber-Arbeitsbereich",
-  "Close navigation": "MenÃ¼ schlieÃŸen",
-  "Open navigation": "MenÃ¼ Ã¶ffnen",
-  "A little more possibility.": "Ein bisschen mehr MÃ¶glichkeiten.",
-  "More properties. More AI answers.": "Mehr UnterkÃ¼nfte. Mehr KI-Antworten.",
-  "Even better guest experiences.": "Noch bessere Aufenthalte.",
-  "Explore Pro": "Pro entdecken",
-  "Workspace owner": "Inhaber des Arbeitsbereichs",
-  "Demo host account": "Demo-Gastgeberkonto",
-  "Workspace owner Â· Demo": "Inhaber des Arbeitsbereichs Â· Demo",
-  "Workspace owner Â· {email}": "Inhaber des Arbeitsbereichs Â· {email}",
-  "SAVINGâ€¦": "WIRD GESPEICHERTâ€¦",
-  "NOT SAVED Â· RETRYING ON NEXT EDIT": "NICHT GESPEICHERT Â· NEUER VERSUCH BEI DER NÃ„CHSTEN Ã„NDERUNG",
-  "ALL CHANGES SAVED": "ALLES GESPEICHERT",
-  "DEMO WORKSPACE": "DEMO-ARBEITSBEREICH",
-  "Sign in": "Anmelden",
-  "View guest experience": "GÃ¤steansicht",
-  "Toggle dark mode": "Dunkelmodus umschalten",
-  "Guest notifications": "GÃ¤ste-Benachrichtigungen",
-  "Signed in as {email}. Click to sign out.": "Angemeldet als {email}. Klicken zum Abmelden.",
-  "Sign out {email}": "{email} abmelden",
-  "Language": "Sprache",
-  "Made for thoughtful hosts. Built for memorable stays.": "FÃ¼r aufmerksame Gastgeber gemacht. FÃ¼r unvergessliche Aufenthalte gebaut.",
-  "Demo data Â· Saved on this device": "Demo-Daten Â· Auf diesem GerÃ¤t gespeichert",
-  "Saved securely online": "Sicher online gespeichert",
-  "Close dialog": "SchlieÃŸen",
-  "YOUR LITTLE HOSTING HEADQUARTERS": "IHRE KLEINE GASTGEBER-ZENTRALE",
-  "Good things start with a": "Gutes beginnt mit einem",
-  "great stay.": "schÃ¶nen Aufenthalt.",
-  "Welcome back, {name}. Hereâ€™s how your properties are doing.": "Willkommen zurÃ¼ck, {name}. So laufen Ihre UnterkÃ¼nfte.",
-  "Demo month": "Demo-Monat",
-  "LESS MANAGING. MORE HOSTING.": "WENIGER VERWALTEN. MEHR GASTFREUNDSCHAFT.",
-  "A thoughtful stay,": "Ein durchdachter Aufenthalt,",
-  "without the extra work.": "ohne Mehrarbeit.",
-  "Your guides handle the little questions.": "Ihre GÃ¤stemappen beantworten die kleinen Fragen.",
-  "You focus on making guests feel at home.": "Sie sorgen dafÃ¼r, dass sich GÃ¤ste wie zu Hause fÃ¼hlen.",
-  "Create a guide": "GÃ¤stemappe erstellen",
-  "YOUR HOME AWAY FROM HOME": "IHR ZUHAUSE FERN VON ZUHAUSE",
-  "OlÃ¡, welcome home.": "Hallo, willkommen zu Hause.",
-  "Wi-Fi": "WLAN",
-  "Explore": "Entdecken",
-  "Your stay": "Ihr Aufenthalt",
-  "Little extras": "Extras",
-  "Happy guests. Happy host.": "Zufriedene GÃ¤ste. Zufriedener Gastgeber.",
-  "Thoughtful details, all in one place.": "Alle Details an einem Ort.",
-  "Guide views": "Aufrufe",
-  "AI conversations": "KI-GesprÃ¤che",
-  "Extras revenue": "Umsatz mit Extras",
-  "Happy guests": "Zufriedene GÃ¤ste",
-  "vs. previous month": "ggÃ¼. Vormonat",
-  "answered without you": "ohne Sie beantwortet",
-  "average guest rating": "durchschnittliche Bewertung",
-  "Your properties": "Ihre UnterkÃ¼nfte",
-  "{n} little places. Endless possibilities.": "{n} kleine Orte. Unendliche MÃ¶glichkeiten.",
-  "View all properties": "Alle UnterkÃ¼nfte ansehen",
-  "Around your properties": "Rund um Ihre UnterkÃ¼nfte",
-  "View inbox": "Posteingang ansehen",
-  "A slower goodbye, booked.": "Ein entspannter Abschied, gebucht.",
-  "Late checkout": "SpÃ¤ter Check-out",
-  "One less question on your plate.": "Eine Frage weniger fÃ¼r Sie.",
-  "Wi-Fi details shared by concierge": "WLAN-Daten vom Concierge geteilt",
-  "A warm welcome, delivered.": "Ein herzlicher Empfang, zugestellt.",
-  "A guest opened their guide": "Ein Gast hat seine GÃ¤stemappe geÃ¶ffnet",
-  "12 min ago": "vor 12 Min.",
-  "34 min ago": "vor 34 Min.",
-  "1 hour ago": "vor 1 Stunde",
-  "A LITTLE HOSTING INSPIRATION": "EIN WENIG INSPIRATION",
-  "Small extras.": "Kleine Extras.",
-  "Memorable experiences.": "Unvergessliche Erlebnisse.",
-  "A late checkout. A local breakfast.": "Ein spÃ¤ter Check-out. Ein regionales FrÃ¼hstÃ¼ck.",
-  "Turn thoughtful touches into extra income, and give guests a stay to remember.": "Machen Sie aus kleinen Aufmerksamkeiten Zusatzeinnahmen und schenken Sie GÃ¤sten einen unvergesslichen Aufenthalt.",
-  "Explore your extras": "Ihre Extras ansehen",
-  "Published": "VerÃ¶ffentlicht",
-  "Draft": "Entwurf",
-  "Edit {name}": "{name} bearbeiten",
-  "Preview {name}": "Vorschau von {name}",
-  "Share {name}": "{name} teilen",
-  "{name}, a welcoming holiday home": "{name}, eine einladende Ferienunterkunft",
-  "{n} sections": "{n} Abschnitte",
-  "{n} demo views": "{n} Aufrufe (Demo)",
-  "{n} chats": "{n} Chats",
-  "Made with a little extra care": "Mit besonderer Sorgfalt gemacht",
-  "Edit guide": "GÃ¤stemappe bearbeiten",
-  "Beautiful places deserve a thoughtful welcome.": "SchÃ¶ne Orte verdienen einen herzlichen Empfang.",
-  "Add property": "Unterkunft hinzufÃ¼gen",
-  "Search properties": "UnterkÃ¼nfte suchen",
-  "Find a little placeâ€¦": "Unterkunft suchenâ€¦",
-  "All": "Alle",
-  "No properties here yet": "Noch keine UnterkÃ¼nfte",
-  "Create a property or try another search.": "Legen Sie eine Unterkunft an oder versuchen Sie eine andere Suche.",
-  "Add a property": "Unterkunft hinzufÃ¼gen",
-  "A little local knowledge goes a long way.": "Ein wenig Ortskenntnis bewirkt viel.",
-  "Guest preview": "GÃ¤steansicht",
-  "Delete": "LÃ¶schen",
-  "Delete {name} and its guide? This cannot be undone.": "{name} und die GÃ¤stemappe lÃ¶schen? Das kann nicht rÃ¼ckgÃ¤ngig gemacht werden.",
-  "Property deleted.": "Unterkunft gelÃ¶scht.",
-  "Couldnâ€™t delete the property. Please try again.": "Die Unterkunft konnte nicht gelÃ¶scht werden. Bitte versuchen Sie es erneut.",
-  "Select property to edit": "Unterkunft zum Bearbeiten wÃ¤hlen",
-  "Saved on this device": "Auf diesem GerÃ¤t gespeichert",
-  "Guide moved to draft.": "GÃ¤stemappe als Entwurf gespeichert.",
-  "Guide published. Guests can open it now.": "GÃ¤stemappe verÃ¶ffentlicht. GÃ¤ste kÃ¶nnen sie jetzt Ã¶ffnen.",
-  "Demo guide published on this device.": "Demo-GÃ¤stemappe auf diesem GerÃ¤t verÃ¶ffentlicht.",
-  "Unpublish": "VerÃ¶ffentlichung aufheben",
-  "Publish guide": "VerÃ¶ffentlichen",
-  "Property details": "Angaben zur Unterkunft",
-  "Shown to guests and used by the concierge. Changes save automatically.": "Werden GÃ¤sten angezeigt und vom Concierge genutzt. Ã„nderungen werden automatisch gespeichert.",
-  "Street address": "Adresse",
-  "City, country": "Ort, Land",
-  "Check-in time": "Check-in-Zeit",
-  "Checkout time": "Check-out-Zeit",
-  "Wi-Fi network": "WLAN-Netzwerk",
-  "Wi-Fi password": "WLAN-Passwort",
-  "Host phone": "Telefon des Gastgebers",
-  "A new little detail": "Ein neues Detail",
-  "Add section": "Abschnitt hinzufÃ¼gen",
-  "Make it feel like you.": "Geben Sie ihr Ihre persÃ¶nliche Note.",
-  "Write": "Schreiben",
-  "Preview": "Vorschau",
-  "Section title": "Titel des Abschnitts",
-  "Icon": "Symbol",
-  "Your local knowledge": "Ihre Tipps",
-  "All the details that make a stay effortless. Markdown is welcome.": "Alle Details fÃ¼r einen sorglosen Aufenthalt. Markdown ist erlaubt.",
-  "Use **bold**, bullet lists, and links. Drag sections to reorder, or use the arrow buttons.": "Nutzen Sie **Fettdruck**, Listen und Links. Ziehen Sie Abschnitte zum Sortieren oder nutzen Sie die Pfeile.",
-  "Move section up": "Abschnitt nach oben",
-  "Move section down": "Abschnitt nach unten",
-  "All changes are saved automatically on this device.": "Alle Ã„nderungen werden automatisch auf diesem GerÃ¤t gespeichert.",
-  "All changes are saved automatically.": "Alle Ã„nderungen werden automatisch gespeichert.",
-  "Save changes": "Speichern",
-  "Demo editor Â· Changes are stored in this browser. Sign in to save guides online and share them with real guests.": "Demo-Editor Â· Ã„nderungen bleiben in diesem Browser. Melden Sie sich an, um GÃ¤stemappen online zu speichern und mit echten GÃ¤sten zu teilen.",
-  "A little human touch": "Ein persÃ¶nlicher Draht",
-  "Your concierge takes care of the everyday. You take care of the rest.": "Ihr Concierge kÃ¼mmert sich um den Alltag. Sie um den Rest.",
-  "Needs your help": "Braucht Ihre Hilfe",
-  "Sample conversation": "BeispielgesprÃ¤ch",
-  "The concierge couldnâ€™t find this answer in the guide and passed it to you.": "Der Concierge hat die Antwort nicht in der GÃ¤stemappe gefunden und die Frage an Sie weitergeleitet.",
-  "Reply saved in the demo. No guest message was sent.": "Antwort in der Demo gespeichert. Es wurde keine Nachricht gesendet.",
-  "Reply to guest": "Dem Gast antworten",
-  "A thoughtful replyâ€¦": "Eine freundliche Antwortâ€¦",
-  "Send demo reply": "Demo-Antwort senden",
-  "Needs your help only": "Nur GesprÃ¤che, die Ihre Hilfe brauchen",
-  "Couldnâ€™t load conversations. Retryingâ€¦": "GesprÃ¤che konnten nicht geladen werden. Neuer Versuchâ€¦",
-  "Loading conversationsâ€¦": "GesprÃ¤che werden geladenâ€¦",
-  "All quiet for now": "Gerade ist alles ruhig",
-  "When a guest asks something your guide doesnâ€™t answer, the conversation appears here so you can reply.": "Wenn ein Gast etwas fragt, das Ihre GÃ¤stemappe nicht beantwortet, erscheint das GesprÃ¤ch hier, damit Sie antworten kÃ¶nnen.",
-  "Guest": "Gast",
-  "You": "Sie",
-  "Concierge": "Concierge",
-  "Reply sent. The guest sees it in their guide chat.": "Antwort gesendet. Der Gast sieht sie im Chat seiner GÃ¤stemappe.",
-  "Couldnâ€™t send your reply. Please try again.": "Ihre Antwort konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
-  "Send reply": "Antwort senden",
-  "The little extras": "Die kleinen Extras",
-  "Thoughtful touches for guests. A little more income for you.": "Aufmerksamkeiten fÃ¼r GÃ¤ste. Etwas mehr Einnahmen fÃ¼r Sie.",
-  "Create extra": "Extra erstellen",
-  "Demo catalog Â· Sign in to receive real guest requests for your extras.": "Demo-Katalog Â· Melden Sie sich an, um echte Anfragen fÃ¼r Ihre Extras zu erhalten.",
-  "per stay": "pro Aufenthalt",
-  "Host approval required": "Zustimmung des Gastgebers nÃ¶tig",
-  "Instant purchase": "Sofortkauf",
-  "See guest experience": "GÃ¤steansicht",
-  "Payment captured. The money is on its way to your bank.": "Zahlung eingezogen. Das Geld ist auf dem Weg zu Ihrer Bank.",
-  "Request approved. Let your guest know how to pay.": "Anfrage angenommen. Teilen Sie dem Gast mit, wie er bezahlen kann.",
-  "Request declined. Any card hold has been released.": "Anfrage abgelehnt. Eine Kartenreservierung wurde freigegeben.",
-  "Refund issued to the guest.": "Erstattung an den Gast veranlasst.",
-  "Request updated.": "Anfrage aktualisiert.",
-  "Couldnâ€™t update the request.": "Die Anfrage konnte nicht aktualisiert werden.",
-  "Guest requests": "GÃ¤steanfragen",
-  "Refresh requests": "Anfragen aktualisieren",
-  "Loading requestsâ€¦": "Anfragen werden geladenâ€¦",
-  "No requests yet. Guests can request extras from the â€œLittle extrasâ€ tab of your guide.": "Noch keine Anfragen. GÃ¤ste kÃ¶nnen Extras im Reiter â€Extrasâ€œ Ihrer GÃ¤stemappe anfragen.",
-  "pending": "offen",
-  "approved": "angenommen",
-  "declined": "abgelehnt",
-  "paid": "bezahlt",
-  "refunded": "erstattet",
-  "card authorised": "Karte autorisiert",
-  "paid online": "online bezahlt",
-  "Approve & charge": "Annehmen & abbuchen",
-  "Approve": "Annehmen",
-  "Decline & release": "Ablehnen & freigeben",
-  "Decline": "Ablehnen",
-  "Mark as paid": "Als bezahlt markieren",
-  "Refund this guest in full?": "Diesem Gast den vollen Betrag erstatten?",
-  "Refund": "Erstatten",
-  "Good stays, by the numbers": "Gute Aufenthalte in Zahlen",
-  "A little insight into what makes your guests feel at home.": "Ein Einblick, was Ihren GÃ¤sten das GefÃ¼hl von Zuhause gibt.",
-  "Sample analytics for demonstration. Sign in to see your real numbers.": "Beispielstatistiken. Melden Sie sich an, um Ihre echten Zahlen zu sehen.",
-  "Guide views this week": "Aufrufe diese Woche",
-  "Mon": "Mo",
-  "Tue": "Di",
-  "Wed": "Mi",
-  "Thu": "Do",
-  "Fri": "Fr",
-  "Sat": "Sa",
-  "Sun": "So",
-  "The things guests ask": "Was GÃ¤ste fragen",
-  "Wi-Fi & getting connected": "WLAN & Verbindung",
-  "Check-in & arrival": "Check-in & Anreise",
-  "Local recommendations": "Tipps vor Ort",
-  "Check-out details": "Check-out-Infos",
-  "Couldnâ€™t load analytics.": "Statistiken konnten nicht geladen werden.",
-  "Loadingâ€¦": "Wird geladenâ€¦",
-  "Guide views (all time)": "Aufrufe (gesamt)",
-  "Views, last 30 days": "Aufrufe, letzte 30 Tage",
-  "Guest questions": "GÃ¤stefragen",
-  "Answered without you": "Ohne Sie beantwortet",
-  "Extras approved": "Angenommene Extras",
-  "Extra requests": "Extra-Anfragen",
-  "AI messages this month": "KI-Nachrichten diesen Monat",
-  "Questions will appear here once guests start chatting.": "Fragen erscheinen hier, sobald GÃ¤ste chatten.",
-  "A warm welcome, shared": "Ein herzlicher Empfang, geteilt",
-  "One little link. Everything your guests need.": "Ein Link. Alles, was Ihre GÃ¤ste brauchen.",
-  "Your property": "Ihre Unterkunft",
-  "Send a little hello": "Ein kleiner GruÃŸ",
-  "Add your guest guide to a welcome message or booking confirmation.": "FÃ¼gen Sie Ihre GÃ¤stemappe einer Willkommensnachricht oder BuchungsbestÃ¤tigung hinzu.",
-  "Guest guide link": "Link zur GÃ¤stemappe",
-  "Copy guest link": "Link kopieren",
-  "Guest link copied.": "Link kopiert.",
-  "Select the link and copy it manually.": "Markieren Sie den Link und kopieren Sie ihn manuell.",
-  "Weâ€™re looking forward to welcoming you to {name}! Hereâ€™s your personal guide with everything you need for a lovely stay: {link}\nSafe travels â€” see you soon!": "Wir freuen uns, Sie in {name} begrÃ¼ÃŸen zu dÃ¼rfen! Hier ist Ihre persÃ¶nliche GÃ¤stemappe mit allem fÃ¼r einen schÃ¶nen Aufenthalt: {link}\nGute Reise â€“ bis bald!",
-  "Welcome message copied.": "Willkommensnachricht kopiert.",
-  "Clipboard unavailable in this browser.": "Die Zwischenablage ist in diesem Browser nicht verfÃ¼gbar.",
-  "Copy welcome message": "Willkommensnachricht kopieren",
-  "Local demo changes are visible on this device only. A QR code for a sample property works on any device.": "Lokale Demo-Ã„nderungen sind nur auf diesem GerÃ¤t sichtbar. Ein QR-Code fÃ¼r eine Beispielunterkunft funktioniert Ã¼berall.",
-  "Make yourself at home.": "FÃ¼hlen Sie sich wie zu Hause.",
-  "Your guide to a lovely stay at {name}.": "Ihre GÃ¤stemappe fÃ¼r einen schÃ¶nen Aufenthalt in {name}.",
-  "Scan for all the little details.": "Scannen fÃ¼r alle Details.",
-  "QR code for {name}": "QR-Code fÃ¼r {name}",
-  "Generate QR card": "QR-Karte erstellen",
-  "Print / save PDF": "Drucken / als PDF speichern",
-  "A plan for every kind of host": "Ein Tarif fÃ¼r jeden Gastgeber",
-  "Simple, per-property pricing. More time for what you love.": "Einfache Preise pro Unterkunft. Mehr Zeit fÃ¼r das, was Sie lieben.",
-  "Properties: {n}": "UnterkÃ¼nfte: {n}",
-  "Monthly": "Monatlich",
-  "Yearly Â· 2 months free": "JÃ¤hrlich Â· 2 Monate gratis",
-  "Free": "Kostenlos",
-  "A thoughtful beginning": "Ein guter Anfang",
-  "For the independent host": "FÃ¼r unabhÃ¤ngige Gastgeber",
-  "Your hospitality, elevated": "Ihre Gastfreundschaft, auf neuem Niveau",
-  "per year": "pro Jahr",
-  "per month": "pro Monat",
-  "1 property": "1 Unterkunft",
-  "{n} properties": "{n} UnterkÃ¼nfte",
-  "{n} AI messages / property / month": "{n} KI-Nachrichten / Unterkunft / Monat",
-  "Beautiful offline guest guides": "SchÃ¶ne GÃ¤stemappen, auch offline",
-  "Extras store Â· 5% platform fee": "Extras-Shop Â· 5 % PlattformgebÃ¼hr",
-  "Priority support": "Bevorzugter Support",
-  "This is a demo workspace. Sign in with Google to choose a plan.": "Dies ist ein Demo-Arbeitsbereich. Melden Sie sich mit Google an, um einen Tarif zu wÃ¤hlen.",
-  "This is a demo workspace. Sign in to choose a plan.": "Dies ist ein Demo-Arbeitsbereich. Melden Sie sich an, um einen Tarif zu wÃ¤hlen.",
-  "Try the demo": "Demo ausprobieren",
-  "Choose {plan}": "{plan} wÃ¤hlen",
-  "Demo workspace Â· Sign in with Google to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.": "Demo-Arbeitsbereich Â· Melden Sie sich mit Google an, um einen Tarif zu wÃ¤hlen. Preise in {code} ({symbol}), sichere Abrechnung Ã¼ber Stripe.",
-  "Demo workspace Â· Sign in to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.": "Demo-Arbeitsbereich Â· Melden Sie sich an, um einen Tarif zu wÃ¤hlen. Preise in {code} ({symbol}), sichere Abrechnung Ã¼ber Stripe.",
-  "Thank you! Your plan is being activated. This can take a few seconds.": "Vielen Dank! Ihr Tarif wird aktiviert. Das kann einige Sekunden dauern.",
-  "Checkout cancelled. Nothing was charged.": "Bezahlung abgebrochen. Es wurde nichts berechnet.",
-  "Payout details saved. Stripe may take a moment to verify them.": "Auszahlungsdaten gespeichert. Stripe braucht ggf. einen Moment zur PrÃ¼fung.",
-  "That setup link expired. Please continue payout setup.": "Dieser Link ist abgelaufen. Bitte setzen Sie die Einrichtung der Auszahlungen fort.",
-  "Couldnâ€™t load billing. Please refresh the page.": "Abrechnung konnte nicht geladen werden. Bitte laden Sie die Seite neu.",
-  "Loading billingâ€¦": "Abrechnung wird geladenâ€¦",
-  "Simple, per-property pricing. Change or cancel any time.": "Einfache Preise pro Unterkunft. Jederzeit Ã¤nderbar oder kÃ¼ndbar.",
-  "Payments are not connected on this deployment yet.": "Zahlungen sind noch nicht verbunden.",
-  "Current plan": "Aktueller Tarif",
-  "up to {n} on this plan": "bis zu {n} in diesem Tarif",
-  "Openingâ€¦": "Wird geÃ¶ffnetâ€¦",
-  "Manage billing": "Abrechnung verwalten",
-  "Your last payment failed. Please update your card in â€œManage billingâ€ to keep your plan.": "Ihre letzte Zahlung ist fehlgeschlagen. Bitte aktualisieren Sie Ihre Karte unter â€Abrechnung verwaltenâ€œ, um Ihren Tarif zu behalten.",
-  "Your Hotel & Multi-Unit plan is managed by StayGuide and invoiced separately. Contact us to change it.": "Ihr Tarif Hotels & Mehrfachobjekte wird von StayGuide verwaltet und separat abgerechnet. Kontaktieren Sie uns fÃ¼r Ã„nderungen.",
-  "Billed for {n} Â· updates automatically as you add or remove properties": "Abgerechnet fÃ¼r {n} Â· passt sich automatisch an, wenn Sie UnterkÃ¼nfte hinzufÃ¼gen oder entfernen",
-  "Up to {n} properties": "Bis zu {n} UnterkÃ¼nfte",
-  "{n} AI concierge messages / property / month": "{n} KI-Concierge-Nachrichten / Unterkunft / Monat",
-  "Paid extras Â· 5% platform fee": "Bezahlte Extras Â· 5 % PlattformgebÃ¼hr",
-  "Opening checkoutâ€¦": "Bezahlung wird geÃ¶ffnetâ€¦",
-  "{price}/property/month": "{price}/Unterkunft/Monat",
-  ", billed yearly": ", jÃ¤hrliche Abrechnung",
-  "Prices in {code} ({symbol}). Secure payment by Stripe. Cancel any time from â€œManage billingâ€.": "Preise in {code} ({symbol}). Sichere Zahlung Ã¼ber Stripe. Jederzeit kÃ¼ndbar unter â€Abrechnung verwaltenâ€œ.",
-  "Get paid for extras": "Mit Extras Geld verdienen",
-  "Active": "Aktiv",
-  "Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.": "GÃ¤ste zahlen Extras per Karte, Apple Pay oder Google Pay. Das Geld geht Ã¼ber Stripe direkt auf Ihr Bankkonto, abzÃ¼glich 5 % StayGuide-GebÃ¼hr. Extras, die Ihre Zustimmung brauchen, werden erst nach Ihrer Zustimmung abgebucht.",
-  "Open payouts dashboard": "Auszahlungs-Dashboard Ã¶ffnen",
-  "Online payments for extras are coming soon. Until then, guests send requests and you confirm how they pay.": "Online-Zahlungen fÃ¼r Extras kommen bald. Bis dahin senden GÃ¤ste Anfragen und Sie bestÃ¤tigen die Zahlungsweise.",
-  "Connect a bank account with Stripe so guests can pay for extras online. Until then, guests send requests and you confirm payment yourself.": "Verbinden Sie ein Bankkonto mit Stripe, damit GÃ¤ste Extras online bezahlen kÃ¶nnen. Bis dahin senden GÃ¤ste Anfragen und Sie bestÃ¤tigen die Zahlung selbst.",
-  "Country of your bank account": "Land Ihres Bankkontos",
-  "Opening Stripeâ€¦": "Stripe wird geÃ¶ffnetâ€¦",
-  "Continue payout setup": "Auszahlungen weiter einrichten",
-  "Set up payouts": "Auszahlungen einrichten",
-  "past due": "Ã¼berfÃ¤llig",
-  "trialing": "Testphase",
-  "canceled": "gekÃ¼ndigt",
-  "unpaid": "unbezahlt",
-  "Your workspace, your way.": "Ihr Arbeitsbereich, Ihr Stil.",
-  "Workspace preferences saved on this device.": "Einstellungen auf diesem GerÃ¤t gespeichert.",
-  "Your workspace": "Ihr Arbeitsbereich",
-  "Your first name": "Ihr Vorname",
-  "Organization name": "Name Ihres Unternehmens",
-  "Save preferences": "Einstellungen speichern",
-  "The people behind the welcome": "Die Menschen hinter dem Empfang",
-  "Team access for co-hosts and staff is coming soon.": "Teamzugang fÃ¼r Co-Gastgeber und Personal kommt bald.",
-  "This is a demo workspace saved in your browser. Sign in with Google to create your real account.": "Dies ist ein Demo-Arbeitsbereich in Ihrem Browser. Melden Sie sich mit Google an, um Ihr echtes Konto zu erstellen.",
-  "This is a demo workspace saved in your browser. Sign in to create your real account.": "Dies ist ein Demo-Arbeitsbereich in Ihrem Browser. Melden Sie sich an, um Ihr echtes Konto zu erstellen.",
-  "Switch to light mode": "Zum hellen Modus wechseln",
-  "Switch to dark mode": "Zum dunklen Modus wechseln",
-  "Connect your account": "Konto verbinden",
-  "Dashboard language": "Sprache des Dashboards",
-  "A new place. A new welcome.": "Ein neuer Ort. Ein neuer Empfang.",
-  "Add the basics and bring your guest guide to life.": "FÃ¼gen Sie die Grunddaten hinzu und erwecken Sie Ihre GÃ¤stemappe zum Leben.",
-  "Property name": "Name der Unterkunft",
-  "Optional Â· used for â€œOpen in Mapsâ€": "Optional Â· fÃ¼r â€In Maps Ã¶ffnenâ€œ",
-  "Your house manual": "Ihre Hausinformationen",
-  "Optional Â· Only content you own": "Optional Â· nur eigene Inhalte",
-  "Paste your arrival details, house rules, and favorite local tipsâ€¦": "FÃ¼gen Sie Ihre Anreisehinweise, Hausregeln und Lieblingstipps einâ€¦",
-  "Our AI will organize your text into guide sections using only what you wrote.": "Unsere KI gliedert Ihren Text in Abschnitte und nutzt dabei nur Ihre eigenen Angaben.",
-  "Weâ€™ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as â€œWI-FI:â€ for best results.": "Wir teilen Ihren Text in Abschnitte wie Anreise, WLAN und Check-out auf. Verwenden Sie Ãœberschriften wie â€WI-FI:â€œ fÃ¼r beste Ergebnisse.",
-  "Building your guideâ€¦": "Ihre GÃ¤stemappe wird erstelltâ€¦",
-  "Create my guide": "GÃ¤stemappe erstellen",
-  "Property created. AI organized your guide â€” have a look.": "Unterkunft angelegt. Die KI hat Ihre GÃ¤stemappe gegliedert â€“ schauen Sie mal.",
-  "Property created. Your guide is ready to edit.": "Unterkunft angelegt. Ihre GÃ¤stemappe ist bereit zur Bearbeitung.",
-  "Could not create the property.": "Die Unterkunft konnte nicht angelegt werden.",
-  "Add your propertyâ€™s {type} information here.": "FÃ¼gen Sie hier die Angaben zu â€{type}â€œ Ihrer Unterkunft hinzu.",
-  "A thoughtful little extra": "Ein kleines Extra",
-  "Give your guests one more reason to love their stay.": "Geben Sie Ihren GÃ¤sten einen Grund mehr, ihren Aufenthalt zu lieben.",
-  "Property": "Unterkunft",
-  "Name": "Name",
-  "Description": "Beschreibung",
-  "Price ({symbol})": "Preis ({symbol})",
-  "Require my approval before payment": "Vor der Zahlung meine Zustimmung einholen",
-  "Extra added to your demo guide.": "Extra zur Demo-GÃ¤stemappe hinzugefÃ¼gt.",
-  "e.g. The Little Olive House": "z. B. Das kleine Olivenhaus",
-  "e.g. Gatlinburg, Tennessee": "z. B. Garmisch-Partenkirchen, Deutschland",
-  "A basket of local favorites": "Ein Korb mit regionalen SpezialitÃ¤ten",
-  "Welcome back": "Willkommen zurÃ¼ck",
-  "Good hosts make": "Gute Gastgeber machen",
-  "great stays.": "schÃ¶ne Aufenthalte.",
-  "Welcome home.": "Willkommen zu Hause.",
-  "A little less work. A little more hospitality.": "Etwas weniger Arbeit. Etwas mehr Gastfreundschaft.",
-  "A warm and welcoming living room": "Ein warmes, einladendes Wohnzimmer",
-  "Thoughtful hosting starts here.": "Aufmerksames Gastgeben beginnt hier.",
-  "Sign in to your account": "Bei Ihrem Konto anmelden",
-  "Welcome back. Sign in with your Google account to continue.": "Willkommen zurÃ¼ck. Melden Sie sich mit Ihrem Google-Konto an, um fortzufahren.",
-  "Welcome back. Choose a secure sign-in option to continue.": "Willkommen zurÃ¼ck. WÃ¤hlen Sie eine sichere Anmeldeoption, um fortzufahren.",
-  "Continue with Google": "Weiter mit Google",
-  "Continue with Apple": "Weiter mit Apple",
-  "Email address": "E-Mail-Adresse",
-  "Send code": "Code senden",
-  "Sign-in code": "Anmeldecode",
-  "Continue": "Weiter",
-  "We sent a 6-digit code to your email. It expires in 10 minutes.": "Wir haben einen 6-stelligen Code an Ihre E-Mail gesendet. Er lÃ¤uft in 10 Minuten ab.",
-  "Live accounts are not connected yet. Explore the demo below.": "Konten sind noch nicht verbunden. Entdecken Sie unten die Demo.",
-  "We couldnâ€™t send the code. Try Google while email sign-in is being fixed.": "Wir konnten den Code nicht senden. Nutzen Sie Google, wÃ¤hrend die E-Mail-Anmeldung repariert wird.",
-  "That code did not work. Request a new code or try again.": "Dieser Code hat nicht funktioniert. Fordern Sie einen neuen Code an oder versuchen Sie es erneut.",
-  "We couldnâ€™t sign you in. Please try again.": "Die Anmeldung hat nicht geklappt. Bitte versuchen Sie es erneut.",
-  "or explore without signing in": "oder ohne Anmeldung entdecken",
-  "Explore the demo": "Demo entdecken",
-  "By continuing, you agree to our": "Mit dem Fortfahren akzeptieren Sie unsere",
-  "Terms": "AGB",
-  "and": "und unsere",
-  "Privacy Policy": "DatenschutzerklÃ¤rung",
-};
-
-const ar: Dict = {
-  "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "ÙŠØ³ØªØ®Ø¯Ù… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø¯Ù„ÙŠÙ„ Ø¨Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ Ø·Ù„Ø¨Ù‹Ø§ ÙˆØ§Ø­Ø¯Ù‹Ø§ Ù…Ù† Ø§Ù„Ø±ØµÙŠØ¯ Ø§Ù„Ù…ØªØ§Ø­. ØªØ­Ù‚Ù‘Ù‚ Ù…Ù† Ø¨Ø±ÙŠØ¯Ùƒ Ù„ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠØ› ÙˆÙŠØ¸Ù„ Ø§Ù„ØªØ­Ù„ÙŠÙ„ Ø§Ù„ÙŠØ¯ÙˆÙŠ Ù…ØªØ§Ø­Ù‹Ø§.",
-  "Workspace preferences saved online.": "ØªÙ… Ø­ÙØ¸ ØªÙØ¶ÙŠÙ„Ø§Øª Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„ Ø¹Ø¨Ø± Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª.",
-  "Could not save workspace preferences. Please try again.": "ØªØ¹Ø°Ù‘Ø± Ø­ÙØ¸ ØªÙØ¶ÙŠÙ„Ø§Øª Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„. ÙŠÙØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
-  "Sendingâ€¦": "Ø¬Ø§Ø±Ù Ø§Ù„Ø¥Ø±Ø³Ø§Ù„â€¦",
-  "Resend verification email": "Ø¥Ø¹Ø§Ø¯Ø© Ø¥Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ù„Ø© Ø§Ù„ØªØ­Ù‚Ù‚",
-  "Check your inbox for your verification link.": "ØªØ­Ù‚Ù‘Ù‚ Ù…Ù† Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„ÙˆØ§Ø±Ø¯ Ù„Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ Ø±Ø§Ø¨Ø· Ø§Ù„ØªØ­Ù‚Ù‚.",
-  "Could not send the verification email. Please wait before trying again.": "ØªØ¹Ø°Ù‘Ø± Ø¥Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ù„Ø© Ø§Ù„ØªØ­Ù‚Ù‚. ÙŠÙØ±Ø¬Ù‰ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± Ù‚Ø¨Ù„ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
-  "View analytics for activity": "Ø¹Ø±Ø¶ ØªØ­Ù„ÙŠÙ„Ø§Øª Ø§Ù„Ù†Ø´Ø§Ø·",
-  "All time": "ÙƒÙ„ Ø§Ù„ÙØªØ±Ø§Øª",
-  "Extras paid": "Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø©",
-  "Answered from your guide": "ØªÙ…Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ù…Ù† Ø¯Ù„ÙŠÙ„Ùƒ",
-  "From your saved guest activity": "Ù…Ù† Ù†Ø´Ø§Ø· Ø§Ù„Ø¶ÙŠÙˆÙ Ø§Ù„Ù…Ø­ÙÙˆØ¸",
-  "No guest conversations yet. Share a published guide to get started.": "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø­Ø§Ø¯Ø«Ø§Øª Ø¶ÙŠÙˆÙ Ø¨Ø¹Ø¯. Ø´Ø§Ø±Ùƒ Ø¯Ù„ÙŠÙ„Ø§Ù‹ Ù…Ù†Ø´ÙˆØ±Ø§Ù‹ Ù„Ù„Ø¨Ø¯Ø¡.",
-  "Use 12 to 128 characters.": "Ø§Ø³ØªØ®Ø¯Ù… Ù…Ù† 12 Ø¥Ù„Ù‰ 128 Ø­Ø±ÙÙ‹Ø§.",
-  "Account created. You can sign in with your password. We couldnâ€™t send a verification email; contact support for help.": "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨. ÙŠÙ…ÙƒÙ†Ùƒ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±. ØªØ¹Ø°Ù‘Ø± Ø¥Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ù„Ø© Ø§Ù„ØªØ­Ù‚Ù‚Ø› ØªÙˆØ§ØµÙ„ Ù…Ø¹ Ø§Ù„Ø¯Ø¹Ù… Ù„Ù„Ù…Ø³Ø§Ø¹Ø¯Ø©.",
-  "Verify your email": "ØªØ­Ù‚Ù‚ Ù…Ù† Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ",
-  "Keeps account recovery and support safe.": "ÙŠØ­Ø§ÙØ¸ Ø¹Ù„Ù‰ Ø£Ù…Ø§Ù† Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø­Ø³Ø§Ø¨ ÙˆØ§Ù„Ø¯Ø¹Ù….",
-  "Demo mode uses sample account details.": "ÙŠØ³ØªØ®Ø¯Ù… Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠ Ø¨ÙŠØ§Ù†Ø§Øª Ø­Ø³Ø§Ø¨ Ù†Ù…ÙˆØ°Ø¬ÙŠØ©.",
-  "Create your first property": "Ø£Ù†Ø´Ø¦ Ø¹Ù‚Ø§Ø±Ùƒ Ø§Ù„Ø£ÙˆÙ„",
-  "Add the address, arrival notes, Wi-Fi, rules and checkout.": "Ø£Ø¶Ù Ø§Ù„Ø¹Ù†ÙˆØ§Ù† ÙˆØªØ¹Ù„ÙŠÙ…Ø§Øª Ø§Ù„ÙˆØµÙˆÙ„ ÙˆØ§Ù„ÙˆØ§ÙŠ ÙØ§ÙŠ ÙˆØ§Ù„Ù‚ÙˆØ§Ø¹Ø¯ ÙˆØ§Ù„Ù…ØºØ§Ø¯Ø±Ø©.",
-  "Publish and preview the guest guide": "Ø§Ù†Ø´Ø± Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¶ÙŠÙ ÙˆØ¹Ø§ÙŠÙ†Ù‡",
-  "Open the same link your guests will receive.": "Ø§ÙØªØ­ Ø§Ù„Ø±Ø§Ø¨Ø· Ù†ÙØ³Ù‡ Ø§Ù„Ø°ÙŠ Ø³ÙŠØªÙ„Ù‚Ø§Ù‡ Ø¶ÙŠÙˆÙÙƒ.",
-  "Add one extra or upsell": "Ø£Ø¶Ù Ø®Ø¯Ù…Ø© Ø¥Ø¶Ø§ÙÙŠØ© Ø£Ùˆ Ø¹Ø±Ø¶Ø§Ù‹ Ù…Ø¯ÙÙˆØ¹Ø§Ù‹",
-  "Late checkout, breakfast baskets, transfers and paid services.": "Ù…ØºØ§Ø¯Ø±Ø© Ù…ØªØ£Ø®Ø±Ø© ÙˆØ³Ù„Ø§Ù„ Ø¥ÙØ·Ø§Ø± ÙˆØ®Ø¯Ù…Ø§Øª Ù†Ù‚Ù„ ÙˆØ®Ø¯Ù…Ø§Øª Ù…Ø¯ÙÙˆØ¹Ø©.",
-  "Choose a plan and set up payouts": "Ø§Ø®ØªØ± Ø®Ø·Ø© ÙˆØ£Ø¹Ø¯Ù‘ Ø§Ù„ØªØ­ÙˆÙŠÙ„Ø§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ©",
-  "Upgrade when you need more properties or AI answers.": "Ù‚Ù… Ø¨Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø¹Ù†Ø¯Ù…Ø§ ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ø§Ù„Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„Ø¹Ù‚Ø§Ø±Ø§Øª Ø£Ùˆ Ø¥Ø¬Ø§Ø¨Ø§Øª Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ.",
-  "GET READY TO HOST": "Ø§Ø³ØªØ¹Ø¯ Ù„Ø§Ø³ØªÙ‚Ø¨Ø§Ù„ Ø§Ù„Ø¶ÙŠÙˆÙ",
-  "Launch checklist": "Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„ØªØ­Ù‚Ù‚ Ù„Ù„Ø¥Ø·Ù„Ø§Ù‚",
-  "Keep building": "Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯",
-  "Please verify your email address. Check your inbox for the StayGuide verification link, or contact support if it did not arrive.": "ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ. Ø§Ø¨Ø­Ø« ÙÙŠ ØµÙ†Ø¯ÙˆÙ‚ Ø§Ù„ÙˆØ§Ø±Ø¯ Ø¹Ù† Ø±Ø§Ø¨Ø· Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† StayGuideØŒ Ø£Ùˆ ØªÙˆØ§ØµÙ„ Ù…Ø¹ Ø§Ù„Ø¯Ø¹Ù… Ø¥Ø°Ø§ Ù„Ù… ÙŠØµÙ„Ùƒ.",
-  "Support": "Ø§Ù„Ø¯Ø¹Ù…",
-  "Need help setting up a property, billing, payouts, or a guest guide? Email us and weâ€™ll help you get unstuck.": "Ù‡Ù„ ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ù…Ø³Ø§Ø¹Ø¯Ø© ÙÙŠ Ø¥Ø¹Ø¯Ø§Ø¯ Ø¹Ù‚Ø§Ø± Ø£Ùˆ Ø§Ù„ÙÙˆØªØ±Ø© Ø£Ùˆ Ø§Ù„ØªØ­ÙˆÙŠÙ„Ø§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ© Ø£Ùˆ Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¶ÙŠÙØŸ Ø±Ø§Ø³Ù„Ù†Ø§ ÙˆØ³Ù†Ø³Ø§Ø¹Ø¯Ùƒ.",
-  "Support replies are handled by the StayGuide team. Do not send door codes or guest payment details by email.": "ÙŠØªÙˆÙ„Ù‰ ÙØ±ÙŠÙ‚ StayGuide Ø§Ù„Ø±Ø¯ Ø¹Ù„Ù‰ Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ø¯Ø¹Ù…. Ù„Ø§ ØªØ±Ø³Ù„ Ø±Ù…ÙˆØ² Ø§Ù„Ø£Ø¨ÙˆØ§Ø¨ Ø£Ùˆ ØªÙØ§ØµÙŠÙ„ Ø¯ÙØ¹ Ø§Ù„Ø¶ÙŠÙˆÙ Ø¹Ø¨Ø± Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ.",
-  "Could not create this account. Check your details, or sign in if you already have an account. Existing Google accounts should continue with Google.": "ØªØ¹Ø°Ø± Ø¥Ù†Ø´Ø§Ø¡ Ù‡Ø°Ø§ Ø§Ù„Ø­Ø³Ø§Ø¨. ØªØ­Ù‚Ù‚ Ù…Ù† Ø¨ÙŠØ§Ù†Ø§ØªÙƒ Ø£Ùˆ Ø³Ø¬Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ø°Ø§ ÙƒØ§Ù† Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ Ø¨Ø§Ù„ÙØ¹Ù„. ÙŠØ¬Ø¨ Ù…ØªØ§Ø¨Ø¹Ø© Ø­Ø³Ø§Ø¨Ø§Øª Google Ø§Ù„Ø­Ø§Ù„ÙŠØ© Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Google.",
-  "That email and password did not sign in. If this is your first time, create an account first, or continue with Google.": "ØªØ¹Ø°Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±. Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ù‡Ø°Ù‡ Ø²ÙŠØ§Ø±ØªÙƒ Ø§Ù„Ø£ÙˆÙ„Ù‰ØŒ ÙØ£Ù†Ø´Ø¦ Ø­Ø³Ø§Ø¨Ø§Ù‹ Ø£ÙˆÙ„Ø§Ù‹ Ø£Ùˆ ØªØ§Ø¨Ø¹ Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Google.",
-  "Choose account action": "Ø§Ø®ØªØ± Ø¥Ø¬Ø±Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨",
-  "Create account": "Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨",
-  "Password": "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±",
-  "Use 12 to 128 characters. Weâ€™ll email you a verification link after signup.": "Ø§Ø³ØªØ®Ø¯Ù… Ù…Ù† 12 Ø¥Ù„Ù‰ 128 Ø­Ø±ÙØ§Ù‹. Ø³Ù†Ø±Ø³Ù„ Ø¥Ù„ÙŠÙƒ Ø±Ø§Ø¨Ø· ØªØ­Ù‚Ù‚ Ø¨Ø¹Ø¯ Ø§Ù„ØªØ³Ø¬ÙŠÙ„.",
-  "Already registered? Use Sign in above.": "Ù…Ø³Ø¬Ù„ Ø¨Ø§Ù„ÙØ¹Ù„ØŸ Ø§Ø³ØªØ®Ø¯Ù… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£Ø¹Ù„Ø§Ù‡.",
-  "First time using email and password? Use Create account above.": "Ø£ÙˆÙ„ Ù…Ø±Ø© ØªØ³ØªØ®Ø¯Ù… Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±ØŸ Ø§Ø³ØªØ®Ø¯Ù… Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø£Ø¹Ù„Ø§Ù‡.",
-  "Forgot password?": "Ù‡Ù„ Ù†Ø³ÙŠØª ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±ØŸ",
-  "Account created. Check your email to verify your address, then sign in with your password.": "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨. ØªØ­Ù‚Ù‚ Ù…Ù† Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù„ØªØ£ÙƒÙŠØ¯ Ø¹Ù†ÙˆØ§Ù†ÙƒØŒ Ø«Ù… Ø³Ø¬Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±.",
-  "Sample guide views for the week": "Ù…Ø´Ø§Ù‡Ø¯Ø§Øª Ø§Ù„Ø¯Ù„ÙŠÙ„ Ù„Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ (Ù…Ø«Ø§Ù„)",
-  "Overview": "Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø©",
-  "Properties": "Ø§Ù„Ø¹Ù‚Ø§Ø±Ø§Øª",
-  "Guest inbox": "Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ø¶ÙŠÙˆÙ",
-  "Extras & upsells": "Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª ÙˆØ§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ø¥Ø¶Ø§ÙÙŠØ©",
-  "Analytics": "Ø§Ù„Ø¥Ø­ØµØ§Ø¡Ø§Øª",
-  "Share kit": "Ø£Ø¯ÙˆØ§Øª Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ©",
-  "Plans & billing": "Ø§Ù„Ø®Ø·Ø· ÙˆØ§Ù„ÙÙˆØªØ±Ø©",
-  "Settings": "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª",
-  "Guide editor": "Ù…Ø­Ø±Ø± Ø§Ù„Ø¯Ù„ÙŠÙ„",
-  "WORKSPACE": "Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„",
-  "Workspace": "Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„",
-  "Host workspace": "Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ù…Ø¶ÙŠÙ",
-  "Close navigation": "Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©",
-  "Open navigation": "ÙØªØ­ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©",
-  "A little more possibility.": "Ø¥Ù…ÙƒØ§Ù†ÙŠØ§Øª Ø£ÙƒØ«Ø± Ù‚Ù„ÙŠÙ„Ù‹Ø§.",
-  "More properties. More AI answers.": "Ø¹Ù‚Ø§Ø±Ø§Øª Ø£ÙƒØ«Ø±. Ø¥Ø¬Ø§Ø¨Ø§Øª Ø°ÙƒÙŠØ© Ø£ÙƒØ«Ø±.",
-  "Even better guest experiences.": "ØªØ¬Ø§Ø±Ø¨ Ø£ÙØ¶Ù„ Ù„Ù„Ø¶ÙŠÙˆÙ.",
-  "Explore Pro": "Ø§ÙƒØªØ´Ù Pro",
-  "Workspace owner": "Ù…Ø§Ù„Ùƒ Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„",
-  "Demo host account": "Ø­Ø³Ø§Ø¨ Ù…Ø¶ÙŠÙ ØªØ¬Ø±ÙŠØ¨ÙŠ",
-  "Workspace owner Â· Demo": "Ù…Ø§Ù„Ùƒ Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„ Â· ØªØ¬Ø±ÙŠØ¨ÙŠ",
-  "Workspace owner Â· {email}": "Ù…Ø§Ù„Ùƒ Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„ Â· {email}",
-  "SAVINGâ€¦": "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸â€¦",
-  "NOT SAVED Â· RETRYING ON NEXT EDIT": "Ù„Ù… ÙŠÙØ­ÙØ¸ Â· Ø³ØªØªÙ… Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ø¹Ù†Ø¯ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„ØªØ§Ù„ÙŠ",
-  "ALL CHANGES SAVED": "ØªÙ… Ø­ÙØ¸ ÙƒÙ„ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª",
-  "DEMO WORKSPACE": "Ù…Ø³Ø§Ø­Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ©",
-  "Sign in": "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„",
-  "View guest experience": "Ø¹Ø±Ø¶ ØªØ¬Ø±Ø¨Ø© Ø§Ù„Ø¶ÙŠÙ",
-  "Toggle dark mode": "ØªØ¨Ø¯ÙŠÙ„ Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø§ÙƒÙ†",
-  "Guest notifications": "Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ø¶ÙŠÙˆÙ",
-  "Signed in as {email}. Click to sign out.": "Ù…Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø§Ø³Ù… {email}. Ø§Ø¶ØºØ· Ù„ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬.",
-  "Sign out {email}": "ØªØ³Ø¬ÙŠÙ„ Ø®Ø±ÙˆØ¬ {email}",
-  "Language": "Ø§Ù„Ù„ØºØ©",
-  "Made for thoughtful hosts. Built for memorable stays.": "ØµÙÙ…Ù‘Ù… Ù„Ù„Ù…Ø¶ÙŠÙÙŠÙ† Ø§Ù„Ù…Ù‡ØªÙ…ÙŠÙ† Ø¨Ø§Ù„ØªÙØ§ØµÙŠÙ„. ÙˆØ¨ÙÙ†ÙŠ Ù„Ø¥Ù‚Ø§Ù…Ø§Øª Ù„Ø§ ØªÙÙ†Ø³Ù‰.",
-  "Demo data Â· Saved on this device": "Ø¨ÙŠØ§Ù†Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ© Â· Ù…Ø­ÙÙˆØ¸Ø© Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø²",
-  "Saved securely online": "Ù…Ø­ÙÙˆØ¸ Ø¨Ø£Ù…Ø§Ù† Ø¹Ø¨Ø± Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª",
-  "Close dialog": "Ø¥ØºÙ„Ø§Ù‚",
-  "YOUR LITTLE HOSTING HEADQUARTERS": "Ù…Ø±ÙƒØ² Ø¶ÙŠØ§ÙØªÙƒ Ø§Ù„ØµØºÙŠØ±",
-  "Good things start with a": "Ø§Ù„Ø£Ø´ÙŠØ§Ø¡ Ø§Ù„Ø¬Ù…ÙŠÙ„Ø© ØªØ¨Ø¯Ø£ Ù…Ø¹",
-  "great stay.": "Ø¥Ù‚Ø§Ù…Ø© Ø±Ø§Ø¦Ø¹Ø©.",
-  "Welcome back, {name}. Hereâ€™s how your properties are doing.": "Ø£Ù‡Ù„Ù‹Ø§ Ø¨Ø¹ÙˆØ¯ØªÙƒ ÙŠØ§ {name}. Ø¥Ù„ÙŠÙƒ Ø£Ø¯Ø§Ø¡ Ø¹Ù‚Ø§Ø±Ø§ØªÙƒ.",
-  "Demo month": "Ø´Ù‡Ø± ØªØ¬Ø±ÙŠØ¨ÙŠ",
-  "LESS MANAGING. MORE HOSTING.": "Ø¥Ø¯Ø§Ø±Ø© Ø£Ù‚Ù„. Ø¶ÙŠØ§ÙØ© Ø£ÙƒØ«Ø±.",
-  "A thoughtful stay,": "Ø¥Ù‚Ø§Ù…Ø© Ù…Ø¯Ø±ÙˆØ³Ø©ØŒ",
-  "without the extra work.": "Ø¨Ù„Ø§ Ø¹Ù…Ù„ Ø¥Ø¶Ø§ÙÙŠ.",
-  "Your guides handle the little questions.": "Ø£Ø¯Ù„ØªÙƒ ØªØ¬ÙŠØ¨ Ø¹Ù† Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„ØµØºÙŠØ±Ø©.",
-  "You focus on making guests feel at home.": "ÙˆØ£Ù†Øª ØªÙ‡ØªÙ… Ø¨Ø£Ù† ÙŠØ´Ø¹Ø± Ø¶ÙŠÙˆÙÙƒ ÙˆÙƒØ£Ù†Ù‡Ù… ÙÙŠ Ø¨ÙŠØªÙ‡Ù….",
-  "Create a guide": "Ø£Ù†Ø´Ø¦ Ø¯Ù„ÙŠÙ„Ù‹Ø§",
-  "YOUR HOME AWAY FROM HOME": "Ø¨ÙŠØªÙƒ Ø¨Ø¹ÙŠØ¯Ù‹Ø§ Ø¹Ù† Ø§Ù„Ø¨ÙŠØª",
-  "OlÃ¡, welcome home.": "Ù…Ø±Ø­Ø¨Ù‹Ø§ØŒ Ø£Ù‡Ù„Ù‹Ø§ Ø¨Ùƒ ÙÙŠ Ø¨ÙŠØªÙƒ.",
-  "Wi-Fi": "ÙˆØ§ÙŠ ÙØ§ÙŠ",
-  "Explore": "Ø§Ø³ØªÙƒØ´Ù",
-  "Your stay": "Ø¥Ù‚Ø§Ù…ØªÙƒ",
-  "Little extras": "Ø¥Ø¶Ø§ÙØ§Øª",
-  "Happy guests. Happy host.": "Ø¶ÙŠÙˆÙ Ø³Ø¹Ø¯Ø§Ø¡. Ù…Ø¶ÙŠÙ Ø³Ø¹ÙŠØ¯.",
-  "Thoughtful details, all in one place.": "ÙƒÙ„ Ø§Ù„ØªÙØ§ØµÙŠÙ„ ÙÙŠ Ù…ÙƒØ§Ù† ÙˆØ§Ø­Ø¯.",
-  "Guide views": "Ù…Ø´Ø§Ù‡Ø¯Ø§Øª Ø§Ù„Ø¯Ù„ÙŠÙ„",
-  "AI conversations": "Ù…Ø­Ø§Ø¯Ø«Ø§Øª Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ",
-  "Extras revenue": "Ø¥ÙŠØ±Ø§Ø¯Ø§Øª Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª",
-  "Happy guests": "Ø¶ÙŠÙˆÙ Ø±Ø§Ø¶ÙˆÙ†",
-  "vs. previous month": "Ù…Ù‚Ø§Ø±Ù†Ø© Ø¨Ø§Ù„Ø´Ù‡Ø± Ø§Ù„Ø³Ø§Ø¨Ù‚",
-  "answered without you": "Ø£ÙØ¬ÙŠØ¨ Ø¹Ù†Ù‡Ø§ Ø¯ÙˆÙ†Ùƒ",
-  "average guest rating": "Ù…ØªÙˆØ³Ø· ØªÙ‚ÙŠÙŠÙ… Ø§Ù„Ø¶ÙŠÙˆÙ",
-  "Your properties": "Ø¹Ù‚Ø§Ø±Ø§ØªÙƒ",
-  "{n} little places. Endless possibilities.": "{n} Ø£Ù…Ø§ÙƒÙ† ØµØºÙŠØ±Ø©. Ø¥Ù…ÙƒØ§Ù†ÙŠØ§Øª Ù„Ø§ ØªÙ†ØªÙ‡ÙŠ.",
-  "View all properties": "Ø¹Ø±Ø¶ ÙƒÙ„ Ø§Ù„Ø¹Ù‚Ø§Ø±Ø§Øª",
-  "Around your properties": "Ù…Ø§ ÙŠØ­Ø¯Ø« ÙÙŠ Ø¹Ù‚Ø§Ø±Ø§ØªÙƒ",
-  "View inbox": "Ø¹Ø±Ø¶ Ø§Ù„Ø±Ø³Ø§Ø¦Ù„",
-  "A slower goodbye, booked.": "Ù…ØºØ§Ø¯Ø±Ø© Ù…ØªØ£Ù†ÙŠØ©ØŒ ØªÙ… Ø­Ø¬Ø²Ù‡Ø§.",
-  "Late checkout": "Ù…ØºØ§Ø¯Ø±Ø© Ù…ØªØ£Ø®Ø±Ø©",
-  "One less question on your plate.": "Ø³Ø¤Ø§Ù„ Ø£Ù‚Ù„ Ø¹Ù„ÙŠÙƒ.",
-  "Wi-Fi details shared by concierge": "Ø´Ø§Ø±Ùƒ Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ÙˆØ§ÙŠ ÙØ§ÙŠ",
-  "A warm welcome, delivered.": "ØªØ±Ø­ÙŠØ¨ Ø¯Ø§ÙØ¦ØŒ ØªÙ… Ø¥ÙŠØµØ§Ù„Ù‡.",
-  "A guest opened their guide": "ÙØªØ­ Ø¶ÙŠÙ Ø¯Ù„ÙŠÙ„Ù‡",
-  "12 min ago": "Ù‚Ø¨Ù„ 12 Ø¯Ù‚ÙŠÙ‚Ø©",
-  "34 min ago": "Ù‚Ø¨Ù„ 34 Ø¯Ù‚ÙŠÙ‚Ø©",
-  "1 hour ago": "Ù‚Ø¨Ù„ Ø³Ø§Ø¹Ø©",
-  "A LITTLE HOSTING INSPIRATION": "Ù‚Ù„ÙŠÙ„ Ù…Ù† Ø§Ù„Ø¥Ù„Ù‡Ø§Ù…",
-  "Small extras.": "Ø¥Ø¶Ø§ÙØ§Øª ØµØºÙŠØ±Ø©.",
-  "Memorable experiences.": "ØªØ¬Ø§Ø±Ø¨ Ù„Ø§ ØªÙÙ†Ø³Ù‰.",
-  "A late checkout. A local breakfast.": "Ù…ØºØ§Ø¯Ø±Ø© Ù…ØªØ£Ø®Ø±Ø©. ÙØ·ÙˆØ± Ù…Ø­Ù„ÙŠ.",
-  "Turn thoughtful touches into extra income, and give guests a stay to remember.": "Ø­ÙˆÙ‘Ù„ Ø§Ù„Ù„Ù…Ø³Ø§Øª Ø§Ù„Ù…Ø¯Ø±ÙˆØ³Ø© Ø¥Ù„Ù‰ Ø¯Ø®Ù„ Ø¥Ø¶Ø§ÙÙŠØŒ ÙˆØ§Ù…Ù†Ø­ Ø¶ÙŠÙˆÙÙƒ Ø¥Ù‚Ø§Ù…Ø© Ù„Ø§ ØªÙÙ†Ø³Ù‰.",
-  "Explore your extras": "Ø§Ø³ØªÙƒØ´Ù Ø¥Ø¶Ø§ÙØ§ØªÙƒ",
-  "Published": "Ù…Ù†Ø´ÙˆØ±",
-  "Draft": "Ù…Ø³ÙˆØ¯Ø©",
-  "Edit {name}": "ØªØ¹Ø¯ÙŠÙ„ {name}",
-  "Preview {name}": "Ù…Ø¹Ø§ÙŠÙ†Ø© {name}",
-  "Share {name}": "Ù…Ø´Ø§Ø±ÙƒØ© {name}",
-  "{name}, a welcoming holiday home": "{name}ØŒ Ù…Ù†Ø²Ù„ Ø¹Ø·Ù„Ø§Øª Ù…Ø±Ø­Ù‘Ø¨",
-  "{n} sections": "{n} Ø£Ù‚Ø³Ø§Ù…",
-  "{n} demo views": "{n} Ù…Ø´Ø§Ù‡Ø¯Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ©",
-  "{n} chats": "{n} Ù…Ø­Ø§Ø¯Ø«Ø§Øª",
-  "Made with a little extra care": "ØµÙÙ†Ø¹ Ø¨Ø¹Ù†Ø§ÙŠØ© Ø®Ø§ØµØ©",
-  "Edit guide": "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø¯Ù„ÙŠÙ„",
-  "Beautiful places deserve a thoughtful welcome.": "Ø§Ù„Ø£Ù…Ø§ÙƒÙ† Ø§Ù„Ø¬Ù…ÙŠÙ„Ø© ØªØ³ØªØ­Ù‚ ØªØ±Ø­ÙŠØ¨Ù‹Ø§ Ù…Ø¯Ø±ÙˆØ³Ù‹Ø§.",
-  "Add property": "Ø¥Ø¶Ø§ÙØ© Ø¹Ù‚Ø§Ø±",
-  "Search properties": "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ø¹Ù‚Ø§Ø±Ø§Øª",
-  "Find a little placeâ€¦": "Ø§Ø¨Ø­Ø« Ø¹Ù† Ø¹Ù‚Ø§Ø±â€¦",
-  "All": "Ø§Ù„ÙƒÙ„",
-  "No properties here yet": "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù‚Ø§Ø±Ø§Øª Ø¨Ø¹Ø¯",
-  "Create a property or try another search.": "Ø£Ù†Ø´Ø¦ Ø¹Ù‚Ø§Ø±Ù‹Ø§ Ø£Ùˆ Ø¬Ø±Ù‘Ø¨ Ø¨Ø­Ø«Ù‹Ø§ Ø¢Ø®Ø±.",
-  "Add a property": "Ø¥Ø¶Ø§ÙØ© Ø¹Ù‚Ø§Ø±",
-  "A little local knowledge goes a long way.": "Ø§Ù„Ù‚Ù„ÙŠÙ„ Ù…Ù† Ø§Ù„Ù…Ø¹Ø±ÙØ© Ø§Ù„Ù…Ø­Ù„ÙŠØ© ÙŠØµÙ†Ø¹ ÙØ±Ù‚Ù‹Ø§ ÙƒØ¨ÙŠØ±Ù‹Ø§.",
-  "Guest preview": "Ù…Ø¹Ø§ÙŠÙ†Ø© Ø§Ù„Ø¶ÙŠÙ",
-  "Delete": "Ø­Ø°Ù",
-  "Delete {name} and its guide? This cannot be undone.": "Ø­Ø°Ù {name} ÙˆØ¯Ù„ÙŠÙ„Ù‡ØŸ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù† Ø°Ù„Ùƒ.",
-  "Property deleted.": "ØªÙ… Ø­Ø°Ù Ø§Ù„Ø¹Ù‚Ø§Ø±.",
-  "Couldnâ€™t delete the property. Please try again.": "ØªØ¹Ø°Ù‘Ø± Ø­Ø°Ù Ø§Ù„Ø¹Ù‚Ø§Ø±. ÙŠÙØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
-  "Select property to edit": "Ø§Ø®ØªØ± Ø§Ù„Ø¹Ù‚Ø§Ø± Ù„ØªØ¹Ø¯ÙŠÙ„Ù‡",
-  "Saved on this device": "Ù…Ø­ÙÙˆØ¸ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø²",
-  "Guide moved to draft.": "Ø£ØµØ¨Ø­ Ø§Ù„Ø¯Ù„ÙŠÙ„ Ù…Ø³ÙˆØ¯Ø©.",
-  "Guide published. Guests can open it now.": "ØªÙ… Ù†Ø´Ø± Ø§Ù„Ø¯Ù„ÙŠÙ„. ÙŠÙ…ÙƒÙ† Ù„Ù„Ø¶ÙŠÙˆÙ ÙØªØ­Ù‡ Ø§Ù„Ø¢Ù†.",
-  "Demo guide published on this device.": "ØªÙ… Ù†Ø´Ø± Ø§Ù„Ø¯Ù„ÙŠÙ„ Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø².",
-  "Unpublish": "Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ù†Ø´Ø±",
-  "Publish guide": "Ù†Ø´Ø± Ø§Ù„Ø¯Ù„ÙŠÙ„",
-  "Property details": "ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø¹Ù‚Ø§Ø±",
-  "Shown to guests and used by the concierge. Changes save automatically.": "ØªØ¸Ù‡Ø± Ù„Ù„Ø¶ÙŠÙˆÙ ÙˆÙŠØ³ØªØ®Ø¯Ù…Ù‡Ø§ Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯. ØªÙØ­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§.",
-  "Street address": "Ø§Ù„Ø¹Ù†ÙˆØ§Ù†",
-  "City, country": "Ø§Ù„Ù…Ø¯ÙŠÙ†Ø©ØŒ Ø§Ù„Ø¯ÙˆÙ„Ø©",
-  "Check-in time": "ÙˆÙ‚Øª Ø§Ù„ÙˆØµÙˆÙ„",
-  "Checkout time": "ÙˆÙ‚Øª Ø§Ù„Ù…ØºØ§Ø¯Ø±Ø©",
-  "Wi-Fi network": "Ø´Ø¨ÙƒØ© Ø§Ù„ÙˆØ§ÙŠ ÙØ§ÙŠ",
-  "Wi-Fi password": "ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø§Ù„ÙˆØ§ÙŠ ÙØ§ÙŠ",
-  "Host phone": "Ù‡Ø§ØªÙ Ø§Ù„Ù…Ø¶ÙŠÙ",
-  "A new little detail": "ØªÙØµÙŠÙ„ Ø¬Ø¯ÙŠØ¯",
-  "Add section": "Ø¥Ø¶Ø§ÙØ© Ù‚Ø³Ù…",
-  "Make it feel like you.": "Ø§Ø¬Ø¹Ù„Ù‡ ÙŠØ¹Ø¨Ù‘Ø± Ø¹Ù†Ùƒ.",
-  "Write": "ÙƒØªØ§Ø¨Ø©",
-  "Preview": "Ù…Ø¹Ø§ÙŠÙ†Ø©",
-  "Section title": "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ù‚Ø³Ù…",
-  "Icon": "Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø©",
-  "Your local knowledge": "Ù†ØµØ§Ø¦Ø­Ùƒ",
-  "All the details that make a stay effortless. Markdown is welcome.": "ÙƒÙ„ Ø§Ù„ØªÙØ§ØµÙŠÙ„ Ù„Ø¥Ù‚Ø§Ù…Ø© Ø³Ù‡Ù„Ø©. ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ø³ØªØ®Ø¯Ø§Ù… Markdown.",
-  "Use **bold**, bullet lists, and links. Drag sections to reorder, or use the arrow buttons.": "Ø§Ø³ØªØ®Ø¯Ù… **Ø§Ù„Ø®Ø· Ø§Ù„Ø¹Ø±ÙŠØ¶** ÙˆØ§Ù„Ù‚ÙˆØ§Ø¦Ù… ÙˆØ§Ù„Ø±ÙˆØ§Ø¨Ø·. Ø§Ø³Ø­Ø¨ Ø§Ù„Ø£Ù‚Ø³Ø§Ù… Ù„Ø¥Ø¹Ø§Ø¯Ø© ØªØ±ØªÙŠØ¨Ù‡Ø§ Ø£Ùˆ Ø§Ø³ØªØ®Ø¯Ù… Ø§Ù„Ø£Ø³Ù‡Ù….",
-  "Move section up": "Ù†Ù‚Ù„ Ø§Ù„Ù‚Ø³Ù… Ù„Ø£Ø¹Ù„Ù‰",
-  "Move section down": "Ù†Ù‚Ù„ Ø§Ù„Ù‚Ø³Ù… Ù„Ø£Ø³ÙÙ„",
-  "All changes are saved automatically on this device.": "ØªÙØ­ÙØ¸ ÙƒÙ„ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø².",
-  "All changes are saved automatically.": "ØªÙØ­ÙØ¸ ÙƒÙ„ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§.",
-  "Save changes": "Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª",
-  "Demo editor Â· Changes are stored in this browser. Sign in to save guides online and share them with real guests.": "Ù…Ø­Ø±Ø± ØªØ¬Ø±ÙŠØ¨ÙŠ Â· ØªÙØ­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ù…ØªØµÙØ­. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ø­ÙØ¸ Ø£Ø¯Ù„ØªÙƒ Ø¹Ø¨Ø± Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª ÙˆÙ…Ø´Ø§Ø±ÙƒØªÙ‡Ø§ Ù…Ø¹ Ø¶ÙŠÙˆÙ Ø­Ù‚ÙŠÙ‚ÙŠÙŠÙ†.",
-  "A little human touch": "Ù„Ù…Ø³Ø© Ø¥Ù†Ø³Ø§Ù†ÙŠØ©",
-  "Your concierge takes care of the everyday. You take care of the rest.": "ÙŠÙ‡ØªÙ… Ù…Ø³Ø§Ø¹Ø¯Ùƒ Ø¨Ø§Ù„Ø£Ù…ÙˆØ± Ø§Ù„ÙŠÙˆÙ…ÙŠØ©. ÙˆØªÙ‡ØªÙ… Ø£Ù†Øª Ø¨Ø§Ù„Ø¨Ø§Ù‚ÙŠ.",
-  "Needs your help": "ÙŠØ­ØªØ§Ø¬ Ù…Ø³Ø§Ø¹Ø¯ØªÙƒ",
-  "Sample conversation": "Ù…Ø­Ø§Ø¯Ø«Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ©",
-  "The concierge couldnâ€™t find this answer in the guide and passed it to you.": "Ù„Ù… ÙŠØ¬Ø¯ Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© ÙÙŠ Ø§Ù„Ø¯Ù„ÙŠÙ„ ÙØ£Ø­Ø§Ù„ Ø§Ù„Ø³Ø¤Ø§Ù„ Ø¥Ù„ÙŠÙƒ.",
-  "Reply saved in the demo. No guest message was sent.": "ØªÙ… Ø­ÙØ¸ Ø§Ù„Ø±Ø¯ ÙÙŠ Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠØ©. Ù„Ù… ØªÙØ±Ø³Ù„ Ø£ÙŠ Ø±Ø³Ø§Ù„Ø©.",
-  "Reply to guest": "Ø§Ù„Ø±Ø¯ Ø¹Ù„Ù‰ Ø§Ù„Ø¶ÙŠÙ",
-  "A thoughtful replyâ€¦": "Ø±Ø¯Ù‘ Ù„Ø·ÙŠÙâ€¦",
-  "Send demo reply": "Ø¥Ø±Ø³Ø§Ù„ Ø±Ø¯ ØªØ¬Ø±ÙŠØ¨ÙŠ",
-  "Needs your help only": "ÙÙ‚Ø· Ù…Ø§ ÙŠØ­ØªØ§Ø¬ Ù…Ø³Ø§Ø¹Ø¯ØªÙƒ",
-  "Couldnâ€™t load conversations. Retryingâ€¦": "ØªØ¹Ø°Ù‘Ø± ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø§Øª. Ø¬Ø§Ø±Ù Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©â€¦",
-  "Loading conversationsâ€¦": "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø§Øªâ€¦",
-  "All quiet for now": "ÙƒÙ„ Ø´ÙŠØ¡ Ù‡Ø§Ø¯Ø¦ Ø§Ù„Ø¢Ù†",
-  "When a guest asks something your guide doesnâ€™t answer, the conversation appears here so you can reply.": "Ø¹Ù†Ø¯Ù…Ø§ ÙŠØ³Ø£Ù„ Ø¶ÙŠÙ Ø¹Ù† Ø´ÙŠØ¡ Ù„Ø§ ÙŠØ¬ÙŠØ¨ Ø¹Ù†Ù‡ Ø¯Ù„ÙŠÙ„ÙƒØŒ ØªØ¸Ù‡Ø± Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø© Ù‡Ù†Ø§ Ù„ØªØªÙ…ÙƒÙ† Ù…Ù† Ø§Ù„Ø±Ø¯.",
-  "Guest": "Ø¶ÙŠÙ",
-  "You": "Ø£Ù†Øª",
-  "Concierge": "Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯",
-  "Reply sent. The guest sees it in their guide chat.": "ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø±Ø¯. Ø³ÙŠØ±Ø§Ù‡ Ø§Ù„Ø¶ÙŠÙ ÙÙŠ Ù…Ø­Ø§Ø¯Ø«Ø© Ø¯Ù„ÙŠÙ„Ù‡.",
-  "Couldnâ€™t send your reply. Please try again.": "ØªØ¹Ø°Ù‘Ø± Ø¥Ø±Ø³Ø§Ù„ Ø±Ø¯Ùƒ. ÙŠÙØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
-  "Send reply": "Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø±Ø¯",
-  "The little extras": "Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª Ø§Ù„ØµØºÙŠØ±Ø©",
-  "Thoughtful touches for guests. A little more income for you.": "Ù„Ù…Ø³Ø§Øª Ù…Ø¯Ø±ÙˆØ³Ø© Ù„Ù„Ø¶ÙŠÙˆÙ. ÙˆØ¯Ø®Ù„ Ø¥Ø¶Ø§ÙÙŠ Ù„Ùƒ.",
-  "Create extra": "Ø¥Ù†Ø´Ø§Ø¡ Ø¥Ø¶Ø§ÙØ©",
-  "Demo catalog Â· Sign in to receive real guest requests for your extras.": "ÙƒØªØ§Ù„ÙˆØ¬ ØªØ¬Ø±ÙŠØ¨ÙŠ Â· Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„ØªÙ„Ù‚ÙŠ Ø·Ù„Ø¨Ø§Øª Ø­Ù‚ÙŠÙ‚ÙŠØ© Ù„Ø¥Ø¶Ø§ÙØ§ØªÙƒ.",
-  "per stay": "Ù„ÙƒÙ„ Ø¥Ù‚Ø§Ù…Ø©",
-  "Host approval required": "ÙŠØªØ·Ù„Ø¨ Ù…ÙˆØ§ÙÙ‚Ø© Ø§Ù„Ù…Ø¶ÙŠÙ",
-  "Instant purchase": "Ø´Ø±Ø§Ø¡ ÙÙˆØ±ÙŠ",
-  "See guest experience": "Ø¹Ø±Ø¶ ØªØ¬Ø±Ø¨Ø© Ø§Ù„Ø¶ÙŠÙ",
-  "Payment captured. The money is on its way to your bank.": "ØªÙ… ØªØ­ØµÙŠÙ„ Ø§Ù„Ø¯ÙØ¹Ø©. Ø§Ù„Ù…Ø§Ù„ ÙÙŠ Ø·Ø±ÙŠÙ‚Ù‡ Ø¥Ù„Ù‰ Ø­Ø³Ø§Ø¨Ùƒ Ø§Ù„Ø¨Ù†ÙƒÙŠ.",
-  "Request approved. Let your guest know how to pay.": "ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø·Ù„Ø¨. Ø£Ø®Ø¨Ø± Ø§Ù„Ø¶ÙŠÙ Ø¨Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¯ÙØ¹.",
-  "Request declined. Any card hold has been released.": "ØªÙ… Ø±ÙØ¶ Ø§Ù„Ø·Ù„Ø¨. ØªÙ… Ø¥Ù„ØºØ§Ø¡ Ø£ÙŠ Ø­Ø¬Ø² Ø¹Ù„Ù‰ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©.",
-  "Refund issued to the guest.": "ØªÙ… Ø¥ØµØ¯Ø§Ø± Ø§Ø³ØªØ±Ø¯Ø§Ø¯ Ù„Ù„Ø¶ÙŠÙ.",
-  "Request updated.": "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø·Ù„Ø¨.",
-  "Couldnâ€™t update the request.": "ØªØ¹Ø°Ù‘Ø± ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø·Ù„Ø¨.",
-  "Guest requests": "Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ø¶ÙŠÙˆÙ",
-  "Refresh requests": "ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø·Ù„Ø¨Ø§Øª",
-  "Loading requestsâ€¦": "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø·Ù„Ø¨Ø§Øªâ€¦",
-  "No requests yet. Guests can request extras from the â€œLittle extrasâ€ tab of your guide.": "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø·Ù„Ø¨Ø§Øª Ø¨Ø¹Ø¯. ÙŠÙ…ÙƒÙ† Ù„Ù„Ø¶ÙŠÙˆÙ Ø·Ù„Ø¨ Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª Ù…Ù† ØªØ¨ÙˆÙŠØ¨ Â«Ø¥Ø¶Ø§ÙØ§ØªÂ» ÙÙŠ Ø¯Ù„ÙŠÙ„Ùƒ.",
-  "pending": "Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±",
-  "approved": "Ù…Ù‚Ø¨ÙˆÙ„",
-  "declined": "Ù…Ø±ÙÙˆØ¶",
-  "paid": "Ù…Ø¯ÙÙˆØ¹",
-  "refunded": "Ù…Ø³ØªØ±Ø¯",
-  "card authorised": "ØªÙ… ØªÙÙˆÙŠØ¶ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©",
-  "paid online": "Ù…Ø¯ÙÙˆØ¹ Ø¹Ø¨Ø± Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª",
-  "Approve & charge": "Ù…ÙˆØ§ÙÙ‚Ø© ÙˆØªØ­ØµÙŠÙ„",
-  "Approve": "Ù…ÙˆØ§ÙÙ‚Ø©",
-  "Decline & release": "Ø±ÙØ¶ ÙˆØ¥Ù„ØºØ§Ø¡ Ø§Ù„Ø­Ø¬Ø²",
-  "Decline": "Ø±ÙØ¶",
-  "Mark as paid": "ØªØ¹Ù„ÙŠÙ… ÙƒÙ…Ø¯ÙÙˆØ¹",
-  "Refund this guest in full?": "Ø§Ø³ØªØ±Ø¯Ø§Ø¯ Ø§Ù„Ù…Ø¨Ù„Øº ÙƒØ§Ù…Ù„Ù‹Ø§ Ù„Ù‡Ø°Ø§ Ø§Ù„Ø¶ÙŠÙØŸ",
-  "Refund": "Ø§Ø³ØªØ±Ø¯Ø§Ø¯",
-  "Good stays, by the numbers": "Ø§Ù„Ø¥Ù‚Ø§Ù…Ø§Øª Ø§Ù„Ø¬ÙŠØ¯Ø© Ø¨Ø§Ù„Ø£Ø±Ù‚Ø§Ù…",
-  "A little insight into what makes your guests feel at home.": "Ù†Ø¸Ø±Ø© Ø¹Ù„Ù‰ Ù…Ø§ ÙŠØ¬Ø¹Ù„ Ø¶ÙŠÙˆÙÙƒ ÙŠØ´Ø¹Ø±ÙˆÙ† ÙˆÙƒØ£Ù†Ù‡Ù… ÙÙŠ Ø¨ÙŠØªÙ‡Ù….",
-  "Sample analytics for demonstration. Sign in to see your real numbers.": "Ø¥Ø­ØµØ§Ø¡Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ©. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ø±Ø¤ÙŠØ© Ø£Ø±Ù‚Ø§Ù…Ùƒ Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠØ©.",
-  "Guide views this week": "Ù…Ø´Ø§Ù‡Ø¯Ø§Øª Ø§Ù„Ø¯Ù„ÙŠÙ„ Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹",
-  "Mon": "Ø§Ù„Ø¥Ø«Ù†ÙŠÙ†",
-  "Tue": "Ø§Ù„Ø«Ù„Ø§Ø«Ø§Ø¡",
-  "Wed": "Ø§Ù„Ø£Ø±Ø¨Ø¹Ø§Ø¡",
-  "Thu": "Ø§Ù„Ø®Ù…ÙŠØ³",
-  "Fri": "Ø§Ù„Ø¬Ù…Ø¹Ø©",
-  "Sat": "Ø§Ù„Ø³Ø¨Øª",
-  "Sun": "Ø§Ù„Ø£Ø­Ø¯",
-  "The things guests ask": "Ù…Ø§ ÙŠØ³Ø£Ù„ Ø¹Ù†Ù‡ Ø§Ù„Ø¶ÙŠÙˆÙ",
-  "Wi-Fi & getting connected": "Ø§Ù„ÙˆØ§ÙŠ ÙØ§ÙŠ ÙˆØ§Ù„Ø§ØªØµØ§Ù„",
-  "Check-in & arrival": "Ø§Ù„ÙˆØµÙˆÙ„ ÙˆØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„",
-  "Local recommendations": "ØªÙˆØµÙŠØ§Øª Ù…Ø­Ù„ÙŠØ©",
-  "Check-out details": "ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…ØºØ§Ø¯Ø±Ø©",
-  "Couldnâ€™t load analytics.": "ØªØ¹Ø°Ù‘Ø± ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¥Ø­ØµØ§Ø¡Ø§Øª.",
-  "Loadingâ€¦": "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ù…ÙŠÙ„â€¦",
-  "Guide views (all time)": "Ù…Ø´Ø§Ù‡Ø¯Ø§Øª Ø§Ù„Ø¯Ù„ÙŠÙ„ (Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ)",
-  "Views, last 30 days": "Ø§Ù„Ù…Ø´Ø§Ù‡Ø¯Ø§ØªØŒ Ø¢Ø®Ø± 30 ÙŠÙˆÙ…Ù‹Ø§",
-  "Guest questions": "Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø¶ÙŠÙˆÙ",
-  "Answered without you": "Ø£ÙØ¬ÙŠØ¨ Ø¹Ù†Ù‡Ø§ Ø¯ÙˆÙ†Ùƒ",
-  "Extras approved": "Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª Ø§Ù„Ù…Ù‚Ø¨ÙˆÙ„Ø©",
-  "Extra requests": "Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª",
-  "AI messages this month": "Ø±Ø³Ø§Ø¦Ù„ Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ Ù‡Ø°Ø§ Ø§Ù„Ø´Ù‡Ø±",
-  "Questions will appear here once guests start chatting.": "Ø³ØªØ¸Ù‡Ø± Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ù‡Ù†Ø§ Ø¹Ù†Ø¯Ù…Ø§ ÙŠØ¨Ø¯Ø£ Ø§Ù„Ø¶ÙŠÙˆÙ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø©.",
-  "A warm welcome, shared": "ØªØ±Ø­ÙŠØ¨ Ø¯Ø§ÙØ¦ØŒ ØªÙ…Øª Ù…Ø´Ø§Ø±ÙƒØªÙ‡",
-  "One little link. Everything your guests need.": "Ø±Ø§Ø¨Ø· ÙˆØ§Ø­Ø¯. ÙƒÙ„ Ù…Ø§ ÙŠØ­ØªØ§Ø¬Ù‡ Ø¶ÙŠÙˆÙÙƒ.",
-  "Your property": "Ø¹Ù‚Ø§Ø±Ùƒ",
-  "Send a little hello": "Ø£Ø±Ø³Ù„ ØªØ­ÙŠØ©",
-  "Add your guest guide to a welcome message or booking confirmation.": "Ø£Ø¶Ù Ø¯Ù„ÙŠÙ„ Ø¶ÙŠÙˆÙÙƒ Ø¥Ù„Ù‰ Ø±Ø³Ø§Ù„Ø© ØªØ±Ø­ÙŠØ¨ Ø£Ùˆ ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø¬Ø².",
-  "Guest guide link": "Ø±Ø§Ø¨Ø· Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¶ÙŠÙ",
-  "Copy guest link": "Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·",
-  "Guest link copied.": "ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·.",
-  "Select the link and copy it manually.": "Ø­Ø¯Ù‘Ø¯ Ø§Ù„Ø±Ø§Ø¨Ø· ÙˆØ§Ù†Ø³Ø®Ù‡ ÙŠØ¯ÙˆÙŠÙ‹Ø§.",
-  "Weâ€™re looking forward to welcoming you to {name}! Hereâ€™s your personal guide with everything you need for a lovely stay: {link}\nSafe travels â€” see you soon!": "Ù†ØªØ·Ù„Ø¹ Ø¥Ù„Ù‰ Ø§Ø³ØªÙ‚Ø¨Ø§Ù„Ùƒ ÙÙŠ {name}! Ø¥Ù„ÙŠÙƒ Ø¯Ù„ÙŠÙ„Ùƒ Ø§Ù„Ø´Ø®ØµÙŠ Ù…Ø¹ ÙƒÙ„ Ù…Ø§ ØªØ­ØªØ§Ø¬Ù‡ Ù„Ø¥Ù‚Ø§Ù…Ø© Ø±Ø§Ø¦Ø¹Ø©: {link}\nØ±Ø­Ù„Ø© Ø³Ø¹ÙŠØ¯Ø© â€” Ù†Ø±Ø§Ùƒ Ù‚Ø±ÙŠØ¨Ù‹Ø§!",
-  "Welcome message copied.": "ØªÙ… Ù†Ø³Ø® Ø±Ø³Ø§Ù„Ø© Ø§Ù„ØªØ±Ø­ÙŠØ¨.",
-  "Clipboard unavailable in this browser.": "Ø§Ù„Ø­Ø§ÙØ¸Ø© ØºÙŠØ± Ù…ØªØ§Ø­Ø© ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ù…ØªØµÙØ­.",
-  "Copy welcome message": "Ù†Ø³Ø® Ø±Ø³Ø§Ù„Ø© Ø§Ù„ØªØ±Ø­ÙŠØ¨",
-  "Local demo changes are visible on this device only. A QR code for a sample property works on any device.": "ØªØºÙŠÙŠØ±Ø§Øª Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠØ© ØªØ¸Ù‡Ø± Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø² ÙÙ‚Ø·. Ø±Ù…Ø² QR Ù„Ø¹Ù‚Ø§Ø± ØªØ¬Ø±ÙŠØ¨ÙŠ ÙŠØ¹Ù…Ù„ Ø¹Ù„Ù‰ Ø£ÙŠ Ø¬Ù‡Ø§Ø².",
-  "Make yourself at home.": "Ø§Ù„Ø¨ÙŠØª Ø¨ÙŠØªÙƒ.",
-  "Your guide to a lovely stay at {name}.": "Ø¯Ù„ÙŠÙ„Ùƒ Ù„Ø¥Ù‚Ø§Ù…Ø© Ø¬Ù…ÙŠÙ„Ø© ÙÙŠ {name}.",
-  "Scan for all the little details.": "Ø§Ù…Ø³Ø­ Ø§Ù„Ø±Ù…Ø² Ù„ÙƒÙ„ Ø§Ù„ØªÙØ§ØµÙŠÙ„.",
-  "QR code for {name}": "Ø±Ù…Ø² QR Ù„Ù€ {name}",
-  "Generate QR card": "Ø¥Ù†Ø´Ø§Ø¡ Ø¨Ø·Ø§Ù‚Ø© QR",
-  "Print / save PDF": "Ø·Ø¨Ø§Ø¹Ø© / Ø­ÙØ¸ PDF",
-  "A plan for every kind of host": "Ø®Ø·Ø© Ù„ÙƒÙ„ Ù…Ø¶ÙŠÙ",
-  "Simple, per-property pricing. More time for what you love.": "Ø£Ø³Ø¹Ø§Ø± Ø¨Ø³ÙŠØ·Ø© Ù„ÙƒÙ„ Ø¹Ù‚Ø§Ø±. ÙˆÙ‚Øª Ø£ÙƒØ«Ø± Ù„Ù…Ø§ ØªØ­Ø¨.",
-  "Properties: {n}": "Ø§Ù„Ø¹Ù‚Ø§Ø±Ø§Øª: {n}",
-  "Monthly": "Ø´Ù‡Ø±ÙŠ",
-  "Yearly Â· 2 months free": "Ø³Ù†ÙˆÙŠ Â· Ø´Ù‡Ø±Ø§Ù† Ù…Ø¬Ø§Ù†Ù‹Ø§",
-  "Free": "Ù…Ø¬Ø§Ù†ÙŠ",
-  "A thoughtful beginning": "Ø¨Ø¯Ø§ÙŠØ© Ù…Ø¯Ø±ÙˆØ³Ø©",
-  "For the independent host": "Ù„Ù„Ù…Ø¶ÙŠÙ Ø§Ù„Ù…Ø³ØªÙ‚Ù„",
-  "Your hospitality, elevated": "Ø¶ÙŠØ§ÙØªÙƒ Ø¨Ù…Ø³ØªÙˆÙ‰ Ø£Ø¹Ù„Ù‰",
-  "per year": "Ø³Ù†ÙˆÙŠÙ‹Ø§",
-  "per month": "Ø´Ù‡Ø±ÙŠÙ‹Ø§",
-  "1 property": "Ø¹Ù‚Ø§Ø± ÙˆØ§Ø­Ø¯",
-  "{n} properties": "{n} Ø¹Ù‚Ø§Ø±Ø§Øª",
-  "{n} AI messages / property / month": "{n} Ø±Ø³Ø§Ù„Ø© Ø°ÙƒØ§Ø¡ Ø§ØµØ·Ù†Ø§Ø¹ÙŠ / Ø¹Ù‚Ø§Ø± / Ø´Ù‡Ø±",
-  "Beautiful offline guest guides": "Ø£Ø¯Ù„Ø© Ø¬Ù…ÙŠÙ„Ø© ØªØ¹Ù…Ù„ Ø¯ÙˆÙ† Ø§ØªØµØ§Ù„",
-  "Extras store Â· 5% platform fee": "Ù…ØªØ¬Ø± Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª Â· Ø±Ø³ÙˆÙ… Ù…Ù†ØµØ© 5Ùª",
-  "Priority support": "Ø¯Ø¹Ù… Ø°Ùˆ Ø£ÙˆÙ„ÙˆÙŠØ©",
-  "This is a demo workspace. Sign in with Google to choose a plan.": "Ù‡Ø°Ù‡ Ù…Ø³Ø§Ø­Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ©. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø­Ø³Ø§Ø¨ Google Ù„Ø§Ø®ØªÙŠØ§Ø± Ø®Ø·Ø©.",
-  "This is a demo workspace. Sign in to choose a plan.": "Ù‡Ø°Ù‡ Ù…Ø³Ø§Ø­Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ©. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ø§Ø®ØªÙŠØ§Ø± Ø®Ø·Ø©.",
-  "Try the demo": "Ø¬Ø±Ù‘Ø¨ Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠØ©",
-  "Choose {plan}": "Ø§Ø®ØªØ± {plan}",
-  "Demo workspace Â· Sign in with Google to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.": "Ù…Ø³Ø§Ø­Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ© Â· Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø­Ø³Ø§Ø¨ Google Ù„Ø§Ø®ØªÙŠØ§Ø± Ø®Ø·Ø©. Ø§Ù„Ø£Ø³Ø¹Ø§Ø± Ø¨Ù€ {code} ({symbol})ØŒ Ù…Ø¹ ÙÙˆØªØ±Ø© Ø¢Ù…Ù†Ø© Ø¹Ø¨Ø± Stripe.",
-  "Demo workspace Â· Sign in to choose a plan. Prices in {code} ({symbol}), billed securely by Stripe.": "Ù…Ø³Ø§Ø­Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ© Â· Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ø§Ø®ØªÙŠØ§Ø± Ø®Ø·Ø©. Ø§Ù„Ø£Ø³Ø¹Ø§Ø± Ø¨Ù€ {code} ({symbol})ØŒ Ù…Ø¹ ÙÙˆØªØ±Ø© Ø¢Ù…Ù†Ø© Ø¹Ø¨Ø± Stripe.",
-  "Thank you! Your plan is being activated. This can take a few seconds.": "Ø´ÙƒØ±Ù‹Ø§ Ù„Ùƒ! Ø¬Ø§Ø±Ù ØªÙØ¹ÙŠÙ„ Ø®Ø·ØªÙƒ. Ù‚Ø¯ ÙŠØ³ØªØºØ±Ù‚ Ø°Ù„Ùƒ Ø¨Ø¶Ø¹ Ø«ÙˆØ§Ù†Ù.",
-  "Checkout cancelled. Nothing was charged.": "ØªÙ… Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø¯ÙØ¹. Ù„Ù… ÙŠÙØ®ØµÙ… Ø£ÙŠ Ù…Ø¨Ù„Øº.",
-  "Payout details saved. Stripe may take a moment to verify them.": "ØªÙ… Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¯ÙØ¹. Ù‚Ø¯ ÙŠØ³ØªØºØ±Ù‚ Stripe Ù„Ø­Ø¸Ø§Øª Ù„Ù„ØªØ­Ù‚Ù‚ Ù…Ù†Ù‡Ø§.",
-  "That setup link expired. Please continue payout setup.": "Ø§Ù†ØªÙ‡Øª ØµÙ„Ø§Ø­ÙŠØ© Ø±Ø§Ø¨Ø· Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯. ÙŠÙØ±Ø¬Ù‰ Ù…ØªØ§Ø¨Ø¹Ø© Ø¥Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª.",
-  "Couldnâ€™t load billing. Please refresh the page.": "ØªØ¹Ø°Ù‘Ø± ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙÙˆØªØ±Ø©. ÙŠÙØ±Ø¬Ù‰ ØªØ­Ø¯ÙŠØ« Ø§Ù„ØµÙØ­Ø©.",
-  "Loading billingâ€¦": "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙÙˆØªØ±Ø©â€¦",
-  "Simple, per-property pricing. Change or cancel any time.": "Ø£Ø³Ø¹Ø§Ø± Ø¨Ø³ÙŠØ·Ø© Ù„ÙƒÙ„ Ø¹Ù‚Ø§Ø±. ØºÙŠÙ‘Ø± Ø£Ùˆ Ø£Ù„ØºÙ ÙÙŠ Ø£ÙŠ ÙˆÙ‚Øª.",
-  "Payments are not connected on this deployment yet.": "Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª ØºÙŠØ± Ù…ØªØµÙ„Ø© Ø¨Ø¹Ø¯.",
-  "Current plan": "Ø§Ù„Ø®Ø·Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©",
-  "up to {n} on this plan": "Ø­ØªÙ‰ {n} ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ø®Ø·Ø©",
-  "Openingâ€¦": "Ø¬Ø§Ø±Ù Ø§Ù„ÙØªØ­â€¦",
-  "Manage billing": "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙÙˆØªØ±Ø©",
-  "Your last payment failed. Please update your card in â€œManage billingâ€ to keep your plan.": "ÙØ´Ù„Øª Ø¯ÙØ¹ØªÙƒ Ø§Ù„Ø£Ø®ÙŠØ±Ø©. ÙŠÙØ±Ø¬Ù‰ ØªØ­Ø¯ÙŠØ« Ø¨Ø·Ø§Ù‚ØªÙƒ Ù…Ù† Â«Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙÙˆØªØ±Ø©Â» Ù„Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨Ø®Ø·ØªÙƒ.",
-  "Your Hotel & Multi-Unit plan is managed by StayGuide and invoiced separately. Contact us to change it.": "ØªØªÙˆÙ„Ù‰ StayGuide Ø¥Ø¯Ø§Ø±Ø© Ø®Ø·Ø© Ø§Ù„ÙÙ†Ø§Ø¯Ù‚ ÙˆØ§Ù„ÙˆØ­Ø¯Ø§Øª Ø§Ù„Ù…ØªØ¹Ø¯Ø¯Ø© ÙˆØªÙÙÙˆØªØ± Ø¨Ø´ÙƒÙ„ Ù…Ù†ÙØµÙ„. ØªÙˆØ§ØµÙ„ Ù…Ø¹Ù†Ø§ Ù„ØªØºÙŠÙŠØ±Ù‡Ø§.",
-  "Billed for {n} Â· updates automatically as you add or remove properties": "Ø§Ù„ÙÙˆØªØ±Ø© Ù„Ù€ {n} Â· ØªØªØ­Ø¯Ø« ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§ Ø¹Ù†Ø¯ Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¹Ù‚Ø§Ø±Ø§Øª Ø£Ùˆ Ø­Ø°ÙÙ‡Ø§",
-  "Up to {n} properties": "Ø­ØªÙ‰ {n} Ø¹Ù‚Ø§Ø±",
-  "{n} AI concierge messages / property / month": "{n} Ø±Ø³Ø§Ù„Ø© Ù…Ù† Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ / Ø¹Ù‚Ø§Ø± / Ø´Ù‡Ø±",
-  "Paid extras Â· 5% platform fee": "Ø¥Ø¶Ø§ÙØ§Øª Ù…Ø¯ÙÙˆØ¹Ø© Â· Ø±Ø³ÙˆÙ… Ù…Ù†ØµØ© 5Ùª",
-  "Opening checkoutâ€¦": "Ø¬Ø§Ø±Ù ÙØªØ­ ØµÙØ­Ø© Ø§Ù„Ø¯ÙØ¹â€¦",
-  "{price}/property/month": "{price} / Ø¹Ù‚Ø§Ø± / Ø´Ù‡Ø±",
-  ", billed yearly": "ØŒ ÙÙˆØªØ±Ø© Ø³Ù†ÙˆÙŠØ©",
-  "Prices in {code} ({symbol}). Secure payment by Stripe. Cancel any time from â€œManage billingâ€.": "Ø§Ù„Ø£Ø³Ø¹Ø§Ø± Ø¨Ù€ {code} ({symbol}). Ø¯ÙØ¹ Ø¢Ù…Ù† Ø¹Ø¨Ø± Stripe. ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„Ø¥Ù„ØºØ§Ø¡ ÙÙŠ Ø£ÙŠ ÙˆÙ‚Øª Ù…Ù† Â«Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙÙˆØªØ±Ø©Â».",
-  "Get paid for extras": "Ø§Ø­ØµÙ„ Ø¹Ù„Ù‰ Ø£Ø±Ø¨Ø§Ø­ Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª",
-  "Active": "Ù…ÙØ¹Ù‘Ù„",
-  "Guests pay for extras by card, Apple Pay or Google Pay. Money goes straight to your bank via Stripe, minus a 5% StayGuide fee. Extras that need your approval are only charged when you approve them.": "ÙŠØ¯ÙØ¹ Ø§Ù„Ø¶ÙŠÙˆÙ Ø«Ù…Ù† Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª Ø¨Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© Ø£Ùˆ Apple Pay Ø£Ùˆ Google Pay. ÙŠØµÙ„ Ø§Ù„Ù…Ø§Ù„ Ù…Ø¨Ø§Ø´Ø±Ø© Ø¥Ù„Ù‰ Ø­Ø³Ø§Ø¨Ùƒ Ø¹Ø¨Ø± Stripe Ø¨Ø¹Ø¯ Ø®ØµÙ… Ø±Ø³ÙˆÙ… StayGuide Ø¨Ù†Ø³Ø¨Ø© 5Ùª. Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª Ø§Ù„ØªÙŠ ØªØ­ØªØ§Ø¬ Ù…ÙˆØ§ÙÙ‚ØªÙƒ Ù„Ø§ ØªÙØ®ØµÙ… Ø¥Ù„Ø§ Ø¨Ø¹Ø¯ Ù…ÙˆØ§ÙÙ‚ØªÙƒ.",
-  "Open payouts dashboard": "ÙØªØ­ Ù„ÙˆØ­Ø© Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª",
-  "Online payments for extras are coming soon. Until then, guests send requests and you confirm how they pay.": "Ø§Ù„Ø¯ÙØ¹ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù„Ù„Ø¥Ø¶Ø§ÙØ§Øª Ù‚Ø±ÙŠØ¨Ù‹Ø§. Ø­ØªÙ‰ Ø°Ù„Ùƒ Ø§Ù„Ø­ÙŠÙ†ØŒ ÙŠØ±Ø³Ù„ Ø§Ù„Ø¶ÙŠÙˆÙ Ø·Ù„Ø¨Ø§Øª ÙˆØªØ¤ÙƒØ¯ Ø£Ù†Øª Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¯ÙØ¹.",
-  "Connect a bank account with Stripe so guests can pay for extras online. Until then, guests send requests and you confirm payment yourself.": "Ø§Ø±Ø¨Ø· Ø­Ø³Ø§Ø¨Ù‹Ø§ Ø¨Ù†ÙƒÙŠÙ‹Ø§ Ø¹Ø¨Ø± Stripe Ù„ÙŠØªÙ…ÙƒÙ† Ø§Ù„Ø¶ÙŠÙˆÙ Ù…Ù† Ø¯ÙØ¹ Ø«Ù…Ù† Ø§Ù„Ø¥Ø¶Ø§ÙØ§Øª Ø¹Ø¨Ø± Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª. Ø­ØªÙ‰ Ø°Ù„Ùƒ Ø§Ù„Ø­ÙŠÙ†ØŒ ÙŠØ±Ø³Ù„ Ø§Ù„Ø¶ÙŠÙˆÙ Ø·Ù„Ø¨Ø§Øª ÙˆØªØ¤ÙƒØ¯ Ø§Ù„Ø¯ÙØ¹ Ø¨Ù†ÙØ³Ùƒ.",
-  "Country of your bank account": "Ø¯ÙˆÙ„Ø© Ø­Ø³Ø§Ø¨Ùƒ Ø§Ù„Ø¨Ù†ÙƒÙŠ",
-  "Opening Stripeâ€¦": "Ø¬Ø§Ø±Ù ÙØªØ­ Stripeâ€¦",
-  "Continue payout setup": "Ù…ØªØ§Ø¨Ø¹Ø© Ø¥Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª",
-  "Set up payouts": "Ø¥Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø§Øª",
-  "past due": "Ù…ØªØ£Ø®Ø± Ø§Ù„Ø³Ø¯Ø§Ø¯",
-  "trialing": "ÙØªØ±Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ©",
-  "canceled": "Ù…Ù„ØºØ§Ø©",
-  "unpaid": "ØºÙŠØ± Ù…Ø¯ÙÙˆØ¹Ø©",
-  "Your workspace, your way.": "Ù…Ø³Ø§Ø­ØªÙƒ Ø¹Ù„Ù‰ Ø·Ø±ÙŠÙ‚ØªÙƒ.",
-  "Workspace preferences saved on this device.": "ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªÙØ¶ÙŠÙ„Ø§Øª Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø².",
-  "Your workspace": "Ù…Ø³Ø§Ø­Ø© Ø¹Ù…Ù„Ùƒ",
-  "Your first name": "Ø§Ø³Ù…Ùƒ Ø§Ù„Ø£ÙˆÙ„",
-  "Organization name": "Ø§Ø³Ù… Ø§Ù„Ø´Ø±ÙƒØ©",
-  "Save preferences": "Ø­ÙØ¸ Ø§Ù„ØªÙØ¶ÙŠÙ„Ø§Øª",
-  "The people behind the welcome": "Ø§Ù„Ø£Ø´Ø®Ø§Øµ ÙˆØ±Ø§Ø¡ Ø§Ù„ØªØ±Ø­ÙŠØ¨",
-  "Team access for co-hosts and staff is coming soon.": "ÙˆØµÙˆÙ„ Ø§Ù„ÙØ±ÙŠÙ‚ Ù„Ù„Ù…Ø¶ÙŠÙÙŠÙ† Ø§Ù„Ù…Ø´Ø§Ø±ÙƒÙŠÙ† ÙˆØ§Ù„Ù…ÙˆØ¸ÙÙŠÙ† Ù‚Ø±ÙŠØ¨Ù‹Ø§.",
-  "This is a demo workspace saved in your browser. Sign in with Google to create your real account.": "Ù‡Ø°Ù‡ Ù…Ø³Ø§Ø­Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ© Ù…Ø­ÙÙˆØ¸Ø© ÙÙŠ Ù…ØªØµÙØ­Ùƒ. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø­Ø³Ø§Ø¨ Google Ù„Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨Ùƒ Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠ.",
-  "This is a demo workspace saved in your browser. Sign in to create your real account.": "Ù‡Ø°Ù‡ Ù…Ø³Ø§Ø­Ø© ØªØ¬Ø±ÙŠØ¨ÙŠØ© Ù…Ø­ÙÙˆØ¸Ø© ÙÙŠ Ù…ØªØµÙØ­Ùƒ. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨Ùƒ Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠ.",
-  "Switch to light mode": "Ø§Ù„ØªØ¨Ø¯ÙŠÙ„ Ø¥Ù„Ù‰ Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„ÙØ§ØªØ­",
-  "Switch to dark mode": "Ø§Ù„ØªØ¨Ø¯ÙŠÙ„ Ø¥Ù„Ù‰ Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø§ÙƒÙ†",
-  "Connect your account": "Ø§Ø±Ø¨Ø· Ø­Ø³Ø§Ø¨Ùƒ",
-  "Dashboard language": "Ù„ØºØ© Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…",
-  "A new place. A new welcome.": "Ù…ÙƒØ§Ù† Ø¬Ø¯ÙŠØ¯. ØªØ±Ø­ÙŠØ¨ Ø¬Ø¯ÙŠØ¯.",
-  "Add the basics and bring your guest guide to life.": "Ø£Ø¶Ù Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ§Øª ÙˆØ§Ø¨Ø¹Ø« Ø§Ù„Ø­ÙŠØ§Ø© ÙÙŠ Ø¯Ù„ÙŠÙ„ Ø¶ÙŠÙˆÙÙƒ.",
-  "Property name": "Ø§Ø³Ù… Ø§Ù„Ø¹Ù‚Ø§Ø±",
-  "Optional Â· used for â€œOpen in Mapsâ€": "Ø§Ø®ØªÙŠØ§Ø±ÙŠ Â· ÙŠÙØ³ØªØ®Ø¯Ù… Ù„Ù€ Â«Ø§ÙØªØ­ ÙÙŠ Ø§Ù„Ø®Ø±Ø§Ø¦Ø·Â»",
-  "Your house manual": "Ø¯Ù„ÙŠÙ„ Ù…Ù†Ø²Ù„Ùƒ",
-  "Optional Â· Only content you own": "Ø§Ø®ØªÙŠØ§Ø±ÙŠ Â· Ù…Ø­ØªÙˆÙ‰ ØªÙ…Ù„ÙƒÙ‡ ÙÙ‚Ø·",
-  "Paste your arrival details, house rules, and favorite local tipsâ€¦": "Ø§Ù„ØµÙ‚ ØªØ¹Ù„ÙŠÙ…Ø§Øª Ø§Ù„ÙˆØµÙˆÙ„ ÙˆÙ‚ÙˆØ§Ø¹Ø¯ Ø§Ù„Ù…Ù†Ø²Ù„ ÙˆÙ†ØµØ§Ø¦Ø­Ùƒ Ø§Ù„Ù…Ø­Ù„ÙŠØ© Ø§Ù„Ù…ÙØ¶Ù„Ø©â€¦",
-  "Our AI will organize your text into guide sections using only what you wrote.": "Ø³ÙŠÙ†Ø¸Ù‘Ù… Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ Ù†ØµÙƒ ÙÙŠ Ø£Ù‚Ø³Ø§Ù… Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Ù…Ø§ ÙƒØªØ¨ØªÙ‡ ÙÙ‚Ø·.",
-  "Weâ€™ll split your text into sections like Arrival, Wi-Fi and Checkout. Use labels such as â€œWI-FI:â€ for best results.": "Ø³Ù†Ù‚Ø³Ù‘Ù… Ù†ØµÙƒ Ø¥Ù„Ù‰ Ø£Ù‚Ø³Ø§Ù… Ù…Ø«Ù„ Ø§Ù„ÙˆØµÙˆÙ„ ÙˆØ§Ù„ÙˆØ§ÙŠ ÙØ§ÙŠ ÙˆØ§Ù„Ù…ØºØ§Ø¯Ø±Ø©. Ø§Ø³ØªØ®Ø¯Ù… Ø¹Ù†Ø§ÙˆÙŠÙ† Ù…Ø«Ù„ Â«WI-FI:Â» Ù„Ø£ÙØ¶Ù„ Ø§Ù„Ù†ØªØ§Ø¦Ø¬.",
-  "Building your guideâ€¦": "Ø¬Ø§Ø±Ù Ø¥Ù†Ø´Ø§Ø¡ Ø¯Ù„ÙŠÙ„Ùƒâ€¦",
-  "Create my guide": "Ø£Ù†Ø´Ø¦ Ø¯Ù„ÙŠÙ„ÙŠ",
-  "Property created. AI organized your guide â€” have a look.": "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø¹Ù‚Ø§Ø±. Ù†Ø¸Ù‘Ù… Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ Ø¯Ù„ÙŠÙ„Ùƒ â€” Ø£Ù„Ù‚Ù Ù†Ø¸Ø±Ø©.",
-  "Property created. Your guide is ready to edit.": "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø¹Ù‚Ø§Ø±. Ø¯Ù„ÙŠÙ„Ùƒ Ø¬Ø§Ù‡Ø² Ù„Ù„ØªØ¹Ø¯ÙŠÙ„.",
-  "Could not create the property.": "ØªØ¹Ø°Ù‘Ø± Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø¹Ù‚Ø§Ø±.",
-  "Add your propertyâ€™s {type} information here.": "Ø£Ø¶Ù Ù‡Ù†Ø§ Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Â«{type}Â» Ø§Ù„Ø®Ø§ØµØ© Ø¨Ø¹Ù‚Ø§Ø±Ùƒ.",
-  "A thoughtful little extra": "Ø¥Ø¶Ø§ÙØ© ØµØºÙŠØ±Ø© Ù…Ø¯Ø±ÙˆØ³Ø©",
-  "Give your guests one more reason to love their stay.": "Ø§Ù…Ù†Ø­ Ø¶ÙŠÙˆÙÙƒ Ø³Ø¨Ø¨Ù‹Ø§ Ø¢Ø®Ø± Ù„ÙŠØ­Ø¨ÙˆØ§ Ø¥Ù‚Ø§Ù…ØªÙ‡Ù….",
-  "Property": "Ø§Ù„Ø¹Ù‚Ø§Ø±",
-  "Name": "Ø§Ù„Ø§Ø³Ù…",
-  "Description": "Ø§Ù„ÙˆØµÙ",
-  "Price ({symbol})": "Ø§Ù„Ø³Ø¹Ø± ({symbol})",
-  "Require my approval before payment": "Ø§Ø·Ù„Ø¨ Ù…ÙˆØ§ÙÙ‚ØªÙŠ Ù‚Ø¨Ù„ Ø§Ù„Ø¯ÙØ¹",
-  "Extra added to your demo guide.": "ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ø¥Ù„Ù‰ Ø¯Ù„ÙŠÙ„Ùƒ Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠ.",
-  "e.g. The Little Olive House": "Ù…Ø«Ø§Ù„: Ø¨ÙŠØª Ø§Ù„Ø²ÙŠØªÙˆÙ† Ø§Ù„ØµØºÙŠØ±",
-  "e.g. Gatlinburg, Tennessee": "Ù…Ø«Ø§Ù„: Ù…Ø±Ø§ÙƒØ´ØŒ Ø§Ù„Ù…ØºØ±Ø¨",
-  "A basket of local favorites": "Ø³Ù„Ø© Ù…Ù† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ù…Ø­Ù„ÙŠØ©",
-  "Welcome back": "Ø£Ù‡Ù„Ù‹Ø§ Ø¨Ø¹ÙˆØ¯ØªÙƒ",
-  "Good hosts make": "Ø§Ù„Ù…Ø¶ÙŠÙÙˆÙ† Ø§Ù„Ø¬ÙŠØ¯ÙˆÙ† ÙŠØµÙ†Ø¹ÙˆÙ†",
-  "great stays.": "Ø¥Ù‚Ø§Ù…Ø§Øª Ø±Ø§Ø¦Ø¹Ø©.",
-  "Welcome home.": "Ø£Ù‡Ù„Ù‹Ø§ Ø¨Ùƒ ÙÙŠ Ø¨ÙŠØªÙƒ.",
-  "A little less work. A little more hospitality.": "Ø¹Ù…Ù„ Ø£Ù‚Ù„ Ù‚Ù„ÙŠÙ„Ù‹Ø§. Ø¶ÙŠØ§ÙØ© Ø£ÙƒØ«Ø± Ù‚Ù„ÙŠÙ„Ù‹Ø§.",
-  "A warm and welcoming living room": "ØºØ±ÙØ© Ù…Ø¹ÙŠØ´Ø© Ø¯Ø§ÙØ¦Ø© ÙˆÙ…Ø±Ø­Ù‘Ø¨Ø©",
-  "Thoughtful hosting starts here.": "Ø§Ù„Ø¶ÙŠØ§ÙØ© Ø§Ù„Ù…Ø¯Ø±ÙˆØ³Ø© ØªØ¨Ø¯Ø£ Ù…Ù† Ù‡Ù†Ø§.",
-  "Sign in to your account": "Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ù„Ù‰ Ø­Ø³Ø§Ø¨Ùƒ",
-  "Welcome back. Sign in with your Google account to continue.": "Ø£Ù‡Ù„Ù‹Ø§ Ø¨Ø¹ÙˆØ¯ØªÙƒ. Ø³Ø¬Ù‘Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø­Ø³Ø§Ø¨ Google Ù„Ù„Ù…ØªØ§Ø¨Ø¹Ø©.",
-  "Welcome back. Choose a secure sign-in option to continue.": "Ø£Ù‡Ù„Ù‹Ø§ Ø¨Ø¹ÙˆØ¯ØªÙƒ. Ø§Ø®ØªØ± Ø·Ø±ÙŠÙ‚Ø© ØªØ³Ø¬ÙŠÙ„ Ø¯Ø®ÙˆÙ„ Ø¢Ù…Ù†Ø© Ù„Ù„Ù…ØªØ§Ø¨Ø¹Ø©.",
-  "Continue with Google": "Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Google",
-  "Continue with Apple": "Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Apple",
-  "Email address": "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ",
-  "Send code": "Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø±Ù…Ø²",
-  "Sign-in code": "Ø±Ù…Ø² ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„",
-  "Continue": "Ù…ØªØ§Ø¨Ø¹Ø©",
-  "We sent a 6-digit code to your email. It expires in 10 minutes.": "Ø£Ø±Ø³Ù„Ù†Ø§ Ø±Ù…Ø²Ù‹Ø§ Ù…Ù† 6 Ø£Ø±Ù‚Ø§Ù… Ø¥Ù„Ù‰ Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ. ØªÙ†ØªÙ‡ÙŠ ØµÙ„Ø§Ø­ÙŠØªÙ‡ Ø®Ù„Ø§Ù„ 10 Ø¯Ù‚Ø§Ø¦Ù‚.",
-  "Live accounts are not connected yet. Explore the demo below.": "Ø§Ù„Ø­Ø³Ø§Ø¨Ø§Øª ØºÙŠØ± Ù…ØªØµÙ„Ø© Ø¨Ø¹Ø¯. Ø§Ø³ØªÙƒØ´Ù Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠØ© Ø£Ø¯Ù†Ø§Ù‡.",
-  "We couldnâ€™t send the code. Try Google while email sign-in is being fixed.": "ØªØ¹Ø°Ù‘Ø± Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø±Ù…Ø². Ø§Ø³ØªØ®Ø¯Ù… Google Ø±ÙŠØ«Ù…Ø§ ÙŠØªÙ… Ø¥ØµÙ„Ø§Ø­ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ.",
-  "That code did not work. Request a new code or try again.": "Ù‡Ø°Ø§ Ø§Ù„Ø±Ù…Ø² Ù„Ù… ÙŠØ¹Ù…Ù„. Ø§Ø·Ù„Ø¨ Ø±Ù…Ø²Ù‹Ø§ Ø¬Ø¯ÙŠØ¯Ù‹Ø§ Ø£Ùˆ Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
-  "We couldnâ€™t sign you in. Please try again.": "ØªØ¹Ø°Ù‘Ø± ØªØ³Ø¬ÙŠÙ„ Ø¯Ø®ÙˆÙ„Ùƒ. ÙŠÙØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
-  "or explore without signing in": "Ø£Ùˆ Ø§Ø³ØªÙƒØ´Ù Ø¯ÙˆÙ† ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„",
-  "Explore the demo": "Ø§Ø³ØªÙƒØ´Ù Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠØ©",
-  "By continuing, you agree to our": "Ø¨Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©ØŒ Ø£Ù†Øª ØªÙˆØ§ÙÙ‚ Ø¹Ù„Ù‰",
-  "Terms": "Ø§Ù„Ø´Ø±ÙˆØ·",
-  "and": "Ùˆ",
-  "Privacy Policy": "Ø³ÙŠØ§Ø³Ø© Ø§Ù„Ø®ØµÙˆØµÙŠØ©",
-};
-
-export const appDictionaries: Record<Exclude<SiteLocale, "en">, Dict> = { fr, es, de, ar };
-
-export type Tr = (english: string, values?: Record<string, string | number>) => string;
-/** A translate function for the host app: tr("Overview") â†’ "Vue dâ€™ensemble" in French. */
-export function makeTr(locale: SiteLocale): Tr {
-  const dict = locale === "en" ? undefined : appDictionaries[locale];
-  return (english, values) => {
-    const text = dict?.[english] ?? english;
-    return values ? text.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? `{${k}}`)) : text;
-  };
-}
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíã~zÑ:-jZ.¶›­–)Ş³Rò¢ ¢¢†÷7BFW‡B‡6–vâÖ–âvRæBF6†&ö&B’–âg&Væ6‚Â7æ—6‚ÂvW&ÖâæB&&–2à¢¢¶W—2&RF†RVævÆ—6‚FW‡BW6VB–âF†R6ö×öæVçG2f–G"‚.(
+b"“²VævÆ—6‚æVVG2æòVçG'’à¢¢Æ–"öÖ“†âçFW7BçG26†V6·2F†BWfW'’G"‚.(
+b"’–âF†R†2ÆÂf÷W"G&ç6ÆF–öç2à¢¢ğ¦–×÷'BG—R²6—FTÆö6ÆRÒg&öÒ"â÷6—FRÖ“†â#° §G—RF–7BÒ&V6÷&CÇ7G&–ærÂ7G&–æsã° ¦6öç7Bg#¢F–7BÒ°¢$’wV–FRvVæW&F–öâW6W2öæR–æ6ÇVFVB’&WVW7BâfW&–g’–÷W"VÖ–ÂFòVæ&ÆR“²F†RÖçVÂ'6W"&VÖ–ç2f–Æ&ÆRâ#¢$Æ7,:–F–öâN(	—VâwV–FR"”WF–Æ—6RVæR&W\:§FR”–æ6ÇW6Râl:—&–f–W¢f÷G&RG&W76RRÖÖ–Â÷W"7F—fW"Î(	””²Î(	–æÇ—6RÖçVVÆÆR&W7FRF—7öæ–&ÆRâ"À¢%v÷&·76R&VfW&Væ6W26fVBöæÆ–æRâ#¢%,:–l:—&Væ6W2FRÎ(	–W76RVç&Vv—7G,:–W2VâÆ–væRâ"À¢$6÷VÆBæ÷B6fRv÷&·76R&VfW&Væ6W2âÆV6RG'’v–ââ#¢$ÆW2,:–l:—&Væ6W2î(	–öçB2R:§G&RVç&Vv—7G,:–W2âfWV–ÆÆW¢,:–W76–W"â"À¢%6VæF–æ~(
+b#¢$Vçfö(
+b"À¢%&W6VæBfW&–f–6F–öâVÖ–Â#¢%&Vçf÷–W"Î(	–RÖÖ–ÂFRl:—&–f–6F–öâ"À¢$6†V6²–÷W"–æ&÷‚f÷"–÷W"fW&–f–6F–öâÆ–æ²â#¢$6öç7VÇFW¢f÷G&R&ü:çFRFR,:–6WF–öâ÷W"ÆRÆ–VâFRl:—&–f–6F–öââ"À¢$6÷VÆBæ÷B6VæBF†RfW&–f–6F–öâVÖ–ÂâÆV6Rv—B&Vf÷&RG'––ærv–ââ#¢$Î(	–RÖÖ–ÂFRl:—&–f–6F–öâî(	–2R:§G&RVçf÷œ:’âfWV–ÆÆW¢F–VçFW"fçBFR,:–W76–W"â"À¢%f–WræÇ—F–72f÷"7F—f—G’#¢%fö—"ÆW27FF—7F—VW2N(	–7F—f—L:’"À¢$ÆÂF–ÖR#¢$FWV—2ÆRL:–'WB"À¢$W‡G&2–B#¢$W‡G&2œ:—2"À¢$ç7vW&VBg&öÒ–÷W"wV–FR#¢%,:—öç6W2—77VW2FRf÷G&RwV–FR"À¢$g&öÒ–÷W"6fVBwVW7B7F—f—G’#¢$N(	–,:‡2Î(	–7F—f—L:’Vç&Vv—7G,:–RFW2f÷–vWW'2"À¢$æòwVW7B6öçfW'6F–öç2–WBâ6†&RV&Æ—6†VBwV–FRFòvWB7F'FVBâ#¢$V7VæR6öçfW'6F–öâf÷–vWW"÷W"ÆRÖöÖVçBâ'FvW¢VâwV–FRV&Æœ:’÷W"6öÖÖVæ6W"â"À¢%W6R"Fò#‚6†&7FW'2â#¢%WF–Æ—6W¢VçG&R"WB#‚6&7L:‡&W2â"À¢$66÷VçB7&VFVBâ–÷R6â6–vâ–âv—F‚–÷W"77v÷&BâvR6÷VÆFî(	—B6VæBfW&–f–6F–öâVÖ–Ã²6öçF7B7W÷'Bf÷"†VÇâ#¢$6ö×FR7,:œ:’âf÷W2÷WfW¢f÷W26öææV7FW"fV2f÷G&RÖ÷BFR76Râæ÷W2î(	–föç22RVçf÷–W"Î(	–RÖÖ–ÂFRl:—&–f–6F–öâ²6öçF7FW¢Î(	–76—7Fæ6Râ"À¢%fW&–g’–÷W"VÖ–Â#¢%l:—&–f–W¢f÷G&RG&W76RRÖÖ–Â"À¢$VÖ–ÂfW&–f–VB#¢$G&W76RRÖÖ–Âl:—&–fœ:–R"À¢$¶VW266÷VçB&V6÷fW'’æB7W÷'B6fRâ#¢%&÷L:†vRÆ,:–7W:—&F–öâGR6ö×FRWBÎ(	–76—7Fæ6Râ"À¢$FVÖòÖöFRW6W26×ÆR66÷VçBFWF–Ç2â#¢$ÆRÖöFRL:–ÖòWF–Æ—6RFW2–æf÷&ÖF–öç2FR6ö×FRf–7F—fW2â"À¢$7&VFR–÷W"f—'7B&÷W'G’#¢$7,:–W¢f÷G&R&VÖ–W"ÆövVÖVçB"À¢$FBF†RFG&W72Â'&—fÂæ÷FW2Âv’Ôf’Â'VÆW2æB6†V6¶÷WBâ#¢$¦÷WFW¢Î(	–G&W76RÂÆW26öç6–væW2N(	–'&—l:–RÂÆRv’Ôf’ÂÆW2,:†vÆW2WBÆRL:—'Bâ"À¢%V&Æ—6‚æB&Wf–WrF†RwVW7BwV–FR#¢%V&Æ–W¢WB,:—f—7VÆ—6W¢ÆRwV–FRf÷–vWW""À¢$÷VâF†R6ÖRÆ–æ²–÷W"wVW7G2v–ÆÂ&V6V—fRâ#¢$÷Wg&W¢ÆRÜ:¦ÖRÆ–VâVRf÷2f÷–vWW'2&V6Wg&öçBâ"À¢$FBöæRW‡G&÷"W6VÆÂ#¢$¦÷WFW¢VâW‡G&÷RVæRfVçFRFF—F–öææVÆÆR"À¢$ÆFR6†V6¶÷WBÂ'&V¶f7B&6¶WG2ÂG&ç6fW'2æB–B6W'f–6W2â#¢$L:—'BF&F–bÂæ–W'2WF—BÖL:–¦WVæW"ÂG&ç6fW'G2WB6W'f–6W2–çG2â"À¢$6†ö÷6RÆâæB6WBW–÷WG2#¢$6†ö—6—76W¢VæRöfg&RWB6öæf–wW&W¢ÆW2fW'6VÖVçG2"À¢%Ww&FRv†Vâ–÷RæVVBÖ÷&R&÷W'F–W2÷"’ç7vW'2â#¢%76W¢:Î(	–öfg&R7W:—&–WW&R÷W"ÇW2FRÆövVÖVçG2÷RFR,:—öç6W2”â"À¢$tUB$TE’Dò„õ5B#¢%,8•$U¢dõE$R45TT”Â"À¢$ÆVæ6‚6†V6¶Æ—7B#¢$Æ—7FRFRÆæ6VÖVçB"À¢$¶VW'V–ÆF–ær#¢$6öçF–çVW"Æ6öæf–wW&F–öâ"À¢%ÆV6RfW&–g’–÷W"VÖ–ÂFG&W72â6†V6²–÷W"–æ&÷‚f÷"F†R7F”wV–FRfW&–f–6F–öâÆ–æ²Â÷"6öçF7B7W÷'B–b—BF–Bæ÷B'&—fRâ#¢%fWV–ÆÆW¢l:—&–f–W"f÷G&RG&W76RRÖÖ–Ââ6öç7VÇFW¢f÷G&R&ü:çFRFR,:–6WF–öâ÷W"ÆRÆ–VâFRl:—&–f–6F–öâ7F”wV–FRÂ÷R6öçF7FW¢Î(	–76—7Fæ6R>(	––Âî(	–W7B2'&—l:’â"À¢%7W÷'B#¢$76—7Fæ6R"À¢$æVVB†VÇ6WGF–ærW&÷W'G’Â&–ÆÆ–ærÂ–÷WG2Â÷"wVW7BwV–FSòVÖ–ÂW2æBv^(	–ÆÂ†VÇ–÷RvWBVç7GV6²â#¢$&W6ö–âN(	––FR÷W"6öæf–wW&W"VâÆövVÖVçBÂÆf7GW&F–öâÂÆW2fW'6VÖVçG2÷RVâwV–FRf÷–vWW"ò8–7&—fW¢Öæ÷W2WBæ÷W2f÷W2–FW&öç2â"À¢%7W÷'B&WÆ–W2&R†æFÆVB'’F†R7F”wV–FRFVÒâFòæ÷B6VæBFö÷"6öFW2÷"wVW7B–ÖVçBFWF–Ç2'’VÖ–Ââ#¢$Î(	œ:—V—R7F”wV–FRG&—FRÆW2FVÖæFW2N(	–76—7Fæ6Râî(	–Vçf÷–W¢2FR6öFW2N(	–6<:‡2æ’FRL:—F–Ç2FR–VÖVçBFW2f÷–vWW'2"RÖÖ–Ââ"À¢$6÷VÆBæ÷B7&VFRF†—266÷VçBâ6†V6²–÷W"FWF–Ç2Â÷"6–vâ–â–b–÷RÇ&VG’†fRâ66÷VçBâW†—7F–ærvöövÆR66÷VçG26†÷VÆB6öçF–çVRv—F‚vöövÆRâ#¢$–×÷76–&ÆRFR7,:–W"6R6ö×FRâl:—&–f–W¢f÷2–æf÷&ÖF–öç2÷R6öææV7FW¢×f÷W26’f÷W2fW¢L:–¬:Vâ6ö×FRâÆW26ö×FW2vöövÆRW†—7FçG2Fö—fVçB6öçF–çVW"fV2vöövÆRâ"À¢%F†BVÖ–ÂæB77v÷&BF–Bæ÷B6–vâ–ââ–bF†—2—2–÷W"f—'7BF–ÖRÂ7&VFRâ66÷VçBf—'7BÂ÷"6öçF–çVRv—F‚vöövÆRâ#¢$6WGFRG&W76RRÖÖ–ÂWB6RÖ÷BFR76Rî(	–öçB2W&Ö—2Æ6öææW†–öââ7,:–W¢N(	–&÷&BVâ6ö×FR6’>(	–W7Bf÷G&R&VÖœ:‡&Rf—6—FRÂ÷R6öçF–çVW¢fV2vöövÆRâ"À¢$6†ö÷6R66÷VçB7F–öâ#¢$6†ö—6—"Î(	–7F–öâGR6ö×FR"À¢$7&VFR66÷VçB#¢$7,:–W"Vâ6ö×FR"À¢%77v÷&B#¢$Ö÷BFR76R"À¢%W6R"Fò#‚6†&7FW'2âv^(	–ÆÂVÖ–Â–÷RfW&–f–6F–öâÆ–æ²gFW"6–vçWâ#¢%WF–Æ—6W¢":#‚6&7L:‡&W2âæ÷W2f÷W2VçfW'&öç2VâÆ–VâFRl:—&–f–6F–öâ,:‡2Î(	––ç67&—F–öââ"À¢$Ç&VG’&Vv—7FW&VCòW6R6–vâ–â&÷fRâ#¢$L:–¬:–ç67&—BòWF–Æ—6W¢6öææW†–öâ6’ÖFW77W2â"À¢$f—'7BF–ÖRW6–ærVÖ–ÂæB77v÷&CòW6R7&VFR66÷VçB&÷fRâ#¢%&VÖœ:‡&RWF–Æ—6F–öâFRÎ(	–RÖÖ–ÂWBGRÖ÷BFR76RòWF–Æ—6W¢7,:–W"Vâ6ö×FR6’ÖFW77W2â"À¢$f÷&v÷B77v÷&Cò#¢$Ö÷BFR76R÷V&Æœ:’ò"À¢$66÷VçB7&VFVBâ6†V6²–÷W"VÖ–ÂFòfW&–g’–÷W"FG&W72ÂF†Vâ6–vâ–âv—F‚–÷W"77v÷&Bâ#¢$6ö×FR7,:œ:’â6öç7VÇFW¢f÷G&RRÖÖ–Â÷W"l:—&–f–W"f÷G&RG&W76RÂV—26öææV7FW¢×f÷W2fV2f÷G&RÖ÷BFR76Râ"À¢%6×ÆRwV–FRf–Ww2f÷"F†RvVV²#¢%gVW2GRwV–FRFRÆ6VÖ–æR†W†V×ÆR’"À¢òòæf–vF–öâbg&ÖP¢$÷fW'f–Wr#¢%gVRN(	–Vç6VÖ&ÆR"À¢%&÷W'F–W2#¢$ÆövVÖVçG2"À¢$wVW7B–æ&÷‚#¢$ÖW76vW2f÷–vWW'2"À¢$W‡G&2bW6VÆÇ2#¢$W‡G&2bfVçFW2FF—F–öææVÆÆW2"À¢$æÇ—F–72#¢%7FF—7F—VW2"À¢%6†&R¶—B#¢$¶—BFR'FvR"À¢%Æç2b&–ÆÆ–ær#¢$öfg&W2bf7GW&F–öâ"À¢%6WGF–æw2#¢%&Ü:‡G&W2"À¢$wV–FRVF—F÷"#¢,8–F—FWW"FRwV–FR"À¢%tõ$µ54R#¢$U54RDRE$d”Â"À¢%v÷&·76R#¢$W76RFRG&f–Â"À¢$†÷7Bv÷&·76R#¢$W76RŒ;GFR"À¢$6Æ÷6Ræf–vF–öâ#¢$fW&ÖW"ÆRÖVçR"À¢$÷Vâæf–vF–öâ#¢$÷Wg&—"ÆRÖVçR"À¢$Æ—GFÆRÖ÷&R÷76–&–Æ—G’â#¢%VâWRÇW2FR÷76–&–Æ—L:—2â"À¢$Ö÷&R&÷W'F–W2âÖ÷&R’ç7vW'2â#¢%ÇW2FRÆövVÖVçG2âÇW2FR,:—öç6W2”â"À¢$WfVâ&WGFW"wVW7BW‡W&–Væ6W2â#¢$FW2<:–¦÷W'2Væ6÷&RÇW2,:—W76—2â"À¢$W‡Æ÷&R&ò#¢$L:–6÷Wg&—"&ò"À¢%v÷&·76R÷væW"#¢%&÷&œ:—F—&RFRÎ(	–W76R"À¢$FVÖò†÷7B66÷VçB#¢$6ö×FRŒ;GFRFRL:–Öò"À¢%v÷&·76R÷væW"+rFVÖò#¢%&÷&œ:—F—&RFRÎ(	–W76R+rL:–Öò"À¢%v÷&·76R÷væW"+r¶VÖ–ÇÒ#¢%&÷&œ:—F—&RFRÎ(	–W76R+r¶VÖ–ÇÒ"À¢%4d”ä~(
+b#¢$Tå$Tt•5E$TÔTåN(
+b"À¢$äõB4dTB+r$UE%””ärôâäU…BTD•B#¢$äôâTå$Tt•5E,8’+räõUdTÂU54’8Ä$ô4„”äRÔôD”d”4D”ôâ"À¢$ÄÂ4„ätU24dTB#¢%DõUBU5BTå$Tt•5E,8’"À¢$DTÔòtõ$µ54R#¢$U54RDRL8”Ôò"À¢%6–vâ–â#¢%6R6öææV7FW""À¢%f–WrwVW7BW‡W&–Væ6R#¢%fö—"<;GL:’f÷–vWW""À¢%FövvÆRF&²ÖöFR#¢$&67VÆW"ÆRÖöFR6öÖ'&R"À¢$wVW7Bæ÷F–f–6F–öç2#¢$æ÷F–f–6F–öç2f÷–vWW'2"À¢%6–væVB–â2¶VÖ–ÇÒâ6Æ–6²Fò6–vâ÷WBâ#¢$6öææV7L:’VâFçBVR¶VÖ–ÇÒâ6Æ—VW¢÷W"f÷W2L:–6öææV7FW"â"À¢%6–vâ÷WB¶VÖ–ÇÒ#¢$L:–6öææV7FW"¶VÖ–ÇÒ"À¢$ÆæwVvR#¢$ÆæwVR"À¢$ÖFRf÷"F†÷Vv‡FgVÂ†÷7G2â'V–ÇBf÷"ÖVÖ÷&&ÆR7F—2â#¢$6öì:wR÷W"ÆW2Œ;GFW2GFVçF–öæì:—2âVç<:’÷W"FW2<:–¦÷W'2Ü:–Ö÷&&ÆW2â"À¢$FVÖòFF+r6fVBöâF†—2FWf–6R#¢$Föæì:–W2FRL:–Öò+rVç&Vv—7G,:–W27W"6WB&V–Â"À¢%6fVB6V7W&VÇ’öæÆ–æR#¢$Vç&Vv—7G,:’VâÆ–væRVâF÷WFR<:–7W&—L:’"À¢$6Æ÷6RF–Æör#¢$fW&ÖW""À¢òò÷fW'f–Wp¢%”õU"Ä•EDÄR„õ5D”är„TET%DU%2#¢%dõE$RUD•BT%D”U"|8”ì8•$ÂN(	”Œ9EDR"À¢$vööBF†–æw27F'Bv—F‚#¢$ÆW2&VÆÆW26†÷6W26öÖÖVæ6VçB"Vâ"À¢&w&VB7F’â#¢&&VR<:–¦÷W"â"À¢%vVÆ6öÖR&6²Â¶æÖWÒâ†W&^(	—2†÷r–÷W"&÷W'F–W2&RFö–ærâ#¢$&öâ&WF÷W"Â¶æÖWÒâfö–6’6öÖÖVçB6R÷'FVçBf÷2ÆövVÖVçG2â"À¢$FVÖòÖöçF‚#¢$Öö—2FRL:–Öò"À¢$ÄU52Ôät”ärâÔõ$R„õ5D”ärâ#¢$Ôô”å2DRtU5D”ôââÅU2N(	”„õ5•DÄ•L8’â"À¢$F†÷Vv‡FgVÂ7F’Â#¢%Vâ<:–¦÷W"6ö–vì:’Â"À¢'v—F†÷WBF†RW‡G&v÷&²â#¢'6ç2G&f–ÂVâÇW2â"À¢%–÷W"wV–FW2†æFÆRF†RÆ—GFÆRVW7F–öç2â#¢%f÷2wV–FW2,:—öæFVçBW‚WF—FW2VW7F–öç2â"À¢%–÷Rfö7W2öâÖ¶–ærwVW7G2fVVÂB†öÖRâ#¢%f÷W2Âf÷W2f—FW26VçF—"f÷2f÷–vWW'26†W¢WW‚â"À¢$7&VFRwV–FR#¢$7,:–W"VâwV–FR"À¢%”õU"„ôÔRt’e$ôÒ„ôÔR#¢%dõE$RÔ•4ôâÄô”âDR4„U¢dõU2"À¢$öÌ:ÂvVÆ6öÖR†öÖRâ#¢$&öæ¦÷W"Â&–VçfVçVR6†W¢f÷W2â"À¢%v’Ôf’#¢%v’Ôf’"À¢$W‡Æ÷&R#¢$W‡Æ÷&W""À¢%–÷W"7F’#¢%f÷G&R<:–¦÷W""À¢$Æ—GFÆRW‡G&2#¢%WF—G2W‡G&2"À¢$†’wVW7G2â†’†÷7Bâ#¢%f÷–vWW'2†WW&WW‚âŒ;GFR†WW&WW‚â"À¢%F†÷Vv‡FgVÂFWF–Ç2ÂÆÂ–âöæRÆ6Râ#¢$FW2GFVçF–öç2Â,:—Væ–W2RÜ:¦ÖRVæG&ö—Bâ"À¢$wV–FRf–Ww2#¢%gVW2GRwV–FR"À¢$’6öçfW'6F–öç2#¢$6öçfW'6F–öç2”"À¢$W‡G&2&WfVçVR#¢%&WfVçW2FW2W‡G&2"À¢$†’wVW7G2#¢%f÷–vWW'26F—6f—G2"À¢'g2â&Wf–÷W2ÖöçF‚#¢'g2âÖö—2,:–<:–FVçB"À¢&ç7vW&VBv—F†÷WB–÷R#¢',:—öæGVW26ç2f÷W2"À¢&fW&vRwVW7B&F–ær#¢&æ÷FRÖ÷–VææRFW2f÷–vWW'2"À¢%–÷W"&÷W'F–W2#¢%f÷2ÆövVÖVçG2"À¢'¶çÒÆ—GFÆRÆ6W2âVæFÆW72÷76–&–Æ—F–W2â#¢'¶çÒWF—G2Æ–WW‚âFW2÷76–&–Æ—L:—2–æf–æ–W2â"À¢%f–WrÆÂ&÷W'F–W2#¢%fö—"F÷W2ÆW2ÆövVÖVçG2"À¢$&÷VæB–÷W"&÷W'F–W2#¢$WF÷W"FRf÷2ÆövVÖVçG2"À¢%f–Wr–æ&÷‚#¢%fö—"ÆW2ÖW76vW2"À¢$6Æ÷vW"vööF'–RÂ&öö¶VBâ#¢%VâL:—'BVâF÷V6WW"Â,:—6W'l:’â"À¢$ÆFR6†V6¶÷WB#¢$L:—'BF&F–b"À¢$öæRÆW72VW7F–öâöâ–÷W"ÆFRâ#¢%VæRVW7F–öâFRÖö–ç2:|:—&W"â"À¢%v’Ôf’FWF–Ç26†&VB'’6öæ6–W&vR#¢$–æf÷2v’Ôf’'F|:–W2"ÆR6öæ6–W&vR"À¢$v&ÒvVÆ6öÖRÂFVÆ—fW&VBâ#¢%Vâ67VV–Â6†ÆWW&WW‚ÂL:–Æ—g,:’â"À¢$wVW7B÷VæVBF†V—"wV–FR#¢%Vâf÷–vWW"÷WfW'B6öâwV–FR"À¢#"Ö–âvò#¢&–Â’"Ö–â"À¢#3BÖ–âvò#¢&–Â’3BÖ–â"À¢#†÷W"vò#¢&–Â’†WW&R"À¢$Ä•EDÄR„õ5D”är”å5•$D”ôâ#¢%TâURN(	””å5•$D”ôâ"À¢%6ÖÆÂW‡G&2â#¢$FRWF—G2W‡G&2â"À¢$ÖVÖ÷&&ÆRW‡W&–Væ6W2â#¢$FW2W‡:—&–Væ6W2Ü:–Ö÷&&ÆW2â"À¢$ÆFR6†V6¶÷WBâÆö6Â'&V¶f7Bâ#¢%VâL:—'BF&F–bâVâWF—BÖL:–¦WVæW"Æö6Ââ"À¢%GW&âF†÷Vv‡FgVÂF÷V6†W2–çFòW‡G&–æ6öÖRÂæBv—fRwVW7G27F’Fò&VÖVÖ&W"â#¢%G&ç6f÷&ÖW¢f÷2GFVçF–öç2Vâ&WfVçW27WÌ:–ÖVçF—&W2WBöfg&W¢Vâ<:–¦÷W"–æ÷V&Æ–&ÆRâ"À¢$W‡Æ÷&R–÷W"W‡G&2#¢%fö—"f÷2W‡G&2"À¢òò&÷W'G’6&G2b&÷W'F–W2f–Wp¢%V&Æ—6†VB#¢%V&Æœ:’"À¢$G&gB#¢$'&÷V–ÆÆöâ"À¢$VF—B¶æÖWÒ#¢$ÖöF–f–W"¶æÖWÒ"À¢%&Wf–Wr¶æÖWÒ#¢$W,:wRFR¶æÖWÒ"À¢%6†&R¶æÖWÒ#¢%'FvW"¶æÖWÒ"À¢'¶æÖWÒÂvVÆ6öÖ–ær†öÆ–F’†öÖR#¢'¶æÖWÒÂVæRÆö6F–öâ67VV–ÆÆçFR"À¢'¶çÒ6V7F–öç2#¢'¶çÒ6V7F–öç2"À¢'¶çÒFVÖòf–Ww2#¢'¶çÒgVW2†L:–Öò’"À¢'¶çÒ6†G2#¢'¶çÒ6öçfW'6F–öç2"À¢$ÖFRv—F‚Æ—GFÆRW‡G&6&R#¢%,:—,:’fV2Vâ6ö–â'F–7VÆ–W""À¢$VF—BwV–FR#¢$ÖöF–f–W"ÆRwV–FR"À¢$&VWF–gVÂÆ6W2FW6W'fRF†÷Vv‡FgVÂvVÆ6öÖRâ#¢$ÆW2&VW‚Æ–WW‚Ü:—&—FVçBVâ67VV–ÂGFVçF–öæì:’â"À¢$FB&÷W'G’#¢$¦÷WFW"VâÆövVÖVçB"À¢%6V&6‚&÷W'F–W2#¢%&V6†W&6†W"FW2ÆövVÖVçG2"À¢$f–æBÆ—GFÆRÆ6^(
+b#¢%G&÷WfW"VâÆövVÖVçN(
+b"À¢$ÆÂ#¢%F÷W2"À¢$æò&÷W'F–W2†W&R–WB#¢$V7VâÆövVÖVçB÷W"Î(	––ç7FçB"À¢$7&VFR&÷W'G’÷"G'’æ÷F†W"6V&6‚â#¢$7,:–W¢VâÆövVÖVçB÷RW76–W¢VæRWG&R&V6†W&6†Râ"À¢$FB&÷W'G’#¢$¦÷WFW"VâÆövVÖVçB"À¢òòVF—F÷ ¢$Æ—GFÆRÆö6Â¶æ÷vÆVFvRvöW2Æöærv’â#¢%VâWRFR6fö—"Æö6Â6†ævRF÷WBâ"À¢$wVW7B&Wf–Wr#¢$W,:wRf÷–vWW""À¢$FVÆWFR#¢%7W&–ÖW""À¢$FVÆWFR¶æÖWÒæB—G2wV–FSòF†—26ææ÷B&RVæFöæRâ#¢%7W&–ÖW"¶æÖWÒWB6öâwV–FRò6WGFR7F–öâW7B—',:—fW'6–&ÆRâ"À¢%&÷W'G’FVÆWFVBâ#¢$ÆövVÖVçB7W&–Ü:’â"À¢$6÷VÆFî(	—BFVÆWFRF†R&÷W'G’âÆV6RG'’v–ââ#¢$–×÷76–&ÆRFR7W&–ÖW"ÆRÆövVÖVçBâfWV–ÆÆW¢,:–W76–W"â"À¢%6VÆV7B&÷W'G’FòVF—B#¢$6†ö—6—"ÆRÆövVÖVçB:ÖöF–f–W""À¢%6fVBöâF†—2FWf–6R#¢$Vç&Vv—7G,:’7W"6WB&V–Â"À¢$wV–FRÖ÷fVBFòG&gBâ#¢$wV–FR&W7<:’Vâ'&÷V–ÆÆöââ"À¢$wV–FRV&Æ—6†VBâwVW7G26â÷Vâ—Bæ÷râ#¢$wV–FRV&Æœ:’âf÷2f÷–vWW'2WWfVçBÎ(	–÷Wg&—"L:‡2Ö–çFVæçBâ"À¢$FVÖòwV–FRV&Æ—6†VBöâF†—2FWf–6Râ#¢$wV–FRFRL:–ÖòV&Æœ:’7W"6WB&V–Ââ"À¢%VçV&Æ—6‚#¢$L:—V&Æ–W""À¢%V&Æ—6‚wV–FR#¢%V&Æ–W"ÆRwV–FR"À¢%&÷W'G’FWF–Ç2#¢$–æf÷&ÖF–öç2GRÆövVÖVçB"À¢%6†÷vâFòwVW7G2æBW6VB'’F†R6öæ6–W&vRâ6†ævW26fRWFöÖF–6ÆÇ’â#¢$ff–6Œ:–W2W‚f÷–vWW'2WBWF–Æ—<:–W2"ÆR6öæ6–W&vRâVç&Vv—7G&VÖVçBWFöÖF—VRâ"À¢%7G&VWBFG&W72#¢$G&W76R"À¢$6—G’Â6÷VçG'’#¢%f–ÆÆRÂ—2"À¢$6†V6²Ö–âF–ÖR#¢$†WW&RN(	–'&—l:–R"À¢$6†V6¶÷WBF–ÖR#¢$†WW&RFRL:—'B"À¢%v’Ôf’æWGv÷&²#¢%,:—6VRv’Ôf’"À¢%v’Ôf’77v÷&B#¢$Ö÷BFR76Rv’Ôf’"À¢$†÷7B†öæR#¢%L:–Ì:—†öæRFRÎ(	–Œ;GFR"À¢$æWrÆ—GFÆRFWF–Â#¢%Vâæ÷WfVRWF—BL:—F–Â"À¢$FB6V7F–öâ#¢$¦÷WFW"VæR6V7F–öâ"À¢$Ö¶R—BfVVÂÆ–¶R–÷Râ#¢$f—FW2ÖÆR:f÷G&R–ÖvRâ"À¢%w&—FR#¢,8–7&—&R"À¢%&Wf–Wr#¢$W,:wR"À¢%6V7F–öâF—FÆR#¢%F—G&RFRÆ6V7F–öâ"À¢$–6öâ#¢$–<;FæR"À¢%–÷W"Æö6Â¶æ÷vÆVFvR#¢%f÷26öç6V–Ç2"À¢$ÆÂF†RFWF–Ç2F†BÖ¶R7F’Vff÷'FÆW72âÖ&¶F÷vâ—2vVÆ6öÖRâ#¢%F÷W2ÆW2L:—F–Ç2÷W"Vâ<:–¦÷W"6ç26÷V6’âÆRÖ&¶F÷vâW7B66WL:’â"À¢%W6R¢¦&öÆB¢¢Â'VÆÆWBÆ—7G2ÂæBÆ–æ·2âG&r6V7F–öç2Fò&V÷&FW"Â÷"W6RF†R'&÷r'WGFöç2â#¢%WF–Æ—6W¢ÆR¢¦w&2¢¢ÂÆW2Æ—7FW2WBÆW2Æ–Vç2âf—FW2vÆ—76W"ÆW26V7F–öç2÷W"ÆW2,:–÷&FöææW"Â÷RWF–Æ—6W¢ÆW2fÌ:†6†W2â"À¢$Ö÷fR6V7F–öâW#¢$ÖöçFW"Æ6V7F–öâ"À¢$Ö÷fR6V7F–öâF÷vâ#¢$FW66VæG&RÆ6V7F–öâ"À¢$ÆÂ6†ævW2&R6fVBWFöÖF–6ÆÇ’öâF†—2FWf–6Râ#¢%F÷WFW2ÆW2ÖöF–f–6F–öç26öçBVç&Vv—7G,:–W2WFöÖF—VVÖVçB7W"6WB&V–Ââ"À¢$ÆÂ6†ævW2&R6fVBWFöÖF–6ÆÇ’â#¢%F÷WFW2ÆW2ÖöF–f–6F–öç26öçBVç&Vv—7G,:–W2WFöÖF—VVÖVçBâ"À¢%6fR6†ævW2#¢$Vç&Vv—7G&W""À¢$FVÖòVF—F÷"+r6†ævW2&R7F÷&VB–âF†—2'&÷w6W"â6–vâ–âFò6fRwV–FW2öæÆ–æRæB6†&RF†VÒv—F‚&VÂwVW7G2â#¢,8–F—FWW"FRL:–Öò+rÆW2ÖöF–f–6F–öç2&W7FVçBFç26Ræf–vFWW"â6öææV7FW¢×f÷W2÷W"Vç&Vv—7G&W"f÷2wV–FW2VâÆ–væRWBÆW2'FvW"fV2FRg&—2f÷–vWW'2â"À¢òò–æ&÷€¢$Æ—GFÆR‡VÖâF÷V6‚#¢%VæRF÷V6†R‡VÖ–æR"À¢%–÷W"6öæ6–W&vRF¶W26&RöbF†RWfW'–F’â–÷RF¶R6&RöbF†R&W7Bâ#¢%f÷G&R6öæ6–W&vR|:‡&RÆRV÷F–F–Vââf÷W2|:—&W¢ÆR&W7FRâ"À¢$æVVG2–÷W"†VÇ#¢%f÷G&R–FRW7B&WV—6R"À¢%6×ÆR6öçfW'6F–öâ#¢$6öçfW'6F–öâN(	–W†V×ÆR"À¢%F†R6öæ6–W&vR6÷VÆFî(	—Bf–æBF†—2ç7vW"–âF†RwV–FRæB76VB—BFò–÷Râ#¢$ÆR6öæ6–W&vRî(	–2G&÷Wl:’Æ,:—öç6RFç2ÆRwV–FRWBf÷W2G&ç6Ö—2ÆVW7F–öââ"À¢%&WÇ’6fVB–âF†RFVÖòâæòwVW7BÖW76vRv26VçBâ#¢%,:—öç6RVç&Vv—7G,:–RFç2ÆL:–ÖòâV7VâÖW76vRî(	–:—L:’Vçf÷œ:’â"À¢%&WÇ’FòwVW7B#¢%,:—öæG&RRf÷–vWW""À¢$F†÷Vv‡FgVÂ&WÇ(
+b#¢%VæR,:—öç6RGFVçF–öæì:–^(
+b"À¢%6VæBFVÖò&WÇ’#¢$Vçf÷–W"Æ,:—öç6RFRL:–Öò"À¢$æVVG2–÷W"†VÇöæÇ’#¢%6WVÆVÖVçB6VÆÆW2V’öçB&W6ö–âFRf÷W2"À¢$6÷VÆFî(	—BÆöB6öçfW'6F–öç2â&WG'––æ~(
+b#¢$–×÷76–&ÆRFR6†&vW"ÆW26öçfW'6F–öç2âæ÷WfVÂW76(
+b"À¢$ÆöF–ær6öçfW'6F–öç>(
+b#¢$6†&vVÖVçBFW26öçfW'6F–öç>(
+b"À¢$ÆÂV–WBf÷"æ÷r#¢%F÷WBW7B6ÆÖR÷W"Î(	––ç7FçB"À¢%v†VâwVW7B6·26öÖWF†–ær–÷W"wV–FRFöW6î(	—Bç7vW"ÂF†R6öçfW'6F–öâV'2†W&R6ò–÷R6â&WÇ’â#¢%VæBVâf÷–vWW"÷6RVæRVW7F–öâ:ÆVVÆÆRf÷G&RwV–FRæR,:—öæB2ÂÆ6öçfW'6F–öâ&:çB–6’÷W"VRf÷W2V—76–W¢,:—öæG&Râ"À¢$wVW7B#¢%f÷–vWW""À¢%–÷R#¢%f÷W2"À¢$6öæ6–W&vR#¢$6öæ6–W&vR"À¢%&WÇ’6VçBâF†RwVW7B6VW2—B–âF†V—"wV–FR6†Bâ#¢%,:—öç6RVçf÷œ:–RâÆRf÷–vWW"Æfö—BFç2Æ6öçfW'6F–öâFR6öâwV–FRâ"À¢$6÷VÆFî(	—B6VæB–÷W"&WÇ’âÆV6RG'’v–ââ#¢$–×÷76–&ÆRN(	–Vçf÷–W"f÷G&R,:—öç6RâfWV–ÆÆW¢,:–W76–W"â"À¢%6VæB&WÇ’#¢$Vçf÷–W"Æ,:—öç6R"À¢òòW‡G&0¢%F†RÆ—GFÆRW‡G&2#¢$ÆW2WF—G2W‡G&2"À¢%F†÷Vv‡FgVÂF÷V6†W2f÷"wVW7G2âÆ—GFÆRÖ÷&R–æ6öÖRf÷"–÷Râ#¢$FW2GFVçF–öç2÷W"f÷2f÷–vWW'2âVâWF—B&WfVçRVâÇW2÷W"f÷W2â"À¢$7&VFRW‡G&#¢$7,:–W"VâW‡G&"À¢$FVÖò6FÆör+r6–vâ–âFò&V6V—fR&VÂwVW7B&WVW7G2f÷"–÷W"W‡G&2â#¢$6FÆöwVRFRL:–Öò+r6öææV7FW¢×f÷W2÷W"&V6Wfö—"FRg&–W2FVÖæFW2N(	–W‡G&2â"À¢'W"7F’#¢'"<:–¦÷W""À¢$†÷7B&÷fÂ&WV—&VB#¢$66÷&BFRÎ(	–Œ;GFR&WV—2"À¢$–ç7FçBW&6†6R#¢$6†B–ÖÜ:–F–B"À¢%6VRwVW7BW‡W&–Væ6R#¢%fö—"<;GL:’f÷–vWW""À¢%–ÖVçB6GW&VBâF†RÖöæW’—2öâ—G2v’Fò–÷W"&æ²â#¢%–VÖVçBVæ6—7<:’âÎ(	–&vVçBW7BVâ&÷WFRfW'2f÷G&R&çVRâ"À¢%&WVW7B&÷fVBâÆWB–÷W"wVW7B¶æ÷r†÷rFò’â#¢$FVÖæFR66WL:–Râ–æF—VW¢Rf÷–vWW"6öÖÖVçB–W"â"À¢%&WVW7BFV6Æ–æVBâç’6&B†öÆB†2&VVâ&VÆV6VBâ#¢$FVÖæFR&VgW<:–RâÎ(	œ:—fVçGVVÆÆR,:’ÖWF÷&—6F–öâ:—L:’Æ–,:—,:–Râ"À¢%&VgVæB—77VVBFòF†RwVW7Bâ#¢%&VÖ&÷W'6VÖVçBVçf÷œ:’Rf÷–vWW"â"À¢%&WVW7BWFFVBâ#¢$FVÖæFRÖ—6R:¦÷W"â"À¢$6÷VÆFî(	—BWFFRF†R&WVW7Bâ#¢$–×÷76–&ÆRFRÖWGG&R:¦÷W"ÆFVÖæFRâ"À¢$wVW7B&WVW7G2#¢$FVÖæFW2FW2f÷–vWW'2"À¢%&Vg&W6‚&WVW7G2#¢$7GVÆ—6W"ÆW2FVÖæFW2"À¢$ÆöF–ær&WVW7G>(
+b#¢$6†&vVÖVçBFW2FVÖæFW>(
+b"À¢$æò&WVW7G2–WBâwVW7G26â&WVW7BW‡G&2g&öÒF†R(	ÄÆ—GFÆRW‡G&>(	ÒF"öb–÷W"wV–FRâ#¢$V7VæRFVÖæFR÷W"Î(	––ç7FçBâÆW2f÷–vWW'2WWfVçBFVÖæFW"FW2W‡G&2FWV—2Î(	–öævÆWB*²WF—G2W‡G&2+²FRf÷G&RwV–FRâ"À¢'VæF–ær#¢&VâGFVçFR"À¢&&÷fVB#¢&66WL:–R"À¢&FV6Æ–æVB#¢'&VgW<:–R"À¢'–B#¢'œ:–R"À¢'&VgVæFVB#¢'&VÖ&÷W'<:–R"À¢&6&BWF†÷&—6VB#¢&6'FR,:’ÖWF÷&—<:–R"À¢'–BöæÆ–æR#¢'œ:’VâÆ–væR"À¢$&÷fRb6†&vR#¢$66WFW"WBVæ6—76W""À¢$&÷fR#¢$66WFW""À¢$FV6Æ–æRb&VÆV6R#¢%&VgW6W"WBÆ–,:—&W""À¢$FV6Æ–æR#¢%&VgW6W""À¢$Ö&²2–B#¢$Ö'VW"6öÖÖRœ:–R"À¢%&VgVæBF†—2wVW7B–âgVÆÃò#¢%&VÖ&÷W'6W"VçFœ:‡&VÖVçB6Rf÷–vWW"ò"À¢%&VgVæB#¢%&VÖ&÷W'6W""À¢òòæÇ—F–70¢$vööB7F—2Â'’F†RçVÖ&W'2#¢$ÆW2&VW‚<:–¦÷W'2ÂVâ6†–fg&W2"À¢$Æ—GFÆR–ç6–v‡B–çFòv†BÖ¶W2–÷W"wVW7G2fVVÂB†öÖRâ#¢%VâW,:wRFR6RV’f—B6R6VçF—"6†W¢WW‚f÷2f÷–vWW'2â"À¢%6×ÆRæÇ—F–72f÷"FVÖöç7G&F–öââ6–vâ–âFò6VR–÷W"&VÂçVÖ&W'2â#¢%7FF—7F—VW2N(	–W†V×ÆRâ6öææV7FW¢×f÷W2÷W"fö—"f÷2g&—26†–fg&W2â"À¢$wV–FRf–Ww2F†—2vVV²#¢%gVW2GRwV–FR6WGFR6VÖ–æR"À¢$Ööâ#¢$ÇVâ"À¢%GVR#¢$Ö""À¢%vVB#¢$ÖW""À¢%F‡R#¢$¦WR"À¢$g&’#¢%fVâ"À¢%6B#¢%6Ò"À¢%7Vâ#¢$F–Ò"À¢%F†RF†–æw2wVW7G26²#¢$6RVRFVÖæFVçBÆW2f÷–vWW'2"À¢%v’Ôf’bvWGF–ær6öææV7FVB#¢%v’Ôf’WB6öææW†–öâ"À¢$6†V6²Ö–âb'&—fÂ#¢$'&—l:–R"À¢$Æö6Â&V6öÖÖVæFF–öç2#¢%&V6öÖÖæFF–öç2Æö6ÆW2"À¢$6†V6²Ö÷WBFWF–Ç2#¢$–æf÷2FRL:—'B"À¢$6÷VÆFî(	—BÆöBæÇ—F–72â#¢$–×÷76–&ÆRFR6†&vW"ÆW27FF—7F—VW2â"À¢$ÆöF–æ~(
+b#¢$6†&vVÖVçN(
+b"À¢$wV–FRf–Ww2†ÆÂF–ÖR’#¢%gVW2GRwV–FR‡F÷FÂ’"À¢%f–Ww2ÂÆ7B3F—2#¢%gVW2Â3FW&æ–W'2¦÷W'2"À¢$wVW7BVW7F–öç2#¢%VW7F–öç2FW2f÷–vWW'2"À¢$ç7vW&VBv—F†÷WB–÷R#¢%,:—öæGVW26ç2f÷W2"À¢$W‡G&2&÷fVB#¢$W‡G&266WL:—2"À¢$W‡G&&WVW7G2#¢$FVÖæFW2N(	–W‡G&2"À¢$’ÖW76vW2F†—2ÖöçF‚#¢$ÖW76vW2”6RÖö—2Ö6’"À¢%VW7F–öç2v–ÆÂV"†W&Röæ6RwVW7G27F'B6†GF–ærâ#¢$ÆW2VW7F–öç2&:çG&öçB–6’L:‡2VRÆW2f÷–vWW'26öÖÖVæ6W&öçB:F—67WFW"â"À¢òò6†&R¶—@¢$v&ÒvVÆ6öÖRÂ6†&VB#¢%Vâ67VV–Â6†ÆWW&WW‚Â'F|:’"À¢$öæRÆ—GFÆRÆ–æ²âWfW'—F†–ær–÷W"wVW7G2æVVBâ#¢%Vâ6WVÂÆ–VââF÷WB6RFöçBf÷2f÷–vWW'2öçB&W6ö–ââ"À¢%–÷W"&÷W'G’#¢%f÷G&RÆövVÖVçB"À¢%6VæBÆ—GFÆR†VÆÆò#¢$Vçf÷–W¢VâWF—B&öæ¦÷W""À¢$FB–÷W"wVW7BwV–FRFòvVÆ6öÖRÖW76vR÷"&öö¶–ær6öæf—&ÖF–öââ#¢$¦÷WFW¢f÷G&RwV–FR:VâÖW76vRFR&–VçfVçVR÷R:VæR6öæf—&ÖF–öâFR,:—6W'fF–öââ"À¢$wVW7BwV–FRÆ–æ²#¢$Æ–VâGRwV–FRf÷–vWW""À¢$6÷’wVW7BÆ–æ²#¢$6÷–W"ÆRÆ–Vâ"À¢$wVW7BÆ–æ²6÷–VBâ#¢$Æ–Vâ6÷œ:’â"À¢%6VÆV7BF†RÆ–æ²æB6÷’—BÖçVÆÇ’â#¢%<:–ÆV7F–öææW¢ÆRÆ–VâWB6÷–W¢ÖÆRÖçVVÆÆVÖVçBâ"À¢%v^(	—&RÆöö¶–ærf÷'v&BFòvVÆ6öÖ–ær–÷RFò¶æÖWÒ†W&^(	—2–÷W"W'6öæÂwV–FRv—F‚WfW'—F†–ær–÷RæVVBf÷"Æ÷fVÇ’7F“¢¶Æ–æ·ÕÆå6fRG&fVÇ2(	B6VR–÷R6ööâ#¢$æ÷W2föç2Œ:'FRFRf÷W267VV–ÆÆ—":¶æÖWÒfö–6’f÷G&RwV–FRW'6öææVÂfV2F÷WB6R^(	––ÂfWB÷W"Vâ<:–¦÷W",:—W76’¢¶Æ–æ·ÕÆä&öâf÷–vRÂ:G,:‡2f—FR"À¢%vVÆ6öÖRÖW76vR6÷–VBâ#¢$ÖW76vRFR&–VçfVçVR6÷œ:’â"À¢$6Æ—&ö&BVæf–Æ&ÆR–âF†—2'&÷w6W"â#¢%&W76R×–W'2–æF—7öæ–&ÆRFç26Ræf–vFWW"â"À¢$6÷’vVÆ6öÖRÖW76vR#¢$6÷–W"ÆRÖW76vRFR&–VçfVçVR"À¢$Æö6ÂFVÖò6†ævW2&Rf—6–&ÆRöâF†—2FWf–6RöæÇ’â"6öFRf÷"6×ÆR&÷W'G’v÷&·2öâç’FWf–6Râ#¢$ÆW2ÖöF–f–6F–öç2FRL:–ÖòæR6öçBf—6–&ÆW2VR7W"6WB&V–ÂâÆR"6öFRN(	—VâÆövVÖVçBN(	–W†V×ÆRföæ7F–öææR'F÷WBâ"À¢$Ö¶R–÷W'6VÆbB†öÖRâ#¢$f—FW26öÖÖR6†W¢f÷W2â"À¢%–÷W"wV–FRFòÆ÷fVÇ’7F’B¶æÖWÒâ#¢%f÷G&RwV–FR÷W"Vâ&VR<:–¦÷W":¶æÖWÒâ"À¢%66âf÷"ÆÂF†RÆ—GFÆRFWF–Ç2â#¢%66ææW¢÷W"F÷W2ÆW2WF—G2L:—F–Ç2â"À¢%"6öFRf÷"¶æÖWÒ#¢%"6öFR÷W"¶æÖWÒ"À¢$vVæW&FR"6&B#¢$|:–ì:—&W"Æ6'FR""À¢%&–çBò6fRDb#¢$–×&–ÖW"òVç&Vv—7G&W"VâDb"À¢òò&–ÆÆ–æp¢$Æâf÷"WfW'’¶–æBöb†÷7B#¢%VæRöfg&R÷W"6†VRŒ;GFR"À¢%6–×ÆRÂW"×&÷W'G’&–6–ærâÖ÷&RF–ÖRf÷"v†B–÷RÆ÷fRâ#¢$FW2F&–g26–×ÆW2"ÆövVÖVçBâÇW2FRFV×2÷W"6RVRf÷W2–ÖW¢â"À¢%&÷W'F–W3¢¶çÒ#¢$ÆövVÖVçG2¢¶çÒ"À¢$ÖöçF†Ç’#¢$ÖVç7VVÂ"À¢%–V&Ç’+r"ÖöçF‡2g&VR#¢$æçVVÂ+r"Öö—2öffW'G2"À¢$g&VR#¢$w&GV—B"À¢$F†÷Vv‡FgVÂ&Vv–ææ–ær#¢%VâL:–'WBGFVçF–öæì:’"À¢$f÷"F†R–æFWVæFVçB†÷7B#¢%÷W"Î(	–Œ;GFR–æL:—VæFçB"À¢%–÷W"†÷7—FÆ—G’ÂVÆWfFVB#¢%f÷G&R†÷7—FÆ—L:’Â7V&Æ–Ü:–R"À¢'W"–V"#¢'"â"À¢'W"ÖöçF‚#¢'"Öö—2"À¢#&÷W'G’#¢#ÆövVÖVçB"À¢'¶çÒ&÷W'F–W2#¢'¶çÒÆövVÖVçG2"À¢'¶çÒ’ÖW76vW2ò&÷W'G’òÖöçF‚#¢'¶çÒÖW76vW2”òÆövVÖVçBòÖö—2"À¢$&VWF–gVÂöffÆ–æRwVW7BwV–FW2#¢$FR&VW‚wV–FW26öç7VÇF&ÆW2†÷'2Æ–væR"À¢$W‡G&27F÷&R+rRRÆFf÷&ÒfVR#¢$&÷WF—VRN(	–W‡G&2+rRRFRg&—2FRÆFVf÷&ÖR"À¢%&–÷&—G’7W÷'B#¢%7W÷'B&–÷&—F—&R"À¢%F†—2—2FVÖòv÷&·76Râ6–vâ–âv—F‚vöövÆRFò6†ö÷6RÆââ#¢$6V6’W7BVâW76RFRL:–Öòâ6öææV7FW¢×f÷W2fV2vöövÆR÷W"6†ö—6—"VæRöfg&Râ"À¢%F†—2—2FVÖòv÷&·76Râ6–vâ–âFò6†ö÷6RÆââ#¢$6V6’W7BVâW76RFRL:–Öòâ6öææV7FW¢×f÷W2÷W"6†ö—6—"VæRöfg&Râ"À¢%G'’F†RFVÖò#¢$W76–W"ÆL:–Öò"À¢$6†ö÷6R·ÆçÒ#¢$6†ö—6—"·ÆçÒ"À¢$FVÖòv÷&·76R+r6–vâ–âv—F‚vöövÆRFò6†ö÷6RÆââ&–6W2–â¶6öFWÒ‡·7–Ö&öÇÒ’Â&–ÆÆVB6V7W&VÇ’'’7G&—Râ#¢$W76RFRL:–Öò+r6öææV7FW¢×f÷W2fV2vöövÆR÷W"6†ö—6—"VæRöfg&Râ&—‚Vâ¶6öFWÒ‡·7–Ö&öÇÒ’Âf7GW&F–öâ<:–7W&—<:–R"7G&—Râ"À¢$FVÖòv÷&·76R+r6–vâ–âFò6†ö÷6RÆââ&–6W2–â¶6öFWÒ‡·7–Ö&öÇÒ’Â&–ÆÆVB6V7W&VÇ’'’7G&—Râ#¢$W76RFRL:–Öò+r6öææV7FW¢×f÷W2÷W"6†ö—6—"VæRöfg&Râ&—‚Vâ¶6öFWÒ‡·7–Ö&öÇÒ’Âf7GW&F–öâ<:–7W&—<:–R"7G&—Râ"À¢%F†æ²–÷R–÷W"Æâ—2&V–ær7F—fFVBâF†—26âF¶RfWr6V6öæG2â#¢$ÖW&6’f÷G&Röfg&RW7BVâ6÷W'2N(	–7F—fF–öââ6VÆWWB&VæG&RVVÇVW26V6öæFW2â"À¢$6†V6¶÷WB6æ6VÆÆVBâæ÷F†–ærv26†&vVBâ#¢%–VÖVçBæçVÌ:’â&–Vâî(	–:—L:’L:–&—L:’â"À¢%–÷WBFWF–Ç26fVBâ7G&—RÖ’F¶RÖöÖVçBFòfW&–g’F†VÒâ#¢$–æf÷&ÖF–öç2FRfW'6VÖVçBVç&Vv—7G,:–W2â7G&—RWWB&VæG&RVâÖöÖVçB÷W"ÆW2l:—&–f–W"â"À¢%F†B6WGWÆ–æ²W‡—&VBâÆV6R6öçF–çVR–÷WB6WGWâ#¢$6RÆ–VâW‡—,:’âfWV–ÆÆW¢÷W'7V—g&RÆ6öæf–wW&F–öâFW2fW'6VÖVçG2â"À¢$6÷VÆFî(	—BÆöB&–ÆÆ–ærâÆV6R&Vg&W6‚F†RvRâ#¢$–×÷76–&ÆRFR6†&vW"Æf7GW&F–öââfWV–ÆÆW¢7GVÆ—6W"ÆvRâ"À¢$ÆöF–ær&–ÆÆ–æ~(
+b#¢$6†&vVÖVçBFRÆf7GW&F–öî(
+b"À¢%6–×ÆRÂW"×&÷W'G’&–6–ærâ6†ævR÷"6æ6VÂç’F–ÖRâ#¢$FW2F&–g26–×ÆW2"ÆövVÖVçBâÖöF–f–&ÆR÷R,:—6–Æ–&ÆR:F÷WBÖöÖVçBâ"À¢%–ÖVçG2&Ræ÷B6öææV7FVBöâF†—2FWÆ÷–ÖVçB–WBâ#¢$ÆW2–VÖVçG2æR6öçB2Væ6÷&R6öææV7L:—2â"À¢$7W'&VçBÆâ#¢$öfg&R7GVVÆÆR"À¢'WFò¶çÒöâF†—2Æâ#¢&§W7^(	œ:¶çÒfV26WGFRöfg&R"À¢$÷Væ–æ~(
+b#¢$÷WfW'GW&^(
+b"À¢$ÖævR&–ÆÆ–ær#¢$|:—&W"Æf7GW&F–öâ"À¢%–÷W"Æ7B–ÖVçBf–ÆVBâÆV6RWFFR–÷W"6&B–â(	ÄÖævR&–ÆÆ–æ~(	ÒFò¶VW–÷W"Æââ#¢%f÷G&RFW&æ–W"–VÖVçB:–6†÷\:’âÖWGFW¢:¦÷W"f÷G&R6'FRFç2*²|:—&W"Æf7GW&F–öâ+²÷W"6öç6W'fW"f÷G&Röfg&Râ"À¢%–÷W"†÷FVÂb×VÇF’ÕVæ—BÆâ—2ÖævVB'’7F”wV–FRæB–çfö–6VB6W&FVÇ’â6öçF7BW2Fò6†ævR—Bâ#¢%f÷G&Röfg&RŒ;GFVÇ2b×VÇF’ÖÆövVÖVçG2W7B|:—,:–R"7F”wV–FRWBf7GW,:–R<:—,:–ÖVçBâ6öçF7FW¢Öæ÷W2÷W"ÆÖöF–f–W"â"À¢$&–ÆÆVBf÷"¶çÒ+rWFFW2WFöÖF–6ÆÇ’2–÷RFB÷"&VÖ÷fR&÷W'F–W2#¢$f7GW,:’÷W"¶çÒ+rÖ—2:¦÷W"WFöÖF—VVÖVçBVæBf÷W2¦÷WFW¢÷R7W&–ÖW¢FW2ÆövVÖVçG2"À¢%WFò¶çÒ&÷W'F–W2#¢$§W7^(	œ:¶çÒÆövVÖVçG2"À¢'¶çÒ’6öæ6–W&vRÖW76vW2ò&÷W'G’òÖöçF‚#¢'¶çÒÖW76vW2GR6öæ6–W&vR”òÆövVÖVçBòÖö—2"À¢%–BW‡G&2+rRRÆFf÷&ÒfVR#¢$W‡G&2–çG2+rRRFRg&—2FRÆFVf÷&ÖR"À¢$÷Væ–ær6†V6¶÷WN(
+b#¢$÷WfW'GW&RGR–VÖVçN(
+b"À¢'·&–6WÒ÷&÷W'G’öÖöçF‚#¢'·&–6WÒöÆövVÖVçBöÖö—2"À¢"Â&–ÆÆVB–V&Ç’#¢"Âf7GW,:’æçVVÆÆVÖVçB"À¢%&–6W2–â¶6öFWÒ‡·7–Ö&öÇÒ’â6V7W&R–ÖVçB'’7G&—Râ6æ6VÂç’F–ÖRg&öÒ(	ÄÖævR&–ÆÆ–æ~(	Òâ#¢%&—‚Vâ¶6öFWÒ‡·7–Ö&öÇÒ’â–VÖVçB<:–7W&—<:’"7G&—Râ,:—6–Æ–&ÆR:F÷WBÖöÖVçBFWV—2*²|:—&W"Æf7GW&F–öâ+²â"À¢$vWB–Bf÷"W‡G&2#¢$Væ6—76W¢f÷2W‡G&2"À¢$7F—fR#¢$7F–b"À¢$wVW7G2’f÷"W‡G&2'’6&BÂÆR’÷"vöövÆR’âÖöæW’vöW27G&–v‡BFò–÷W"&æ²f–7G&—RÂÖ–çW2RR7F”wV–FRfVRâW‡G&2F†BæVVB–÷W"&÷fÂ&RöæÇ’6†&vVBv†Vâ–÷R&÷fRF†VÒâ#¢$ÆW2f÷–vWW'2–VçBÆWW'2W‡G&2"6'FRÂÆR’÷RvöövÆR’âÎ(	–&vVçB'&—fRF—&V7FVÖVçB7W"f÷G&R6ö×FRf–7G&—RÂÖö–ç2RRFRg&—27F”wV–FRâÆW2W‡G&26÷VÖ—2:f÷G&R66÷&BæR6öçBL:–&—L:—2^(	–,:‡2f÷G&R66WFF–öââ"À¢$÷Vâ–÷WG2F6†&ö&B#¢$÷Wg&—"ÆRF&ÆVRFW2fW'6VÖVçG2"À¢$öæÆ–æR–ÖVçG2f÷"W‡G&2&R6öÖ–ær6ööââVçF–ÂF†VâÂwVW7G26VæB&WVW7G2æB–÷R6öæf—&Ò†÷rF†W’’â#¢$ÆR–VÖVçBVâÆ–væRFW2W‡G&2'&—fR&–VçL;GBâVâGFVæFçBÂÆW2f÷–vWW'2Vçfö–VçBFW2FVÖæFW2WBf÷W26öæf—&ÖW¢ÆRÖöFRFR–VÖVçBâ"À¢$6öææV7B&æ²66÷VçBv—F‚7G&—R6òwVW7G26â’f÷"W‡G&2öæÆ–æRâVçF–ÂF†VâÂwVW7G26VæB&WVW7G2æB–÷R6öæf—&Ò–ÖVçB–÷W'6VÆbâ#¢$6öææV7FW¢Vâ6ö×FR&æ6—&RfV27G&—R÷W"VRÆW2f÷–vWW'2–VçBÆWW'2W‡G&2VâÆ–væRâVâGFVæFçBÂ–Ç2Vçfö–VçBFW2FVÖæFW2WBf÷W26öæf—&ÖW¢ÆR–VÖVçBf÷W2ÖÜ:¦ÖRâ"À¢$6÷VçG'’öb–÷W"&æ²66÷VçB#¢%—2FRf÷G&R6ö×FR&æ6—&R"À¢$÷Væ–ær7G&—^(
+b#¢$÷WfW'GW&RFR7G&—^(
+b"À¢$6öçF–çVR–÷WB6WGW#¢%÷W'7V—g&RÆ6öæf–wW&F–öâFW2fW'6VÖVçG2"À¢%6WBW–÷WG2#¢$6öæf–wW&W"ÆW2fW'6VÖVçG2"À¢'7BGVR#¢'–VÖVçBVâ&WF&B"À¢'G&–Æ–ær#¢':—&–öFRN(	–W76’"À¢&6æ6VÆVB#¢',:—6–Æœ:–R"À¢'Vç–B#¢&–×œ:–R"À¢òò6WGF–æw0¢%–÷W"v÷&·76RÂ–÷W"v’â#¢%f÷G&RW76RÂ:f÷G&Rf:vöââ"À¢%v÷&·76R&VfW&Væ6W26fVBöâF†—2FWf–6Râ#¢%,:–l:—&Væ6W2Vç&Vv—7G,:–W27W"6WB&V–Ââ"À¢%–÷W"v÷&·76R#¢%f÷G&RW76R"À¢%–÷W"f—'7BæÖR#¢%f÷G&R,:–æöÒ"À¢$÷&væ—¦F–öâæÖR#¢$æöÒFRf÷G&RVçG&W&—6R"À¢%6fR&VfW&Væ6W2#¢$Vç&Vv—7G&W"ÆW2,:–l:—&Væ6W2"À¢%F†RV÷ÆR&V†–æBF†RvVÆ6öÖR#¢$ÆW2W'6öææW2FW'&œ:‡&RÎ(	–67VV–Â"À¢%FVÒ66W72f÷"6òÖ†÷7G2æB7Ffb—26öÖ–ær6ööââ#¢$Î(	–6<:‡2N(	œ:—V—R÷W"6òÖŒ;GFW2WBW'6öææVÂ'&—fR&–VçL;GBâ"À¢%F†—2—2FVÖòv÷&·76R6fVB–â–÷W"'&÷w6W"â6–vâ–âv—F‚vöövÆRFò7&VFR–÷W"&VÂ66÷VçBâ#¢$6V6’W7BVâW76RFRL:–ÖòVç&Vv—7G,:’Fç2f÷G&Ræf–vFWW"â6öææV7FW¢×f÷W2fV2vöövÆR÷W"7,:–W"f÷G&Rg&’6ö×FRâ"À¢%F†—2—2FVÖòv÷&·76R6fVB–â–÷W"'&÷w6W"â6–vâ–âFò7&VFR–÷W"&VÂ66÷VçBâ#¢$6V6’W7BVâW76RFRL:–ÖòVç&Vv—7G,:’Fç2f÷G&Ræf–vFWW"â6öææV7FW¢×f÷W2÷W"7,:–W"f÷G&Rg&’6ö×FRâ"À¢%7v—F6‚FòÆ–v‡BÖöFR#¢%76W"VâÖöFR6Æ—""À¢%7v—F6‚FòF&²ÖöFR#¢%76W"VâÖöFR6öÖ'&R"À¢$6öææV7B–÷W"66÷VçB#¢$6öææV7FW"f÷G&R6ö×FR"À¢$F6†&ö&BÆæwVvR#¢$ÆæwVRGRF&ÆVRFR&÷&B"À¢òòÖöFÇ0¢$æWrÆ6RâæWrvVÆ6öÖRâ#¢%Vâæ÷WfVRÆ–WRâVâæ÷WfVÂ67VV–Ââ"À¢$FBF†R&6–72æB'&–ær–÷W"wVW7BwV–FRFòÆ–fRâ#¢$¦÷WFW¢Î(	–W76VçF–VÂWBFöææW¢f–R:f÷G&RwV–FRâ"À¢%&÷W'G’æÖR#¢$æöÒGRÆövVÖVçB"À¢$÷F–öæÂ+rW6VBf÷"(	Ä÷Vâ–âÖ>(	Ò#¢$f7VÇFF–b+rWF–Æ—<:–R÷W"*²÷Wg&—"Fç2Ö2+²"À¢%–÷W"†÷W6RÖçVÂ#¢%f÷G&RÆ—g&WBN(	–67VV–Â"À¢$÷F–öæÂ+röæÇ’6öçFVçB–÷R÷vâ#¢$f7VÇFF–b+rVæ—VVÖVçBVâ6öçFVçRV’f÷W2'F–VçB"À¢%7FR–÷W"'&—fÂFWF–Ç2Â†÷W6R'VÆW2ÂæBff÷&—FRÆö6ÂF—>(
+b#¢$6öÆÆW¢f÷2–æf÷2N(	–'&—l:–RÂf÷G&R,:†vÆVÖVçBWBf÷2&öææW2G&W76W>(
+b"À¢$÷W"’v–ÆÂ÷&væ—¦R–÷W"FW‡B–çFòwV–FR6V7F–öç2W6–æröæÇ’v†B–÷Rw&÷FRâ#¢$æ÷G&R”÷&væ—6W&f÷G&RFW‡FRVâ6V7F–öç2Vâî(	—WF–Æ—6çBVR6RVRf÷W2fW¢:–7&—Bâ"À¢%v^(	–ÆÂ7Æ—B–÷W"FW‡B–çFò6V7F–öç2Æ–¶R'&—fÂÂv’Ôf’æB6†V6¶÷WBâW6RÆ&VÇ27V6‚2(	Åt’Ôd“®(	Òf÷"&W7B&W7VÇG2â#¢$æ÷W2L:–6÷WW&öç2f÷G&RFW‡FRVâ6V7F–öç26öÖÖR'&—l:–RÂv’Ôf’WBL:—'BâWF–Æ—6W¢FW2–çF—GVÌ:—26öÖÖR*²t’Ôd“¢+²÷W"VâÖV–ÆÆWW",:—7VÇFBâ"À¢$'V–ÆF–ær–÷W"wV–F^(
+b#¢$7,:–F–öâFRf÷G&RwV–F^(
+b"À¢$7&VFR×’wV–FR#¢$7,:–W"ÖöâwV–FR"À¢%&÷W'G’7&VFVBâ’÷&væ—¦VB–÷W"wV–FR(	B†fRÆöö²â#¢$ÆövVÖVçB7,:œ:’âÎ(	””÷&væ—<:’f÷G&RwV–FR(	B¦WFW¢VâY6–Ââ"À¢%&÷W'G’7&VFVBâ–÷W"wV–FR—2&VG’FòVF—Bâ#¢$ÆövVÖVçB7,:œ:’âf÷G&RwV–FRW7B,:§B::§G&RÖöF–fœ:’â"À¢$6÷VÆBæ÷B7&VFRF†R&÷W'G’â#¢$–×÷76–&ÆRFR7,:–W"ÆRÆövVÖVçBâ"À¢$FB–÷W"&÷W'G(	—2·G—WÒ–æf÷&ÖF–öâ†W&Râ#¢$¦÷WFW¢–6’ÆW2–æf÷&ÖF–öç2*²·G—WÒ+²FRf÷G&RÆövVÖVçBâ"À¢$F†÷Vv‡FgVÂÆ—GFÆRW‡G&#¢%VâWF—BW‡G&GFVçF–öæì:’"À¢$v—fR–÷W"wVW7G2öæRÖ÷&R&V6öâFòÆ÷fRF†V—"7F’â#¢$FöææW¢:f÷2f÷–vWW'2VæR&—6öâFRÇW2N(	––ÖW"ÆWW"<:–¦÷W"â"À¢%&÷W'G’#¢$ÆövVÖVçB"À¢$æÖR#¢$æöÒ"À¢$FW67&—F–öâ#¢$FW67&—F–öâ"À¢%&–6R‡·7–Ö&öÇÒ’#¢%&—‚‡·7–Ö&öÇÒ’"À¢%&WV—&R×’&÷fÂ&Vf÷&R–ÖVçB#¢$FVÖæFW"Ööâ66÷&BfçBÆR–VÖVçB"À¢$W‡G&FFVBFò–÷W"FVÖòwV–FRâ#¢$W‡G&¦÷WL:’:f÷G&RwV–FRFRL:–Öòâ"À¢&RærâF†RÆ—GFÆRöÆ—fR†÷W6R#¢&W‚âÆWF—FRÖ—6öâFW2öÆ—f–W'2"À¢&RærâvFÆ–æ'W&rÂFVææW76VR#¢&W‚âææV7’Âg&æ6R"À¢$&6¶WBöbÆö6Âff÷&—FW2#¢%Vâæ–W"FR&öGV—G2Æö6W‚"À¢òò6–vâÖ–âvP¢%vVÆ6öÖR&6²#¢$&öâ&WF÷W""À¢$vööB†÷7G2Ö¶R#¢$ÆW2&öç2Œ;GFW2föçB"À¢&w&VB7F—2â#¢&ÆW2&VW‚<:–¦÷W'2â"À¢%vVÆ6öÖR†öÖRâ#¢$&–VçfVçVR6†W¢f÷W2â"À¢$Æ—GFÆRÆW72v÷&²âÆ—GFÆRÖ÷&R†÷7—FÆ—G’â#¢%VâWRÖö–ç2FRG&f–ÂâVâWRÇW2N(	–†÷7—FÆ—L:’â"À¢$v&ÒæBvVÆ6öÖ–ærÆ—f–ær&ööÒ#¢%Vâ6Æöâ6†ÆWW&WW‚WB67VV–ÆÆçB"À¢%F†÷Vv‡FgVÂ†÷7F–ær7F'G2†W&Râ#¢$Î(	–67VV–ÂGFVçF–öæì:’6öÖÖVæ6R–6’â"À¢%6–vâ–âFò–÷W"66÷VçB#¢$6öææV7FW¢×f÷W2:f÷G&R6ö×FR"À¢%vVÆ6öÖR&6²â6–vâ–âv—F‚–÷W"vöövÆR66÷VçBFò6öçF–çVRâ#¢$&öâ&WF÷W"â6öææV7FW¢×f÷W2fV2f÷G&R6ö×FRvöövÆR÷W"6öçF–çVW"â"À¢%vVÆ6öÖR&6²â6†ö÷6R6V7W&R6–vâÖ–â÷F–öâFò6öçF–çVRâ#¢$&öâ&WF÷W"â6†ö—6—76W¢VæR÷F–öâFR6öææW†–öâ<:–7W&—<:–R÷W"6öçF–çVW"â"À¢$6öçF–çVRv—F‚vöövÆR#¢$6öçF–çVW"fV2vöövÆR"À¢$6öçF–çVRv—F‚ÆR#¢$6öçF–çVW"fV2ÆR"À¢$VÖ–ÂFG&W72#¢$G&W76RRÖÖ–Â"À¢%6VæB6öFR#¢$Vçf÷–W"ÆR6öFR"À¢%6–vâÖ–â6öFR#¢$6öFRFR6öææW†–öâ"À¢$6öçF–çVR#¢$6öçF–çVW""À¢%vR6VçBbÖF–v—B6öFRFò–÷W"VÖ–Ââ—BW‡—&W2–âÖ–çWFW2â#¢$æ÷W2föç2Vçf÷œ:’Vâ6öFR:b6†–fg&W2:f÷G&RRÖÖ–Ââ–ÂW‡—&RFç2Ö–çWFW2â"À¢$Æ—fR66÷VçG2&Ræ÷B6öææV7FVB–WBâW‡Æ÷&RF†RFVÖò&VÆ÷râ#¢$ÆW26ö×FW2æR6öçB2Væ6÷&R6öææV7L:—2âW‡Æ÷&W¢ÆL:–Öò6’ÖFW76÷W2â"À¢%vR6÷VÆFî(	—B6VæBF†R6öFRâG'’vöövÆRv†–ÆRVÖ–Â6–vâÖ–â—2&V–ærf—†VBâ#¢$æ÷W2î(	–föç22RVçf÷–W"ÆR6öFRâW76–W¢vöövÆRVæFçBVRÆ6öææW†–öâ"RÖÖ–ÂW7B6÷'&–|:–Râ"À¢%F†B6öFRF–Bæ÷Bv÷&²â&WVW7BæWr6öFR÷"G'’v–ââ#¢$6R6öFRî(	–2föæ7F–öæì:’âFVÖæFW¢Vâæ÷WfVR6öFR÷R,:–W76–W¢â"À¢%vR6÷VÆFî(	—B6–vâ–÷R–ââÆV6RG'’v–ââ#¢$æ÷W2î(	–föç22Rf÷W26öææV7FW"âfWV–ÆÆW¢,:–W76–W"â"À¢&÷"W‡Æ÷&Rv—F†÷WB6–væ–ær–â#¢&÷RW‡Æ÷&W¢6ç2f÷W26öææV7FW""À¢$W‡Æ÷&RF†RFVÖò#¢$W‡Æ÷&W"ÆL:–Öò"À¢$'’6öçF–çV–ærÂ–÷Rw&VRFò÷W"#¢$Vâ6öçF–çVçBÂf÷W266WFW¢æ÷2"À¢%FW&×2#¢$6öæF—F–öç2"À¢&æB#¢&WBæ÷G&R"À¢%&—f7’öÆ–7’#¢%öÆ—F—VRFR6öæf–FVçF–Æ—L:’"À§Ó° ¦6öç7BW3¢F–7BÒ°¢$’wV–FRvVæW&F–öâW6W2öæR–æ6ÇVFVB’&WVW7BâfW&–g’–÷W"VÖ–ÂFòVæ&ÆR“²F†RÖçVÂ'6W"&VÖ–ç2f–Æ&ÆRâ#¢$vVæW&"Væw\:Ö6öâ”W6Væ6öÆ–6—GVBFR”–æ6ÇV–FâfW&–f–6GR6÷'&Vò&7F—f"Æ”²VÂì:Æ—6—2ÖçVÂ6–wVRF—7öæ–&ÆRâ"À¢%v÷&·76R&VfW&Væ6W26fVBöæÆ–æRâ#¢%&VfW&Væ6–2FVÂW76–òwV&FF2VâÌ:ÖæVâ"À¢$6÷VÆBæ÷B6fRv÷&·76R&VfW&Væ6W2âÆV6RG'’v–ââ#¢$æò6RVF–W&öâwV&F"Æ2&VfW&Væ6–2â–çL:–çFÆòFRçVWfòâ"À¢%6VæF–æ~(
+b#¢$Vçf–æFş(
+b"À¢%&W6VæBfW&–f–6F–öâVÖ–Â#¢%&VVçf–"VÂ6÷'&VòFRfW&–f–66œ;6â"À¢$6†V6²–÷W"–æ&÷‚f÷"–÷W"fW&–f–6F–öâÆ–æ²â#¢%&Wf—6GR6÷'&Vò&Væ6öçG&"VÂVæÆ6RFRfW&–f–66œ;6ââ"À¢$6÷VÆBæ÷B6VæBF†RfW&–f–6F–öâVÖ–ÂâÆV6Rv—B&Vf÷&RG'––ærv–ââ#¢$æò6RVFòVçf–"VÂ6÷'&VòFRfW&–f–66œ;6ââW7W&çFW2FRföÇfW"–çFVçF&Æòâ"À¢%f–WræÇ—F–72f÷"7F—f—G’#¢%fW"W7FL:×7F–62FR7F—f–FB"À¢$ÆÂF–ÖR#¢%FöFòVÂW,:ÖöFò"À¢$W‡G&2–B#¢$W‡G&2vF÷2"À¢$ç7vW&VBg&öÒ–÷W"wV–FR#¢%&W7öæF–F2FW6FRGRw\:Ö"À¢$g&öÒ–÷W"6fVBwVW7B7F—f—G’#¢%6V|;¦âÆ7F—f–FBwV&FFFRGW2‡\:—7VFW2"À¢$æòwVW7B6öçfW'6F–öç2–WBâ6†&RV&Æ—6†VBwV–FRFòvWB7F'FVBâ#¢$;¦âæò†’6öçfW'66–öæW2â6ö×'FRVæw\:ÖV&Æ–6F&V×W¦"â"À¢%W6R"Fò#‚6†&7FW'2â#¢%W6VçG&R"’#‚6&7FW&W2â"À¢$66÷VçB7&VFVBâ–÷R6â6–vâ–âv—F‚–÷W"77v÷&BâvR6÷VÆFî(	—B6VæBfW&–f–6F–öâVÖ–Ã²6öçF7B7W÷'Bf÷"†VÇâ#¢$7VVçF7&VFâVVFW2–æ–6–"6W6œ;6â6öâGR6öçG&6\;âæòVF–Ö÷2Vçf–"VÂ6÷'&VòFRfW&–f–66œ;6ã²6öçF7F6öâ6÷÷'FRâ"À¢%fW&–g’–÷W"VÖ–Â#¢%fW&–f–6GR6÷'&VòVÆV7G,;6æ–6ò"À¢$VÖ–ÂfW&–f–VB#¢$6÷'&VòVÆV7G,;6æ–6òfW&–f–6Fò"À¢$¶VW266÷VçB&V6÷fW'’æB7W÷'B6fRâ#¢%&÷FVvRÆ&V7WW&6œ;6âFRÆ7VVçF’Æ6—7FVæ6–â"À¢$FVÖòÖöFRW6W26×ÆR66÷VçBFWF–Ç2â#¢$VÂÖöFòFVÖòWF–Æ—¦FF÷2FR7VVçFFRV¦V×Æòâ"À¢$7&VFR–÷W"f—'7B&÷W'G’#¢$7&VGR&–ÖW"Æö¦Ö–VçFò"À¢$FBF†RFG&W72Â'&—fÂæ÷FW2Âv’Ôf’Â'VÆW2æB6†V6¶÷WBâ#¢$;FRÆF—&V66œ;6âÂÆ2–ç7G'V66–öæW2FRÆÆVvFÂVÂv–f’ÂÆ2æ÷&Ö2’Æ6Æ–Fâ"À¢%V&Æ—6‚æB&Wf–WrF†RwVW7BwV–FR#¢%V&Æ–6’&Wf—7VÆ—¦Æw\:ÖFVÂ‡\:—7VB"À¢$÷VâF†R6ÖRÆ–æ²–÷W"wVW7G2v–ÆÂ&V6V—fRâ#¢$'&RVÂÖ—6ÖòVæÆ6RVR&V6–&—,:âGW2‡\:—7VFW2â"À¢$FBöæRW‡G&÷"W6VÆÂ#¢$;FRVâW‡G&ò6W'f–6–òF–6–öæÂ"À¢$ÆFR6†V6¶÷WBÂ'&V¶f7B&6¶WG2ÂG&ç6fW'2æB–B6W'f–6W2â#¢%6Æ–FF&L:ÖÂ6W7F2FRFW6—VæòÂG&6ÆF÷2’6W'f–6–÷2FRvòâ"À¢$6†ö÷6RÆâæB6WBW–÷WG2#¢$VÆ–vRVâÆâ’6öæf–wW&Æ÷26ö'&÷2"À¢%Ww&FRv†Vâ–÷RæVVBÖ÷&R&÷W'F–W2÷"’ç7vW'2â#¢$ÖV¦÷&GRÆâ7VæFòæV6W6—FW2Ü:2Æö¦Ö–VçF÷2ò&W7VW7F2FR”â"À¢$tUB$TE’Dò„õ5B#¢%$U8$DR$$T4”$•"…\8•5TDU2"À¢$ÆVæ6‚6†V6¶Æ—7B#¢$Æ—7FFRÆç¦Ö–VçFò"À¢$¶VW'V–ÆF–ær#¢$6öçF–çV"Æ6öæf–wW&6œ;6â"À¢%ÆV6RfW&–g’–÷W"VÖ–ÂFG&W72â6†V6²–÷W"–æ&÷‚f÷"F†R7F”wV–FRfW&–f–6F–öâÆ–æ²Â÷"6öçF7B7W÷'B–b—BF–Bæ÷B'&—fRâ#¢%fW&–f–6GR6÷'&VòVÆV7G,;6æ–6òâ'W66VÂVæÆ6RFRfW&–f–66œ;6âFR7F”wV–FRVâGR&æFV¦FRVçG&Fò6öçF7F6öâ6—7FVæ6–6’æò†ÆÆVvFòâ"À¢%7W÷'B#¢$6—7FVæ6–"À¢$æVVB†VÇ6WGF–ærW&÷W'G’Â&–ÆÆ–ærÂ–÷WG2Â÷"wVW7BwV–FSòVÖ–ÂW2æBv^(	–ÆÂ†VÇ–÷RvWBVç7GV6²â#¢,+ôæV6W6—F2—VF&6öæf–wW&"VâÆö¦Ö–VçFòÂÆf7GW&6œ;6âÂÆ÷26ö'&÷2òVæw\:ÖòW67,:Ö&Væ÷2’FR—VF&VÖ÷2â"À¢%7W÷'B&WÆ–W2&R†æFÆVB'’F†R7F”wV–FRFVÒâFòæ÷B6VæBFö÷"6öFW2÷"wVW7B–ÖVçBFWF–Ç2'’VÖ–Ââ#¢$VÂWV—òFR7F”wV–FR&W7öæFRÆ26öç7VÇF2âæòVçl:ÖW2<;6F–v÷2FR66W6òæ’FF÷2FRvòFR‡\:—7VFW2÷"6÷'&VòVÆV7G,;6æ–6òâ"À¢$6÷VÆBæ÷B7&VFRF†—266÷VçBâ6†V6²–÷W"FWF–Ç2Â÷"6–vâ–â–b–÷RÇ&VG’†fRâ66÷VçBâW†—7F–ærvöövÆR66÷VçG26†÷VÆB6öçF–çVRv—F‚vöövÆRâ#¢$æò6RVFò7&V"W7F7VVçFâ6ö×'VV&GW2FF÷2ò–æ–6–6W6œ;6â6’–F–VæW2Væ7VVçFâÆ27VVçF2FRvöövÆRW†—7FVçFW2FV&Vâ6öçF–çV"6öâvöövÆRâ"À¢%F†BVÖ–ÂæB77v÷&BF–Bæ÷B6–vâ–ââ–bF†—2—2–÷W"f—'7BF–ÖRÂ7&VFRâ66÷VçBf—'7BÂ÷"6öçF–çVRv—F‚vöövÆRâ#¢$VÂ6÷'&Vò’Æ6öçG&6\;æòW&Ö—F–W&öâ–æ–6–"6W6œ;6ââ6’W2GR&–ÖW&fW¢Â7&VVæ7VVçFò6öçF–ì;¦6öâvöövÆRâ"À¢$6†ö÷6R66÷VçB7F–öâ#¢$VÆ–vRVæ66œ;6âFR7VVçF"À¢$7&VFR66÷VçB#¢$7&V"7VVçF"À¢%77v÷&B#¢$6öçG&6\;"À¢%W6R"Fò#‚6†&7FW'2âv^(	–ÆÂVÖ–Â–÷RfW&–f–6F–öâÆ–æ²gFW"6–vçWâ#¢%W6VçG&R"’#‚6&7FW&W2âFRVçf–&VÖ÷2VâVæÆ6RFRfW&–f–66œ;6âFW7\:—2FVÂ&Vv—7G&òâ"À¢$Ç&VG’&Vv—7FW&VCòW6R6–vâ–â&÷fRâ#¢,+õ–W7L:2&Vv—7G&FóòW6–æ–6–"6W6œ;6â'&–&â"À¢$f—'7BF–ÖRW6–ærVÖ–ÂæB77v÷&CòW6R7&VFR66÷VçB&÷fRâ#¢,+õ&–ÖW&fW¢6öâ6÷'&Vò’6öçG&6\;òW67&V"7VVçF'&–&â"À¢$f÷&v÷B77v÷&Cò#¢,+ôöÇf–F7FRGR6öçG&6\;ò"À¢$66÷VçB7&VFVBâ6†V6²–÷W"VÖ–ÂFòfW&–g’–÷W"FG&W72ÂF†Vâ6–vâ–âv—F‚–÷W"77v÷&Bâ#¢$7VVçF7&VFâ&Wf—6GR6÷'&Vò&fW&–f–6"GRF—&V66œ;6âR–æ–6–6W6œ;6â6öâGR6öçG&6\;â"À¢%6×ÆRwV–FRf–Ww2f÷"F†RvVV²#¢%f—7F2FRÆw\:ÖFRÆ6VÖæ†V¦V×Æò’"À¢$÷fW'f–Wr#¢%&W7VÖVâ"À¢%&÷W'F–W2#¢$Æö¦Ö–VçF÷2"À¢$wVW7B–æ&÷‚#¢$ÖVç6¦W2FR‡\:—7VFW2"À¢$W‡G&2bW6VÆÇ2#¢$W‡G&2’fVçF2F–6–öæÆW2"À¢$æÇ—F–72#¢$W7FL:×7F–62"À¢%6†&R¶—B#¢$¶—B&6ö×'F—""À¢%Æç2b&–ÆÆ–ær#¢%ÆæW2’f7GW&6œ;6â"À¢%6WGF–æw2#¢$§W7FW2"À¢$wV–FRVF—F÷"#¢$VF—F÷"FRw\:Ö"À¢%tõ$µ54R#¢$U54”òDRE$$¤ò"À¢%v÷&·76R#¢$W76–òFRG&&¦ò"À¢$†÷7Bv÷&·76R#¢$W76–òFVÂæf—G&œ;6â"À¢$6Æ÷6Ræf–vF–öâ#¢$6W'&"ÖVì;¢"À¢$÷Vâæf–vF–öâ#¢$'&—"ÖVì;¢"À¢$Æ—GFÆRÖ÷&R÷76–&–Æ—G’â#¢%Vâö6òÜ:2FR÷6–&–Æ–FFW2â"À¢$Ö÷&R&÷W'F–W2âÖ÷&R’ç7vW'2â#¢$Ü:2Æö¦Ö–VçF÷2âÜ:2&W7VW7F2FR”â"À¢$WfVâ&WGFW"wVW7BW‡W&–Væ6W2â#¢$W7Fæ6–2;¦âÖV¦÷&W2â"À¢$W‡Æ÷&R&ò#¢$FW67V'&—"&ò"À¢%v÷&·76R÷væW"#¢%&÷–WF&–òFVÂW76–ò"À¢$FVÖò†÷7B66÷VçB#¢$7VVçFFRæf—G&œ;6âFRFVÖò"À¢%v÷&·76R÷væW"+rFVÖò#¢%&÷–WF&–òFVÂW76–ò+rFVÖò"À¢%v÷&·76R÷væW"+r¶VÖ–ÇÒ#¢%&÷–WF&–òFVÂW76–ò+r¶VÖ–ÇÒ"À¢%4d”ä~(
+b#¢$uT$DäDş(
+b"À¢$äõB4dTB+r$UE%””ärôâäU…BTD•B#¢$äòuT$DDò+r4R$T”åDTåD,8TâÄ,95„”ÔTD”4œ94â"À¢$ÄÂ4„ätU24dTB#¢%DôDòuT$DDò"À¢$DTÔòtõ$µ54R#¢$U54”òDRDTÔò"À¢%6–vâ–â#¢$–æ–6–"6W6œ;6â"À¢%f–WrwVW7BW‡W&–Væ6R#¢%fW"6öÖò‡\:—7VB"À¢%FövvÆRF&²ÖöFR#¢$6Ö&–"ÖöFò÷67W&ò"À¢$wVW7Bæ÷F–f–6F–öç2#¢$æ÷F–f–66–öæW2FR‡\:—7VFW2"À¢%6–væVB–â2¶VÖ–ÇÒâ6Æ–6²Fò6–vâ÷WBâ#¢%6W6œ;6â–æ–6–F6öÖò¶VÖ–ÇÒâ†¢6Æ–2&6W'&"6W6œ;6ââ"À¢%6–vâ÷WB¶VÖ–ÇÒ#¢$6W'&"6W6œ;6âFR¶VÖ–ÇÒ"À¢$ÆæwVvR#¢$–F–öÖ"À¢$ÖFRf÷"F†÷Vv‡FgVÂ†÷7G2â'V–ÇBf÷"ÖVÖ÷&&ÆR7F—2â#¢$†V6†ò&æf—G&–öæW2FVçF÷2âVç6Fò&W7Fæ6–2ÖVÖ÷&&ÆW2â"À¢$FVÖòFF+r6fVBöâF†—2FWf–6R#¢$FF÷2FRFVÖò+rwV&FF÷2VâW7FRF—7÷6—F—fò"À¢%6fVB6V7W&VÇ’öæÆ–æR#¢$wV&FFòFRf÷&Ö6VwW&VâÌ:ÖæV"À¢$6Æ÷6RF–Æör#¢$6W'&""À¢%”õU"Ä•EDÄR„õ5D”är„TET%DU%2#¢%ERUT\9ò5T%DTÂtTäU$ÂDRäd•E$œ94â"À¢$vööBF†–æw27F'Bv—F‚#¢$Æò'VVæòV×–W¦6öâVæ"À¢&w&VB7F’â#¢&w&âW7Fæ6–â"À¢%vVÆ6öÖR&6²Â¶æÖWÒâ†W&^(	—2†÷r–÷W"&÷W'F–W2&RFö–ærâ#¢$†öÆFRçVWfòÂ¶æÖWÒâ<:ÒfâGW2Æö¦Ö–VçF÷2â"À¢$FVÖòÖöçF‚#¢$ÖW2FRFVÖò"À¢$ÄU52Ôät”ärâÔõ$R„õ5D”ärâ#¢$ÔTäõ2tU5Dœ94ââÜ82„õ5•DÄ”DBâ"À¢$F†÷Vv‡FgVÂ7F’Â#¢%VæW7Fæ6–7V–FFÂ"À¢'v—F†÷WBF†RW‡G&v÷&²â#¢'6–âG&&¦òW‡G&â"À¢%–÷W"wV–FW2†æFÆRF†RÆ—GFÆRVW7F–öç2â#¢%GW2w\:Ö2&W7öæFVâÆ2WV\;2&VwVçF2â"À¢%–÷Rfö7W2öâÖ¶–ærwVW7G2fVVÂB†öÖRâ#¢%L;¢FR6VçG&2VâVRGW2‡\:—7VFW26R6–VçFâVâ66â"À¢$7&VFRwV–FR#¢$7&V"Væw\:Ö"À¢%”õU"„ôÔRt’e$ôÒ„ôÔR#¢%ER„ôt"ÄT¤õ2DR44"À¢$öÌ:ÂvVÆ6öÖR†öÖRâ#¢$†öÆÂ&–VçfVæ–Fò66â"À¢%v’Ôf’#¢%v’Ôf’"À¢$W‡Æ÷&R#¢$W‡Æ÷&""À¢%–÷W"7F’#¢%GRW7Fæ6–"À¢$Æ—GFÆRW‡G&2#¢$W‡G&2"À¢$†’wVW7G2â†’†÷7Bâ#¢$‡\:—7VFW2fVÆ–6W2âæf—G&œ;6âfVÆ—¢â"À¢%F†÷Vv‡FgVÂFWF–Ç2ÂÆÂ–âöæRÆ6Râ#¢%FöF÷2Æ÷2FWFÆÆW2ÂVâVâ6öÆòÇVv"â"À¢$wV–FRf–Ww2#¢%f—7F2FRÆw\:Ö"À¢$’6öçfW'6F–öç2#¢$6öçfW'66–öæW26öâ”"À¢$W‡G&2&WfVçVR#¢$–æw&W6÷2÷"W‡G&2"À¢$†’wVW7G2#¢$‡\:—7VFW26F—6fV6†÷2"À¢'g2â&Wf–÷W2ÖöçF‚#¢'g2âÖW2çFW&–÷""À¢&ç7vW&VBv—F†÷WB–÷R#¢'&W7öæF–F26–âF’"À¢&fW&vRwVW7B&F–ær#¢'fÆ÷&6œ;6âÖVF–"À¢%–÷W"&÷W'F–W2#¢%GW2Æö¦Ö–VçF÷2"À¢'¶çÒÆ—GFÆRÆ6W2âVæFÆW72÷76–&–Æ—F–W2â#¢'¶çÒWV\;÷2ÇVv&W2â÷6–&–Æ–FFW2–æf–æ—F2â"À¢%f–WrÆÂ&÷W'F–W2#¢%fW"FöF÷2Æ÷2Æö¦Ö–VçF÷2"À¢$&÷VæB–÷W"&÷W'F–W2#¢$VâGW2Æö¦Ö–VçF÷2"À¢%f–Wr–æ&÷‚#¢%fW"ÖVç6¦W2"À¢$6Æ÷vW"vööF'–RÂ&öö¶VBâ#¢%Væ6Æ–F6–â&—62Â&W6W'fFâ"À¢$ÆFR6†V6¶÷WB#¢%6Æ–FF&L:Ö"À¢$öæRÆW72VW7F–öâöâ–÷W"ÆFRâ#¢%Væ&VwVçFÖVæ÷2&F’â"À¢%v’Ôf’FWF–Ç26†&VB'’6öæ6–W&vR#¢$FF÷2FVÂv–f’Vçf–F÷2÷"VÂ6öç6W&¦R"À¢$v&ÒvVÆ6öÖRÂFVÆ—fW&VBâ#¢%Væ<:Æ–F&–VçfVæ–FÂVçG&VvFâ"À¢$wVW7B÷VæVBF†V—"wV–FR#¢%Vâ‡\:—7VB'&œ;27Rw\:Ö"À¢#"Ö–âvò#¢&†6R"Ö–â"À¢#3BÖ–âvò#¢&†6R3BÖ–â"À¢#†÷W"vò#¢&†6R†÷&"À¢$Ä•EDÄR„õ5D”är”å5•$D”ôâ#¢%Tâô4òDR”å5•$4œ94â"À¢%6ÖÆÂW‡G&2â#¢%WV\;÷2W‡G&2â"À¢$ÖVÖ÷&&ÆRW‡W&–Væ6W2â#¢$W‡W&–Væ6–2ÖVÖ÷&&ÆW2â"À¢$ÆFR6†V6¶÷WBâÆö6Â'&V¶f7Bâ#¢%Væ6Æ–FF&L:ÖâVâFW6—VæòÆö6Ââ"À¢%GW&âF†÷Vv‡FgVÂF÷V6†W2–çFòW‡G&–æ6öÖRÂæBv—fRwVW7G27F’Fò&VÖVÖ&W"â#¢$6öçf–W'FRÆ÷2WV\;÷2FWFÆÆW2Vâ–æw&W6÷2W‡G&’&VvÆVæW7Fæ6––æöÇf–F&ÆRâ"À¢$W‡Æ÷&R–÷W"W‡G&2#¢%fW"GW2W‡G&2"À¢%V&Æ—6†VB#¢%V&Æ–6F"À¢$G&gB#¢$&÷'&F÷""À¢$VF—B¶æÖWÒ#¢$VF—F"¶æÖWÒ"À¢%&Wf–Wr¶æÖWÒ#¢%f—7F&Wf–FR¶æÖWÒ"À¢%6†&R¶æÖWÒ#¢$6ö×'F—"¶æÖWÒ"À¢'¶æÖWÒÂvVÆ6öÖ–ær†öÆ–F’†öÖR#¢'¶æÖWÒÂVâÆö¦Ö–VçFò6övVF÷""À¢'¶çÒ6V7F–öç2#¢'¶çÒ6V66–öæW2"À¢'¶çÒFVÖòf–Ww2#¢'¶çÒf—7F2†FVÖò’"À¢'¶çÒ6†G2#¢'¶çÒ6†G2"À¢$ÖFRv—F‚Æ—GFÆRW‡G&6&R#¢$†V6†ò6öâVâ6&œ;òW7V6–Â"À¢$VF—BwV–FR#¢$VF—F"w\:Ö"À¢$&VWF–gVÂÆ6W2FW6W'fRF†÷Vv‡FgVÂvVÆ6öÖRâ#¢$Æ÷2ÇVv&W2&öæ—F÷2ÖW&V6VâVæ&–VçfVæ–F7V–FFâ"À¢$FB&÷W'G’#¢$;F—"Æö¦Ö–VçFò"À¢%6V&6‚&÷W'F–W2#¢$'W66"Æö¦Ö–VçF÷2"À¢$f–æBÆ—GFÆRÆ6^(
+b#¢$'W66"VâÆö¦Ö–VçFş(
+b"À¢$ÆÂ#¢%FöF÷2"À¢$æò&÷W'F–W2†W&R–WB#¢$;¦âæò†’Æö¦Ö–VçF÷2"À¢$7&VFR&÷W'G’÷"G'’æ÷F†W"6V&6‚â#¢$7&VVâÆö¦Ö–VçFòò'VV&÷G&,;§7VVFâ"À¢$FB&÷W'G’#¢$;F—"VâÆö¦Ö–VçFò"À¢$Æ—GFÆRÆö6Â¶æ÷vÆVFvRvöW2Æöærv’â#¢%Vâö6òFR6öæö6–Ö–VçFòÆö6ÂÖ&6ÆF–fW&Væ6–â"À¢$wVW7B&Wf–Wr#¢%f—7FFVÂ‡\:—7VB"À¢$FVÆWFR#¢$VÆ–Ö–æ""À¢$FVÆWFR¶æÖWÒæB—G2wV–FSòF†—26ææ÷B&RVæFöæRâ#¢,+ôVÆ–Ö–æ"¶æÖWÒ’7Rw\:Öòæò6RVVFRFW6†6W"â"À¢%&÷W'G’FVÆWFVBâ#¢$Æö¦Ö–VçFòVÆ–Ö–æFòâ"À¢$6÷VÆFî(	—BFVÆWFRF†R&÷W'G’âÆV6RG'’v–ââ#¢$æò6RVFòVÆ–Ö–æ"VÂÆö¦Ö–VçFòâ–çL:–çFÆòFRçVWfòâ"À¢%6VÆV7B&÷W'G’FòVF—B#¢$VÆVv—"Æö¦Ö–VçFò&VF—F""À¢%6fVBöâF†—2FWf–6R#¢$wV&FFòVâW7FRF—7÷6—F—fò"À¢$wV–FRÖ÷fVBFòG&gBâ#¢$w\:Ö6F&÷'&F÷"â"À¢$wV–FRV&Æ—6†VBâwVW7G26â÷Vâ—Bæ÷râ#¢$w\:ÖV&Æ–6FâGW2‡\:—7VFW2–VVFVâ'&—&Æâ"À¢$FVÖòwV–FRV&Æ—6†VBöâF†—2FWf–6Râ#¢$w\:ÖFRFVÖòV&Æ–6FVâW7FRF—7÷6—F—fòâ"À¢%VçV&Æ—6‚#¢$FW7V&Æ–6""À¢%V&Æ—6‚wV–FR#¢%V&Æ–6"w\:Ö"À¢%&÷W'G’FWF–Ç2#¢$FF÷2FVÂÆö¦Ö–VçFò"À¢%6†÷vâFòwVW7G2æBW6VB'’F†R6öæ6–W&vRâ6†ævW26fRWFöÖF–6ÆÇ’â#¢%6R×VW7G&âÆ÷2‡\:—7VFW2’Æ÷2W6VÂ6öç6W&¦Râ6RwV&FâWFöÜ:F–6ÖVçFRâ"À¢%7G&VWBFG&W72#¢$F—&V66œ;6â"À¢$6—G’Â6÷VçG'’#¢$6—VFBÂ:×2"À¢$6†V6²Ö–âF–ÖR#¢$†÷&FRVçG&F"À¢$6†V6¶÷WBF–ÖR#¢$†÷&FR6Æ–F"À¢%v’Ôf’æWGv÷&²#¢%&VBv–f’"À¢%v’Ôf’77v÷&B#¢$6öçG&6\;FVÂv–f’"À¢$†÷7B†öæR#¢%FVÌ:–föæòFVÂæf—G&œ;6â"À¢$æWrÆ—GFÆRFWF–Â#¢%VâçVWfòFWFÆÆR"À¢$FB6V7F–öâ#¢$;F—"6V66œ;6â"À¢$Ö¶R—BfVVÂÆ–¶R–÷Râ#¢$FÆRGRF÷VRW'6öæÂâ"À¢%w&—FR#¢$W67&–&—""À¢%&Wf–Wr#¢%f—7F&Wf–"À¢%6V7F–öâF—FÆR#¢%L:×GVÆòFRÆ6V66œ;6â"À¢$–6öâ#¢$–6öæò"À¢%–÷W"Æö6Â¶æ÷vÆVFvR#¢%GW26öç6V¦÷2"À¢$ÆÂF†RFWF–Ç2F†BÖ¶R7F’Vff÷'FÆW72âÖ&¶F÷vâ—2vVÆ6öÖRâ#¢%FöF÷2Æ÷2FWFÆÆW2&VæW7Fæ6–6–â6ö×Æ–66–öæW2â6RFÖ—FRÖ&¶F÷vââ"À¢%W6R¢¦&öÆB¢¢Â'VÆÆWBÆ—7G2ÂæBÆ–æ·2âG&r6V7F–öç2Fò&V÷&FW"Â÷"W6RF†R'&÷r'WGFöç2â#¢%W6¢¦æVw&—F¢¢ÂÆ—7F2’VæÆ6W2â'&7G&Æ26V66–öæW2&&V÷&FVæ&Æ2òW6Æ2fÆV6†2â"À¢$Ö÷fR6V7F–öâW#¢%7V&—"6V66œ;6â"À¢$Ö÷fR6V7F–öâF÷vâ#¢$&¦"6V66œ;6â"À¢$ÆÂ6†ævW2&R6fVBWFöÖF–6ÆÇ’öâF†—2FWf–6Râ#¢%FöF÷2Æ÷26Ö&–÷26RwV&Fâ]wç­-¢G§²ÚîÆ­yÒÀ¢$7W'&VçBÆâ#¢$·GVVÆÆW"F&–b"À¢'WFò¶çÒöâF†—2Æâ#¢&&—2§R¶çÒ–âF–W6VÒF&–b"À¢$÷Væ–æ~(
+b#¢%v—&Bv\;fffæWN(
+b"À¢$ÖævR&–ÆÆ–ær#¢$'&V6†çVærfW'vÇFVâ"À¢%–÷W"Æ7B–ÖVçBf–ÆVBâÆV6RWFFR–÷W"6&B–â(	ÄÖævR&–ÆÆ–æ~(	ÒFò¶VW–÷W"Æââ#¢$–‡&RÆWG§FR¦†ÇVær—7BfV†ÆvW66†ÆvVââ&—GFR·GVÆ—6–W&Vâ6–R–‡&R¶'FRVçFW"(	ä'&V6†çVærfW'vÇFVî(	ÂÂVÒ–‡&VâF&–b§R&V†ÇFVââ"À¢%–÷W"†÷FVÂb×VÇF’ÕVæ—BÆâ—2ÖævVB'’7F”wV–FRæB–çfö–6VB6W&FVÇ’â6öçF7BW2Fò6†ævR—Bâ#¢$–‡"F&–b†÷FVÇ2bÖV‡&f6†ö&¦V·FRv—&Bföâ7F”wV–FRfW'vÇFWBVæB6W&B&vW&V6†æWBâ¶öçF·F–W&Vâ6–RVç2l;Ç"8FæFW'VævVââ"À¢$&–ÆÆVBf÷"¶çÒ+rWFFW2WFöÖF–6ÆÇ’2–÷RFB÷"&VÖ÷fR&÷W'F–W2#¢$&vW&V6†æWBl;Ç"¶çÒ+r77B6–6‚WFöÖF—66‚âÂvVæâ6–RVçFW&¼;ÆægFR†–ç§Vl;ÆvVâöFW"VçFfW&æVâ"À¢%WFò¶çÒ&÷W'F–W2#¢$&—2§R¶çÒVçFW&¼;ÆægFR"À¢'¶çÒ’6öæ6–W&vRÖW76vW2ò&÷W'G’òÖöçF‚#¢'¶çÒ´’Ô6öæ6–W&vRÔæ6‡&–6‡FVâòVçFW&·VægBòÖöæB"À¢%–BW‡G&2+rRRÆFf÷&ÒfVR#¢$&W¦†ÇFRW‡G&2+rRRÆGFf÷&ÖvV,;Æ‡""À¢$÷Væ–ær6†V6¶÷WN(
+b#¢$&W¦†ÇVærv—&Bv\;fffæWN(
+b"À¢'·&–6WÒ÷&÷W'G’öÖöçF‚#¢'·&–6WÒõVçFW&·VægBôÖöæB"À¢"Â&–ÆÆVB–V&Ç’#¢"Â¬:F‡&Æ–6†R'&V6†çVær"À¢%&–6W2–â¶6öFWÒ‡·7–Ö&öÇÒ’â6V7W&R–ÖVçB'’7G&—Râ6æ6VÂç’F–ÖRg&öÒ(	ÄÖævR&–ÆÆ–æ~(	Òâ#¢%&V—6R–â¶6öFWÒ‡·7–Ö&öÇÒ’â6–6†W&R¦†ÇVær;Æ&W"7G&—Râ¦VFW'¦V—B¼;ÆæF&"VçFW"(	ä'&V6†çVærfW'vÇFVî(	Ââ"À¢$vWB–Bf÷"W‡G&2#¢$Ö—BW‡G&2vVÆBfW&F–VæVâ"À¢$7F—fR#¢$·F—b"À¢$wVW7G2’f÷"W‡G&2'’6&BÂÆR’÷"vöövÆR’âÖöæW’vöW27G&–v‡BFò–÷W"&æ²f–7G&—RÂÖ–çW2RR7F”wV–FRfVRâW‡G&2F†BæVVB–÷W"&÷fÂ&RöæÇ’6†&vVBv†Vâ–÷R&÷fRF†VÒâ#¢$|:G7FR¦†ÆVâW‡G&2W"¶'FRÂÆR’öFW"vöövÆR’âF2vVÆBvV‡B;Æ&W"7G&—RF—&V·BVb–‡"&æ¶¶öçFòÂ'¬;ÆvÆ–6‚RR7F”wV–FRÔvV,;Æ‡"âW‡G&2ÂF–R–‡&R§W7F–Ö×Vær'&V6†VâÂvW&FVâW'7Bæ6‚–‡&W"§W7F–Ö×Vær&vV'V6‡Bâ"À¢$÷Vâ–÷WG2F6†&ö&B#¢$W7¦†ÇVæw2ÔF6†&ö&B;fffæVâ"À¢$öæÆ–æR–ÖVçG2f÷"W‡G&2&R6öÖ–ær6ööââVçF–ÂF†VâÂwVW7G26VæB&WVW7G2æB–÷R6öæf—&Ò†÷rF†W’’â#¢$öæÆ–æRÕ¦†ÇVævVâl;Ç"W‡G&2¶öÖÖVâ&ÆBâ&—2F†–â6VæFVâ|:G7FRæg&vVâVæB6–R&W7L:GF–vVâF–R¦†ÇVæw7vV—6Râ"À¢$6öææV7B&æ²66÷VçBv—F‚7G&—R6òwVW7G26â’f÷"W‡G&2öæÆ–æRâVçF–ÂF†VâÂwVW7G26VæB&WVW7G2æB–÷R6öæf—&Ò–ÖVçB–÷W'6VÆbâ#¢%fW&&–æFVâ6–RV–â&æ¶¶öçFòÖ—B7G&—RÂFÖ—B|:G7FRW‡G&2öæÆ–æR&W¦†ÆVâ¼;fææVââ&—2F†–â6VæFVâ|:G7FRæg&vVâVæB6–R&W7L:GF–vVâF–R¦†ÇVær6VÆ'7Bâ"À¢$6÷VçG'’öb–÷W"&æ²66÷VçB#¢$ÆæB–‡&W2&æ¶¶öçF÷2"À¢$÷Væ–ær7G&—^(
+b#¢%7G&—Rv—&Bv\;fffæWN(
+b"À¢$6öçF–çVR–÷WB6WGW#¢$W7¦†ÇVævVâvV—FW"V–ç&–6‡FVâ"À¢%6WBW–÷WG2#¢$W7¦†ÇVævVâV–ç&–6‡FVâ"À¢'7BGVR#¢,;Æ&W&l:FÆÆ–r"À¢'G&–Æ–ær#¢%FW7G†6R"À¢&6æ6VÆVB#¢&vV¼;ÆæF–wB"À¢'Vç–B#¢'Væ&W¦†ÇB"À¢%–÷W"v÷&·76RÂ–÷W"v’â#¢$–‡"&&V—G6&W&V–6‚Â–‡"7F–Ââ"À¢%v÷&·76R&VfW&Væ6W26fVBöâF†—2FWf–6Râ#¢$V–ç7FVÆÇVævVâVbF–W6VÒvW,:GBvW7V–6†W'Bâ"À¢%–÷W"v÷&·76R#¢$–‡"&&V—G6&W&V–6‚"À¢%–÷W"f—'7BæÖR#¢$–‡"f÷&æÖR"À¢$÷&væ—¦F–öâæÖR#¢$æÖR–‡&W2VçFW&æV†ÖVç2"À¢%6fR&VfW&Væ6W2#¢$V–ç7FVÆÇVævVâ7V–6†W&â"À¢%F†RV÷ÆR&V†–æBF†RvVÆ6öÖR#¢$F–RÖVç66†Vâ†–çFW"FVÒV×fær"À¢%FVÒ66W72f÷"6òÖ†÷7G2æB7Ffb—26öÖ–ær6ööââ#¢%FV×§Vværl;Ç"6òÔv7FvV&W"VæBW'6öæÂ¶öÖ×B&ÆBâ"À¢%F†—2—2FVÖòv÷&·76R6fVB–â–÷W"'&÷w6W"â6–vâ–âv—F‚vöövÆRFò7&VFR–÷W"&VÂ66÷VçBâ#¢$F–W2—7BV–âFVÖòÔ&&V—G6&W&V–6‚–â–‡&VÒ'&÷w6W"âÖVÆFVâ6–R6–6‚Ö—BvöövÆRâÂVÒ–‡"V6‡FW2¶öçFò§RW'7FVÆÆVââ"À¢%F†—2—2FVÖòv÷&·76R6fVB–â–÷W"'&÷w6W"â6–vâ–âFò7&VFR–÷W"&VÂ66÷VçBâ#¢$F–W2—7BV–âFVÖòÔ&&V—G6&W&V–6‚–â–‡&VÒ'&÷w6W"âÖVÆFVâ6–R6–6‚âÂVÒ–‡"V6‡FW2¶öçFò§RW'7FVÆÆVââ"À¢%7v—F6‚FòÆ–v‡BÖöFR#¢%§VÒ†VÆÆVâÖöGW2vV6‡6VÆâ"À¢%7v—F6‚FòF&²ÖöFR#¢%§VÒGVæ¶ÆVâÖöGW2vV6‡6VÆâ"À¢$6öææV7B–÷W"66÷VçB#¢$¶öçFòfW&&–æFVâ"À¢$F6†&ö&BÆæwVvR#¢%7&6†RFW2F6†&ö&G2"À¢$æWrÆ6RâæWrvVÆ6öÖRâ#¢$V–âæWVW"÷'BâV–âæWVW"V×færâ"À¢$FBF†R&6–72æB'&–ær–÷W"wVW7BwV–FRFòÆ–fRâ#¢$l;ÆvVâ6–RF–Rw'VæFFFVâ†–ç§RVæBW'vV6¶Vâ6–R–‡&R|:G7FVÖR§VÒÆV&Vââ"À¢%&÷W'G’æÖR#¢$æÖRFW"VçFW&·VægB"À¢$÷F–öæÂ+rW6VBf÷"(	Ä÷Vâ–âÖ>(	Ò#¢$÷F–öæÂ+rl;Ç"(	ä–âÖ2;fffæVî(	Â"À¢%–÷W"†÷W6RÖçVÂ#¢$–‡&R†W6–æf÷&ÖF–öæVâ"À¢$÷F–öæÂ+röæÇ’6öçFVçB–÷R÷vâ#¢$÷F–öæÂ+rçW"V–vVæR–æ†ÇFR"À¢%7FR–÷W"'&—fÂFWF–Ç2Â†÷W6R'VÆW2ÂæBff÷&—FRÆö6ÂF—>(
+b#¢$l;ÆvVâ6–R–‡&Rç&V—6V†–çvV—6RÂ†W7&VvVÆâVæBÆ–V&Æ–æw7F—2V–î(
+b"À¢$÷W"’v–ÆÂ÷&væ—¦R–÷W"FW‡B–çFòwV–FR6V7F–öç2W6–æröæÇ’v†B–÷Rw&÷FRâ#¢%Vç6W&R´’vÆ–VFW'B–‡&VâFW‡B–â'66†æ—GFRVæBçWG§BF&V’çW"–‡&RV–vVæVâæv&Vââ"À¢%v^(	–ÆÂ7Æ—B–÷W"FW‡B–çFò6V7F–öç2Æ–¶R'&—fÂÂv’Ôf’æB6†V6¶÷WBâW6RÆ&VÇ27V6‚2(	Åt’Ôd“®(	Òf÷"&W7B&W7VÇG2â#¢%v—"FV–ÆVâ–‡&VâFW‡B–â'66†æ—GFRv–Rç&V—6RÂtÄâVæB6†V6²Ö÷WBVbâfW'vVæFVâ6–R9Æ&W'66‡&–gFVâv–R(	åt’Ôd“®(	Âl;Ç"&W7FRW&vV&æ—76Râ"À¢$'V–ÆF–ær–÷W"wV–F^(
+b#¢$–‡&R|:G7FVÖRv—&BW'7FVÆÇN(
+b"À¢$7&VFR×’wV–FR#¢$|:G7FVÖRW'7FVÆÆVâ"À¢%&÷W'G’7&VFVBâ’÷&væ—¦VB–÷W"wV–FR(	B†fRÆöö²â#¢%VçFW&·VægBævVÆVwBâF–R´’†B–‡&R|:G7FVÖRvVvÆ–VFW'B(	266†VVâ6–RÖÂâ"À¢%&÷W'G’7&VFVBâ–÷W"wV–FR—2&VG’FòVF—Bâ#¢%VçFW&·VægBævVÆVwBâ–‡&R|:G7FVÖR—7B&W&V—B§W"&V&&V—GVærâ"À¢$6÷VÆBæ÷B7&VFRF†R&÷W'G’â#¢$F–RVçFW&·VægB¶öæçFRæ–6‡BævVÆVwBvW&FVââ"À¢$FB–÷W"&÷W'G(	—2·G—WÒ–æf÷&ÖF–öâ†W&Râ#¢$l;ÆvVâ6–R†–W"F–Ræv&Vâ§R(	ç·G—WŞ(	Â–‡&W"VçFW&·VægB†–ç§Râ"À¢$F†÷Vv‡FgVÂÆ—GFÆRW‡G&#¢$V–â¶ÆV–æW2W‡G&"À¢$v—fR–÷W"wVW7G2öæRÖ÷&R&V6öâFòÆ÷fRF†V—"7F’â#¢$vV&Vâ6–R–‡&Vâ|:G7FVâV–æVâw'VæBÖV‡"Â–‡&VâVfVçF†ÇB§RÆ–V&Vââ"À¢%&÷W'G’#¢%VçFW&·VægB"À¢$æÖR#¢$æÖR"À¢$FW67&—F–öâ#¢$&W66‡&V–'Vær"À¢%&–6R‡·7–Ö&öÇÒ’#¢%&V—2‡·7–Ö&öÇÒ’"À¢%&WV—&R×’&÷fÂ&Vf÷&R–ÖVçB#¢%f÷"FW"¦†ÇVærÖV–æR§W7F–Ö×VærV–æ†öÆVâ"À¢$W‡G&FFVBFò–÷W"FVÖòwV–FRâ#¢$W‡G&§W"FVÖòÔ|:G7FVÖR†–ç§VvVl;ÆwBâ"À¢&RærâF†RÆ—GFÆRöÆ—fR†÷W6R#¢'¢â"âF2¶ÆV–æRöÆ—fVæ†W2"À¢&RærâvFÆ–æ'W&rÂFVææW76VR#¢'¢â"âv&Ö—66‚Õ'FVæ¶—&6†VâÂFWWG66†ÆæB"À¢$&6¶WBöbÆö6Âff÷&—FW2#¢$V–â¶÷&"Ö—B&Vv–öæÆVâ7W¦–Æ—L:GFVâ"À¢%vVÆ6öÖR&6²#¢%v–ÆÆ¶öÖÖVâ§W,;Æ6²"À¢$vööB†÷7G2Ö¶R#¢$wWFRv7FvV&W"Ö6†Vâ"À¢&w&VB7F—2â#¢'66Œ;fæRVfVçF†ÇFRâ"À¢%vVÆ6öÖR†öÖRâ#¢%v–ÆÆ¶öÖÖVâ§R†W6Râ"À¢$Æ—GFÆRÆW72v÷&²âÆ—GFÆRÖ÷&R†÷7—FÆ—G’â#¢$WGv2vVæ–vW"&&V—BâWGv2ÖV‡"v7Fg&WVæG66†gBâ"À¢$v&ÒæBvVÆ6öÖ–ærÆ—f–ær&ööÒ#¢$V–âv&ÖW2ÂV–æÆFVæFW2vö†ç¦–ÖÖW""À¢%F†÷Vv‡FgVÂ†÷7F–ær7F'G2†W&Râ#¢$VfÖW&·6ÖW2v7FvV&Vâ&Vv–æçB†–W"â"À¢%6–vâ–âFò–÷W"66÷VçB#¢$&V’–‡&VÒ¶öçFòæÖVÆFVâ"À¢%vVÆ6öÖR&6²â6–vâ–âv—F‚–÷W"vöövÆR66÷VçBFò6öçF–çVRâ#¢%v–ÆÆ¶öÖÖVâ§W,;Æ6²âÖVÆFVâ6–R6–6‚Ö—B–‡&VÒvöövÆRÔ¶öçFòâÂVÒf÷'G§Vf‡&Vââ"À¢%vVÆ6öÖR&6²â6†ö÷6R6V7W&R6–vâÖ–â÷F–öâFò6öçF–çVRâ#¢%v–ÆÆ¶öÖÖVâ§W,;Æ6²â|:F†ÆVâ6–RV–æR6–6†W&RæÖVÆFV÷F–öâÂVÒf÷'G§Vf‡&Vââ"À¢$6öçF–çVRv—F‚vöövÆR#¢%vV—FW"Ö—BvöövÆR"À¢$6öçF–çVRv—F‚ÆR#¢%vV—FW"Ö—BÆR"À¢$VÖ–ÂFG&W72#¢$RÔÖ–ÂÔG&W76R"À¢%6VæB6öFR#¢$6öFR6VæFVâ"À¢%6–vâÖ–â6öFR#¢$æÖVÆFV6öFR"À¢$6öçF–çVR#¢%vV—FW""À¢%vR6VçBbÖF–v—B6öFRFò–÷W"VÖ–Ââ—BW‡—&W2–âÖ–çWFW2â#¢%v—"†&VâV–æVâb×7FVÆÆ–vVâ6öFRâ–‡&RRÔÖ–ÂvW6VæFWBâW"Ì:GVgB–âÖ–çWFVâ"â"À¢$Æ—fR66÷VçG2&Ræ÷B6öææV7FVB–WBâW‡Æ÷&RF†RFVÖò&VÆ÷râ#¢$¶öçFVâ6–æBæö6‚æ–6‡BfW&'VæFVââVçFFV6¶Vâ6–RVçFVâF–RFVÖòâ"À¢%vR6÷VÆFî(	—B6VæBF†R6öFRâG'’vöövÆRv†–ÆRVÖ–Â6–vâÖ–â—2&V–ærf—†VBâ#¢%v—"¶öæçFVâFVâ6öFRæ–6‡B6VæFVââçWG¦Vâ6–RvöövÆRÂ|:F‡&VæBF–RRÔÖ–ÂÔæÖVÆGVær&W&–W'Bv—&Bâ"À¢%F†B6öFRF–Bæ÷Bv÷&²â&WVW7BæWr6öFR÷"G'’v–ââ#¢$F–W6W"6öFR†Bæ–6‡BgVæ·F–öæ–W'Bâf÷&FW&â6–RV–æVâæWVVâ6öFRâöFW"fW'7V6†Vâ6–RW2W&æWWBâ"À¢%vR6÷VÆFî(	—B6–vâ–÷R–ââÆV6RG'’v–ââ#¢$F–RæÖVÆGVær†Bæ–6‡BvV¶ÆBâ&—GFRfW'7V6†Vâ6–RW2W&æWWBâ"À¢&÷"W‡Æ÷&Rv—F†÷WB6–væ–ær–â#¢&öFW"ö†æRæÖVÆGVærVçFFV6¶Vâ"À¢$W‡Æ÷&RF†RFVÖò#¢$FVÖòVçFFV6¶Vâ"À¢$'’6öçF–çV–ærÂ–÷Rw&VRFò÷W"#¢$Ö—BFVÒf÷'Ff‡&Vâ·¦WF–W&Vâ6–RVç6W&R"À¢%FW&×2#¢$t""À¢&æB#¢'VæBVç6W&R"À¢%&—f7’öÆ–7’#¢$FFVç66‡WG¦W&¶Ì:G'Vær"À§Ó° ¦6öç7B#¢F–7BÒ°¢$’wV–FRvVæW&F–öâW6W2öæR–æ6ÇVFVB’&WVW7BâfW&–g’–÷W"VÖ–ÂFòVæ&ÆR“²F†RÖçVÂ'6W"&VÖ–ç2f–Æ&ÆRâ#¢-˜­‹=Š­ŠíŠı˜RŠ]˜m‹MŠ}ŠŠ}˜MŠı˜M˜­˜BŠŠ}˜M‹˜=Š}ŠŠ}˜MŠ}‹]‹}˜mŠ}‹˜¢‹}˜MŠ˜½Šr˜Š}ŠİŠı˜½Šr˜]˜bŠ}˜M‹‹]˜­ŠòŠ}˜M˜]Š­Š}ŠÒâŠ­Šİ˜-™˜"˜]˜bŠ‹˜­Šı˜2˜MŠ­˜‹˜­˜BŠ}˜M‹˜=Š}ŠŠ}˜MŠ}‹]‹}˜mŠ}‹˜­‰²˜˜­‹˜BŠ}˜MŠ­Šİ˜M˜­˜BŠ}˜M˜­Šı˜˜¢˜]Š­Š}Šİ˜½Šrâ"À¢%v÷&·76R&VfW&Væ6W26fVBöæÆ–æRâ#¢-Š­˜RŠİ˜‹‚Š­˜‹m˜­˜MŠ}Š¢˜]‹=Š}ŠİŠ’Š}˜M‹˜]˜B‹Š‹Š}˜MŠ]˜mŠ­‹˜mŠ¢â"À¢$6÷VÆBæ÷B6fRv÷&·76R&VfW&Væ6W2âÆV6RG'’v–ââ#¢-Š­‹‹™‹Šİ˜‹‚Š­˜‹m˜­˜MŠ}Š¢˜]‹=Š}ŠİŠ’Š}˜M‹˜]˜Bâ˜­˜ı‹ŠÍ˜’Š}˜M˜]ŠİŠ}˜˜MŠ’˜]‹Š’Š=Ší‹˜’â"À¢%6VæF–æ~(
+b#¢-ŠÍŠ}‹˜ÒŠ}˜MŠ]‹‹=Š}˜N(
+b"À¢%&W6VæBfW&–f–6F–öâVÖ–Â#¢-Š]‹Š}ŠıŠ’Š]‹‹=Š}˜B‹‹=Š}˜MŠ’Š}˜MŠ­Šİ˜-˜""À¢$6†V6²–÷W"–æ&÷‚f÷"–÷W"fW&–f–6F–öâÆ–æ²â#¢-Š­Šİ˜-™˜"˜]˜bŠ‹˜­Šı˜2Š}˜M˜Š}‹Šò˜M˜MŠİ‹]˜˜B‹˜M˜’‹Š}Š‹rŠ}˜MŠ­Šİ˜-˜"â"À¢$6÷VÆBæ÷B6VæBF†RfW&–f–6F–öâVÖ–ÂâÆV6Rv—B&Vf÷&RG'––ærv–ââ#¢-Š­‹‹™‹Š]‹‹=Š}˜B‹‹=Š}˜MŠ’Š}˜MŠ­Šİ˜-˜"â˜­˜ı‹ŠÍ˜’Š}˜MŠ}˜mŠ­‹Š}‹˜-Š˜BŠ}˜M˜]ŠİŠ}˜˜MŠ’˜]‹Š’Š=Ší‹˜’â"À¢%f–WræÇ—F–72f÷"7F—f—G’#¢-‹‹‹bŠ­Šİ˜M˜­˜MŠ}Š¢Š}˜M˜m‹MŠ}‹r"À¢$ÆÂF–ÖR#¢-˜=˜BŠ}˜M˜Š­‹Š}Š¢"À¢$W‡G&2–B#¢-Š}˜MŠ]‹mŠ}˜Š}Š¢Š}˜M˜]Šı˜˜‹Š’"À¢$ç7vW&VBg&öÒ–÷W"wV–FR#¢-Š­˜]Š¢Š}˜MŠ]ŠÍŠ}ŠŠ’˜]˜bŠı˜M˜­˜M˜2"À¢$g&öÒ–÷W"6fVBwVW7B7F—f—G’#¢-˜]˜b˜m‹MŠ}‹rŠ}˜M‹m˜­˜˜Š}˜M˜]Šİ˜˜‹‚"À¢$æòwVW7B6öçfW'6F–öç2–WBâ6†&RV&Æ—6†VBwV–FRFòvWB7F'FVBâ#¢-˜MŠrŠ­˜ŠÍŠò˜]ŠİŠ}ŠıŠ½Š}Š¢‹m˜­˜˜Š‹Šòâ‹MŠ}‹˜2Šı˜M˜­˜MŠ}˜²˜]˜m‹M˜‹Š}˜²˜M˜MŠŠıŠâ"À¢%W6R"Fò#‚6†&7FW'2â#¢-Š}‹=Š­ŠíŠı˜R˜]˜b"Š]˜M˜’#‚Šİ‹˜˜½Šrâ"À¢$66÷VçB7&VFVBâ–÷R6â6–vâ–âv—F‚–÷W"77v÷&BâvR6÷VÆFî(	—B6VæBfW&–f–6F–öâVÖ–Ã²6öçF7B7W÷'Bf÷"†VÇâ#¢-Š­˜RŠ]˜m‹MŠ}ŠŠ}˜MŠİ‹=Š}Š‚â˜­˜]˜=˜m˜2Š­‹=ŠÍ˜­˜BŠ}˜MŠıŠí˜˜BŠ˜=˜M˜]Š’Š}˜M˜]‹˜‹âŠ­‹‹™‹Š]‹‹=Š}˜B‹‹=Š}˜MŠ’Š}˜MŠ­Šİ˜-˜-‰²Š­˜Š}‹]˜B˜]‹’Š}˜MŠı‹˜R˜M˜M˜]‹=Š}‹ŠıŠ’â"À¢%fW&–g’–÷W"VÖ–Â#¢-Š­Šİ˜-˜"˜]˜bŠ‹˜­Šı˜2Š}˜MŠ]˜M˜=Š­‹˜˜m˜¢"À¢$VÖ–ÂfW&–f–VB#¢-Š­˜RŠ}˜MŠ­Šİ˜-˜"˜]˜bŠ}˜MŠ‹˜­ŠòŠ}˜MŠ]˜M˜=Š­‹˜˜m˜¢"À¢$¶VW266÷VçB&V6÷fW'’æB7W÷'B6fRâ#¢-˜­ŠİŠ}˜‹‚‹˜M˜’Š=˜]Š}˜bŠ}‹=Š­‹Š}ŠıŠ’Š}˜MŠİ‹=Š}Š‚˜Š}˜MŠı‹˜Râ"À¢$FVÖòÖöFRW6W26×ÆR66÷VçBFWF–Ç2â#¢-˜­‹=Š­ŠíŠı˜RŠ}˜M˜‹m‹’Š}˜MŠ­ŠÍ‹˜­Š˜¢Š˜­Š}˜mŠ}Š¢Šİ‹=Š}Š‚˜m˜]˜‹ŠÍ˜­Š’â"À¢$7&VFR–÷W"f—'7B&÷W'G’#¢-Š=˜m‹MŠb‹˜-Š}‹˜2Š}˜MŠ=˜˜B"À¢$FBF†RFG&W72Â'&—fÂæ÷FW2Âv’Ôf’Â'VÆW2æB6†V6¶÷WBâ#¢-Š=‹m˜Š}˜M‹˜m˜Š}˜b˜Š­‹˜M˜­˜]Š}Š¢Š}˜M˜‹]˜˜B˜Š}˜M˜Š}˜¢˜Š}˜¢˜Š}˜M˜-˜Š}‹Šò˜Š}˜M˜]‹­Š}Šı‹Š’â"À¢%V&Æ—6‚æB&Wf–WrF†RwVW7BwV–FR#¢-Š}˜m‹M‹Šı˜M˜­˜BŠ}˜M‹m˜­˜˜‹Š}˜­˜m˜r"À¢$÷VâF†R6ÖRÆ–æ²–÷W"wVW7G2v–ÆÂ&V6V—fRâ#¢-Š}˜Š­ŠÒŠ}˜M‹Š}Š‹r˜m˜‹=˜rŠ}˜M‹˜¢‹=˜­Š­˜M˜-Š}˜r‹m˜­˜˜˜2â"À¢$FBöæRW‡G&÷"W6VÆÂ#¢-Š=‹m˜ŠíŠı˜]Š’Š]‹mŠ}˜˜­Š’Š=˜‚‹‹‹mŠ}˜²˜]Šı˜˜‹Š}˜²"À¢$ÆFR6†V6¶÷WBÂ'&V¶f7B&6¶WG2ÂG&ç6fW'2æB–B6W'f–6W2â#¢-˜]‹­Š}Šı‹Š’˜]Š­Š=Ší‹Š’˜‹=˜MŠ}˜BŠ]˜‹}Š}‹˜ŠíŠı˜]Š}Š¢˜m˜-˜B˜ŠíŠı˜]Š}Š¢˜]Šı˜˜‹Š’â"À¢$6†ö÷6RÆâæB6WBW–÷WG2#¢-Š}ŠíŠ­‹Ší‹}Š’˜Š=‹Šı™Š}˜MŠ­Šİ˜˜­˜MŠ}Š¢Š}˜M˜]Š}˜M˜­Š’"À¢%Ww&FRv†Vâ–÷RæVVBÖ÷&R&÷W'F–W2÷"’ç7vW'2â#¢-˜-˜RŠŠ}˜MŠ­‹˜-˜­Š’‹˜mŠı˜]ŠrŠ­ŠİŠ­Š}ŠÂŠ]˜M˜’Š}˜M˜]‹-˜­Šò˜]˜bŠ}˜M‹˜-Š}‹Š}Š¢Š=˜‚Š]ŠÍŠ}ŠŠ}Š¢Š}˜M‹˜=Š}ŠŠ}˜MŠ}‹]‹}˜mŠ}‹˜¢â"À¢$tUB$TE’Dò„õ5B#¢-Š}‹=Š­‹Šò˜MŠ}‹=Š­˜-ŠŠ}˜BŠ}˜M‹m˜­˜˜"À¢$ÆVæ6‚6†V6¶Æ—7B#¢-˜-Š}Šm˜]Š’Š}˜MŠ­Šİ˜-˜"˜M˜MŠ]‹}˜MŠ}˜""À¢$¶VW'V–ÆF–ær#¢-˜]Š­Š}Š‹Š’Š}˜MŠ]‹ŠıŠ}Šò"À¢%ÆV6RfW&–g’–÷W"VÖ–ÂFG&W72â6†V6²–÷W"–æ&÷‚f÷"F†R7F”wV–FRfW&–f–6F–öâÆ–æ²Â÷"6öçF7B7W÷'B–b—BF–Bæ÷B'&—fRâ#¢-˜­‹ŠÍ˜’Š}˜MŠ­Šİ˜-˜"˜]˜bŠ‹˜­Šı˜2Š}˜MŠ]˜M˜=Š­‹˜˜m˜¢âŠ}ŠŠİŠ²˜˜¢‹]˜mŠı˜˜"Š}˜M˜Š}‹Šò‹˜b‹Š}Š‹rŠ}˜MŠ­Šİ˜-˜"˜]˜b7F”wV–F]ˆÂŠ=˜‚Š­˜Š}‹]˜B˜]‹’Š}˜MŠı‹˜RŠ]‹Šr˜M˜R˜­‹]˜M˜2â"À¢%7W÷'B#¢-Š}˜MŠı‹˜R"À¢$æVVB†VÇ6WGF–ærW&÷W'G’Â&–ÆÆ–ærÂ–÷WG2Â÷"wVW7BwV–FSòVÖ–ÂW2æBv^(	–ÆÂ†VÇ–÷RvWBVç7GV6²â#¢-˜}˜BŠ­ŠİŠ­Š}ŠÂŠ]˜M˜’˜]‹=Š}‹ŠıŠ’˜˜¢Š]‹ŠıŠ}Šò‹˜-Š}‹Š=˜‚Š}˜M˜˜Š­‹Š’Š=˜‚Š}˜MŠ­Šİ˜˜­˜MŠ}Š¢Š}˜M˜]Š}˜M˜­Š’Š=˜‚Šı˜M˜­˜BŠ}˜M‹m˜­˜‰ò‹Š}‹=˜M˜mŠr˜‹=˜m‹=Š}‹Šı˜2â"À¢%7W÷'B&WÆ–W2&R†æFÆVB'’F†R7F”wV–FRFVÒâFòæ÷B6VæBFö÷"6öFW2÷"wVW7B–ÖVçBFWF–Ç2'’VÖ–Ââ#¢-˜­Š­˜˜M˜’˜‹˜­˜"7F”wV–FRŠ}˜M‹Šò‹˜M˜’‹}˜MŠŠ}Š¢Š}˜MŠı‹˜Râ˜MŠrŠ­‹‹=˜B‹˜]˜‹"Š}˜MŠ=Š˜Š}Š‚Š=˜‚Š­˜Š}‹]˜­˜BŠı˜‹’Š}˜M‹m˜­˜˜‹Š‹Š}˜MŠ‹˜­ŠòŠ}˜MŠ]˜M˜=Š­‹˜˜m˜¢â"À¢$6÷VÆBæ÷B7&VFRF†—266÷VçBâ6†V6²–÷W"FWF–Ç2Â÷"6–vâ–â–b–÷RÇ&VG’†fRâ66÷VçBâW†—7F–ærvöövÆR66÷VçG26†÷VÆB6öçF–çVRv—F‚vöövÆRâ#¢-Š­‹‹‹Š]˜m‹MŠ}Š˜}‹ŠrŠ}˜MŠİ‹=Š}Š‚âŠ­Šİ˜-˜"˜]˜bŠ˜­Š}˜mŠ}Š­˜2Š=˜‚‹=ŠÍ˜BŠ}˜MŠıŠí˜˜BŠ]‹Šr˜=Š}˜b˜MŠı˜­˜2Šİ‹=Š}Š‚ŠŠ}˜M˜‹˜Bâ˜­ŠÍŠ‚˜]Š­Š}Š‹Š’Šİ‹=Š}ŠŠ}Š¢vöövÆRŠ}˜MŠİŠ}˜M˜­Š’ŠŠ}‹=Š­ŠíŠıŠ}˜RvöövÆRâ"À¢%F†BVÖ–ÂæB77v÷&BF–Bæ÷B6–vâ–ââ–bF†—2—2–÷W"f—'7BF–ÖRÂ7&VFRâ66÷VçBf—'7BÂ÷"6öçF–çVRv—F‚vöövÆRâ#¢-Š­‹‹‹Š­‹=ŠÍ˜­˜BŠ}˜MŠıŠí˜˜BŠ˜}‹ŠrŠ}˜MŠ‹˜­ŠòŠ}˜MŠ]˜M˜=Š­‹˜˜m˜¢˜˜=˜M˜]Š’Š}˜M˜]‹˜‹âŠ]‹Šr˜=Š}˜mŠ¢˜}‹˜r‹-˜­Š}‹Š­˜2Š}˜MŠ=˜˜M˜ˆÂ˜Š=˜m‹MŠbŠİ‹=Š}ŠŠ}˜²Š=˜˜MŠ}˜²Š=˜‚Š­Š}Š‹’ŠŠ}‹=Š­ŠíŠıŠ}˜RvöövÆRâ"À¢$6†ö÷6R66÷VçB7F–öâ#¢-Š}ŠíŠ­‹Š]ŠÍ‹Š}ŠŠ}˜MŠİ‹=Š}Š‚"À¢$7&VFR66÷VçB#¢-Š]˜m‹MŠ}ŠŠİ‹=Š}Š‚"À¢%77v÷&B#¢-˜=˜M˜]Š’Š}˜M˜]‹˜‹"À¢%W6R"Fò#‚6†&7FW'2âv^(	–ÆÂVÖ–Â–÷RfW&–f–6F–öâÆ–æ²gFW"6–vçWâ#¢-Š}‹=Š­ŠíŠı˜R˜]˜b"Š]˜M˜’#‚Šİ‹˜Š}˜²â‹=˜m‹‹=˜BŠ]˜M˜­˜2‹Š}Š‹rŠ­Šİ˜-˜"Š‹ŠòŠ}˜MŠ­‹=ŠÍ˜­˜Bâ"À¢$Ç&VG’&Vv—7FW&VCòW6R6–vâ–â&÷fRâ#¢-˜]‹=ŠÍ˜BŠŠ}˜M˜‹˜M‰òŠ}‹=Š­ŠíŠı˜RŠ­‹=ŠÍ˜­˜BŠ}˜MŠıŠí˜˜BŠ=‹˜MŠ}˜râ"À¢$f—'7BF–ÖRW6–ærVÖ–ÂæB77v÷&CòW6R7&VFR66÷VçB&÷fRâ#¢-Š=˜˜B˜]‹Š’Š­‹=Š­ŠíŠı˜RŠ}˜MŠ‹˜­ŠòŠ}˜MŠ]˜M˜=Š­‹˜˜m˜¢˜˜=˜M˜]Š’Š}˜M˜]‹˜‹‰òŠ}‹=Š­ŠíŠı˜RŠ]˜m‹MŠ}ŠŠİ‹=Š}Š‚Š=‹˜MŠ}˜râ"À¢$f÷&v÷B77v÷&Cò#¢-˜}˜B˜m‹=˜­Š¢˜=˜M˜]Š’Š}˜M˜]‹˜‹‰ò"À¢$66÷VçB7&VFVBâ6†V6²–÷W"VÖ–ÂFòfW&–g’–÷W"FG&W72ÂF†Vâ6–vâ–âv—F‚–÷W"77v÷&Bâ#¢-Š­˜RŠ]˜m‹MŠ}ŠŠ}˜MŠİ‹=Š}Š‚âŠ­Šİ˜-˜"˜]˜bŠ‹˜­Šı˜2Š}˜MŠ]˜M˜=Š­‹˜˜m˜¢˜MŠ­Š=˜=˜­Šò‹˜m˜Š}˜m˜=ˆÂŠ½˜R‹=ŠÍ˜BŠ}˜MŠıŠí˜˜BŠŠ}‹=Š­ŠíŠıŠ}˜R˜=˜M˜]Š’Š}˜M˜]‹˜‹â"À¢%6×ÆRwV–FRf–Ww2f÷"F†RvVV²#¢-˜]‹MŠ}˜}ŠıŠ}Š¢Š}˜MŠı˜M˜­˜B˜M˜}‹ŠrŠ}˜MŠ=‹=Š˜‹’˜]Š½Š}˜B’"À¢$÷fW'f–Wr#¢-˜m‹‹Š’‹Š}˜]Š’"À¢%&÷W'F–W2#¢-Š}˜M‹˜-Š}‹Š}Š¢"À¢$wVW7B–æ&÷‚#¢-‹‹=Š}Šm˜BŠ}˜M‹m˜­˜˜"À¢$W‡G&2bW6VÆÇ2#¢-Š}˜MŠ]‹mŠ}˜Š}Š¢˜Š}˜M˜]Š˜­‹Š}Š¢Š}˜MŠ]‹mŠ}˜˜­Š’"À¢$æÇ—F–72#¢-Š}˜MŠ]Šİ‹]Š}ŠŠ}Š¢"À¢%6†&R¶—B#¢-Š=Šı˜Š}Š¢Š}˜M˜]‹MŠ}‹˜=Š’"À¢%Æç2b&–ÆÆ–ær#¢-Š}˜MŠí‹}‹r˜Š}˜M˜˜Š­‹Š’"À¢%6WGF–æw2#¢-Š}˜MŠ]‹ŠıŠ}ŠıŠ}Š¢"À¢$wV–FRVF—F÷"#¢-˜]Šİ‹‹Š}˜MŠı˜M˜­˜B"À¢%tõ$µ54R#¢-˜]‹=Š}ŠİŠ’Š}˜M‹˜]˜B"À¢%v÷&·76R#¢-˜]‹=Š}ŠİŠ’Š}˜M‹˜]˜B"À¢$†÷7Bv÷&·76R#¢-˜]‹=Š}ŠİŠ’Š}˜M˜]‹m˜­˜"À¢$6Æ÷6Ræf–vF–öâ#¢-Š]‹­˜MŠ}˜"Š}˜M˜-Š}Šm˜]Š’"À¢$÷Vâæf–vF–öâ#¢-˜Š­ŠÒŠ}˜M˜-Š}Šm˜]Š’"À¢$Æ—GFÆRÖ÷&R÷76–&–Æ—G’â#¢-Š]˜]˜=Š}˜m˜­Š}Š¢Š=˜=Š½‹˜-˜M˜­˜M˜½Šrâ"À¢$Ö÷&R&÷W'F–W2âÖ÷&R’ç7vW'2â#¢-‹˜-Š}‹Š}Š¢Š=˜=Š½‹âŠ]ŠÍŠ}ŠŠ}Š¢‹˜=˜­Š’Š=˜=Š½‹â"À¢$WfVâ&WGFW"wVW7BW‡W&–Væ6W2â#¢-Š­ŠÍŠ}‹Š‚Š=˜‹m˜B˜M˜M‹m˜­˜˜â"À¢$W‡Æ÷&R&ò#¢-Š}˜=Š­‹M˜&ò"À¢%v÷&·76R÷væW"#¢-˜]Š}˜M˜2˜]‹=Š}ŠİŠ’Š}˜M‹˜]˜B"À¢$FVÖò†÷7B66÷VçB#¢-Šİ‹=Š}Š‚˜]‹m˜­˜Š­ŠÍ‹˜­Š˜¢"À¢%v÷&·76R÷væW"+rFVÖò#¢-˜]Š}˜M˜2˜]‹=Š}ŠİŠ’Š}˜M‹˜]˜B+rŠ­ŠÍ‹˜­Š˜¢"À¢%v÷&·76R÷væW"+r¶VÖ–ÇÒ#¢-˜]Š}˜M˜2˜]‹=Š}ŠİŠ’Š}˜M‹˜]˜B+r¶VÖ–ÇÒ"À¢%4d”ä~(
+b#¢-ŠÍŠ}‹˜ÒŠ}˜MŠİ˜‹(
+b"À¢$äõB4dTB+r$UE%””ärôâäU…BTD•B#¢-˜M˜R˜­˜ıŠİ˜‹‚+r‹=Š­Š­˜RŠ]‹Š}ŠıŠ’Š}˜M˜]ŠİŠ}˜˜MŠ’‹˜mŠòŠ}˜MŠ­‹Šı˜­˜BŠ}˜MŠ­Š}˜M˜¢"À¢$ÄÂ4„ätU24dTB#¢-Š­˜RŠİ˜‹‚˜=˜BŠ}˜MŠ­‹­˜­˜­‹Š}Š¢"À¢$DTÔòtõ$µ54R#¢-˜]‹=Š}ŠİŠ’Š­ŠÍ‹˜­Š˜­Š’"À¢%6–vâ–â#¢-Š­‹=ŠÍ˜­˜BŠ}˜MŠıŠí˜˜B"À¢%f–WrwVW7BW‡W&–Væ6R#¢-‹‹‹bŠ­ŠÍ‹ŠŠ’Š}˜M‹m˜­˜"À¢%FövvÆRF&²ÖöFR#¢-Š­ŠŠı˜­˜BŠ}˜M˜‹m‹’Š}˜MŠıŠ}˜=˜b"À¢$wVW7Bæ÷F–f–6F–öç2#¢-Š]‹M‹Š}‹Š}Š¢Š}˜M‹m˜­˜˜"À¢%6–væVB–â2¶VÖ–ÇÒâ6Æ–6²Fò6–vâ÷WBâ#¢-˜]‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜BŠŠ}‹=˜R¶VÖ–ÇÒâŠ}‹m‹­‹r˜MŠ­‹=ŠÍ˜­˜BŠ}˜MŠí‹˜ŠÂâ"À¢%6–vâ÷WB¶VÖ–ÇÒ#¢-Š­‹=ŠÍ˜­˜BŠí‹˜ŠÂ¶VÖ–ÇÒ"À¢$ÆæwVvR#¢-Š}˜M˜M‹­Š’"À¢$ÖFRf÷"F†÷Vv‡FgVÂ†÷7G2â'V–ÇBf÷"ÖVÖ÷&&ÆR7F—2â#¢-‹]˜ı˜]™˜R˜M˜M˜]‹m˜­˜˜­˜bŠ}˜M˜]˜}Š­˜]˜­˜bŠŠ}˜MŠ­˜Š}‹]˜­˜Bâ˜Š˜ı˜m˜¢˜MŠ]˜-Š}˜]Š}Š¢˜MŠrŠ­˜ı˜m‹=˜’â"À¢$FVÖòFF+r6fVBöâF†—2FWf–6R#¢-Š˜­Š}˜mŠ}Š¢Š­ŠÍ‹˜­Š˜­Š’+r˜]Šİ˜˜‹Š’‹˜M˜’˜}‹ŠrŠ}˜MŠÍ˜}Š}‹""À¢%6fVB6V7W&VÇ’öæÆ–æR#¢-˜]Šİ˜˜‹‚ŠŠ=˜]Š}˜b‹Š‹Š}˜MŠ]˜mŠ­‹˜mŠ¢"À¢$6Æ÷6RF–Æör#¢-Š]‹­˜MŠ}˜""À¢%”õU"Ä•EDÄR„õ5D”är„TET%DU%2#¢-˜]‹˜=‹"‹m˜­Š}˜Š­˜2Š}˜M‹]‹­˜­‹"À¢$vööBF†–æw27F'Bv—F‚#¢-Š}˜MŠ=‹M˜­Š}ŠŠ}˜MŠÍ˜]˜­˜MŠ’Š­ŠŠıŠ2˜]‹’"À¢&w&VB7F’â#¢-Š]˜-Š}˜]Š’‹Š}Šm‹Š’â"À¢%vVÆ6öÖR&6²Â¶æÖWÒâ†W&^(	—2†÷r–÷W"&÷W'F–W2&RFö–ærâ#¢-Š=˜}˜M˜½ŠrŠ‹˜ŠıŠ­˜2˜­Šr¶æÖWÒâŠ]˜M˜­˜2Š=ŠıŠ}Š‹˜-Š}‹Š}Š­˜2â"À¢$FVÖòÖöçF‚#¢-‹M˜}‹Š­ŠÍ‹˜­Š˜¢"À¢$ÄU52Ôät”ärâÔõ$R„õ5D”ärâ#¢-Š]ŠıŠ}‹Š’Š=˜-˜Bâ‹m˜­Š}˜Š’Š=˜=Š½‹â"À¢$F†÷Vv‡FgVÂ7F’Â#¢-Š]˜-Š}˜]Š’˜]Šı‹˜‹=ŠˆÂ"À¢'v—F†÷WBF†RW‡G&v÷&²â#¢-Š˜MŠr‹˜]˜BŠ]‹mŠ}˜˜¢â"À¢%–÷W"wV–FW2†æFÆRF†RÆ—GFÆRVW7F–öç2â#¢-Š=Šı˜MŠ­˜2Š­ŠÍ˜­Š‚‹˜bŠ}˜MŠ=‹=Šm˜MŠ’Š}˜M‹]‹­˜­‹Š’â"À¢%–÷Rfö7W2öâÖ¶–ærwVW7G2fVVÂB†öÖRâ#¢-˜Š=˜mŠ¢Š­˜}Š­˜RŠŠ=˜b˜­‹M‹‹‹m˜­˜˜˜2˜˜=Š=˜m˜}˜R˜˜¢Š˜­Š­˜}˜Râ"À¢$7&VFRwV–FR#¢-Š=˜m‹MŠbŠı˜M˜­˜M˜½Šr"À¢%”õU"„ôÔRt’e$ôÒ„ôÔR#¢-Š˜­Š­˜2Š‹˜­Šı˜½Šr‹˜bŠ}˜MŠ˜­Š¢"À¢$öÌ:ÂvVÆ6öÖR†öÖRâ#¢-˜]‹ŠİŠ˜½Š}ˆÂŠ=˜}˜M˜½ŠrŠ˜2˜˜¢Š˜­Š­˜2â"À¢%v’Ôf’#¢-˜Š}˜¢˜Š}˜¢"À¢$W‡Æ÷&R#¢-Š}‹=Š­˜=‹M˜"À¢%–÷W"7F’#¢-Š]˜-Š}˜]Š­˜2"À¢$Æ—GFÆRW‡G&2#¢-Š]‹mŠ}˜Š}Š¢"À¢$†’wVW7G2â†’†÷7Bâ#¢-‹m˜­˜˜‹=‹ŠıŠ}Šâ˜]‹m˜­˜‹=‹˜­Šòâ"À¢%F†÷Vv‡FgVÂFWF–Ç2ÂÆÂ–âöæRÆ6Râ#¢-˜=˜BŠ}˜MŠ­˜Š}‹]˜­˜B˜˜¢˜]˜=Š}˜b˜Š}ŠİŠòâ"À¢$wV–FRf–Ww2#¢-˜]‹MŠ}˜}ŠıŠ}Š¢Š}˜MŠı˜M˜­˜B"À¢$’6öçfW'6F–öç2#¢-˜]ŠİŠ}ŠıŠ½Š}Š¢Š}˜M‹˜=Š}ŠŠ}˜MŠ}‹]‹}˜mŠ}‹˜¢"À¢$W‡G&2&WfVçVR#¢-Š]˜­‹Š}ŠıŠ}Š¢Š}˜MŠ]‹mŠ}˜Š}Š¢"À¢$†’wVW7G2#¢-‹m˜­˜˜‹Š}‹m˜˜b"À¢'g2â&Wf–÷W2ÖöçF‚#¢-˜]˜-Š}‹˜mŠ’ŠŠ}˜M‹M˜}‹Š}˜M‹=Š}Š˜""À¢&ç7vW&VBv—F†÷WB–÷R#¢-Š=˜ıŠÍ˜­Š‚‹˜m˜}ŠrŠı˜˜m˜2"À¢&fW&vRwVW7B&F–ær#¢-˜]Š­˜‹=‹rŠ­˜-˜­˜­˜RŠ}˜M‹m˜­˜˜"À¢%–÷W"&÷W'F–W2#¢-‹˜-Š}‹Š}Š­˜2"À¢'¶çÒÆ—GFÆRÆ6W2âVæFÆW72÷76–&–Æ—F–W2â#¢'¶çÒŠ=˜]Š}˜=˜b‹]‹­˜­‹Š’âŠ]˜]˜=Š}˜m˜­Š}Š¢˜MŠrŠ­˜mŠ­˜}˜¢â"À¢%f–WrÆÂ&÷W'F–W2#¢-‹‹‹b˜=˜BŠ}˜M‹˜-Š}‹Š}Š¢"À¢$&÷VæB–÷W"&÷W'F–W2#¢-˜]Šr˜­ŠİŠıŠ²˜˜¢‹˜-Š}‹Š}Š­˜2"À¢%f–Wr–æ&÷‚#¢-‹‹‹bŠ}˜M‹‹=Š}Šm˜B"À¢$6Æ÷vW"vööF'–RÂ&öö¶VBâ#¢-˜]‹­Š}Šı‹Š’˜]Š­Š=˜m˜­ŠˆÂŠ­˜RŠİŠÍ‹-˜}Šrâ"À¢$ÆFR6†V6¶÷WB#¢-˜]‹­Š}Šı‹Š’˜]Š­Š=Ší‹Š’"À¢$öæRÆW72VW7F–öâöâ–÷W"ÆFRâ#¢-‹=ŠMŠ}˜BŠ=˜-˜B‹˜M˜­˜2â"À¢%v’Ôf’FWF–Ç26†&VB'’6öæ6–W&vR#¢-‹MŠ}‹˜2Š}˜M˜]‹=Š}‹ŠòŠ˜­Š}˜mŠ}Š¢Š}˜M˜Š}˜¢˜Š}˜¢"À¢$v&ÒvVÆ6öÖRÂFVÆ—fW&VBâ#¢-Š­‹Šİ˜­Š‚ŠıŠ}˜ŠmˆÂŠ­˜RŠ]˜­‹]Š}˜M˜râ"À¢$wVW7B÷VæVBF†V—"wV–FR#¢-˜Š­ŠÒ‹m˜­˜Šı˜M˜­˜M˜r"À¢#"Ö–âvò#¢-˜-Š˜B"Šı˜-˜­˜-Š’"À¢#3BÖ–âvò#¢-˜-Š˜B3BŠı˜-˜­˜-Š’"À¢#†÷W"vò#¢-˜-Š˜B‹=Š}‹Š’"À¢$Ä•EDÄR„õ5D”är”å5•$D”ôâ#¢-˜-˜M˜­˜B˜]˜bŠ}˜MŠ]˜M˜}Š}˜R"À¢%6ÖÆÂW‡G&2â#¢-Š]‹mŠ}˜Š}Š¢‹]‹­˜­‹Š’â"À¢$ÖVÖ÷&&ÆRW‡W&–Væ6W2â#¢-Š­ŠÍŠ}‹Š‚˜MŠrŠ­˜ı˜m‹=˜’â"À¢$ÆFR6†V6¶÷WBâÆö6Â'&V¶f7Bâ#¢-˜]‹­Š}Šı‹Š’˜]Š­Š=Ší‹Š’â˜‹}˜‹˜]Šİ˜M˜¢â"À¢%GW&âF†÷Vv‡FgVÂF÷V6†W2–çFòW‡G&–æ6öÖRÂæBv—fRwVW7G27F’Fò&VÖVÖ&W"â#¢-Šİ˜™˜BŠ}˜M˜M˜]‹=Š}Š¢Š}˜M˜]Šı‹˜‹=Š’Š]˜M˜’ŠıŠí˜BŠ]‹mŠ}˜˜­ˆÂ˜Š}˜]˜mŠÒ‹m˜­˜˜˜2Š]˜-Š}˜]Š’˜MŠrŠ­˜ı˜m‹=˜’â"À¢$W‡Æ÷&R–÷W"W‡G&2#¢-Š}‹=Š­˜=‹M˜Š]‹mŠ}˜Š}Š­˜2"À¢%V&Æ—6†VB#¢-˜]˜m‹M˜‹"À¢$G&gB#¢-˜]‹=˜ŠıŠ’"À¢$VF—B¶æÖWÒ#¢-Š­‹Šı˜­˜B¶æÖWÒ"À¢%&Wf–Wr¶æÖWÒ#¢-˜]‹Š}˜­˜mŠ’¶æÖWÒ"À¢%6†&R¶æÖWÒ#¢-˜]‹MŠ}‹˜=Š’¶æÖWÒ"À¢'¶æÖWÒÂvVÆ6öÖ–ær†öÆ–F’†öÖR#¢'¶æÖWİˆÂ˜]˜m‹-˜B‹‹}˜MŠ}Š¢˜]‹Šİ™Š‚"À¢'¶çÒ6V7F–öç2#¢'¶çÒŠ=˜-‹=Š}˜R"À¢'¶çÒFVÖòf–Ww2#¢'¶çÒ˜]‹MŠ}˜}ŠıŠ}Š¢Š­ŠÍ‹˜­Š˜­Š’"À¢'¶çÒ6†G2#¢'¶çÒ˜]ŠİŠ}ŠıŠ½Š}Š¢"À¢$ÖFRv—F‚Æ—GFÆRW‡G&6&R#¢-‹]˜ı˜m‹’Š‹˜mŠ}˜­Š’ŠíŠ}‹]Š’"À¢$VF—BwV–FR#¢-Š­‹Šı˜­˜BŠ}˜MŠı˜M˜­˜B"À¢$&VWF–gVÂÆ6W2FW6W'fRF†÷Vv‡FgVÂvVÆ6öÖRâ#¢-Š}˜MŠ=˜]Š}˜=˜bŠ}˜MŠÍ˜]˜­˜MŠ’Š­‹=Š­Šİ˜"Š­‹Šİ˜­Š˜½Šr˜]Šı‹˜‹=˜½Šrâ"À¢$FB&÷W'G’#¢-Š]‹mŠ}˜Š’‹˜-Š}‹"À¢%6V&6‚&÷W'F–W2#¢-Š}˜MŠŠİŠ²˜˜¢Š}˜M‹˜-Š}‹Š}Š¢"À¢$f–æBÆ—GFÆRÆ6^(
+b#¢-Š}ŠŠİŠ²‹˜b‹˜-Š}‹(
+b"À¢$ÆÂ#¢-Š}˜M˜=˜B"À¢$æò&÷W'F–W2†W&R–WB#¢-˜MŠrŠ­˜ŠÍŠò‹˜-Š}‹Š}Š¢Š‹Šò"À¢$7&VFR&÷W'G’÷"G'’æ÷F†W"6V&6‚â#¢-Š=˜m‹MŠb‹˜-Š}‹˜½ŠrŠ=˜‚ŠÍ‹™Š‚ŠŠİŠ½˜½ŠrŠ-Ší‹â"À¢$FB&÷W'G’#¢-Š]‹mŠ}˜Š’‹˜-Š}‹"À¢$Æ—GFÆRÆö6Â¶æ÷vÆVFvRvöW2Æöærv’â#¢-Š}˜M˜-˜M˜­˜B˜]˜bŠ}˜M˜]‹‹˜Š’Š}˜M˜]Šİ˜M˜­Š’˜­‹]˜m‹’˜‹˜-˜½Šr˜=Š˜­‹˜½Šrâ"À¢$wVW7B&Wf–Wr#¢-˜]‹Š}˜­˜mŠ’Š}˜M‹m˜­˜"À¢$FVÆWFR#¢-Šİ‹˜"À¢$FVÆWFR¶æÖWÒæB—G2wV–FSòF†—26ææ÷B&RVæFöæRâ#¢-Šİ‹˜¶æÖWÒ˜Šı˜M˜­˜M˜}‰ò˜MŠr˜­˜]˜=˜bŠ}˜MŠ­‹Š}ŠÍ‹’‹˜b‹˜M˜2â"À¢%&÷W'G’FVÆWFVBâ#¢-Š­˜RŠİ‹˜Š}˜M‹˜-Š}‹â"À¢$6÷VÆFî(	—BFVÆWFRF†R&÷W'G’âÆV6RG'’v–ââ#¢-Š­‹‹™‹Šİ‹˜Š}˜M‹˜-Š}‹â˜­˜ı‹ŠÍ˜’Š}˜M˜]ŠİŠ}˜˜MŠ’˜]‹Š’Š=Ší‹˜’â"À¢%6VÆV7B&÷W'G’FòVF—B#¢-Š}ŠíŠ­‹Š}˜M‹˜-Š}‹˜MŠ­‹Šı˜­˜M˜r"À¢%6fVBöâF†—2FWf–6R#¢-˜]Šİ˜˜‹‚‹˜M˜’˜}‹ŠrŠ}˜MŠÍ˜}Š}‹""À¢$wV–FRÖ÷fVBFòG&gBâ#¢-Š=‹]ŠŠÒŠ}˜MŠı˜M˜­˜B˜]‹=˜ŠıŠ’â"À¢$wV–FRV&Æ—6†VBâwVW7G26â÷Vâ—Bæ÷râ#¢-Š­˜R˜m‹M‹Š}˜MŠı˜M˜­˜Bâ˜­˜]˜=˜b˜M˜M‹m˜­˜˜˜Š­Šİ˜rŠ}˜MŠ-˜bâ"À¢$FVÖòwV–FRV&Æ—6†VBöâF†—2FWf–6Râ#¢-Š­˜R˜m‹M‹Š}˜MŠı˜M˜­˜BŠ}˜MŠ­ŠÍ‹˜­Š˜¢‹˜M˜’˜}‹ŠrŠ}˜MŠÍ˜}Š}‹"â"À¢%VçV&Æ—6‚#¢-Š]˜M‹­Š}ŠŠ}˜M˜m‹M‹"À¢%V&Æ—6‚wV–FR#¢-˜m‹M‹Š}˜MŠı˜M˜­˜B"À¢%&÷W'G’FWF–Ç2#¢-Š­˜Š}‹]˜­˜BŠ}˜M‹˜-Š}‹"À¢%6†÷vâFòwVW7G2æBW6VB'’F†R6öæ6–W&vRâ6†ævW26fRWFöÖF–6ÆÇ’â#¢-Š­‹˜}‹˜M˜M‹m˜­˜˜˜˜­‹=Š­ŠíŠı˜]˜}ŠrŠ}˜M˜]‹=Š}‹ŠòâŠ­˜ıŠİ˜‹‚Š}˜MŠ­‹­˜­˜­‹Š}Š¢Š­˜M˜-Š}Šm˜­˜½Šrâ"À¢%7G&VWBFG&W72#¢-Š}˜M‹˜m˜Š}˜b"À¢$6—G’Â6÷VçG'’#¢-Š}˜M˜]Šı˜­˜mŠˆÂŠ}˜MŠı˜˜MŠ’"À¢$6†V6²Ö–âF–ÖR#¢-˜˜-Š¢Š}˜M˜‹]˜˜B"À¢$6†V6¶÷WBF–ÖR#¢-˜˜-Š¢Š}˜M˜]‹­Š}Šı‹Š’"À¢%v’Ôf’æWGv÷&²#¢-‹MŠ˜=Š’Š}˜M˜Š}˜¢˜Š}˜¢"À¢%v’Ôf’77v÷&B#¢-˜=˜M˜]Š’˜]‹˜‹Š}˜M˜Š}˜¢˜Š}˜¢"À¢$†÷7B†öæR#¢-˜}Š}Š­˜Š}˜M˜]‹m˜­˜"À¢$æWrÆ—GFÆRFWF–Â#¢-Š­˜‹]˜­˜BŠÍŠı˜­Šò"À¢$FB6V7F–öâ#¢-Š]‹mŠ}˜Š’˜-‹=˜R"À¢$Ö¶R—BfVVÂÆ–¶R–÷Râ#¢-Š}ŠÍ‹˜M˜r˜­‹Š™‹‹˜m˜2â"À¢%w&—FR#¢-˜=Š­Š}ŠŠ’"À¢%&Wf–Wr#¢-˜]‹Š}˜­˜mŠ’"À¢%6V7F–öâF—FÆR#¢-‹˜m˜Š}˜bŠ}˜M˜-‹=˜R"À¢$–6öâ#¢-Š}˜MŠ=˜­˜-˜˜mŠ’"À¢%–÷W"Æö6Â¶æ÷vÆVFvR#¢-˜m‹]Š}ŠmŠİ˜2"À¢$ÆÂF†RFWF–Ç2F†BÖ¶R7F’Vff÷'FÆW72âÖ&¶F÷vâ—2vVÆ6öÖRâ#¢-˜=˜BŠ}˜MŠ­˜Š}‹]˜­˜B˜MŠ]˜-Š}˜]Š’‹=˜}˜MŠ’â˜­˜]˜=˜m˜2Š}‹=Š­ŠíŠıŠ}˜RÖ&¶F÷vââ"À¢%W6R¢¦&öÆB¢¢Â'VÆÆWBÆ—7G2ÂæBÆ–æ·2âG&r6V7F–öç2Fò&V÷&FW"Â÷"W6RF†R'&÷r'WGFöç2â#¢-Š}‹=Š­ŠíŠı˜R¢­Š}˜MŠí‹rŠ}˜M‹‹˜­‹b¢¢˜Š}˜M˜-˜Š}Šm˜R˜Š}˜M‹˜Š}Š‹râŠ}‹=ŠİŠ‚Š}˜MŠ=˜-‹=Š}˜R˜MŠ]‹Š}ŠıŠ’Š­‹Š­˜­Š˜}ŠrŠ=˜‚Š}‹=Š­ŠíŠı˜RŠ}˜MŠ=‹=˜}˜Râ"À¢$Ö÷fR6V7F–öâW#¢-˜m˜-˜BŠ}˜M˜-‹=˜R˜MŠ=‹˜M˜’"À¢$Ö÷fR6V7F–öâF÷vâ#¢-˜m˜-˜BŠ}˜M˜-‹=˜R˜MŠ=‹=˜˜B"À¢$ÆÂ6†ævW2&R6fVBWFöÖF–6ÆÇ’öâF†—2FWf–6Râ#¢-Š­˜ıŠİ˜‹‚˜=˜BŠ}˜MŠ­‹­˜­˜­‹Š}Š¢Š­˜M˜-Š}Šm˜­˜½Šr‹˜M˜’˜}‹ŠrŠ}˜MŠÍ˜}Š}‹"â"À¢$ÆÂ6†ævW2&R6fVBWFöÖF–6ÆÇ’â#¢-Š­˜ıŠİ˜‹‚˜=˜BŠ}˜MŠ­‹­˜­˜­‹Š}Š¢Š­˜M˜-Š}Šm˜­˜½Šrâ"À¢%6fR6†ævW2#¢-Šİ˜‹‚Š}˜MŠ­‹­˜­˜­‹Š}Š¢"À¢$FVÖòVF—F÷"+r6†ævW2&R7F÷&VB–âF†—2'&÷w6W"â6–vâ–âFò6fRwV–FW2öæÆ–æRæB6†&RF†VÒv—F‚&VÂwVW7G2â#¢-˜]Šİ‹‹Š­ŠÍ‹˜­Š˜¢+rŠ­˜ıŠİ˜‹‚Š}˜MŠ­‹­˜­˜­‹Š}Š¢˜˜¢˜}‹ŠrŠ}˜M˜]Š­‹]˜ŠÒâ‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜B˜MŠİ˜‹‚Š=Šı˜MŠ­˜2‹Š‹Š}˜MŠ]˜mŠ­‹˜mŠ¢˜˜]‹MŠ}‹˜=Š­˜}Šr˜]‹’‹m˜­˜˜Šİ˜-˜­˜-˜­˜­˜bâ"À¢$Æ—GFÆR‡VÖâF÷V6‚#¢-˜M˜]‹=Š’Š]˜m‹=Š}˜m˜­Š’"À¢%–÷W"6öæ6–W&vRF¶W26&RöbF†RWfW'–F’â–÷RF¶R6&RöbF†R&W7Bâ#¢-˜­˜}Š­˜R˜]‹=Š}‹Šı˜2ŠŠ}˜MŠ=˜]˜‹Š}˜M˜­˜˜]˜­Š’â˜Š­˜}Š­˜RŠ=˜mŠ¢ŠŠ}˜MŠŠ}˜-˜¢â"À¢$æVVG2–÷W"†VÇ#¢-˜­ŠİŠ­Š}ŠÂ˜]‹=Š}‹ŠıŠ­˜2"À¢%6×ÆR6öçfW'6F–öâ#¢-˜]ŠİŠ}ŠıŠ½Š’Š­ŠÍ‹˜­Š˜­Š’"À¢%F†R6öæ6–W&vR6÷VÆFî(	—Bf–æBF†—2ç7vW"–âF†RwV–FRæB76VB—BFò–÷Râ#¢-˜M˜R˜­ŠÍŠòŠ}˜M˜]‹=Š}‹ŠòŠ}˜MŠ]ŠÍŠ}ŠŠ’˜˜¢Š}˜MŠı˜M˜­˜B˜Š=ŠİŠ}˜BŠ}˜M‹=ŠMŠ}˜BŠ]˜M˜­˜2â"À¢%&WÇ’6fVB–âF†RFVÖòâæòwVW7BÖW76vRv26VçBâ#¢-Š­˜RŠİ˜‹‚Š}˜M‹Šò˜˜¢Š}˜M˜m‹=ŠíŠ’Š}˜MŠ­ŠÍ‹˜­Š˜­Š’â˜M˜RŠ­˜ı‹‹=˜BŠ=˜¢‹‹=Š}˜MŠ’â"À¢%&WÇ’FòwVW7B#¢-Š}˜M‹Šò‹˜M˜’Š}˜M‹m˜­˜"À¢$F†÷Vv‡FgVÂ&WÇ(
+b#¢-‹Šı™˜M‹}˜­˜(
+b"À¢%6VæBFVÖò&WÇ’#¢-Š]‹‹=Š}˜B‹ŠòŠ­ŠÍ‹˜­Š˜¢"À¢$æVVG2–÷W"†VÇöæÇ’#¢-˜˜-‹r˜]Šr˜­ŠİŠ­Š}ŠÂ˜]‹=Š}‹ŠıŠ­˜2"À¢$6÷VÆFî(	—BÆöB6öçfW'6F–öç2â&WG'––æ~(
+b#¢-Š­‹‹™‹Š­Šİ˜]˜­˜BŠ}˜M˜]ŠİŠ}ŠıŠ½Š}Š¢âŠÍŠ}‹˜ÒŠ]‹Š}ŠıŠ’Š}˜M˜]ŠİŠ}˜˜MŠ(
+b"À¢$ÆöF–ær6öçfW'6F–öç>(
+b#¢-ŠÍŠ}‹˜ÒŠ­Šİ˜]˜­˜BŠ}˜M˜]ŠİŠ}ŠıŠ½Š}Š®(
+b"À¢$ÆÂV–WBf÷"æ÷r#¢-˜=˜B‹M˜­Š˜}Š}ŠıŠbŠ}˜MŠ-˜b"À¢%v†VâwVW7B6·26öÖWF†–ær–÷W"wV–FRFöW6î(	—Bç7vW"ÂF†R6öçfW'6F–öâV'2†W&R6ò–÷R6â&WÇ’â#¢-‹˜mŠı˜]Šr˜­‹=Š=˜B‹m˜­˜‹˜b‹M˜­Š˜MŠr˜­ŠÍ˜­Š‚‹˜m˜rŠı˜M˜­˜M˜=ˆÂŠ­‹˜}‹Š}˜M˜]ŠİŠ}ŠıŠ½Š’˜}˜mŠr˜MŠ­Š­˜]˜=˜b˜]˜bŠ}˜M‹Šòâ"À¢$wVW7B#¢-‹m˜­˜"À¢%–÷R#¢-Š=˜mŠ¢"À¢$6öæ6–W&vR#¢-Š}˜M˜]‹=Š}‹Šò"À¢%&WÇ’6VçBâF†RwVW7B6VW2—B–âF†V—"wV–FR6†Bâ#¢-Š­˜RŠ]‹‹=Š}˜BŠ}˜M‹Šòâ‹=˜­‹Š}˜rŠ}˜M‹m˜­˜˜˜¢˜]ŠİŠ}ŠıŠ½Š’Šı˜M˜­˜M˜râ"À¢$6÷VÆFî(	—B6VæB–÷W"&WÇ’âÆV6RG'’v–ââ#¢-Š­‹‹™‹Š]‹‹=Š}˜B‹Šı˜2â˜­˜ı‹ŠÍ˜’Š}˜M˜]ŠİŠ}˜˜MŠ’˜]‹Š’Š=Ší‹˜’â"À¢%6VæB&WÇ’#¢-Š]‹‹=Š}˜BŠ}˜M‹Šò"À¢%F†RÆ—GFÆRW‡G&2#¢-Š}˜MŠ]‹mŠ}˜Š}Š¢Š}˜M‹]‹­˜­‹Š’"À¢%F†÷Vv‡FgVÂF÷V6†W2f÷"wVW7G2âÆ—GFÆRÖ÷&R–æ6öÖRf÷"–÷Râ#¢-˜M˜]‹=Š}Š¢˜]Šı‹˜‹=Š’˜M˜M‹m˜­˜˜â˜ŠıŠí˜BŠ]‹mŠ}˜˜¢˜M˜2â"À¢$7&VFRW‡G&#¢-Š]˜m‹MŠ}ŠŠ]‹mŠ}˜Š’"À¢$FVÖò6FÆör+r6–vâ–âFò&V6V—fR&VÂwVW7B&WVW7G2f÷"–÷W"W‡G&2â#¢-˜=Š­Š}˜M˜ŠÂŠ­ŠÍ‹˜­Š˜¢+r‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜B˜MŠ­˜M˜-˜¢‹}˜MŠŠ}Š¢Šİ˜-˜­˜-˜­Š’˜MŠ]‹mŠ}˜Š}Š­˜2â"À¢'W"7F’#¢-˜M˜=˜BŠ]˜-Š}˜]Š’"À¢$†÷7B&÷fÂ&WV—&VB#¢-˜­Š­‹}˜MŠ‚˜]˜Š}˜˜-Š’Š}˜M˜]‹m˜­˜"À¢$–ç7FçBW&6†6R#¢-‹M‹Š}Š˜˜‹˜¢"À¢%6VRwVW7BW‡W&–Væ6R#¢-‹‹‹bŠ­ŠÍ‹ŠŠ’Š}˜M‹m˜­˜"À¢%–ÖVçB6GW&VBâF†RÖöæW’—2öâ—G2v’Fò–÷W"&æ²â#¢-Š­˜RŠ­Šİ‹]˜­˜BŠ}˜MŠı˜‹Š’âŠ}˜M˜]Š}˜B˜˜¢‹}‹˜­˜-˜rŠ]˜M˜’Šİ‹=Š}Š˜2Š}˜MŠ˜m˜=˜¢â"À¢%&WVW7B&÷fVBâÆWB–÷W"wVW7B¶æ÷r†÷rFò’â#¢-Š­˜]Š¢Š}˜M˜]˜Š}˜˜-Š’‹˜M˜’Š}˜M‹}˜MŠ‚âŠ=ŠíŠ‹Š}˜M‹m˜­˜Š‹}‹˜­˜-Š’Š}˜MŠı˜‹’â"À¢%&WVW7BFV6Æ–æVBâç’6&B†öÆB†2&VVâ&VÆV6VBâ#¢-Š­˜R‹˜‹bŠ}˜M‹}˜MŠ‚âŠ­˜RŠ]˜M‹­Š}ŠŠ=˜¢ŠİŠÍ‹"‹˜M˜’Š}˜MŠ‹}Š}˜-Š’â"À¢%&VgVæB—77VVBFòF†RwVW7Bâ#¢-Š­˜RŠ]‹]ŠıŠ}‹Š}‹=Š­‹ŠıŠ}Šò˜M˜M‹m˜­˜â"À¢%&WVW7BWFFVBâ#¢-Š­˜RŠ­ŠİŠı˜­Š²Š}˜M‹}˜MŠ‚â"À¢$6÷VÆFî(	—BWFFRF†R&WVW7Bâ#¢-Š­‹‹™‹Š­ŠİŠı˜­Š²Š}˜M‹}˜MŠ‚â"À¢$wVW7B&WVW7G2#¢-‹}˜MŠŠ}Š¢Š}˜M‹m˜­˜˜"À¢%&Vg&W6‚&WVW7G2#¢-Š­ŠİŠı˜­Š²Š}˜M‹}˜MŠŠ}Š¢"À¢$ÆöF–ær&WVW7G>(
+b#¢-ŠÍŠ}‹˜ÒŠ­Šİ˜]˜­˜BŠ}˜M‹}˜MŠŠ}Š®(
+b"À¢$æò&WVW7G2–WBâwVW7G26â&WVW7BW‡G&2g&öÒF†R(	ÄÆ—GFÆRW‡G&>(	ÒF"öb–÷W"wV–FRâ#¢-˜MŠrŠ­˜ŠÍŠò‹}˜MŠŠ}Š¢Š‹Šòâ˜­˜]˜=˜b˜M˜M‹m˜­˜˜‹}˜MŠ‚Š}˜MŠ]‹mŠ}˜Š}Š¢˜]˜bŠ­Š˜˜­Š‚*½Š]‹mŠ}˜Š}Š¬+²˜˜¢Šı˜M˜­˜M˜2â"À¢'VæF–ær#¢-˜-˜­ŠòŠ}˜MŠ}˜mŠ­‹Š}‹"À¢&&÷fVB#¢-˜]˜-Š˜˜B"À¢&FV6Æ–æVB#¢-˜]‹˜˜‹b"À¢'–B#¢-˜]Šı˜˜‹’"À¢'&VgVæFVB#¢-˜]‹=Š­‹Šò"À¢&6&BWF†÷&—6VB#¢-Š­˜RŠ­˜˜˜­‹bŠ}˜MŠ‹}Š}˜-Š’"À¢'–BöæÆ–æR#¢-˜]Šı˜˜‹’‹Š‹Š}˜MŠ]˜mŠ­‹˜mŠ¢"À¢$&÷fRb6†&vR#¢-˜]˜Š}˜˜-Š’˜Š­Šİ‹]˜­˜B"À¢$&÷fR#¢-˜]˜Š}˜˜-Š’"À¢$FV6Æ–æRb&VÆV6R#¢-‹˜‹b˜Š]˜M‹­Š}ŠŠ}˜MŠİŠÍ‹""À¢$FV6Æ–æR#¢-‹˜‹b"À¢$Ö&²2–B#¢-Š­‹˜M˜­˜R˜=˜]Šı˜˜‹’"À¢%&VgVæBF†—2wVW7B–âgVÆÃò#¢-Š}‹=Š­‹ŠıŠ}ŠòŠ}˜M˜]Š˜M‹¢˜=Š}˜]˜M˜½Šr˜M˜}‹ŠrŠ}˜M‹m˜­˜‰ò"À¢%&VgVæB#¢-Š}‹=Š­‹ŠıŠ}Šò"À¢$vööB7F—2Â'’F†RçVÖ&W'2#¢-Š}˜MŠ]˜-Š}˜]Š}Š¢Š}˜MŠÍ˜­ŠıŠ’ŠŠ}˜MŠ=‹˜-Š}˜R"À¢$Æ—GFÆR–ç6–v‡B–çFòv†BÖ¶W2–÷W"wVW7G2fVVÂB†öÖRâ#¢-˜m‹‹Š’‹˜M˜’˜]Šr˜­ŠÍ‹˜B‹m˜­˜˜˜2˜­‹M‹‹˜˜b˜˜=Š=˜m˜}˜R˜˜¢Š˜­Š­˜}˜Râ"À¢%6×ÆRæÇ—F–72f÷"FVÖöç7G&F–öââ6–vâ–âFò6VR–÷W"&VÂçVÖ&W'2â#¢-Š]Šİ‹]Š}ŠŠ}Š¢Š­ŠÍ‹˜­Š˜­Š’â‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜B˜M‹ŠM˜­Š’Š=‹˜-Š}˜]˜2Š}˜MŠİ˜-˜­˜-˜­Š’â"À¢$wV–FRf–Ww2F†—2vVV²#¢-˜]‹MŠ}˜}ŠıŠ}Š¢Š}˜MŠı˜M˜­˜B˜}‹ŠrŠ}˜MŠ=‹=Š˜‹’"À¢$Ööâ#¢-Š}˜MŠ]Š½˜m˜­˜b"À¢%GVR#¢-Š}˜MŠ½˜MŠ}Š½Š}Š"À¢%vVB#¢-Š}˜MŠ=‹Š‹Š}Š"À¢%F‡R#¢-Š}˜MŠí˜]˜­‹2"À¢$g&’#¢-Š}˜MŠÍ˜]‹Š’"À¢%6B#¢-Š}˜M‹=ŠŠ¢"À¢%7Vâ#¢-Š}˜MŠ=ŠİŠò"À¢%F†RF†–æw2wVW7G26²#¢-˜]Šr˜­‹=Š=˜B‹˜m˜rŠ}˜M‹m˜­˜˜"À¢%v’Ôf’bvWGF–ær6öææV7FVB#¢-Š}˜M˜Š}˜¢˜Š}˜¢˜Š}˜MŠ}Š­‹]Š}˜B"À¢$6†V6²Ö–âb'&—fÂ#¢-Š}˜M˜‹]˜˜B˜Š­‹=ŠÍ˜­˜BŠ}˜MŠıŠí˜˜B"À¢$Æö6Â&V6öÖÖVæFF–öç2#¢-Š­˜‹]˜­Š}Š¢˜]Šİ˜M˜­Š’"À¢$6†V6²Ö÷WBFWF–Ç2#¢-Š­˜Š}‹]˜­˜BŠ}˜M˜]‹­Š}Šı‹Š’"À¢$6÷VÆFî(	—BÆöBæÇ—F–72â#¢-Š­‹‹™‹Š­Šİ˜]˜­˜BŠ}˜MŠ]Šİ‹]Š}ŠŠ}Š¢â"À¢$ÆöF–æ~(
+b#¢-ŠÍŠ}‹˜ÒŠ}˜MŠ­Šİ˜]˜­˜N(
+b"À¢$wV–FRf–Ww2†ÆÂF–ÖR’#¢-˜]‹MŠ}˜}ŠıŠ}Š¢Š}˜MŠı˜M˜­˜BŠ}˜MŠ]ŠÍ˜]Š}˜M˜¢’"À¢%f–Ww2ÂÆ7B3F—2#¢-Š}˜M˜]‹MŠ}˜}ŠıŠ}Š­ˆÂŠ-Ší‹3˜­˜˜]˜½Šr"À¢$wVW7BVW7F–öç2#¢-Š=‹=Šm˜MŠ’Š}˜M‹m˜­˜˜"À¢$ç7vW&VBv—F†÷WB–÷R#¢-Š=˜ıŠÍ˜­Š‚‹˜m˜}ŠrŠı˜˜m˜2"À¢$W‡G&2&÷fVB#¢-Š}˜MŠ]‹mŠ}˜Š}Š¢Š}˜M˜]˜-Š˜˜MŠ’"À¢$W‡G&&WVW7G2#¢-‹}˜MŠŠ}Š¢Š}˜MŠ]‹mŠ}˜Š}Š¢"À¢$’ÖW76vW2F†—2ÖöçF‚#¢-‹‹=Š}Šm˜BŠ}˜M‹˜=Š}ŠŠ}˜MŠ}‹]‹}˜mŠ}‹˜¢˜}‹ŠrŠ}˜M‹M˜}‹"À¢%VW7F–öç2v–ÆÂV"†W&Röæ6RwVW7G27F'B6†GF–ærâ#¢-‹=Š­‹˜}‹Š}˜MŠ=‹=Šm˜MŠ’˜}˜mŠr‹˜mŠı˜]Šr˜­ŠŠıŠ2Š}˜M‹m˜­˜˜Š}˜M˜]ŠİŠ}ŠıŠ½Š’â"À¢$v&ÒvVÆ6öÖRÂ6†&VB#¢-Š­‹Šİ˜­Š‚ŠıŠ}˜ŠmˆÂŠ­˜]Š¢˜]‹MŠ}‹˜=Š­˜r"À¢$öæRÆ—GFÆRÆ–æ²âWfW'—F†–ær–÷W"wVW7G2æVVBâ#¢-‹Š}Š‹r˜Š}ŠİŠòâ˜=˜B˜]Šr˜­ŠİŠ­Š}ŠÍ˜r‹m˜­˜˜˜2â"À¢%–÷W"&÷W'G’#¢-‹˜-Š}‹˜2"À¢%6VæBÆ—GFÆR†VÆÆò#¢-Š=‹‹=˜BŠ­Šİ˜­Š’"À¢$FB–÷W"wVW7BwV–FRFòvVÆ6öÖRÖW76vR÷"&öö¶–ær6öæf—&ÖF–öââ#¢-Š=‹m˜Šı˜M˜­˜B‹m˜­˜˜˜2Š]˜M˜’‹‹=Š}˜MŠ’Š­‹Šİ˜­Š‚Š=˜‚Š­Š=˜=˜­ŠòŠ}˜MŠİŠÍ‹"â"À¢$wVW7BwV–FRÆ–æ²#¢-‹Š}Š‹rŠı˜M˜­˜BŠ}˜M‹m˜­˜"À¢$6÷’wVW7BÆ–æ²#¢-˜m‹=ŠâŠ}˜M‹Š}Š‹r"À¢$wVW7BÆ–æ²6÷–VBâ#¢-Š­˜R˜m‹=ŠâŠ}˜M‹Š}Š‹râ"À¢%6VÆV7BF†RÆ–æ²æB6÷’—BÖçVÆÇ’â#¢-ŠİŠı™ŠòŠ}˜M‹Š}Š‹r˜Š}˜m‹=Ší˜r˜­Šı˜˜­˜½Šrâ"À¢%v^(	—&RÆöö¶–ærf÷'v&BFòvVÆ6öÖ–ær–÷RFò¶æÖWÒ†W&^(	—2–÷W"W'6öæÂwV–FRv—F‚WfW'—F†–ær–÷RæVVBf÷"Æ÷fVÇ’7F“¢¶Æ–æ·ÕÆå6fRG&fVÇ2(	B6VR–÷R6ööâ#¢-˜mŠ­‹}˜M‹’Š]˜M˜’Š}‹=Š­˜-ŠŠ}˜M˜2˜˜¢¶æÖWÒŠ]˜M˜­˜2Šı˜M˜­˜M˜2Š}˜M‹MŠí‹]˜¢˜]‹’˜=˜B˜]ŠrŠ­ŠİŠ­Š}ŠÍ˜r˜MŠ]˜-Š}˜]Š’‹Š}Šm‹Š“¢¶Æ–æ·ÕÆí‹Šİ˜MŠ’‹=‹˜­ŠıŠ’(	B˜m‹Š}˜2˜-‹˜­Š˜½Šr"À¢%vVÆ6öÖRÖW76vR6÷–VBâ#¢-Š­˜R˜m‹=Šâ‹‹=Š}˜MŠ’Š}˜MŠ­‹Šİ˜­Š‚â"À¢$6Æ—&ö&BVæf–Æ&ÆR–âF†—2'&÷w6W"â#¢-Š}˜MŠİŠ}˜‹Š’‹­˜­‹˜]Š­Š}ŠİŠ’˜˜¢˜}‹ŠrŠ}˜M˜]Š­‹]˜ŠÒâ"À¢$6÷’vVÆ6öÖRÖW76vR#¢-˜m‹=Šâ‹‹=Š}˜MŠ’Š}˜MŠ­‹Šİ˜­Š‚"À¢$Æö6ÂFVÖò6†ævW2&Rf—6–&ÆRöâF†—2FWf–6RöæÇ’â"6öFRf÷"6×ÆR&÷W'G’v÷&·2öâç’FWf–6Râ#¢-Š­‹­˜­˜­‹Š}Š¢Š}˜M˜m‹=ŠíŠ’Š}˜MŠ­ŠÍ‹˜­Š˜­Š’Š­‹˜}‹‹˜M˜’˜}‹ŠrŠ}˜MŠÍ˜}Š}‹"˜˜-‹râ‹˜]‹""˜M‹˜-Š}‹Š­ŠÍ‹˜­Š˜¢˜­‹˜]˜B‹˜M˜’Š=˜¢ŠÍ˜}Š}‹"â"À¢$Ö¶R–÷W'6VÆbB†öÖRâ#¢-Š}˜MŠ˜­Š¢Š˜­Š­˜2â"À¢%–÷W"wV–FRFòÆ÷fVÇ’7F’B¶æÖWÒâ#¢-Šı˜M˜­˜M˜2˜MŠ]˜-Š}˜]Š’ŠÍ˜]˜­˜MŠ’˜˜¢¶æÖWÒâ"À¢%66âf÷"ÆÂF†RÆ—GFÆRFWF–Ç2â#¢-Š}˜]‹=ŠÒŠ}˜M‹˜]‹"˜M˜=˜BŠ}˜MŠ­˜Š}‹]˜­˜Bâ"À¢%"6öFRf÷"¶æÖWÒ#¢-‹˜]‹""˜M˜¶æÖWÒ"À¢$vVæW&FR"6&B#¢-Š]˜m‹MŠ}ŠŠ‹}Š}˜-Š’""À¢%&–çBò6fRDb#¢-‹}ŠŠ}‹Š’òŠİ˜‹‚Db"À¢$Æâf÷"WfW'’¶–æBöb†÷7B#¢-Ší‹}Š’˜M˜=˜B˜]‹m˜­˜"À¢%6–×ÆRÂW"×&÷W'G’&–6–ærâÖ÷&RF–ÖRf÷"v†B–÷RÆ÷fRâ#¢-Š=‹=‹Š}‹Š‹=˜­‹}Š’˜M˜=˜B‹˜-Š}‹â˜˜-Š¢Š=˜=Š½‹˜M˜]ŠrŠ­ŠİŠ‚â"À¢%&÷W'F–W3¢¶çÒ#¢-Š}˜M‹˜-Š}‹Š}Š£¢¶çÒ"À¢$ÖöçF†Ç’#¢-‹M˜}‹˜¢"À¢%–V&Ç’+r"ÖöçF‡2g&VR#¢-‹=˜m˜˜¢+r‹M˜}‹Š}˜b˜]ŠÍŠ}˜m˜½Šr"À¢$g&VR#¢-˜]ŠÍŠ}˜m˜¢"À¢$F†÷Vv‡FgVÂ&Vv–ææ–ær#¢-ŠŠıŠ}˜­Š’˜]Šı‹˜‹=Š’"À¢$f÷"F†R–æFWVæFVçB†÷7B#¢-˜M˜M˜]‹m˜­˜Š}˜M˜]‹=Š­˜-˜B"À¢%–÷W"†÷7—FÆ—G’ÂVÆWfFVB#¢-‹m˜­Š}˜Š­˜2Š˜]‹=Š­˜˜’Š=‹˜M˜’"À¢'W"–V"#¢-‹=˜m˜˜­˜½Šr"À¢'W"ÖöçF‚#¢-‹M˜}‹˜­˜½Šr"À¢#&÷W'G’#¢-‹˜-Š}‹˜Š}ŠİŠò"À¢'¶çÒ&÷W'F–W2#¢'¶çÒ‹˜-Š}‹Š}Š¢"À¢'¶çÒ’ÖW76vW2ò&÷W'G’òÖöçF‚#¢'¶çÒ‹‹=Š}˜MŠ’‹˜=Š}ŠŠ}‹]‹}˜mŠ}‹˜¢ò‹˜-Š}‹ò‹M˜}‹"À¢$&VWF–gVÂöffÆ–æRwVW7BwV–FW2#¢-Š=Šı˜MŠ’ŠÍ˜]˜­˜MŠ’Š­‹˜]˜BŠı˜˜bŠ}Š­‹]Š}˜B"À¢$W‡G&27F÷&R+rRRÆFf÷&ÒfVR#¢-˜]Š­ŠÍ‹Š}˜MŠ]‹mŠ}˜Š}Š¢+r‹‹=˜˜R˜]˜m‹]Š’]š¢"À¢%&–÷&—G’7W÷'B#¢-Šı‹˜R‹˜‚Š=˜˜M˜˜­Š’"À¢%F†—2—2FVÖòv÷&·76Râ6–vâ–âv—F‚vöövÆRFò6†ö÷6RÆââ#¢-˜}‹˜r˜]‹=Š}ŠİŠ’Š­ŠÍ‹˜­Š˜­Š’â‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜BŠŠİ‹=Š}Š‚vöövÆR˜MŠ}ŠíŠ­˜­Š}‹Ší‹}Š’â"À¢%F†—2—2FVÖòv÷&·76Râ6–vâ–âFò6†ö÷6RÆââ#¢-˜}‹˜r˜]‹=Š}ŠİŠ’Š­ŠÍ‹˜­Š˜­Š’â‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜B˜MŠ}ŠíŠ­˜­Š}‹Ší‹}Š’â"À¢%G'’F†RFVÖò#¢-ŠÍ‹™Š‚Š}˜M˜m‹=ŠíŠ’Š}˜MŠ­ŠÍ‹˜­Š˜­Š’"À¢$6†ö÷6R·ÆçÒ#¢-Š}ŠíŠ­‹·ÆçÒ"À¢$FVÖòv÷&·76R+r6–vâ–âv—F‚vöövÆRFò6†ö÷6RÆââ&–6W2–â¶6öFWÒ‡·7–Ö&öÇÒ’Â&–ÆÆVB6V7W&VÇ’'’7G&—Râ#¢-˜]‹=Š}ŠİŠ’Š­ŠÍ‹˜­Š˜­Š’+r‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜BŠŠİ‹=Š}Š‚vöövÆR˜MŠ}ŠíŠ­˜­Š}‹Ší‹}Š’âŠ}˜MŠ=‹=‹Š}‹Š˜¶6öFWÒ‡·7–Ö&öÇÒˆÂ˜]‹’˜˜Š­‹Š’Š-˜]˜mŠ’‹Š‹7G&—Râ"À¢$FVÖòv÷&·76R+r6–vâ–âFò6†ö÷6RÆââ&–6W2–â¶6öFWÒ‡·7–Ö&öÇÒ’Â&–ÆÆVB6V7W&VÇ’'’7G&—Râ#¢-˜]‹=Š}ŠİŠ’Š­ŠÍ‹˜­Š˜­Š’+r‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜B˜MŠ}ŠíŠ­˜­Š}‹Ší‹}Š’âŠ}˜MŠ=‹=‹Š}‹Š˜¶6öFWÒ‡·7–Ö&öÇÒˆÂ˜]‹’˜˜Š­‹Š’Š-˜]˜mŠ’‹Š‹7G&—Râ"À¢%F†æ²–÷R–÷W"Æâ—2&V–ær7F—fFVBâF†—26âF¶RfWr6V6öæG2â#¢-‹M˜=‹˜½Šr˜M˜2ŠÍŠ}‹˜ÒŠ­˜‹˜­˜BŠí‹}Š­˜2â˜-Šò˜­‹=Š­‹­‹˜"‹˜M˜2Š‹m‹’Š½˜Š}˜m˜Òâ"À¢$6†V6¶÷WB6æ6VÆÆVBâæ÷F†–ærv26†&vVBâ#¢-Š­˜RŠ]˜M‹­Š}ŠŠ}˜MŠı˜‹’â˜M˜R˜­˜ıŠí‹]˜RŠ=˜¢˜]Š˜M‹¢â"À¢%–÷WBFWF–Ç26fVBâ7G&—RÖ’F¶RÖöÖVçBFòfW&–g’F†VÒâ#¢-Š­˜RŠİ˜‹‚Š˜­Š}˜mŠ}Š¢Š}˜MŠı˜‹’â˜-Šò˜­‹=Š­‹­‹˜"7G&—R˜MŠİ‹Š}Š¢˜M˜MŠ­Šİ˜-˜"˜]˜m˜}Šrâ"À¢%F†B6WGWÆ–æ²W‡—&VBâÆV6R6öçF–çVR–÷WB6WGWâ#¢-Š}˜mŠ­˜}Š¢‹]˜MŠ}Šİ˜­Š’‹Š}Š‹rŠ}˜MŠ]‹ŠıŠ}Šòâ˜­˜ı‹ŠÍ˜’˜]Š­Š}Š‹Š’Š]‹ŠıŠ}ŠòŠ}˜M˜]Šı˜˜‹Š}Š¢â"À¢$6÷VÆFî(	—BÆöB&–ÆÆ–ærâÆV6R&Vg&W6‚F†RvRâ#¢-Š­‹‹™‹Š­Šİ˜]˜­˜BŠ}˜M˜˜Š­‹Š’â˜­˜ı‹ŠÍ˜’Š­ŠİŠı˜­Š²Š}˜M‹]˜ŠİŠ’â"À¢$ÆöF–ær&–ÆÆ–æ~(
+b#¢-ŠÍŠ}‹˜ÒŠ­Šİ˜]˜­˜BŠ}˜M˜˜Š­‹Š(
+b"À¢%6–×ÆRÂW"×&÷W'G’&–6–ærâ6†ævR÷"6æ6VÂç’F–ÖRâ#¢-Š=‹=‹Š}‹Š‹=˜­‹}Š’˜M˜=˜B‹˜-Š}‹â‹­˜­™‹Š=˜‚Š=˜M‹­™˜˜¢Š=˜¢˜˜-Š¢â"À¢%–ÖVçG2&Ræ÷B6öææV7FVBöâF†—2FWÆ÷–ÖVçB–WBâ#¢-Š}˜M˜]Šı˜˜‹Š}Š¢‹­˜­‹˜]Š­‹]˜MŠ’Š‹Šòâ"À¢$7W'&VçBÆâ#¢-Š}˜MŠí‹}Š’Š}˜MŠİŠ}˜M˜­Š’"À¢'WFò¶çÒöâF†—2Æâ#¢-ŠİŠ­˜’¶çÒ˜˜¢˜}‹˜rŠ}˜MŠí‹}Š’"À¢$÷Væ–æ~(
+b#¢-ŠÍŠ}‹˜ÒŠ}˜M˜Š­ŠŞ(
+b"À¢$ÖævR&–ÆÆ–ær#¢-Š]ŠıŠ}‹Š’Š}˜M˜˜Š­‹Š’"À¢%–÷W"Æ7B–ÖVçBf–ÆVBâÆV6RWFFR–÷W"6&B–â(	ÄÖævR&–ÆÆ–æ~(	ÒFò¶VW–÷W"Æââ#¢-˜‹M˜MŠ¢Šı˜‹Š­˜2Š}˜MŠ=Ší˜­‹Š’â˜­˜ı‹ŠÍ˜’Š­ŠİŠı˜­Š²Š‹}Š}˜-Š­˜2˜]˜b*½Š]ŠıŠ}‹Š’Š}˜M˜˜Š­‹Šœ+²˜M˜MŠ}ŠİŠ­˜Š}‹‚ŠŠí‹}Š­˜2â"À¢%–÷W"†÷FVÂb×VÇF’ÕVæ—BÆâ—2ÖævVB'’7F”wV–FRæB–çfö–6VB6W&FVÇ’â6öçF7BW2Fò6†ævR—Bâ#¢-Š­Š­˜˜M˜’7F”wV–FRŠ]ŠıŠ}‹Š’Ší‹}Š’Š}˜M˜˜mŠ}Šı˜"˜Š}˜M˜ŠİŠıŠ}Š¢Š}˜M˜]Š­‹ŠıŠıŠ’˜Š­˜ı˜˜Š­‹Š‹M˜=˜B˜]˜m˜‹]˜BâŠ­˜Š}‹]˜B˜]‹˜mŠr˜MŠ­‹­˜­˜­‹˜}Šrâ"À¢$&–ÆÆVBf÷"¶çÒ+rWFFW2WFöÖF–6ÆÇ’2–÷RFB÷"&VÖ÷fR&÷W'F–W2#¢-Š}˜M˜˜Š­‹Š’˜M˜¶çÒ+rŠ­Š­ŠİŠıŠ²Š­˜M˜-Š}Šm˜­˜½Šr‹˜mŠòŠ]‹mŠ}˜Š’Š}˜M‹˜-Š}‹Š}Š¢Š=˜‚Šİ‹˜˜}Šr"À¢%WFò¶çÒ&÷W'F–W2#¢-ŠİŠ­˜’¶çÒ‹˜-Š}‹"À¢'¶çÒ’6öæ6–W&vRÖW76vW2ò&÷W'G’òÖöçF‚#¢'¶çÒ‹‹=Š}˜MŠ’˜]˜bŠ}˜M˜]‹=Š}‹ŠòŠ}˜M‹˜=˜¢ò‹˜-Š}‹ò‹M˜}‹"À¢%–BW‡G&2+rRRÆFf÷&ÒfVR#¢-Š]‹mŠ}˜Š}Š¢˜]Šı˜˜‹Š’+r‹‹=˜˜R˜]˜m‹]Š’]š¢"À¢$÷Væ–ær6†V6¶÷WN(
+b#¢-ŠÍŠ}‹˜Ò˜Š­ŠÒ‹]˜ŠİŠ’Š}˜MŠı˜‹(
+b"À¢'·&–6WÒ÷&÷W'G’öÖöçF‚#¢'·&–6WÒò‹˜-Š}‹ò‹M˜}‹"À¢"Â&–ÆÆVB–V&Ç’#¢-ˆÂ˜˜Š­‹Š’‹=˜m˜˜­Š’"À¢%&–6W2–â¶6öFWÒ‡·7–Ö&öÇÒ’â6V7W&R–ÖVçB'’7G&—Râ6æ6VÂç’F–ÖRg&öÒ(	ÄÖævR&–ÆÆ–æ~(	Òâ#¢-Š}˜MŠ=‹=‹Š}‹Š˜¶6öFWÒ‡·7–Ö&öÇÒ’âŠı˜‹’Š-˜]˜b‹Š‹7G&—Râ˜­˜]˜=˜m˜2Š}˜MŠ]˜M‹­Š}Š˜˜¢Š=˜¢˜˜-Š¢˜]˜b*½Š]ŠıŠ}‹Š’Š}˜M˜˜Š­‹Šœ+²â"À¢$vWB–Bf÷"W‡G&2#¢-Š}Šİ‹]˜B‹˜M˜’Š=‹ŠŠ}ŠÒŠ}˜MŠ]‹mŠ}˜Š}Š¢"À¢$7F—fR#¢-˜]˜‹™˜B"À¢$wVW7G2’f÷"W‡G&2'’6&BÂÆR’÷"vöövÆR’âÖöæW’vöW27G&–v‡BFò–÷W"&æ²f–7G&—RÂÖ–çW2RR7F”wV–FRfVRâW‡G&2F†BæVVB–÷W"&÷fÂ&RöæÇ’6†&vVBv†Vâ–÷R&÷fRF†VÒâ#¢-˜­Šı˜‹’Š}˜M‹m˜­˜˜Š½˜]˜bŠ}˜MŠ]‹mŠ}˜Š}Š¢ŠŠ}˜MŠ‹}Š}˜-Š’Š=˜‚ÆR’Š=˜‚vöövÆR’â˜­‹]˜BŠ}˜M˜]Š}˜B˜]ŠŠ}‹M‹Š’Š]˜M˜’Šİ‹=Š}Š˜2‹Š‹7G&—RŠ‹ŠòŠí‹]˜R‹‹=˜˜R7F”wV–FRŠ˜m‹=ŠŠ’]š¢âŠ}˜MŠ]‹mŠ}˜Š}Š¢Š}˜MŠ­˜¢Š­ŠİŠ­Š}ŠÂ˜]˜Š}˜˜-Š­˜2˜MŠrŠ­˜ıŠí‹]˜RŠ]˜MŠrŠ‹Šò˜]˜Š}˜˜-Š­˜2â"À¢$÷Vâ–÷WG2F6†&ö&B#¢-˜Š­ŠÒ˜M˜ŠİŠ’Š}˜M˜]Šı˜˜‹Š}Š¢"À¢$öæÆ–æR–ÖVçG2f÷"W‡G&2&R6öÖ–ær6ööââVçF–ÂF†VâÂwVW7G26VæB&WVW7G2æB–÷R6öæf—&Ò†÷rF†W’’â#¢-Š}˜MŠı˜‹’Š}˜MŠ]˜M˜=Š­‹˜˜m˜¢˜M˜MŠ]‹mŠ}˜Š}Š¢˜-‹˜­Š˜½ŠrâŠİŠ­˜’‹˜M˜2Š}˜MŠİ˜­˜mˆÂ˜­‹‹=˜BŠ}˜M‹m˜­˜˜‹}˜MŠŠ}Š¢˜Š­ŠM˜=ŠòŠ=˜mŠ¢‹}‹˜­˜-Š’Š}˜MŠı˜‹’â"À¢$6öææV7B&æ²66÷VçBv—F‚7G&—R6òwVW7G26â’f÷"W‡G&2öæÆ–æRâVçF–ÂF†VâÂwVW7G26VæB&WVW7G2æB–÷R6öæf—&Ò–ÖVçB–÷W'6VÆbâ#¢-Š}‹Š‹rŠİ‹=Š}Š˜½ŠrŠ˜m˜=˜­˜½Šr‹Š‹7G&—R˜M˜­Š­˜]˜=˜bŠ}˜M‹m˜­˜˜˜]˜bŠı˜‹’Š½˜]˜bŠ}˜MŠ]‹mŠ}˜Š}Š¢‹Š‹Š}˜MŠ]˜mŠ­‹˜mŠ¢âŠİŠ­˜’‹˜M˜2Š}˜MŠİ˜­˜mˆÂ˜­‹‹=˜BŠ}˜M‹m˜­˜˜‹}˜MŠŠ}Š¢˜Š­ŠM˜=ŠòŠ}˜MŠı˜‹’Š˜m˜‹=˜2â"À¢$6÷VçG'’öb–÷W"&æ²66÷VçB#¢-Šı˜˜MŠ’Šİ‹=Š}Š˜2Š}˜MŠ˜m˜=˜¢"À¢$÷Væ–ær7G&—^(
+b#¢-ŠÍŠ}‹˜Ò˜Š­ŠÒ7G&—^(
+b"À¢$6öçF–çVR–÷WB6WGW#¢-˜]Š­Š}Š‹Š’Š]‹ŠıŠ}ŠòŠ}˜M˜]Šı˜˜‹Š}Š¢"À¢%6WBW–÷WG2#¢-Š]‹ŠıŠ}ŠòŠ}˜M˜]Šı˜˜‹Š}Š¢"À¢'7BGVR#¢-˜]Š­Š=Ší‹Š}˜M‹=ŠıŠ}Šò"À¢'G&–Æ–ær#¢-˜Š­‹Š’Š­ŠÍ‹˜­Š˜­Š’"À¢&6æ6VÆVB#¢-˜]˜M‹­Š}Š’"À¢'Vç–B#¢-‹­˜­‹˜]Šı˜˜‹Š’"À¢%–÷W"v÷&·76RÂ–÷W"v’â#¢-˜]‹=Š}ŠİŠ­˜2‹˜M˜’‹}‹˜­˜-Š­˜2â"À¢%v÷&·76R&VfW&Væ6W26fVBöâF†—2FWf–6Râ#¢-Š­˜RŠİ˜‹‚Š}˜MŠ­˜‹m˜­˜MŠ}Š¢‹˜M˜’˜}‹ŠrŠ}˜MŠÍ˜}Š}‹"â"À¢%–÷W"v÷&·76R#¢-˜]‹=Š}ŠİŠ’‹˜]˜M˜2"À¢%–÷W"f—'7BæÖR#¢-Š}‹=˜]˜2Š}˜MŠ=˜˜B"À¢$÷&væ—¦F–öâæÖR#¢-Š}‹=˜RŠ}˜M‹M‹˜=Š’"À¢%6fR&VfW&Væ6W2#¢-Šİ˜‹‚Š}˜MŠ­˜‹m˜­˜MŠ}Š¢"À¢%F†RV÷ÆR&V†–æBF†RvVÆ6öÖR#¢-Š}˜MŠ=‹MŠíŠ}‹R˜‹Š}ŠŠ}˜MŠ­‹Šİ˜­Š‚"À¢%FVÒ66W72f÷"6òÖ†÷7G2æB7Ffb—26öÖ–ær6ööââ#¢-˜‹]˜˜BŠ}˜M˜‹˜­˜"˜M˜M˜]‹m˜­˜˜­˜bŠ}˜M˜]‹MŠ}‹˜=˜­˜b˜Š}˜M˜]˜‹˜˜­˜b˜-‹˜­Š˜½Šrâ"À¢%F†—2—2FVÖòv÷&·76R6fVB–â–÷W"'&÷w6W"â6–vâ–âv—F‚vöövÆRFò7&VFR–÷W"&VÂ66÷VçBâ#¢-˜}‹˜r˜]‹=Š}ŠİŠ’Š­ŠÍ‹˜­Š˜­Š’˜]Šİ˜˜‹Š’˜˜¢˜]Š­‹]˜Šİ˜2â‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜BŠŠİ‹=Š}Š‚vöövÆR˜MŠ]˜m‹MŠ}ŠŠİ‹=Š}Š˜2Š}˜MŠİ˜-˜­˜-˜¢â"À¢%F†—2—2FVÖòv÷&·76R6fVB–â–÷W"'&÷w6W"â6–vâ–âFò7&VFR–÷W"&VÂ66÷VçBâ#¢-˜}‹˜r˜]‹=Š}ŠİŠ’Š­ŠÍ‹˜­Š˜­Š’˜]Šİ˜˜‹Š’˜˜¢˜]Š­‹]˜Šİ˜2â‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜B˜MŠ]˜m‹MŠ}ŠŠİ‹=Š}Š˜2Š}˜MŠİ˜-˜­˜-˜¢â"À¢%7v—F6‚FòÆ–v‡BÖöFR#¢-Š}˜MŠ­ŠŠı˜­˜BŠ]˜M˜’Š}˜M˜‹m‹’Š}˜M˜Š}Š­ŠÒ"À¢%7v—F6‚FòF&²ÖöFR#¢-Š}˜MŠ­ŠŠı˜­˜BŠ]˜M˜’Š}˜M˜‹m‹’Š}˜MŠıŠ}˜=˜b"À¢$6öææV7B–÷W"66÷VçB#¢-Š}‹Š‹rŠİ‹=Š}Š˜2"À¢$F6†&ö&BÆæwVvR#¢-˜M‹­Š’˜M˜ŠİŠ’Š}˜MŠ­Šİ˜=˜R"À¢$æWrÆ6RâæWrvVÆ6öÖRâ#¢-˜]˜=Š}˜bŠÍŠı˜­ŠòâŠ­‹Šİ˜­Š‚ŠÍŠı˜­Šòâ"À¢$FBF†R&6–72æB'&–ær–÷W"wVW7BwV–FRFòÆ–fRâ#¢-Š=‹m˜Š}˜MŠ=‹=Š}‹=˜­Š}Š¢˜Š}Š‹Š²Š}˜MŠİ˜­Š}Š’˜˜¢Šı˜M˜­˜B‹m˜­˜˜˜2â"À¢%&÷W'G’æÖR#¢-Š}‹=˜RŠ}˜M‹˜-Š}‹"À¢$÷F–öæÂ+rW6VBf÷"(	Ä÷Vâ–âÖ>(	Ò#¢-Š}ŠíŠ­˜­Š}‹˜¢+r˜­˜ı‹=Š­ŠíŠı˜R˜M˜*½Š}˜Š­ŠÒ˜˜¢Š}˜MŠí‹Š}Šm‹|+²"À¢%–÷W"†÷W6RÖçVÂ#¢-Šı˜M˜­˜B˜]˜m‹-˜M˜2"À¢$÷F–öæÂ+röæÇ’6öçFVçB–÷R÷vâ#¢-Š}ŠíŠ­˜­Š}‹˜¢+r˜]ŠİŠ­˜˜’Š­˜]˜M˜=˜r˜˜-‹r"À¢%7FR–÷W"'&—fÂFWF–Ç2Â†÷W6R'VÆW2ÂæBff÷&—FRÆö6ÂF—>(
+b#¢-Š}˜M‹]˜"Š­‹˜M˜­˜]Š}Š¢Š}˜M˜‹]˜˜B˜˜-˜Š}‹ŠòŠ}˜M˜]˜m‹-˜B˜˜m‹]Š}ŠmŠİ˜2Š}˜M˜]Šİ˜M˜­Š’Š}˜M˜]˜‹m˜MŠ(
+b"À¢$÷W"’v–ÆÂ÷&væ—¦R–÷W"FW‡B–çFòwV–FR6V7F–öç2W6–æröæÇ’v†B–÷Rw&÷FRâ#¢-‹=˜­˜m‹™˜RŠ}˜M‹˜=Š}ŠŠ}˜MŠ}‹]‹}˜mŠ}‹˜¢˜m‹]˜2˜˜¢Š=˜-‹=Š}˜RŠŠ}‹=Š­ŠíŠıŠ}˜R˜]Šr˜=Š­ŠŠ­˜r˜˜-‹râ"À¢%v^(	–ÆÂ7Æ—B–÷W"FW‡B–çFò6V7F–öç2Æ–¶R'&—fÂÂv’Ôf’æB6†V6¶÷WBâW6RÆ&VÇ27V6‚2(	Åt’Ôd“®(	Òf÷"&W7B&W7VÇG2â#¢-‹=˜m˜-‹=™˜R˜m‹]˜2Š]˜M˜’Š=˜-‹=Š}˜R˜]Š½˜BŠ}˜M˜‹]˜˜B˜Š}˜M˜Š}˜¢˜Š}˜¢˜Š}˜M˜]‹­Š}Šı‹Š’âŠ}‹=Š­ŠíŠı˜R‹˜mŠ}˜˜­˜b˜]Š½˜B*µt’Ôd“¬+²˜MŠ=˜‹m˜BŠ}˜M˜mŠ­Š}ŠmŠÂâ"À¢$'V–ÆF–ær–÷W"wV–F^(
+b#¢-ŠÍŠ}‹˜ÒŠ]˜m‹MŠ}ŠŠı˜M˜­˜M˜>(
+b"À¢$7&VFR×’wV–FR#¢-Š=˜m‹MŠbŠı˜M˜­˜M˜¢"À¢%&÷W'G’7&VFVBâ’÷&væ—¦VB–÷W"wV–FR(	B†fRÆöö²â#¢-Š­˜RŠ]˜m‹MŠ}ŠŠ}˜M‹˜-Š}‹â˜m‹™˜RŠ}˜M‹˜=Š}ŠŠ}˜MŠ}‹]‹}˜mŠ}‹˜¢Šı˜M˜­˜M˜2(	BŠ=˜M˜-™˜m‹‹Š’â"À¢%&÷W'G’7&VFVBâ–÷W"wV–FR—2&VG’FòVF—Bâ#¢-Š­˜RŠ]˜m‹MŠ}ŠŠ}˜M‹˜-Š}‹âŠı˜M˜­˜M˜2ŠÍŠ}˜}‹"˜M˜MŠ­‹Šı˜­˜Bâ"À¢$6÷VÆBæ÷B7&VFRF†R&÷W'G’â#¢-Š­‹‹™‹Š]˜m‹MŠ}ŠŠ}˜M‹˜-Š}‹â"À¢$FB–÷W"&÷W'G(	—2·G—WÒ–æf÷&ÖF–öâ†W&Râ#¢-Š=‹m˜˜}˜mŠr˜]‹˜M˜˜]Š}Š¢*··G—WÜ+²Š}˜MŠíŠ}‹]Š’Š‹˜-Š}‹˜2â"À¢$F†÷Vv‡FgVÂÆ—GFÆRW‡G&#¢-Š]‹mŠ}˜Š’‹]‹­˜­‹Š’˜]Šı‹˜‹=Š’"À¢$v—fR–÷W"wVW7G2öæRÖ÷&R&V6öâFòÆ÷fRF†V—"7F’â#¢-Š}˜]˜mŠÒ‹m˜­˜˜˜2‹=ŠŠ˜½ŠrŠ-Ší‹˜M˜­ŠİŠ˜ŠrŠ]˜-Š}˜]Š­˜}˜Râ"À¢%&÷W'G’#¢-Š}˜M‹˜-Š}‹"À¢$æÖR#¢-Š}˜MŠ}‹=˜R"À¢$FW67&—F–öâ#¢-Š}˜M˜‹]˜"À¢%&–6R‡·7–Ö&öÇÒ’#¢-Š}˜M‹=‹‹‡·7–Ö&öÇÒ’"À¢%&WV—&R×’&÷fÂ&Vf÷&R–ÖVçB#¢-Š}‹}˜MŠ‚˜]˜Š}˜˜-Š­˜¢˜-Š˜BŠ}˜MŠı˜‹’"À¢$W‡G&FFVBFò–÷W"FVÖòwV–FRâ#¢-Š­˜]Š¢Š]‹mŠ}˜Š’Š}˜MŠ]‹mŠ}˜Š’Š]˜M˜’Šı˜M˜­˜M˜2Š}˜MŠ­ŠÍ‹˜­Š˜¢â"À¢&RærâF†RÆ—GFÆRöÆ—fR†÷W6R#¢-˜]Š½Š}˜C¢Š˜­Š¢Š}˜M‹-˜­Š­˜˜bŠ}˜M‹]‹­˜­‹"À¢&RærâvFÆ–æ'W&rÂFVææW76VR#¢-˜]Š½Š}˜C¢˜]‹Š}˜=‹MˆÂŠ}˜M˜]‹­‹Š‚"À¢$&6¶WBöbÆö6Âff÷&—FW2#¢-‹=˜MŠ’˜]˜bŠ}˜M˜]˜mŠ­ŠÍŠ}Š¢Š}˜M˜]Šİ˜M˜­Š’"À¢%vVÆ6öÖR&6²#¢-Š=˜}˜M˜½ŠrŠ‹˜ŠıŠ­˜2"À¢$vööB†÷7G2Ö¶R#¢-Š}˜M˜]‹m˜­˜˜˜bŠ}˜MŠÍ˜­Šı˜˜b˜­‹]˜m‹˜˜b"À¢&w&VB7F—2â#¢-Š]˜-Š}˜]Š}Š¢‹Š}Šm‹Š’â"À¢%vVÆ6öÖR†öÖRâ#¢-Š=˜}˜M˜½ŠrŠ˜2˜˜¢Š˜­Š­˜2â"À¢$Æ—GFÆRÆW72v÷&²âÆ—GFÆRÖ÷&R†÷7—FÆ—G’â#¢-‹˜]˜BŠ=˜-˜B˜-˜M˜­˜M˜½Šrâ‹m˜­Š}˜Š’Š=˜=Š½‹˜-˜M˜­˜M˜½Šrâ"À¢$v&ÒæBvVÆ6öÖ–ærÆ—f–ær&ööÒ#¢-‹­‹˜Š’˜]‹˜­‹MŠ’ŠıŠ}˜ŠmŠ’˜˜]‹Šİ™ŠŠ’"À¢%F†÷Vv‡FgVÂ†÷7F–ær7F'G2†W&Râ#¢-Š}˜M‹m˜­Š}˜Š’Š}˜M˜]Šı‹˜‹=Š’Š­ŠŠıŠ2˜]˜b˜}˜mŠrâ"À¢%6–vâ–âFò–÷W"66÷VçB#¢-‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜BŠ]˜M˜’Šİ‹=Š}Š˜2"À¢%vVÆ6öÖR&6²â6–vâ–âv—F‚–÷W"vöövÆR66÷VçBFò6öçF–çVRâ#¢-Š=˜}˜M˜½ŠrŠ‹˜ŠıŠ­˜2â‹=ŠÍ™˜BŠ}˜MŠıŠí˜˜BŠŠİ‹=Š}Š‚vöövÆR˜M˜M˜]Š­Š}Š‹Š’â"À¢%vVÆ6öÖR&6²â6†ö÷6R6V7W&R6–vâÖ–â÷F–öâFò6öçF–çVRâ#¢-Š=˜}˜M˜½ŠrŠ‹˜ŠıŠ­˜2âŠ}ŠíŠ­‹‹}‹˜­˜-Š’Š­‹=ŠÍ˜­˜BŠıŠí˜˜BŠ-˜]˜mŠ’˜M˜M˜]Š­Š}Š‹Š’â"À¢$6öçF–çVRv—F‚vöövÆR#¢-Š}˜M˜]Š­Š}Š‹Š’ŠŠ}‹=Š­ŠíŠıŠ}˜RvöövÆR"À¢$6öçF–çVRv—F‚ÆR#¢-Š}˜M˜]Š­Š}Š‹Š’ŠŠ}‹=Š­ŠíŠıŠ}˜RÆR"À¢$VÖ–ÂFG&W72#¢-‹˜m˜Š}˜bŠ}˜MŠ‹˜­ŠòŠ}˜MŠ]˜M˜=Š­‹˜˜m˜¢"À¢%6VæB6öFR#¢-Š]‹‹=Š}˜BŠ}˜M‹˜]‹""À¢%6–vâÖ–â6öFR#¢-‹˜]‹"Š­‹=ŠÍ˜­˜BŠ}˜MŠıŠí˜˜B"À¢$6öçF–çVR#¢-˜]Š­Š}Š‹Š’"À¢%vR6VçBbÖF–v—B6öFRFò–÷W"VÖ–Ââ—BW‡—&W2–âÖ–çWFW2â#¢-Š=‹‹=˜M˜mŠr‹˜]‹-˜½Šr˜]˜bbŠ=‹˜-Š}˜RŠ]˜M˜’Š‹˜­Šı˜2Š}˜MŠ]˜M˜=Š­‹˜˜m˜¢âŠ­˜mŠ­˜}˜¢‹]˜MŠ}Šİ˜­Š­˜rŠí˜MŠ}˜BŠı˜-Š}Šm˜"â"À¢$Æ—fR66÷VçG2&Ræ÷B6öææV7FVB–WBâW‡Æ÷&RF†RFVÖò&VÆ÷râ#¢-Š}˜MŠİ‹=Š}ŠŠ}Š¢‹­˜­‹˜]Š­‹]˜MŠ’Š‹ŠòâŠ}‹=Š­˜=‹M˜Š}˜M˜m‹=ŠíŠ’Š}˜MŠ­ŠÍ‹˜­Š˜­Š’Š=Šı˜mŠ}˜râ"À¢%vR6÷VÆFî(	—B6VæBF†R6öFRâG'’vöövÆRv†–ÆRVÖ–Â6–vâÖ–â—2&V–ærf—†VBâ#¢-Š­‹‹™‹Š]‹‹=Š}˜BŠ}˜M‹˜]‹"âŠ}‹=Š­ŠíŠı˜RvöövÆR‹˜­Š½˜]Šr˜­Š­˜RŠ]‹]˜MŠ}ŠÒŠ­‹=ŠÍ˜­˜BŠ}˜MŠıŠí˜˜BŠŠ}˜MŠ‹˜­ŠòŠ}˜MŠ]˜M˜=Š­‹˜˜m˜¢â"À¢%F†B6öFRF–Bæ÷Bv÷&²â&WVW7BæWr6öFR÷"G'’v–ââ#¢-˜}‹ŠrŠ}˜M‹˜]‹"˜M˜R˜­‹˜]˜BâŠ}‹}˜MŠ‚‹˜]‹-˜½ŠrŠÍŠı˜­Šı˜½ŠrŠ=˜‚ŠİŠ}˜˜B˜]‹Š’Š=Ší‹˜’â"À¢%vR6÷VÆFî(	—B6–vâ–÷R–ââÆV6RG'’v–ââ#¢-Š­‹‹™‹Š­‹=ŠÍ˜­˜BŠıŠí˜˜M˜2â˜­˜ı‹ŠÍ˜’Š}˜M˜]ŠİŠ}˜˜MŠ’˜]‹Š’Š=Ší‹˜’â"À¢&÷"W‡Æ÷&Rv—F†÷WB6–væ–ær–â#¢-Š=˜‚Š}‹=Š­˜=‹M˜Šı˜˜bŠ­‹=ŠÍ˜­˜BŠ}˜MŠıŠí˜˜B"À¢$W‡Æ÷&RF†RFVÖò#¢-Š}‹=Š­˜=‹M˜Š}˜M˜m‹=ŠíŠ’Š}˜MŠ­ŠÍ‹˜­Š˜­Š’"À¢$'’6öçF–çV–ærÂ–÷Rw&VRFò÷W"#¢-ŠŠ}˜M˜]Š­Š}Š‹ŠˆÂŠ=˜mŠ¢Š­˜Š}˜˜"‹˜M˜’"À¢%FW&×2#¢-Š}˜M‹M‹˜‹r"À¢&æB#¢-˜‚"À¢%&—f7’öÆ–7’#¢-‹=˜­Š}‹=Š’Š}˜MŠí‹]˜‹]˜­Š’"À§Ó° ¦W‡÷'B6öç7BF–7F–öæ&–W3¢&V6÷&CÄW†6ÇVFSÅ6—FTÆö6ÆRÂ&Vâ#âÂF–7CâÒ²g"ÂW2ÂFRÂ"Ó° ¦W‡÷'BG—RG"Ò†VævÆ—6ƒ¢7G&–ærÂfÇVW3ó¢&V6÷&CÇ7G&–ærÂ7G&–ærÂçVÖ&W#â’Óâ7G&–æs°¢ò¢¢G&ç6ÆFRgVæ7F–öâf÷"F†R†÷7B¢G"‚$÷fW'f–Wr"’(i"%gVRN(	–Vç6VÖ&ÆR"–âg&Væ6‚â¢ğ¦W‡÷'BgVæ7F–öâÖ¶UG"†Æö6ÆS¢6—FTÆö6ÆR“¢G"°¢6öç7BF–7BÒÆö6ÆRÓÓÒ&Vâ"òVæFVf–æVB¢F–7F–öæ&–W5¶Æö6ÆUÓ°¢&WGW&â†VævÆ—6‚ÂfÇVW2’Óâ°¢6öç7BFW‡BÒF–7Còå¶VævÆ—6…ÒóòVævÆ—6ƒ°¢&WGW&âfÇVW2òFW‡Bç&WÆ6R‚õÇ²…Çr²•ÇÒörÂ…òÂ³¢7G&–ær’Óâ7G&–ær‡fÇVW5¶µÒóò²G¶·×Ö’’¢FW‡C°¢Ó°§Ğ

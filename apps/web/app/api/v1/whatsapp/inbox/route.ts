@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { safeOrigin } from "@/lib/api";
 import { requireHost } from "@/lib/session";
-import { pilot, enabledHost } from "@/lib/openwa-inbox";
+import { pilot, enabledHost, syntheticTransportEnabled } from "@/lib/openwa-inbox";
 import { query } from "@/lib/db";
 import { consumeRateLimit } from "@/lib/repo";
 import { aiConfigured, generateJson } from "@/lib/ai";
@@ -21,11 +21,23 @@ export async function GET() {
   const a = await access();
   if (!a) return Response.json({ thread: null });
   const [thread] = await query(
-    `SELECT t.id,p.data->>'name' AS name,
+    `SELECT t.id,t.property_id AS "propertyId",p.data->>'name' AS name,
     (t.consent_at IS NOT NULL AND t.expires_at>now()) AS active ${scope}`,
     a.args,
   );
-  if (!thread) return Response.json({ thread: null });
+  if (!thread) {
+    if (syntheticTransportEnabled()) {
+      const [property] = await query<{ id: string }>(
+        "SELECT id FROM properties WHERE owner_id=$1 AND status='published' ORDER BY created_at DESC LIMIT 1",
+        [a.owner],
+      );
+      return Response.json(
+        { thread: null, synthetic: true, testPropertyId: property?.id ?? null },
+        { headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
+    return Response.json({ thread: null });
+  }
   const messages = await query(
     `SELECT m.id,m.body,m.role,m.status,m.unread,m.created_at FROM whatsapp_messages m
     WHERE m.thread_id=(SELECT t.id ${scope}) ORDER BY m.created_at DESC,m.id DESC LIMIT 100`,
@@ -36,6 +48,7 @@ export async function GET() {
       thread,
       messages: messages.reverse(),
       draftsEnabled: aiConfigured() && process.env.OPENWA_AI_DRAFTS === "true",
+      synthetic: syntheticTransportEnabled(),
     },
     { headers: { "Cache-Control": "private, no-store" } },
   );
@@ -91,6 +104,14 @@ export async function POST(request: Request) {
     return draft.success
       ? Response.json(draft.data)
       : new Response(null, { status: 502 });
+  }
+  if (syntheticTransportEnabled()) {
+    const [reservation] = await query<{ id: string }>(
+      `INSERT INTO whatsapp_messages(thread_id,event_key,role,body,status)
+       SELECT t.id,$5,'host',$6,'synthetic' ${active} ON CONFLICT DO NOTHING RETURNING id`,
+      [...args, x.key, x.text],
+    );
+    return reservation ? Response.json({ status: "synthetic" }) : new Response(null, { status: 409 });
   }
   let url: URL;
   try {

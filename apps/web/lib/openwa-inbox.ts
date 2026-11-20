@@ -4,7 +4,10 @@ import { query } from "./db";
 import { normaliseWhatsAppNumber } from "./whatsapp";
 
 export function pilot() {
-  const guest = normaliseWhatsAppNumber(process.env.OPENWA_PILOT_GUEST || "");
+  const guestInput = syntheticTransportEnabled()
+    ? "19999999999"
+    : process.env.OPENWA_PILOT_GUEST || "";
+  const guest = normaliseWhatsAppNumber(guestInput);
   const sender = normaliseWhatsAppNumber(process.env.OPENWA_PILOT_SENDER || "");
   const session = process.env.OPENWA_SESSION_ID;
   const secret = process.env.OPENWA_WEBHOOK_SECRET;
@@ -18,6 +21,12 @@ export function pilot() {
   )
     return null;
   return { guest, sender, session, secret };
+}
+
+/** Synthetic transport can only run on a Preview deployment, never Production. */
+export function syntheticTransportEnabled() {
+  return process.env.VERCEL_ENV === "preview" &&
+    process.env.OPENWA_QA_SYNTHETIC_TRANSPORT === "true";
 }
 
 export function enabledHost(user: { email: string; emailVerified: boolean }) {

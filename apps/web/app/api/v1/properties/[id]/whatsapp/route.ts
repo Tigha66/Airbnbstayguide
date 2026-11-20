@@ -1,4 +1,4 @@
-import { enabledHost, invitation, pilot } from "@/lib/openwa-inbox";
+import { enabledHost, invitation, pilot, syntheticTransportEnabled } from "@/lib/openwa-inbox";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -13,6 +13,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!safeOrigin(request)) return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   const host = await requireHost();
   if ("response" in host) return host.response;
+  if (syntheticTransportEnabled())
+    return NextResponse.json({ error: "Synthetic QA transport is active. No WhatsApp message was sent." }, { status: 409 });
   // This gateway sends from the operator's account. Other hosts need their own sender.
   const allowed = (process.env.OPENWA_HOST_EMAILS || "").split(",").map((email) => email.trim().toLowerCase());
   if (!allowed.includes(host.user.email.toLowerCase())) return NextResponse.json({ error: "WhatsApp sending is not enabled for this account." }, { status: 403 });

@@ -12,7 +12,9 @@ type Message = {
 };
 type Data = {
   draftsEnabled?: boolean;
-  thread: { id: string; name: string; active: boolean } | null;
+  synthetic?: boolean;
+  testPropertyId?: string | null;
+  thread: { id: string; name: string; active: boolean; propertyId: string } | null;
   messages?: Message[];
 };
 const labels = {
@@ -84,6 +86,7 @@ export function WhatsAppInbox() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [qaMessage, setQaMessage] = useState("");
   const lock = useRef(false);
   const key = useRef("");
   const url = "/api/v1/whatsapp/inbox";
@@ -95,6 +98,34 @@ export function WhatsAppInbox() {
       setData(null);
     }
   }, []);
+  async function runSynthetic(action: "simulate" | "expire" | "renew" | "stop" | "cleanup") {
+    const propertyId = data?.thread?.propertyId ?? data?.testPropertyId;
+    if (!propertyId || busy) return;
+    setBusy(true);
+    setError(false);
+    setQaMessage("");
+    try {
+      const response = await fetch("/api/v1/whatsapp/qa-synthetic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, propertyId }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.ok === false) throw new Error();
+      if (action === "simulate")
+        setQaMessage("Synthetic checks passed: JOIN, signature rejection, duplicate filtering and consent expiry. No WhatsApp message was sent.");
+      else if (action === "expire") setQaMessage("Synthetic consent expired. Dashboard replies are disabled.");
+      else if (action === "renew") setQaMessage("Synthetic consent renewed for the reply test.");
+      else if (action === "stop") setQaMessage("Synthetic STOP accepted. Consent is disabled.");
+      else setQaMessage("Synthetic QA property and conversation cleaned up.");
+      await reload();
+    } catch {
+      setError(true);
+      setQaMessage("Synthetic QA action failed. No live WhatsApp message was sent.");
+    } finally {
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     const first = setTimeout(reload, 0);
     const timer = setInterval(reload, 10000);
@@ -103,7 +134,23 @@ export function WhatsAppInbox() {
       clearInterval(timer);
     };
   }, [reload]);
-  if (!data?.thread) return null;
+  if (!data?.thread) {
+    if (!data?.synthetic) return null;
+    return (
+      <section className="card panel" aria-label="WhatsApp inbox QA synthetic mode">
+        <h2>{l[0]} · QA synthetic mode</h2>
+        <p>No WhatsApp conversation exists yet. The normal guest inbox being empty is expected.</p>
+        <p role="status">Synthetic transport is isolated to this Preview. It cannot send or receive a real WhatsApp message.</p>
+        {data.testPropertyId ? (
+          <button disabled={busy} onClick={() => runSynthetic("simulate")}>
+            {busy ? "Running synthetic checks…" : "Create synthetic WhatsApp conversation"}
+          </button>
+        ) : <p>Publish the QA test guide first.</p>}
+        {qaMessage && <p role="status">{qaMessage}</p>}
+        {error && <p role="alert">Check the QA test configuration and try again.</p>}
+      </section>
+    );
+  }
   const thread = data.thread;
   async function act(action: string, message?: string) {
     if (lock.current) return;
@@ -145,6 +192,9 @@ export function WhatsAppInbox() {
       <h2>
         {l[0]} · {thread.name}
       </h2>
+      {data.synthetic && <p role="status">QA synthetic transport is active. Replies are recorded in this Preview only; nothing is sent to WhatsApp.</p>}
+      {qaMessage && <p role="status">{qaMessage}</p>}
+      {error && <p role="alert">{l[8]}</p>}
       {data.messages?.map((m) => (
         <article
           key={m.id}
@@ -195,6 +245,11 @@ export function WhatsAppInbox() {
       ) : (
         <p>{l[7]}</p>
       )}
+      {data.synthetic && <div className="row" style={{ flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+        {thread.active ? <button disabled={busy} onClick={() => runSynthetic("expire")}>Expire synthetic consent</button> : <button disabled={busy} onClick={() => runSynthetic("renew")}>Renew synthetic consent</button>}
+        {thread.active && <button disabled={busy} onClick={() => runSynthetic("stop")}>Simulate STOP</button>}
+        <button disabled={busy} onClick={() => runSynthetic("cleanup")}>Clean up QA test data</button>
+      </div>}
       {error && <p role="alert">{l[8]}</p>}
     </section>
   );
