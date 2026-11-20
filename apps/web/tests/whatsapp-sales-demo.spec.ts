@@ -19,7 +19,7 @@ test("WhatsApp sales demo shares the actual Casa Serena sample guide without sen
   expect(wa.searchParams.get("text")).toContain("This is a demonstration");
   await expect(page.getByRole("img", { name: /QR code opening the Casa Serena sample guest guide/ })).toBeVisible();
 
-  await page.getByText("A lovely arrival", { exact: true }).click();
+  await page.locator("details").filter({ hasText: "A lovely arrival" }).locator("summary").click();
   await expect(page.getByText(/Check-in is from/).last()).toBeVisible();
   await expect(page.getByText(/does not send anything automatically/)).toBeVisible();
 });
