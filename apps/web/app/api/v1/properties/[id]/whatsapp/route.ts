@@ -23,7 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try { input = inputSchema.parse(parseJson(await request.text())); }
   catch { return NextResponse.json({ error: "Enter an international phone number and confirm permission to message the guest." }, { status: 400 }); }
   const phone = normaliseWhatsAppNumber(input.phone);
-  if (!phone) return NextResponse.json({ error: "Include the country code, for example +447901921642." }, { status: 400 });
+  if (!phone) return NextResponse.json({ error: "Include the country code, for example +447700900123." }, { status: 400 });
   const { id } = await params;
   const property = await getOwnedProperty(host.user.id, id);
   if (!property) return NextResponse.json({ error: "Guide not found." }, { status: 404 });
