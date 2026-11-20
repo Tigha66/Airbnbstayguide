@@ -6,6 +6,7 @@ import { query, setQueryOverride, splitStatements } from "./db";
 import { invitation } from "./openwa-inbox";
 import { POST as webhook } from "../app/api/v1/whatsapp/webhook/route";
 import { GET, POST } from "../app/api/v1/whatsapp/inbox/route";
+import { POST as syntheticQa } from "../app/api/v1/whatsapp/qa-synthetic/route";
 const auth = vi.hoisted(() => ({
   user: { id: "", email: "owner@example.test", emailVerified: true },
 }));
@@ -136,4 +137,106 @@ it("binds consent to the property, authenticates callbacks, deduplicates and iso
   await event("STOP");
   await event("after stop");
   expect((await (await GET()).json()).messages).toHaveLength(4);
+});
+
+it("runs the QA-only synthetic conversation without calling the WhatsApp gateway", async () => {
+  const propertyId = crypto.randomUUID();
+  await query(
+    `INSERT INTO properties (id,owner_id,slug,status,data)
+     VALUES ($1,$2,'qa-synthetic','published',$3::jsonb)`,
+    [
+      propertyId,
+      owner,
+      JSON.stringify({
+        name: "QA WhatsApp Inbox Test",
+        sections: [{ title: "SYNTHETIC QA DATA ONLY" }],
+      }),
+    ],
+  );
+  vi.stubEnv("VERCEL_ENV", "preview");
+  vi.stubEnv("VERCEL_URL", "qa.vercel.app");
+  vi.stubEnv("OPENWA_QA_SYNTHETIC_TRANSPORT", "true");
+  const request = (action: string) =>
+    syntheticQa(
+      new Request("https://qa.vercel.app/api/v1/whatsapp/qa-synthetic", {
+        method: "POST",
+        headers: {
+          origin: "https://qa.vercel.app",
+          cookie: "qa-session",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ action, propertyId }),
+      }),
+    );
+  const simulatedResponse = await request("simulate");
+  expect(simulatedResponse.status).toBe(200);
+  const simulated = await simulatedResponse.json();
+  expect(simulated).toMatchObject({
+    ok: true,
+    synthetic: true,
+    invalidSignatureRejected: true,
+    joinAccepted: true,
+    messageAccepted: true,
+    duplicateAcceptedWithoutDuplicate: true,
+    unread: true,
+    consentActive: true,
+    expiryEnforced: true,
+  });
+
+  const inbox = await (await GET()).json();
+  expect(inbox.synthetic).toBe(true);
+  expect(inbox.messages).toHaveLength(1);
+  expect(inbox.messages[0].unread).toBe(true);
+  const gateway = vi.fn();
+  vi.stubGlobal("fetch", gateway);
+  const replyKey = crypto.randomUUID();
+  const reply = await POST(
+    new Request("https://qa.vercel.app/api/v1/whatsapp/inbox", {
+      method: "POST",
+      headers: {
+        origin: "https://qa.vercel.app",
+        cookie: "qa-session",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "reply",
+        id: inbox.thread.id,
+        key: replyKey,
+        text: "Synthetic host reply",
+      }),
+    }),
+  );
+  expect(await reply.json()).toEqual({ status: "synthetic" });
+  expect(gateway).not.toHaveBeenCalled();
+
+  const markedRead = await POST(
+    new Request("https://qa.vercel.app/api/v1/whatsapp/inbox", {
+      method: "POST",
+      headers: {
+        origin: "https://qa.vercel.app",
+        cookie: "qa-session",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "read",
+        id: inbox.thread.id,
+        message: inbox.messages[0].id,
+      }),
+    }),
+  );
+  expect(markedRead.status).toBe(204);
+  expect((await (await GET()).json()).messages[0].unread).toBe(false);
+
+  auth.user.email = "unauthorised@example.test";
+  expect((await request("simulate")).status).toBe(403);
+  auth.user.email = "owner@example.test";
+  expect((await (await request("stop")).json()).ok).toBe(true);
+  expect((await (await request("cleanup")).json()).cleaned).toBe(true);
+  expect(
+    (await query("SELECT id FROM properties WHERE id=$1", [propertyId])).length,
+  ).toBe(0);
+  vi.stubEnv("OPENWA_QA_SYNTHETIC_TRANSPORT", "false");
+  expect((await request("simulate")).status).toBe(404);
+  vi.stubEnv("OPENWA_QA_SYNTHETIC_TRANSPORT", "true");
+  vi.unstubAllGlobals();
 });
