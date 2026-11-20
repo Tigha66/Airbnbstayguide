@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import QRCode from "qrcode";
 import ReactMarkdown from "react-markdown";
 import {
@@ -98,7 +99,7 @@ export function SalesPreviewGuide({ property }: { property: SalesPreviewProperty
         <div className={styles.sectionIntro}>
           <span className={styles.eyebrow}>A PREVIEW OF THE GUEST EXPERIENCE</span>
           <h2>Useful answers, all in one place</h2>
-          <p>These sections use the operator's public listing as a starting point. In a purchased guide, the operator reviews and approves every instruction before guests receive it.</p>
+          <p>These sections use the operator’s public listing as a starting point. In a purchased guide, the operator reviews and approves every instruction before guests receive it.</p>
         </div>
         <div className={styles.contentGrid}>
           <div className={styles.sections}>
@@ -129,7 +130,7 @@ export function SalesPreviewGuide({ property }: { property: SalesPreviewProperty
         </div>
         <div className={styles.shareGrid}>
           <article className={styles.messageCard}>
-            <div className={styles.cardHeader}><MessageCircle size={20} aria-hidden="true" /><div><strong>Manual WhatsApp sharing</strong><span>Opens the guest's own WhatsApp composer</span></div></div>
+            <div className={styles.cardHeader}><MessageCircle size={20} aria-hidden="true" /><div><strong>Manual WhatsApp sharing</strong><span>Opens the guest’s own WhatsApp composer</span></div></div>
             <div className={styles.chatPane}><div className={styles.bubble}>{message || "Preparing demo message…"}</div></div>
             <div className={styles.cardBottom}>
               {whatsappUrl ? <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className={styles.whatsappButton}><MessageCircle size={18} aria-hidden="true" /> Open WhatsApp composer</a> : <span className={styles.inactive}>Preparing link…</span>}
@@ -141,7 +142,7 @@ export function SalesPreviewGuide({ property }: { property: SalesPreviewProperty
             <div className={styles.qrFrame}>
               <span>WELCOME TO</span>
               <strong>{property.name}</strong>
-              {qrUrl ? <img src={qrUrl} alt={"QR code linking to the independent " + property.name + " concept preview"} width={194} height={194} /> : <div className={styles.qrPending}>Generating QR…</div>}
+              {qrUrl ? <Image unoptimized src={qrUrl} alt={"QR code linking to the independent " + property.name + " concept preview"} width={194} height={194} /> : <div className={styles.qrPending}>Generating QR…</div>}
               <small>Independent sample · not official guest instructions</small>
             </div>
             <div className={styles.qrButtons}>
