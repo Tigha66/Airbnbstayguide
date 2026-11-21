@@ -1372,7 +1372,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       onClick={async () => {
                         try {
                           await navigator.clipboard.writeText(
-                            tr("Your stay at {name} is coming up. Before travelling, please review the directions, parking and check-in instructions in your guest guide: {link}\\nIf anything is unclear, contact your host.", {
+                            tr("Your stay at {name} is coming up. Before travelling, please review the directions, parking and check-in instructions in your guest guide: {link}\nIf anything is unclear, contact your host.", {
                               name: property.name,
                               link: `${window.location.origin}/g/${property.slug}`,
                             }),
@@ -1394,7 +1394,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       onClick={async () => {
                         try {
                           await navigator.clipboard.writeText(
-                            tr("We hope you enjoyed your stay at {name}. Before leaving, please check the checkout time and departure instructions in your guest guide: {link}\\nThank you for staying with us!", {
+                            tr("We hope you enjoyed your stay at {name}. Before leaving, please check the checkout time and departure instructions in your guest guide: {link}\nThank you for staying with us!", {
                               name: property.name,
                               link: `${window.location.origin}/g/${property.slug}`,
                             }),
