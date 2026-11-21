@@ -267,6 +267,7 @@ type Stats = {
   extrasRevenue: number;
   extraRequests: number;
   topQuestions: { question: string; count: number }[];
+  questionCategories30d: { category: string; count: number }[];
   aiMessagesThisMonth: number;
   aiMessageLimit?: number;
 };
@@ -326,6 +327,17 @@ export function LiveAnalytics() {
             ))}
           </div>
           <p className="muted" style={{ marginTop: 12, fontSize: 12 }}>{tr("These counts describe logged AI replies, not verified staff time saved.")}</p>
+          <div className="card panel" style={{ marginTop: 25 }}>
+            <h3>{tr("What guests ask about (last 30 days)")}</h3>
+            <p className="muted" style={{ fontSize: 12 }}>{tr("Approximate keyword categories. Review your guide sections before assuming an unanswered question was prevented.")}</p>
+            {data.questionCategories30d.length === 0 && <p>{tr("No guest questions recorded in the last 30 days.")}</p>}
+            {data.questionCategories30d.map(item => (
+              <div className="activity-item" key={item.category} style={{ gap: 10 }}>
+                <span style={{ flex: 1, fontSize: 13 }}>{tr(item.category)}</span>
+                <strong>{item.count}</strong>
+              </div>
+            ))}
+          </div>
           <div className="card panel" style={{ marginTop: 25 }}>
             <h3>{tr("The things guests ask")}</h3>
             {data.topQuestions.length === 0 && <p>{tr("Questions will appear here once guests start chatting.")}</p>}
