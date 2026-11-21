@@ -16,7 +16,7 @@ vi.mock("@/lib/ai", () => ({
   generateJson: async (system: string, user: string) => {
     aiMock.system = system;
     aiMock.user = user;
-    return JSON.stringify({ reply: "Check-out is at 10:00." });
+    return { reply: "Check-out is at 10:00." };
   },
 }));
 const auth = vi.hoisted(() => ({
