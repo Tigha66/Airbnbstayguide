@@ -152,6 +152,15 @@ it("binds consent to the property, authenticates callbacks, deduplicates and iso
 });
 
 it("drafts a host-reviewed suggestion from the published property guide without sending it", async () => {
+  // The preceding test uses this same isolated QA host/property and leaves a thread behind.
+  await query(
+    "DELETE FROM whatsapp_messages WHERE thread_id IN (SELECT id FROM whatsapp_threads WHERE owner_id=$1 AND property_id='qa' AND guest=$2)",
+    [owner, guest],
+  );
+  await query(
+    "DELETE FROM whatsapp_threads WHERE owner_id=$1 AND property_id='qa' AND guest=$2",
+    [owner, guest],
+  );
   vi.stubEnv("OPENWA_AI_DRAFTS", "true");
   await query("UPDATE properties SET data=$1 WHERE id='qa'", [JSON.stringify({
     name: "QA Cottage",
