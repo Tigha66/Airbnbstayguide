@@ -351,6 +351,23 @@ export async function analytics(ownerId: string) {
     `SELECT lower(content) AS content, count(*) AS n FROM chat_messages m JOIN properties p ON p.id = m.property_id WHERE p.owner_id = $1 AND role = 'guest' GROUP BY lower(content) ORDER BY n DESC LIMIT 5`,
     [ownerId],
   );
+  // Aggregated owner-scoped topics, not the guest's message contents. Categories
+  // are heuristic: use them to guide follow-up, not as a verified cause of saved work.
+  const categories = await query<{ category: string; count: string }>(
+    `SELECT topic AS category, count(*)::text AS count FROM (
+        SELECT CASE
+          WHEN m.content ~* '(wi.?fi|wlan|internet|password|router|mot de passe|contraseña|واي فاي)' THEN 'Wi-Fi'
+          WHEN m.content ~* '(check.?out|departure|leave|leaving|départ|salida|abreise|المغادرة)' THEN 'Checkout'
+          WHEN m.content ~* '(check.?in|arriv|entrance|directions|park|stationnement|llegada|ankunft|الوصول|موقف)' THEN 'Arrival and parking'
+          WHEN m.content ~* '(quiet|rule|smok|pet|party|règlement|mascota|rauchen|قواعد|تدخين)' THEN 'House rules'
+          WHEN m.content ~* '(breakfast|early|late|upgrade|extra|petit déjeuner|desayuno|إفطار)' THEN 'Extras'
+          ELSE 'Other'
+        END AS topic
+        FROM chat_messages m JOIN properties p ON p.id = m.property_id
+        WHERE p.owner_id = $1 AND m.role = 'guest' AND m.created_at >= now() - interval '30 days'
+      ) labeled GROUP BY topic ORDER BY count(*) DESC, topic LIMIT 6`,
+    [ownerId],
+  );
   const usage = await query<{ messages: number }>(`SELECT messages FROM usage_counters WHERE owner_id = $1 AND month = $2`, [ownerId, monthKey()]);
   const aiLimit = await ownerAiLimit(ownerId);
   const questions = Number(chats.questions);
@@ -369,6 +386,7 @@ export async function analytics(ownerId: string) {
     extrasRevenue: Number(extras.revenue ?? 0),
     extraRequests: Number(extras.requests),
     topQuestions: top.map((t) => ({ question: t.content, count: Number(t.n) })),
+    questionCategories30d: categories.map(row => ({ category: row.category, count: Number(row.count) })),
     aiMessagesThisMonth: Number(usage[0]?.messages ?? 0),
     aiMessageLimit: aiLimit,
   };

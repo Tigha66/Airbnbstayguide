@@ -118,6 +118,8 @@ describe("repository (Neon schema on PGlite)", () => {
     const unanswered = await repo.analytics(a.id);
     expect(unanswered.questions).toBe(after.questions + 1);
     expect(unanswered.resolutionRate).toBe(after.resolutionRate);
+    expect(unanswered.questionCategories30d.find(item => item.category === "Arrival and parking")?.count).toBeGreaterThanOrEqual(1);
+    expect(unanswered.questionCategories30d.reduce((total, row) => total + row.count, 0)).toBeGreaterThanOrEqual(3);
   });
   it("gives each plan its AI messages per property", () => {
     expect(repo.aiMessageLimit("free", 0)).toBe(25);
