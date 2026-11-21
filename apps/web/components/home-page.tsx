@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, BookOpen, Languages, Leaf, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { demoProperties } from "@stayguide/shared";
 import { MarketingNav, MarketingFooter, Pricing, RoiCalculator } from "./marketing";
+import { GuestSupportValue } from "./guest-support-value";
 import { guestLanguageChips, siteDir, siteText, type SiteLocale } from "@/lib/site-i18n";
 import { onboardingText } from "@/lib/onboarding-i18n";
 import { localeBase } from "@/lib/site-i18n";
@@ -138,6 +139,11 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
           </div>
         </section>
 
+        <section className="marketing-band">
+          <div className="marketing-section">
+            <GuestSupportValue locale={locale} />
+          </div>
+        </section>
         <section className="marketing-section">
           <RoiCalculator locale={locale} />
         </section>
