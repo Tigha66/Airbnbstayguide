@@ -7,6 +7,18 @@ import { invitation } from "./openwa-inbox";
 import { POST as webhook } from "../app/api/v1/whatsapp/webhook/route";
 import { GET, POST } from "../app/api/v1/whatsapp/inbox/route";
 import { POST as syntheticQa } from "../app/api/v1/whatsapp/qa-synthetic/route";
+const aiMock = vi.hoisted(() => ({
+  system: "",
+  user: "",
+}));
+vi.mock("@/lib/ai", () => ({
+  aiConfigured: () => true,
+  generateJson: async (system: string, user: string) => {
+    aiMock.system = system;
+    aiMock.user = user;
+    return JSON.stringify({ reply: "Check-out is at 10:00." });
+  },
+}));
 const auth = vi.hoisted(() => ({
   user: { id: "", email: "owner@example.test", emailVerified: true },
 }));
@@ -137,6 +149,33 @@ it("binds consent to the property, authenticates callbacks, deduplicates and iso
   await event("STOP");
   await event("after stop");
   expect((await (await GET()).json()).messages).toHaveLength(4);
+});
+
+it("drafts a host-reviewed suggestion from the published property guide without sending it", async () => {
+  vi.stubEnv("OPENWA_AI_DRAFTS", "true");
+  await query("UPDATE properties SET data=$1 WHERE id='qa'", [JSON.stringify({
+    name: "QA Cottage",
+    location: "Example town",
+    sections: [{ title: "Checkout", body: "Check-out is at 10:00. Ask the host about bags." }],
+  })]);
+  const invite = await invitation(owner, "qa", guest);
+  const code = invite!.match(/JOIN ([a-f0-9]+)/)![1];
+  await event("JOIN " + code);
+  await event("Can I leave bags after checkout?");
+  const inbox = await (await GET()).json();
+  const gateway = vi.fn();
+  vi.stubGlobal("fetch", gateway);
+  const response = await POST(new Request("https://example.test/reply", {
+    method: "POST",
+    body: JSON.stringify({ action: "suggest", id: inbox.thread.id }),
+  }));
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ reply: "Check-out is at 10:00." });
+  expect(aiMock.user).toBe("Can I leave bags after checkout?");
+  expect(aiMock.system).toContain("Published guide context");
+  expect(aiMock.system).toContain("Check-out is at 10:00.");
+  expect(aiMock.system).toContain("do not send it");
+  expect(gateway).not.toHaveBeenCalled();
 });
 
 it("runs the QA-only synthetic conversation without calling the WhatsApp gateway", async () => {
