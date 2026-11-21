@@ -1096,7 +1096,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
             </div>
           )}
           {view === "inbox" && live && <LiveInbox notify={notify} />}
-          {view === "inbox" && !live && (
+          {view === "inbox" && !live && !liveState.checked && (\n            <div className="card panel" role="status">{tr("Loading conversations…")}</div>\n          )}\n          {view === "inbox" && !live && liveState.checked && (
             <>
               <PageHeading
                 title={tr("A little human touch")}
