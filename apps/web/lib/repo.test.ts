@@ -94,7 +94,30 @@ describe("repository (Neon schema on PGlite)", () => {
     await repo.recordView(p.id);
     expect(await repo.consumeAiUsage(a.id)).toBe(true);
     const stats = await repo.analytics(a.id);
-    expect(stats).toMatchObject({ views: 1, questions: 1, resolutionRate: 0, extrasRevenue: 0, extraRequests: 1, aiMessagesThisMonth: 1 });
+    expect(stats).toMatchObject({
+      views: 1, questions: 1, resolutionRate: 0,
+      automatedAnswers: 0, escalations: 1,
+      extrasRevenue: 0, extraRequests: 1, aiMessagesThisMonth: 1,
+    });
+  });
+  it("measures logged assistant replies separately from guest questions", async () => {
+    const [p] = await repo.listProperties(a.id);
+    const before = await repo.analytics(a.id);
+    await repo.saveMessages(p.id, crypto.randomUUID(), [
+      { role: "guest", content: "What time is check-in?", language: "en" },
+      { role: "assistant", content: "Check-in is at 3pm.", language: "en", escalated: false },
+    ]);
+    const after = await repo.analytics(a.id);
+    expect(after.questions).toBe(before.questions + 1);
+    expect(after.automatedAnswers).toBe(before.automatedAnswers + 1);
+    expect(after.escalations).toBe(before.escalations);
+    expect(after.resolutionRate).toBe(Math.round(100 * after.automatedAnswers / (after.automatedAnswers + after.escalations)));
+    await repo.saveMessages(p.id, crypto.randomUUID(), [
+      { role: "guest", content: "A question with no recorded reply", language: "en" },
+    ]);
+    const unanswered = await repo.analytics(a.id);
+    expect(unanswered.questions).toBe(after.questions + 1);
+    expect(unanswered.resolutionRate).toBe(after.resolutionRate);
   });
   it("gives each plan its AI messages per property", () => {
     expect(repo.aiMessageLimit("free", 0)).toBe(25);

@@ -1365,6 +1365,49 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       <Copy size={13} />
                       {tr("Copy welcome message")}
                     </button>
+                    <button
+                      type="button"
+                      className="button secondary small"
+                      style={{ marginTop: 10, marginInlineEnd: 10 }}
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(
+                            tr("Your stay at {name} is coming up. Before travelling, please review the directions, parking and check-in instructions in your guest guide: {link}\nIf anything is unclear, contact your host.", {
+                              name: property.name,
+                              link: `${window.location.origin}/g/${property.slug}`,
+                            }),
+                          );
+                          notify(tr("Pre-arrival reminder copied."));
+                        } catch {
+                          notify(tr("Clipboard unavailable in this browser."));
+                        }
+                      }}
+                    >
+                      <Copy size={13} />
+                      {tr("Copy pre-arrival reminder")}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="button secondary small"
+                      style={{ marginTop: 10, marginInlineEnd: 10 }}
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(
+                            tr("We hope you enjoyed your stay at {name}. Before leaving, please check the checkout time and departure instructions in your guest guide: {link}\nThank you for staying with us!", {
+                              name: property.name,
+                              link: `${window.location.origin}/g/${property.slug}`,
+                            }),
+                          );
+                          notify(tr("Checkout reminder copied."));
+                        } catch {
+                          notify(tr("Clipboard unavailable in this browser."));
+                        }
+                      }}
+                    >
+                      <Copy size={13} />
+                      {tr("Copy checkout reminder")}
+                    </button>
                   </div>
                   {live && <WhatsAppGuideShare key={property.id} id={property.id} name={property.name} slug={property.slug} published={property.status === "published"} />}
                   {!live && (

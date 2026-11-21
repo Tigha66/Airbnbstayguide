@@ -336,8 +336,11 @@ export async function analytics(ownerId: string) {
     `SELECT sum(views) AS total, sum(views) FILTER (WHERE day > CURRENT_DATE - 30) AS last30 FROM guide_views v JOIN properties p ON p.id = v.property_id WHERE p.owner_id = $1`,
     [ownerId],
   );
-  const [chats] = await query<{ questions: string; escalated: string }>(
-    `SELECT count(*) FILTER (WHERE m.role = 'guest') AS questions, count(*) FILTER (WHERE m.role = 'assistant' AND m.escalated) AS escalated FROM chat_messages m JOIN properties p ON p.id = m.property_id WHERE p.owner_id = $1`,
+  const [chats] = await query<{ questions: string; assistantReplies: string; escalated: string }>(
+    `SELECT count(*) FILTER (WHERE m.role = 'guest') AS questions,
+            count(*) FILTER (WHERE m.role = 'assistant') AS "assistantReplies",
+            count(*) FILTER (WHERE m.role = 'assistant' AND m.escalated IS TRUE) AS escalated
+       FROM chat_messages m JOIN properties p ON p.id = m.property_id WHERE p.owner_id = $1`,
     [ownerId],
   );
   const [extras] = await query<{ revenue: string | null; requests: string }>(
@@ -351,11 +354,18 @@ export async function analytics(ownerId: string) {
   const usage = await query<{ messages: number }>(`SELECT messages FROM usage_counters WHERE owner_id = $1 AND month = $2`, [ownerId, monthKey()]);
   const aiLimit = await ownerAiLimit(ownerId);
   const questions = Number(chats.questions);
+  const assistantReplies = Number(chats.assistantReplies);
+  const escalations = Number(chats.escalated);
+  const automatedAnswers = Math.max(0, assistantReplies - escalations);
   return {
     views: Number(views.total ?? 0),
     views30: Number(views.last30 ?? 0),
     questions,
-    resolutionRate: questions ? Math.round(((questions - Number(chats.escalated)) / questions) * 100) : 0,
+    // This is the share of actual assistant replies not flagged for escalation,
+    // not a measured reduction in staff workload or all guest questions.
+    resolutionRate: assistantReplies ? Math.round((automatedAnswers / assistantReplies) * 100) : 0,
+    automatedAnswers,
+    escalations,
     extrasRevenue: Number(extras.revenue ?? 0),
     extraRequests: Number(extras.requests),
     topQuestions: top.map((t) => ({ question: t.content, count: Number(t.n) })),
