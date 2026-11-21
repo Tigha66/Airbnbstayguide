@@ -12,16 +12,26 @@ export const DEFAULT_HF_MODEL = "meta-llama/Llama-3.3-70B-Instruct";
 function provider() {
   return process.env.AI_PROVIDER || (process.env.HF_TOKEN ? "huggingface" : "");
 }
+
+/** Reject documented sample values; a set variable is not necessarily a usable credential. */
+function configuredCredential(value: string | undefined) {
+  const normalized = value?.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return Boolean(normalized && ![
+    "your_api_key_here", "your_token_here", "your_openai_api_key",
+    "your_anthropic_api_key", "your_hf_token", "replace_me", "change_me",
+    "changeme", "placeholder",
+  ].includes(normalized));
+}
 export function aiConfigured() {
   switch (provider()) {
     case "huggingface":
-      return Boolean(process.env.HF_TOKEN);
+      return configuredCredential(process.env.HF_TOKEN);
     case "openai-compatible":
-      return Boolean(process.env.AI_BASE_URL && process.env.AI_API_KEY && process.env.AI_MODEL);
+      return Boolean(process.env.AI_BASE_URL && configuredCredential(process.env.AI_API_KEY) && process.env.AI_MODEL);
     case "openai":
-      return Boolean(process.env.OPENAI_API_KEY && process.env.AI_MODEL);
+      return Boolean(configuredCredential(process.env.OPENAI_API_KEY) && process.env.AI_MODEL);
     case "anthropic":
-      return Boolean(process.env.ANTHROPIC_API_KEY && process.env.AI_MODEL);
+      return Boolean(configuredCredential(process.env.ANTHROPIC_API_KEY) && process.env.AI_MODEL);
     default:
       return false;
   }
