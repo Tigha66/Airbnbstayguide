@@ -132,7 +132,7 @@ export function PortfolioGuideOperations({ notify }: { notify: (message: string)
                 ))}
                 <label style={{ display: "flex", gap: 10, alignItems: "start", marginTop: 12 }}>
                   <input type="checkbox" checked={reviewed} onChange={event => setReviewed(event.target.checked)} />
-                  I reviewed each selected property's existing rules and approve replacing them with the new text.
+                  I reviewed the existing rules for every selected property and approve replacing them with the new text.
                 </label>
                 <button type="button" className="button" disabled={busy || !reviewed}
                   onClick={() => void apply()} style={{ marginTop: 12 }}>
