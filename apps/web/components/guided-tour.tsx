@@ -6,6 +6,14 @@ import { MarketingNav, MarketingFooter } from "./marketing";
 import { onboardingText } from "@/lib/onboarding-i18n";
 import { localeBase, siteDir, type SiteLocale } from "@/lib/site-i18n";
 
+const videoText: Record<SiteLocale, { title: string; description: string; fallback: string }> = {
+  en: { title: "Watch StayGuide in 32 seconds", description: "A short illustrated overview of setting up a property, publishing a guest guide and sharing it.", fallback: "Your browser does not support this video." },
+  fr: { title: "Découvrez StayGuide en 32 secondes", description: "Une présentation illustrée pour créer un logement, publier un guide et le partager.", fallback: "Votre navigateur ne prend pas en charge cette vidéo." },
+  es: { title: "Descubre StayGuide en 32 segundos", description: "Una breve presentación ilustrada para crear, publicar y compartir una guía.", fallback: "Tu navegador no admite este vídeo." },
+  de: { title: "StayGuide in 32 Sekunden entdecken", description: "Ein kurzer illustrierter Überblick: Unterkunft anlegen, Gästeführer veröffentlichen und teilen.", fallback: "Dein Browser unterstützt dieses Video nicht." },
+  ar: { title: "تعرّف على StayGuide في ٣٢ ثانية", description: "نظرة توضيحية قصيرة لإنشاء دليل العقار ونشره ومشاركته مع الضيوف.", fallback: "متصفحك لا يدعم هذا الفيديو." },
+};
+
 const icons = [Home, BookOpen, Sparkles, QrCode, MessageCircle];
 export function GuidedTour({ locale }: { locale: SiteLocale }) {
   const t = onboardingText[locale];
@@ -26,6 +34,18 @@ export function GuidedTour({ locale }: { locale: SiteLocale }) {
     <MarketingNav locale={locale} />
     <main className="tour-page">
       <div className="tour-intro"><div className="eyebrow">{t.sample}</div><h1>{t.title}</h1><p>{t.intro}</p></div>
+      <section id="video" aria-label={videoText[locale].title} style={{ maxWidth: 850, margin: "20px auto 40px" }}>
+        <div style={{ marginBottom: 14, textAlign: "center" }}>
+          <h2 style={{ fontSize: "clamp(1.3rem, 2.5vw, 1.85rem)", marginBottom: 8 }}>{videoText[locale].title}</h2>
+          <p style={{ margin: 0 }}>{videoText[locale].description}</p>
+        </div>
+        <video controls playsInline preload="metadata" poster="/videos/getstayguide-demo-poster.svg"
+          style={{ display: "block", width: "100%", aspectRatio: "16 / 9", borderRadius: 16, background: "#092b31" }}>
+          <source src="/videos/getstayguide-demo.mp4" type="video/mp4" />
+          <track src="/videos/getstayguide-demo.vtt" srcLang="en" label="English captions" kind="captions" />
+          {videoText[locale].fallback}
+        </video>
+      </section>
       <nav className="tour-steps" aria-label={t.tour}>
         {t.steps.map((s, i) => <button key={s.title} onClick={() => go(i)} aria-current={step === i ? "step" : undefined} className={step === i ? "active" : ""}><span>{i + 1}</span>{s.title}</button>)}
       </nav>
