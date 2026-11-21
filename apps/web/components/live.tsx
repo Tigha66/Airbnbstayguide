@@ -278,7 +278,7 @@ export function LiveOverviewStats() {
     [tr("Guide views"), data?.views.toLocaleString()],
     [tr("Guest questions"), data?.questions.toLocaleString()],
     [tr("Extras paid"), data ? money(data.extrasRevenue) : undefined],
-    [tr("AI replies without escalation"), data?.questions ? String(data.resolutionRate) + "%" : data ? "—" : undefined],
+    [tr("AI replies without escalation"), data?.automatedAnswers || data?.escalations ? String(data.resolutionRate) + "%" : data ? "—" : undefined],
   ];
   return <>{metrics.map(([label, value]) => <div className="card stat-card" key={label}>
     <div className="stat-top">{label}</div>
@@ -312,7 +312,7 @@ export function LiveAnalytics() {
               [tr("Guide views (all time)"), data.views.toLocaleString()],
               [tr("Views, last 30 days"), data.views30.toLocaleString()],
               [tr("Guest questions"), data.questions.toLocaleString()],
-              [tr("AI replies without escalation"), data.questions ? `${data.resolutionRate}%` : "—"],
+              [tr("AI replies without escalation"), (data.automatedAnswers + data.escalations) > 0 ? `${data.resolutionRate}%` : "—"],
               [tr("AI answers (not escalated)"), data.automatedAnswers.toLocaleString()],
               [tr("Questions requiring host help"), data.escalations.toLocaleString()],
               [tr("Extras paid"), money(data.extrasRevenue)],
