@@ -62,7 +62,7 @@ describe("14-day no-card trial on existing account records", () => {
     expect((await getBilling(user.id))?.stripeCustomerId).toBeNull();
     expect((await listProperties(user.id))[0].id).toBe(guide.id);
     expect((await getPublishedProperty(guide.slug))?.property.id).toBe(guide.id);
-    expect((await getUser(user.id))?.stripeSubscriptionId).toBeNull();
+    expect((await getBilling(user.id))?.stripeSubscriptionId).toBeNull();
     expect(await consumeAiUsage(user.id)).toBe(false);
     serverTime = "2027-11-05T00:00:00Z";
     expect(await getUser(user.id)).toMatchObject({ plan: "free", trialActive: false });
