@@ -5,8 +5,8 @@ import { salesPreviewProperties } from "@/lib/sales-preview-data";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Three independent property guide concepts | GetStayGuide",
-  description: "Explore three independent digital guest-guide demonstrations with manual WhatsApp sharing and QR codes.",
+  title: "Independent property guide concepts | GetStayGuide",
+  description: "Explore independent digital guest-guide concepts with manual WhatsApp sharing and QR codes.",
   robots: { index: false, follow: false },
 };
 
@@ -15,9 +15,9 @@ export default function Page() {
     <main className={styles.root}>
       <nav className={styles.nav}><Link href="/" className={styles.brand}>GetStayGuide<span>.</span></Link><Link href="/demo/whatsapp" className={styles.topLink}>WhatsApp walkthrough <ExternalLink size={15} aria-hidden="true" /></Link></nav>
       <section className={styles.hero}>
-        <span className={styles.eyebrow}>THREE PROPERTY-SPECIFIC SALES CONCEPTS</span>
+        <span className={styles.eyebrow}>{salesPreviewProperties.length} PROPERTY-SPECIFIC SALES CONCEPTS</span>
         <h1>Show the guest experience, not another PDF.</h1>
-        <p>Explore how one finished mobile welcome guide could work for three existing UK holiday accommodation businesses, with practical sections, a shareable link, a QR code and manual WhatsApp sharing.</p>
+        <p>Explore how a mobile welcome guide could work for UK holiday accommodation businesses, with practical sections, a shareable link, a QR code and manual WhatsApp sharing.</p>
         <div className={styles.tags}><span><Check size={15} aria-hidden="true" /> No guest login</span><span><QrCode size={15} aria-hidden="true" /> Scannable QR</span><span><MessageCircle size={15} aria-hidden="true" /> Manual WhatsApp link</span></div>
       </section>
       <div className={styles.disclaimer}>These independent demonstrations use publicly listed property information and have not been authorised, verified or endorsed by the accommodation operators. They contain no private arrival or Wi-Fi credentials.</div>
