@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Plus, Trash2, ArrowRight } from "lucide-react";
 import { PageHeading } from "./ui";
 import { matchPortfolioRule } from "@/lib/portfolio-rules";
+import { PortfolioGuideOperations } from "./portfolio-guide-operations";
 
 type Rule = { id: string; keyword: string; label: string; priority: "normal" | "urgent"; enabled: boolean };
 type Triage = { threadId: string; propertyName: string; label: string; priority: "normal" | "urgent"; status: "open" | "resolved"; updatedAt: string };
@@ -84,6 +85,7 @@ export function ManagerWorkspace({ notify, complimentary = false }: { notify: (m
       {!data && !error && <p>Loading Manager workspace…</p>}
       {data && (
         <>
+          <PortfolioGuideOperations notify={notify} />
           <div className="card panel" style={{ marginBottom: 20 }}>
             <h3>Inbox automation rules</h3>
             <p style={{ fontSize: 13 }}>Up to 20 rules. A new guest message containing an enabled keyword will appear in your triage queue.</p>
