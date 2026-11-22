@@ -1,3 +1,4 @@
+import { additionalSalesPreviewProperties } from "./sales-preview-data-additional";
 /**
  * Sales-only demonstrations from publicly listed property facts (20 Nov 2026).
  * NOT authorised house manuals. Never publish private access, guest or Wi-Fi credentials here.
@@ -20,7 +21,7 @@ export type SalesPreviewProperty = {
   sections: SalesPreviewSection[];
 };
 
-export const salesPreviewProperties: SalesPreviewProperty[] = [
+const baseSalesPreviewProperties: SalesPreviewProperty[] = [
   {
     slug: "dinas-ddu",
     name: "Dinas-Ddu",
@@ -132,6 +133,10 @@ export const salesPreviewProperties: SalesPreviewProperty[] = [
       { title: "Guest details to confirm", content: "The completed guide would include approved arrival steps, Wi-Fi credentials, house rules, emergency contacts and departure instructions. These private details are intentionally omitted from this public-information concept." },
     ],
   },
+];
+export const salesPreviewProperties: SalesPreviewProperty[] = [
+  ...baseSalesPreviewProperties,
+  ...additionalSalesPreviewProperties,
 ];
 
 export function salesPreviewBySlug(slug: string): SalesPreviewProperty | undefined {
