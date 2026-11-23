@@ -2,7 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { query, setQueryOverride, splitStatements } from "./db";
-import { applySubscription, consumeAiUsage, createProperty, getBilling, getUser, LimitError, listProperties, upsertUser } from "./repo";
+import { applySubscription, aiMessageLimit, consumeAiUsage, createProperty, getBilling, getPublishedProperty, getUser, LimitError, listProperties, updateProperty, upsertUser } from "./repo";
+import { plans } from "@stayguide/shared";
 import { TRIAL_DAYS } from "./trial";
 const pg = new PGlite();
 let serverTime = "2026-11-06T00:00:00Z";
@@ -62,6 +63,28 @@ describe("14-day no-card trial on existing account records", () => {
     expect(await consumeAiUsage(user.id)).toBe(false);
     serverTime = "2026-11-06T00:00:00Z";
   });
+  it("keeps a published Free-plan guide accessible after trial expiry for over a year when the host and guide remain active", async () => {
+    const owner = await fixture("founding-five-host@example.test");
+    const other = await fixture("unrelated-host@example.test");
+    const draft = await createProperty(owner, { name: "Commissioned guest guide", location: "London", description: "" });
+    await updateProperty(owner.id, draft.id, { ...draft, status: "published" });
+    expect((await getPublishedProperty(draft.slug))?.ownerId).toBe(owner.id);
+    serverTime = "2027-11-06T00:00:00Z"; // Past 12 months from this test account's signup.
+    try {
+      expect(await getUser(owner.id)).toMatchObject({ plan: "free", trialActive: false });
+      const billing = await getBilling(owner.id);
+      expect(billing?.stripeSubscriptionId).toBeNull();
+      expect(billing?.stripeCustomerId).toBeNull();
+      expect((await getPublishedProperty(draft.slug))?.property.id).toBe(draft.id);
+      expect(await listProperties(other.id)).toHaveLength(0);
+      // Hosting eligibility must not silently grant a Pro AI quota or paid subscription.
+      expect(aiMessageLimit("free", 1)).toBe(plans.free.messages);
+      expect(aiMessageLimit("free", 1)).toBeLessThan(plans.pro.messages);
+    } finally {
+      serverTime = "2026-11-06T00:00:00Z";
+    }
+  });
+
   it("lets a Stripe subscription override the trial and never reactivates it after cancellation", async () => {
     const user = await fixture("upgrade-trial@example.test");
     await query("UPDATE users SET stripe_customer_id='cus_trial_upgrade' WHERE id=$1", [user.id]);
