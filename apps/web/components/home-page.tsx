@@ -27,14 +27,20 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
               <em>{t.hero.title2em}</em>
             </h1>
             <p>{t.hero.body}</p>
-            <div className="row">
+            <div className="row" style={{ flexWrap: "wrap" }}>
               <Link className="button" href="/login?mode=register">
                 {onboardingText[locale].trial}
                 <ArrowRight size={16} />
               </Link>
-              <Link className="button secondary" href={`${localeBase(locale)}/tour`}>
-                {onboardingText[locale].learn}
+              <Link className="button secondary" href="/demo">
+                {t.hero.secondary}
                 <ArrowUpRight size={14} />
+              </Link>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <Link className="text-link" href={`${localeBase(locale)}/tour`}>
+                {onboardingText[locale].learn}
+                <ArrowRight size={14} />
               </Link>
             </div>
             <small>
@@ -58,6 +64,34 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
               </Link>
             </div>
           </div>
+        </section>
+
+
+        {/* Let prospects inspect a real sample before creating an account. */}
+        <section className="marketing-section center" aria-labelledby="guest-demo-title">
+          <div className="eyebrow">{t.preview.eyebrow}</div>
+          <h2 id="guest-demo-title">{t.preview.title}</h2>
+          <p>{t.preview.body}</p>
+          <div className="feature-grid">
+            {t.preview.points.map(([title, copy], index) => (
+              <div className="feature-card" key={title}>
+                <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </div>
+            ))}
+          </div>
+          <div className="row" style={{ justifyContent: "center", flexWrap: "wrap", marginTop: 28 }}>
+            <Link className="button" href="/demo">
+              {t.hero.secondary}
+              <ArrowUpRight size={15} />
+            </Link>
+            <a className="button secondary" href="mailto:abdelhaktirha@gmail.com?subject=GetStayGuide%20property%20walkthrough">
+              {t.preview.contactCta}
+              <ArrowRight size={15} />
+            </a>
+          </div>
+          <small style={{ display: "block", marginTop: 16 }}>{t.preview.disclaimer}</small>
         </section>
 
         <div className="marketing-band">
