@@ -23,7 +23,7 @@ export const guestLanguageChips = [
 const en = {
   meta: {
     title: "StayGuide — A better stay starts here",
-    description: "Digital guest guides with a 24/7 AI concierge that answers your guests in their own language, and paid extras that pay for it.",
+    description: "Mobile guest guides for holiday lets and serviced apartments: arrival instructions, Wi-Fi, house rules, local tips and multilingual sharing.",
     pricingTitle: "Simple per-property pricing",
   },
   nav: { howItWorks: "How it works", integrations: "Integrations", pricing: "Pricing", demo: "Guest demo", login: "Log in", explore: "Explore StayGuide", language: "Language", openMenu: "Open menu", closeMenu: "Close menu" },
@@ -33,7 +33,7 @@ const en = {
     title1: "Less managing.",
     title2: "More ",
     title2em: "hosting.",
-    body: "All the little details that make a great stay, in one beautiful guest guide. With a helpful concierge that answers every guest in their own language.",
+    body: "Make arrivals easier with one mobile guide for Wi-Fi, house rules, check-in and local tips. Guests find what they need without downloading an app.",
     primary: "Create a better welcome",
     secondary: "Meet the guest guide",
     small: "Explore the demo. No credit card, no commitment.",
@@ -156,7 +156,7 @@ export type SiteText = typeof en;
 const fr: SiteText = {
   meta: {
     title: "StayGuide — Un meilleur séjour commence ici",
-    description: "Des livrets d’accueil digitaux avec un concierge IA 24h/24 qui répond à vos voyageurs dans leur langue, et des extras payants qui le rentabilisent.",
+    description: "Livrets d’accueil mobiles pour locations de vacances : arrivée, Wi-Fi, règlement, bonnes adresses et partage multilingue.",
     pricingTitle: "Des tarifs simples, par logement",
   },
   nav: { howItWorks: "Comment ça marche", integrations: "Intégrations", pricing: "Tarifs", demo: "Démo voyageur", login: "Connexion", explore: "Découvrir StayGuide", language: "Langue", openMenu: "Ouvrir le menu", closeMenu: "Fermer le menu" },
@@ -166,7 +166,7 @@ const fr: SiteText = {
     title1: "Moins de gestion.",
     title2: "Plus d’",
     title2em: "hospitalité.",
-    body: "Tous les petits détails d’un séjour réussi, réunis dans un beau livret d’accueil. Avec un concierge qui répond à chaque voyageur dans sa propre langue.",
+    body: "Facilitez les arrivées avec un guide mobile qui réunit Wi-Fi, règlement, accès et bonnes adresses. Les voyageurs trouvent l’essentiel sans installer d’application.",
     primary: "Créer un meilleur accueil",
     secondary: "Voir le livret voyageur",
     small: "Explorez la démo. Sans carte bancaire, sans engagement.",
@@ -288,7 +288,7 @@ const fr: SiteText = {
 const es: SiteText = {
   meta: {
     title: "StayGuide — Una estancia mejor empieza aquí",
-    description: "Guías digitales para huéspedes con un conserje IA 24/7 que responde en su idioma, y extras de pago que lo rentabilizan.",
+    description: "Guías móviles para alojamientos turísticos: llegada, Wi-Fi, normas, consejos locales y acceso en varios idiomas.",
     pricingTitle: "Precios sencillos por alojamiento",
   },
   nav: { howItWorks: "Cómo funciona", integrations: "Integraciones", pricing: "Precios", demo: "Demo para huéspedes", login: "Iniciar sesión", explore: "Descubrir StayGuide", language: "Idioma", openMenu: "Abrir menú", closeMenu: "Cerrar menú" },
@@ -298,7 +298,7 @@ const es: SiteText = {
     title1: "Menos gestión.",
     title2: "Más ",
     title2em: "hospitalidad.",
-    body: "Todos los pequeños detalles de una gran estancia, en una guía preciosa para tus huéspedes. Con un conserje que responde a cada huésped en su propio idioma.",
+    body: "Facilita la llegada con una guía móvil de Wi-Fi, normas, registro de entrada y recomendaciones locales. Tus huéspedes encuentran lo esencial sin instalar una aplicación.",
     primary: "Crea una mejor bienvenida",
     secondary: "Ver la guía del huésped",
     small: "Explora la demo. Sin tarjeta, sin compromiso.",
@@ -420,7 +420,7 @@ const es: SiteText = {
 const de: SiteText = {
   meta: {
     title: "StayGuide — Ein besserer Aufenthalt beginnt hier",
-    description: "Digitale Gästemappen mit einem KI-Concierge, der Ihren Gästen rund um die Uhr in ihrer Sprache antwortet, und bezahlten Extras, die ihn finanzieren.",
+    description: "Mobile Gästemappen für Ferienwohnungen: Anreise, WLAN, Hausregeln, lokale Tipps und mehrsprachige Nutzung.",
     pricingTitle: "Einfache Preise pro Unterkunft",
   },
   nav: { howItWorks: "So funktioniert’s", integrations: "Integrationen", pricing: "Preise", demo: "Gäste-Demo", login: "Anmelden", explore: "StayGuide entdecken", language: "Sprache", openMenu: "Menü öffnen", closeMenu: "Menü schließen" },
@@ -430,7 +430,7 @@ const de: SiteText = {
     title1: "Weniger verwalten.",
     title2: "Mehr ",
     title2em: "Gastfreundschaft.",
-    body: "Alle kleinen Details für einen gelungenen Aufenthalt, in einer schönen digitalen Gästemappe. Mit einem Concierge, der jedem Gast in seiner eigenen Sprache antwortet.",
+    body: "Erleichtern Sie die Anreise mit einem mobilen Guide für WLAN, Hausregeln, Check-in und lokale Tipps. Ihre Gäste finden alles Wichtige ohne App-Installation.",
     primary: "Einen besseren Empfang gestalten",
     secondary: "Gästemappe ansehen",
     small: "Demo entdecken. Ohne Kreditkarte, ohne Verpflichtung.",
@@ -552,7 +552,7 @@ const de: SiteText = {
 const ar: SiteText = {
   meta: {
     title: "StayGuide — إقامة أفضل تبدأ من هنا",
-    description: "أدلة رقمية للضيوف مع مساعد ذكي يعمل على مدار الساعة ويجيب ضيوفك بلغتهم، وإضافات مدفوعة تغطي تكلفته.",
+    description: "أدلة ضيوف رقمية للعقارات السياحية: تعليمات الوصول والواي فاي وقواعد المنزل والتوصيات المحلية بلغات متعددة.",
     pricingTitle: "أسعار بسيطة لكل عقار",
   },
   nav: { howItWorks: "كيف يعمل", integrations: "التكاملات", pricing: "الأسعار", demo: "تجربة الضيف", login: "تسجيل الدخول", explore: "اكتشف StayGuide", language: "اللغة", openMenu: "فتح القائمة", closeMenu: "إغلاق القائمة" },
@@ -562,7 +562,7 @@ const ar: SiteText = {
     title1: "إدارة أقل.",
     title2: "ضيافة ",
     title2em: "أكثر.",
-    body: "كل التفاصيل الصغيرة لإقامة رائعة في دليل ضيوف جميل واحد. مع مساعد يجيب كل ضيف بلغته.",
+    body: "سهّل وصول الضيوف بدليل على الهاتف يجمع الواي فاي وقواعد المنزل وتعليمات الدخول والنصائح المحلية. يجد الضيوف ما يحتاجونه دون تثبيت تطبيق.",
     primary: "اصنع ترحيبًا أفضل",
     secondary: "شاهد دليل الضيف",
     small: "استكشف النسخة التجريبية. بلا بطاقة ائتمان وبلا التزام.",
