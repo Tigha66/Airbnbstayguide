@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     const configuredPriceId = process.env.STRIPE_FOUNDING_FIVE_QA_PRICE_ID!.trim();
     const price = await stripe.prices.retrieve(configuredPriceId);
     const productId = typeof price.product === "string" ? price.product : price.product.id;
-    const product = typeof price.product === "string" ? await stripe.products.retrieve(productId) : price.product;
+    const product = await stripe.products.retrieve(productId);
     if (!price.active || price.currency !== "gbp" || price.unit_amount !== 4900 || price.recurring ||
         price.metadata?.qa_only !== "true" || product.metadata?.qa_only !== "true" ||
         product.metadata?.environment !== "test_mode_only")
@@ -81,7 +81,6 @@ export async function POST(request: Request) {
     const origin = appUrl(request);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
       customer_email: host.user.email,
       client_reference_id: host.user.id,
       line_items: [{ price: price.id, quantity: 1 }],
