@@ -86,11 +86,11 @@ it("records only a verified test-mode payment, safely ignores failed payment, an
 });
 
 it("cancels expired unpaid orders and records full refunds without creating or extending hosting", async () => {
+  const cancelledPropertyId = propertyId + "-cancelled";
   const expired = {
     id: "cs_expired_qa", mode: "payment",
     metadata: { app: "stayguide", kind: "commissioned_hosting", qa_only: "true", user_id: owner, property_id: cancelledPropertyId },
   };
-  const cancelledPropertyId = propertyId + "-cancelled";
   await query(
     "INSERT INTO properties(id,owner_id,slug,status,data,published_at) VALUES ($1,$2,'qa-hosting-cancelled','published','{}',now())",
     [cancelledPropertyId, owner],
