@@ -72,7 +72,7 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
           <div className="eyebrow">{t.preview.eyebrow}</div>
           <h2 id="guest-demo-title">{t.preview.title}</h2>
           <p>{t.preview.body}</p>
-          <div className="feature-grid">
+          <div className="feature-grid" style={{ textAlign: "start" }}>
             {t.preview.points.map(([title, copy], index) => (
               <div className="feature-card" key={title}>
                 <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
