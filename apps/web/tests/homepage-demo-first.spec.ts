@@ -11,6 +11,7 @@ test("desktop homepage lets prospects try the sample and request a walkthrough w
   const primaryHref = await primaryCta.getAttribute("href");
   expect(["/demo", "/login?mode=register"]).toContain(primaryHref);
   await expect(page.locator(".marketing-nav nav a.button")).toHaveAttribute("href", primaryHref!);
+  if (primaryHref === "/demo") await expect(page.locator('a[href="/login?mode=register"]')).toHaveCount(0);
   if (primaryHref === "/login?mode=register") {
     await primaryCta.click();
     await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
