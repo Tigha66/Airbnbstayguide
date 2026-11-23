@@ -16,7 +16,7 @@ export function HomePage({ locale, registrationAvailable }: { locale: SiteLocale
   const integrations = t.integrationsSection;
   return (
     <div className="marketing" lang={locale} dir={siteDir(locale)}>
-      <MarketingNav locale={locale} />
+      <MarketingNav locale={locale} registrationAvailable={registrationAvailable} />
       <main>
         <section className="marketing-hero">
           <div>
