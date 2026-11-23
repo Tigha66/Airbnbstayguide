@@ -10,7 +10,7 @@ let serverTime = "2026-12-01T12:00:00Z";
 
 beforeAll(async () => {
   setQueryOverride(async (text, params) =>
-    (await pg.query(text.replace(/\\bnow\\(\\)/g, `'${serverTime}'::timestamptz`), params)).rows as Record<string, unknown>[]);
+    (await pg.query(text.replace(/\bnow\(\)/g, `'${serverTime}'::timestamptz`), params)).rows as Record<string, unknown>[]);
   for (const statement of splitStatements(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8"))) {
     await pg.exec(statement);
   }
