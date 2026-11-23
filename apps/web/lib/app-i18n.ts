@@ -8,6 +8,12 @@ import type { SiteLocale } from "./site-i18n";
 type Dict = Record<string, string>;
 
 const fr: Dict = {
+  "Founding Five QA hosting": "Hébergement QA Founding Five",
+  "Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.": "Le paiement attend la mise en service. Publiez le guide approuvé, puis vérifiez et activez l’hébergement de douze mois.",
+  "Verifying payment…": "Vérification du paiement…",
+  "Verify payment and activate hosting": "Vérifier le paiement et activer l’hébergement",
+  "Hosting could not be activated.": "L’hébergement n’a pas pu être activé.",
+  "Hosting is active from {starts} until {ends}. No automatic renewal.": "L’hébergement est actif du {starts} au {ends}. Aucun renouvellement automatique.",
   "Commissioned guide hosting": "Hébergement du guide personnalisé",
   "Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.": "État de l’hébergement : {status}. Publication le {published} ; hébergement jusqu’au {expires}. Aucun renouvellement automatique.",
   "Refunded": "Remboursé",
@@ -436,6 +442,12 @@ const fr: Dict = {
 };
 
 const es: Dict = {
+  "Founding Five QA hosting": "Alojamiento QA Founding Five",
+  "Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.": "El pago está pendiente de cumplimiento. Publica la guía aprobada y verifica y activa el alojamiento de doce meses.",
+  "Verifying payment…": "Verificando el pago…",
+  "Verify payment and activate hosting": "Verificar el pago y activar el alojamiento",
+  "Hosting could not be activated.": "No se pudo activar el alojamiento.",
+  "Hosting is active from {starts} until {ends}. No automatic renewal.": "El alojamiento está activo desde {starts} hasta {ends}. Sin renovación automática.",
   "Commissioned guide hosting": "Alojamiento del guía de huéspedes a medida",
   "Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.": "Estado del alojamiento: {status}. Publicado el {published}; alojamiento hasta el {expires}. Sin renovación automática.",
   "Refunded": "Reembolsado",
@@ -852,6 +864,12 @@ const es: Dict = {
 };
 
 const de: Dict = {
+  "Founding Five QA hosting": "Founding Five QA-Hosting",
+  "Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.": "Die Zahlung wartet auf Erfüllung. Veröffentlichen Sie den freigegebenen Guide und aktivieren Sie anschließend den zwölfmonatigen Hostingzeitraum.",
+  "Verifying payment…": "Zahlung wird geprüft…",
+  "Verify payment and activate hosting": "Zahlung prüfen und Hosting aktivieren",
+  "Hosting could not be activated.": "Das Hosting konnte nicht aktiviert werden.",
+  "Hosting is active from {starts} until {ends}. No automatic renewal.": "Das Hosting ist vom {starts} bis zum {ends} aktiv. Keine automatische Verlängerung.",
   "Commissioned guide hosting": "Hosting des individuell eingerichteten Gäste-Guides",
   "Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.": "Hosting-Status: {status}. Veröffentlicht am {published}; Hosting bis {expires}. Keine automatische Verlängerung.",
   "Refunded": "Erstattet",
@@ -1268,6 +1286,12 @@ const de: Dict = {
 };
 
 const ar: Dict = {
+  "Founding Five QA hosting": "استضافة Founding Five للاختبار",
+  "Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.": "الدفع بانتظار التنفيذ. انشر الدليل المعتمد، ثم تحقّق من سجل الاستضافة لمدة اثني عشر شهرًا وفعّله.",
+  "Verifying payment…": "جارٍ التحقق من الدفع…",
+  "Verify payment and activate hosting": "تحقّق من الدفع وفعّل الاستضافة",
+  "Hosting could not be activated.": "تعذّر تفعيل الاستضافة.",
+  "Hosting is active from {starts} until {ends}. No automatic renewal.": "الاستضافة مفعّلة من {starts} حتى {ends}. لا يوجد تجديد تلقائي.",
   "Commissioned guide hosting": "استضافة دليل الضيوف المُعدّ خصيصًا",
   "Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.": "حالة الاستضافة: {status}. نُشر في {published}؛ وتنتهي الاستضافة في {expires}. لا يوجد تجديد تلقائي.",
   "Refunded": "مسترد",
