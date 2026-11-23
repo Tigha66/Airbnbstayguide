@@ -4,7 +4,7 @@ test("desktop homepage lets prospects try the sample and request a walkthrough w
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/");
   const hero = page.locator(".marketing-hero");
-  await expect(hero.getByRole("link", { name: "Meet the guest guide" })).toHaveAttribute("href", "/demo");
+  await expect(hero.getByRole("link", { name: "Meet the guest guide" }).first()).toHaveAttribute("href", "/demo");
   await expect(hero.getByRole("link", { name: "Start your 14-day free trial" })).toHaveAttribute("href", "/login?mode=register");
   const section = page.locator('section[aria-labelledby="guest-demo-title"]');
   await expect(section.getByRole("heading", { name: "Try the guest experience first." })).toBeVisible();
