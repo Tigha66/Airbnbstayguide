@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { query, setQueryOverride, splitStatements } from "./db";
-import { applySubscription, aiMessageLimit, consumeAiUsage, createProperty, getBilling, getPublishedProperty, getUser, LimitError, listProperties, updateProperty, upsertUser } from "./repo";
+import { applySubscription, aiMessageLimit, consumeAiUsage, createProperty, deleteUser, getBilling, getPublishedProperty, getUser, LimitError, listProperties, updateProperty, upsertUser } from "./repo";
 import { plans } from "@stayguide/shared";
 import { TRIAL_DAYS } from "./trial";
 const pg = new PGlite();
@@ -83,6 +83,18 @@ describe("14-day no-card trial on existing account records", () => {
     } finally {
       serverTime = "2026-11-06T00:00:00Z";
     }
+  });
+
+  it("does not promise hosting after host unpublishes the guide or deletes the account", async () => {
+    const owner = await fixture("hosting-withdrawal@example.test");
+    const draft = await createProperty(owner, { name: "Withdrawable guide", location: "London", description: "" });
+    await updateProperty(owner.id, draft.id, { ...draft, status: "published" });
+    expect(await getPublishedProperty(draft.slug)).not.toBeNull();
+    await updateProperty(owner.id, draft.id, { ...draft, status: "draft" });
+    expect(await getPublishedProperty(draft.slug)).toBeNull();
+    await updateProperty(owner.id, draft.id, { ...draft, status: "published" });
+    await deleteUser(owner.id); // Account deletion cascades to the property.
+    expect(await getPublishedProperty(draft.slug)).toBeNull();
   });
 
   it("lets a Stripe subscription override the trial and never reactivates it after cancellation", async () => {
