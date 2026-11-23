@@ -148,3 +148,14 @@ CREATE TABLE IF NOT EXISTS portfolio_reply_templates (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS portfolio_reply_templates_owner_title_idx
   ON portfolio_reply_templates(owner_id, lower(title));
+
+
+-- QA-only lead capture; endpoint is disabled unless explicitly enabled per environment.
+CREATE TABLE IF NOT EXISTS property_walkthrough_enquiries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL CHECK (char_length(name) BETWEEN 2 AND 100),
+  email text NOT NULL CHECK (char_length(email) BETWEEN 3 AND 254),
+  property_name text NOT NULL CHECK (char_length(property_name) BETWEEN 2 AND 120),
+  property_url text NOT NULL CHECK (property_url LIKE 'https://%'),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
