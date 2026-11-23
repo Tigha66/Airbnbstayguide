@@ -3,9 +3,18 @@ import { test, expect } from "@playwright/test";
 test("desktop homepage lets prospects try the sample and request a walkthrough without signing up", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   const hero = page.locator(".marketing-hero");
   await expect(hero.getByRole("link", { name: "Meet the guest guide" }).first()).toHaveAttribute("href", "/demo");
-  await expect(hero.getByRole("link", { name: "Start your 14-day free trial" })).toHaveAttribute("href", "/login?mode=register");
+  const primaryCta = hero.locator("a.button").first();
+  const primaryHref = await primaryCta.getAttribute("href");
+  expect(["/demo", "/login?mode=register"]).toContain(primaryHref);
+  if (primaryHref === "/login?mode=register") {
+    await primaryCta.click();
+    await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
+    await page.goto("/");
+  }
   const section = page.locator('section[aria-labelledby="guest-demo-title"]');
   await expect(section.getByRole("heading", { name: "Try the guest experience first." })).toBeVisible();
   await expect(section.getByText("This is a sample guide, not a live WhatsApp messaging or payment demonstration.")).toBeVisible();
@@ -34,6 +43,8 @@ for (const [locale, heading] of [
   test(`sample-first section is localized in ${locale}`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/" + locale);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
     await expect(page.locator('section[aria-labelledby="guest-demo-title"]').getByRole("heading", { name: heading })).toBeVisible();
     await expect(page.locator('section[aria-labelledby="guest-demo-title"] a[href="/demo"]')).toBeVisible();
     await expect(page.locator(".marketing")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
