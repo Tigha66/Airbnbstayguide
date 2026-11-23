@@ -8,6 +8,12 @@ import type { SiteLocale } from "./site-i18n";
 type Dict = Record<string, string>;
 
 const fr: Dict = {
+  "Commissioned guide hosting": "Hébergement du guide personnalisé",
+  "Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.": "État de l’hébergement : {status}. Publication le {published} ; hébergement jusqu’au {expires}. Aucun renouvellement automatique.",
+  "Refunded": "Remboursé",
+  "Cancelled": "Annulé",
+  "Active": "Actif",
+  "Expired": "Expiré",
   "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "La création d’un guide par IA utilise une requête IA incluse. Vérifiez votre adresse e-mail pour activer l’IA ; l’analyse manuelle reste disponible.",
   "Workspace preferences saved online.": "Préférences de l’espace enregistrées en ligne.",
   "Could not save workspace preferences. Please try again.": "Les préférences n’ont pas pu être enregistrées. Veuillez réessayer.",
@@ -431,6 +437,12 @@ const fr: Dict = {
 };
 
 const es: Dict = {
+  "Commissioned guide hosting": "Alojamiento del guía de huéspedes a medida",
+  "Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.": "Estado del alojamiento: {status}. Publicado el {published}; alojamiento hasta el {expires}. Sin renovación automática.",
+  "Refunded": "Reembolsado",
+  "Cancelled": "Cancelado",
+  "Active": "Activo",
+  "Expired": "Caducado",
   "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "Generar una guía con IA usa una solicitud de IA incluida. Verifica tu correo para activar la IA; el análisis manual sigue disponible.",
   "Workspace preferences saved online.": "Preferencias del espacio guardadas en línea.",
   "Could not save workspace preferences. Please try again.": "No se pudieron guardar las preferencias. Inténtalo de nuevo.",
@@ -842,6 +854,12 @@ const es: Dict = {
 };
 
 const de: Dict = {
+  "Commissioned guide hosting": "Hosting des individuell eingerichteten Gäste-Guides",
+  "Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.": "Hosting-Status: {status}. Veröffentlicht am {published}; Hosting bis {expires}. Keine automatische Verlängerung.",
+  "Refunded": "Erstattet",
+  "Cancelled": "Storniert",
+  "Active": "Aktiv",
+  "Expired": "Abgelaufen",
   "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "Die KI-Guide-Erstellung verbraucht eine enthaltene KI-Anfrage. Bestätigen Sie Ihre E-Mail, um KI zu aktivieren; die manuelle Auswertung bleibt verfügbar.",
   "Workspace preferences saved online.": "Arbeitsbereichseinstellungen online gespeichert.",
   "Could not save workspace preferences. Please try again.": "Die Einstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",
@@ -1253,6 +1271,12 @@ const de: Dict = {
 };
 
 const ar: Dict = {
+  "Commissioned guide hosting": "استضافة دليل الضيوف المُعدّ خصيصًا",
+  "Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.": "حالة الاستضافة: {status}. نُشر في {published}؛ وتنتهي الاستضافة في {expires}. لا يوجد تجديد تلقائي.",
+  "Refunded": "مسترد",
+  "Cancelled": "ملغى",
+  "Active": "نشط",
+  "Expired": "منتهٍ",
   "AI guide generation uses one included AI request. Verify your email to enable AI; the manual parser remains available.": "يستخدم إنشاء الدليل بالذكاء الاصطناعي طلبًا واحدًا من الرصيد المتاح. تحقّق من بريدك لتفعيل الذكاء الاصطناعي؛ ويظل التحليل اليدوي متاحًا.",
   "Workspace preferences saved online.": "تم حفظ تفضيلات مساحة العمل عبر الإنترنت.",
   "Could not save workspace preferences. Please try again.": "تعذّر حفظ تفضيلات مساحة العمل. يُرجى المحاولة مرة أخرى.",
