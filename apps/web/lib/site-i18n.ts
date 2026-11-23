@@ -41,6 +41,18 @@ const en = {
     overlayTitle: "Olá, welcome to Casa Serena.",
     overlayBody: "One beautiful place. Every little detail.",
   },
+  preview: {
+    eyebrow: "SEE IT BEFORE YOU SIGN UP",
+    title: "Try the guest experience first.",
+    body: "Open a sample guide, see what your guests would see, and decide whether it fits your property — no account needed.",
+    points: [
+      ["Arrival details in one place", "Keep arrival instructions, Wi-Fi, house rules and local tips together."],
+      ["One link, no app to install", "Guests can open the guide in a browser using a link or QR code."],
+      ["A welcome in their language", "Explore the sample using the available guest-guide languages."],
+    ],
+    contactCta: "Ask about a guide for my property",
+    disclaimer: "This is a sample guide, not a live WhatsApp messaging or payment demonstration.",
+  },
   how: {
     eyebrow: "A LITTLE SETUP. A LOT LESS REPEATING YOURSELF.",
     title1: "Great hospitality starts",
@@ -162,6 +174,18 @@ const fr: SiteText = {
     overlayTitle: "Olá, bienvenue à Casa Serena.",
     overlayBody: "Un lieu magnifique. Chaque petit détail.",
   },
+  preview: {
+    eyebrow: "DÉCOUVREZ AVANT DE VOUS INSCRIRE",
+    title: "Essayez d’abord l’expérience voyageur.",
+    body: "Ouvrez un guide exemple, découvrez ce que verront vos voyageurs et voyez s’il convient à votre logement — sans compte.",
+    points: [
+      ["Les informations au même endroit", "Arrivée, Wi-Fi, règlement et bonnes adresses réunis dans un guide."],
+      ["Un lien, sans application", "Les voyageurs ouvrent le guide dans un navigateur via un lien ou un QR code."],
+      ["Un accueil multilingue", "Explorez le guide exemple dans les langues proposées aux voyageurs."],
+    ],
+    contactCta: "Demander une présentation pour mon logement",
+    disclaimer: "Ceci est un guide exemple, pas une démonstration de messagerie WhatsApp ou de paiement en direct.",
+  },
   how: {
     eyebrow: "UN PEU DE PRÉPARATION. BEAUCOUP MOINS DE RÉPÉTITIONS.",
     title1: "L’hospitalité commence",
@@ -281,6 +305,18 @@ const es: SiteText = {
     overlayEyebrow: "TU HOGAR LEJOS DE CASA",
     overlayTitle: "Olá, bienvenido a Casa Serena.",
     overlayBody: "Un lugar precioso. Cada pequeño detalle.",
+  },
+  preview: {
+    eyebrow: "MÍRALO ANTES DE REGISTRARTE",
+    title: "Prueba primero la experiencia del huésped.",
+    body: "Abre una guía de ejemplo, descubre lo que verán tus huéspedes y decide si encaja con tu alojamiento — sin cuenta.",
+    points: [
+      ["La información de llegada, reunida", "Llegada, Wi-Fi, normas y recomendaciones locales en una sola guía."],
+      ["Un enlace, sin instalar nada", "Los huéspedes abren la guía en el navegador mediante un enlace o código QR."],
+      ["Bienvenida en su idioma", "Explora el ejemplo en los idiomas disponibles para la guía."],
+    ],
+    contactCta: "Solicitar una presentación para mi alojamiento",
+    disclaimer: "Esta es una guía de ejemplo, no una demostración de mensajería real por WhatsApp ni de pagos.",
   },
   how: {
     eyebrow: "UN POCO DE PREPARACIÓN. MUCHAS MENOS REPETICIONES.",
@@ -402,6 +438,18 @@ const de: SiteText = {
     overlayTitle: "Olá, willkommen in der Casa Serena.",
     overlayBody: "Ein wunderschöner Ort. Jedes kleine Detail.",
   },
+  preview: {
+    eyebrow: "VOR DER ANMELDUNG AUSPROBIEREN",
+    title: "Erleben Sie zuerst die Gästeansicht.",
+    body: "Öffnen Sie einen Beispiel-Guide und sehen Sie, was Ihre Gäste sehen würden — ohne Konto.",
+    points: [
+      ["Anreiseinfos an einem Ort", "Anreise, WLAN, Hausregeln und lokale Tipps übersichtlich zusammengefasst."],
+      ["Ein Link, keine App", "Gäste öffnen den Guide im Browser per Link oder QR-Code."],
+      ["Willkommen in ihrer Sprache", "Sehen Sie das Beispiel in den verfügbaren Gästesprachen."],
+    ],
+    contactCta: "Vorführung für meine Unterkunft anfragen",
+    disclaimer: "Dies ist ein Beispiel-Guide, keine Live-Demo für WhatsApp-Nachrichten oder Zahlungen.",
+  },
   how: {
     eyebrow: "WENIG EINRICHTUNG. VIEL WENIGER WIEDERHOLUNGEN.",
     title1: "Gastfreundschaft beginnt,",
@@ -521,6 +569,18 @@ const ar: SiteText = {
     overlayEyebrow: "بيتك بعيدًا عن البيت",
     overlayTitle: "Olá، أهلًا بك في Casa Serena.",
     overlayBody: "مكان جميل. وكل التفاصيل الصغيرة.",
+  },
+  preview: {
+    eyebrow: "جرّب قبل التسجيل",
+    title: "شاهد تجربة الضيف أولاً.",
+    body: "افتح دليلاً نموذجياً وشاهد ما سيراه ضيوفك وقرر إن كان مناسباً لعقارك، دون إنشاء حساب.",
+    points: [
+      ["معلومات الوصول في مكان واحد", "تعليمات الوصول والواي فاي وقواعد المنزل والتوصيات المحلية في دليل واحد."],
+      ["رابط واحد دون تطبيق", "يفتح الضيوف الدليل في المتصفح عبر رابط أو رمز QR."],
+      ["ترحيب بلغتهم", "استكشف الدليل النموذجي بلغات الضيوف المتاحة."],
+    ],
+    contactCta: "اطلب عرضاً توضيحياً لعقاري",
+    disclaimer: "هذا دليل نموذجي وليس تجربة فعلية لإرسال رسائل واتساب أو إجراء المدفوعات.",
   },
   how: {
     eyebrow: "إعداد بسيط. تكرار أقل بكثير.",
