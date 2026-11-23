@@ -21,7 +21,7 @@
 
 **Customer responsibilities.** Customer has rights to information, photos and branding supplied, reviews correctness and privacy/security before publication, and may correct or withdraw content; never request or publish sensitive access credentials without authorised handling and appropriate access restrictions.
 
-**Supplier, tax and jurisdiction — outstanding.** Identify legal supplier name and address, business form, VAT registration status/number if applicable, business-customer jurisdiction, and any cross-border VAT/place-of-supply obligations. Do not publish `£49 including VAT` or `no VAT` without verification. UK HMRC's general threshold is currently £90,000 taxable turnover in a rolling 12-month period, but exceptions and overseas supplies vary: https://www.gov.uk/register-for-vat
+**Supplier, tax and jurisdiction — partially confirmed by product owner (23 November 2026).** Owner reports currently operating **without UK VAT registration**. For the proposed UK offer, the provisional customer charge is **£49 total, with no VAT charged or VAT shown on invoices while the supplier remains unregistered**, subject to confirmation that registration is not already legally required. Never label this amount `£49 including VAT`, never present a VAT amount, and do not describe the business as VAT-registered. Keep Stripe Tax automatic collection disabled for this specifically unregistered UK seller *unless and until* a tax professional confirms a registration/collection obligation. Legal supplier name, service/trading address, business form, business-versus-consumer customer scope, and international place-of-supply/VAT/GST treatment remain unconfirmed. HMRC's standard UK-established threshold is £90,000 taxable turnover over a rolling 12-month period; expected turnover in the next 30 days and non-established seller rules can also trigger registration. Monitor obligations and revisit configuration when required: https://www.gov.uk/register-for-vat . This note **does not** authorize product publication, a live checkout, a charge or Stripe Tax changes.
 
 **Cancellation/refund proposal — review separately for B2B and consumers.** Do not assert that the same 14-day withdrawal rights apply to business purchases. For eligible consumer distance contracts, disclose statutory rights before checkout and collect any necessary separate express request/consent and acknowledgement for early service performance or digital content, recording and confirming them on a durable medium. Do not treat a single general Terms checkbox as sufficient. Refund if provider cannot deliver or service has not started, with any deduction for properly authorised work subject to applicable law; statutory remedies remain. References:
 - https://www.legislation.gov.uk/uksi/2013/3134/regulation/37/2026-01-01
@@ -31,7 +31,8 @@
 
 ## Release checklist
 
-- [ ] Owner identifies legal supplier and VAT position; qualified review of B2B and consumer wording
+- [x] Owner confirms they are currently operating without UK VAT registration (23 Nov 2026); registration obligation still needs validation
+- [ ] Owner identifies legal supplier identity/address and confirms VAT registration is not already required; qualified review of B2B/consumer wording
 - [ ] Separate customer agreement approved and persisted with explicit acceptance/consents
 - [ ] Deploy and integrate the QA-tested hosting record under a reviewed production migration; issue each record only after **verified** payment and approved guide publication, with audited agreement acceptance and no paid-feature grant
 - [ ] Controlled-date tests on entitlement, owner isolation, trial expiry, no auto-billing, and no unintended AI/WhatsApp privileges
