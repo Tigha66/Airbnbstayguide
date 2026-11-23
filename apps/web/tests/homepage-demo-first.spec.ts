@@ -12,7 +12,7 @@ test("desktop homepage lets prospects try the sample and request a walkthrough w
   await expect(section.getByRole("link", { name: "Ask about a guide for my property" }))
     .toHaveAttribute("href", "mailto:abdelhaktirha@gmail.com?subject=GetStayGuide%20property%20walkthrough");
 
-  await hero.getByRole("link", { name: "Meet the guest guide" }).click();
+  await hero.getByRole("link", { name: "Meet the guest guide" }).first().click();
   await expect(page).toHaveURL(/\/g\/casa-serena$/);
 });
 
