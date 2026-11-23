@@ -88,11 +88,16 @@ it("records only a verified test-mode payment, safely ignores failed payment, an
 it("cancels expired unpaid orders and records full refunds without creating or extending hosting", async () => {
   const expired = {
     id: "cs_expired_qa", mode: "payment",
-    metadata: { app: "stayguide", kind: "commissioned_hosting", qa_only: "true", user_id: owner, property_id: propertyId },
+    metadata: { app: "stayguide", kind: "commissioned_hosting", qa_only: "true", user_id: owner, property_id: cancelledPropertyId },
   };
+  const cancelledPropertyId = propertyId + "-cancelled";
+  await query(
+    "INSERT INTO properties(id,owner_id,slug,status,data,published_at) VALUES ($1,$2,'qa-hosting-cancelled','published','{}',now())",
+    [cancelledPropertyId, owner],
+  );
   await query(
     "INSERT INTO commissioned_guide_orders(property_id,owner_id,checkout_session_id,agreement_version,agreement_accepted_at) VALUES ($1,$2,'cs_expired_qa','qa-v1',now())",
-    [propertyId, owner],
+    [cancelledPropertyId, owner],
   );
   expect(await handleVerifiedStripeEvent(stripeEvent("checkout.session.expired", "evt_expired_qa", expired))).toBe("commissioned_hosting:cancelled");
   expect((await query<{ status: string }>("SELECT status FROM commissioned_guide_orders WHERE checkout_session_id='cs_expired_qa'"))[0].status).toBe("cancelled");
