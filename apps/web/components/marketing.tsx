@@ -122,7 +122,7 @@ export function MarketingFooter({ locale = "en" }: { locale?: SiteLocale }) {
   );
 }
 
-export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
+export function Pricing({ locale = "en", registrationAvailable = false }: { locale?: SiteLocale; registrationAvailable?: boolean }) {
   const all = siteText(locale);
   const t = all.pricing;
   const [annual, setAnnual] = useState(false);
@@ -193,8 +193,8 @@ export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
                 </li>
               )}
             </ul>
-            <Link className={`button ${key === "pro" ? "" : "secondary"}`} href="/login?mode=register">
-              {key === "pro" ? onboardingText[locale].trial : t.cta}
+            <Link className={`button ${key === "pro" ? "" : "secondary"}`} href={registrationAvailable ? "/login?mode=register" : "/demo"}>
+              {registrationAvailable ? (key === "pro" ? onboardingText[locale].trial : t.cta) : t.cta}
               <ArrowRight size={14} />
             </Link>
           </div>
