@@ -87,10 +87,16 @@ export function HomePage({ locale, registrationAvailable }: { locale: SiteLocale
               {t.hero.secondary}
               <ArrowUpRight size={15} />
             </Link>
-            <div>
-              <h3>{t.preview.contactCta}</h3>
-              <WalkthroughEnquiryForm />
-            </div>
+            {process.env.VERCEL_ENV === "preview" && process.env.WALKTHROUGH_ENQUIRIES_ENABLED === "true" ? (
+              <div>
+                <h3>{t.preview.contactCta}</h3>
+                <WalkthroughEnquiryForm />
+              </div>
+            ) : (
+              <a className="button secondary" href="mailto:abdelhaktirha@gmail.com?subject=GetStayGuide%20property%20walkthrough">
+                {t.preview.contactCta}<ArrowRight size={15} />
+              </a>
+            )}
           </div>
           <small style={{ display: "block", marginTop: 16 }}>{t.preview.disclaimer}</small>
         </section>
