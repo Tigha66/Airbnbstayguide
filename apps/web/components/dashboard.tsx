@@ -140,6 +140,30 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const [error, setError] = useState("");
   const property =
     state.properties.find((p) => p.id === selected) || state.properties[0];
+  const [commissionedHosting, setCommissionedHosting] = useState<{
+    startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean;
+  } | null>(null);
+  useEffect(() => {
+    if (!live || !property?.id) {
+      setCommissionedHosting(null);
+      return;
+    }
+    const controller = new AbortController();
+    setCommissionedHosting(null);
+    void fetch(`/api/commissioned-hosting/${encodeURIComponent(property.id)}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    }).then(async (response) => {
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error("Hosting status unavailable");
+      return await response.json() as { startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean };
+    }).then((status) => {
+      if (!controller.signal.aborted) setCommissionedHosting(status);
+    }).catch(() => {
+      if (!controller.signal.aborted) setCommissionedHosting(null);
+    });
+    return () => controller.abort();
+  }, [live, property?.id]);
   const notify = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(""), 4000);
@@ -866,6 +890,18 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   </button>
                 </div>
               </div>
+              {live && commissionedHosting && (
+                <div className="card panel" aria-live="polite">
+                  <h3>{tr("Commissioned guide hosting")}</h3>
+                  <p>
+                    {tr("Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.", {
+                      status: tr(commissionedHosting.status === "refunded" ? "Refunded" : commissionedHosting.status === "cancelled" ? "Cancelled" : commissionedHosting.withinTerm ? "Active" : "Expired"),
+                      published: new Date(commissionedHosting.startsAt).toLocaleDateString(locale),
+                      expires: new Date(commissionedHosting.endsAt).toLocaleDateString(locale),
+                    })}
+                  </p>
+                </div>
+              )}
               <div className="card property-details">
                 <div className="property-details-head">
                   <h3>{tr("Property details")}</h3>
