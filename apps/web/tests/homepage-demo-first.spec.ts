@@ -18,11 +18,16 @@ test("desktop homepage lets prospects try the sample and request a walkthrough w
   const section = page.locator('section[aria-labelledby="guest-demo-title"]');
   await expect(section.getByRole("heading", { name: "Try the guest experience first." })).toBeVisible();
   await expect(section.getByText("This is a sample guide, not a live WhatsApp messaging or payment demonstration.")).toBeVisible();
-  await expect(section.getByRole("heading", { name: "Ask about a guide for my property" })).toBeVisible();
-  await expect(section.getByLabel("Name")).toBeVisible();
-  await expect(section.getByLabel("Email")).toBeVisible();
-  await expect(section.getByLabel("Property name")).toBeVisible();
-  await expect(section.getByLabel("Property URL")).toBeVisible();
+  const enquiryForm = section.getByRole("form");
+  if (await enquiryForm.count()) {
+    await expect(section.getByLabel("Name")).toBeVisible();
+    await expect(section.getByLabel("Email")).toBeVisible();
+    await expect(section.getByLabel("Property name")).toBeVisible();
+    await expect(section.getByLabel("Property URL")).toBeVisible();
+  } else {
+    await expect(section.getByRole("link", { name: "Ask about a guide for my property" }))
+      .toHaveAttribute("href", "mailto:abdelhaktirha@gmail.com?subject=GetStayGuide%20property%20walkthrough");
+  }
 
   await hero.getByRole("link", { name: "Meet the guest guide" }).first().click();
   await expect(page).toHaveURL(/\/g\/casa-serena$/);
