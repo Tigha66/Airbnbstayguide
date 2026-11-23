@@ -89,13 +89,17 @@ export function WhatsAppInbox() {
   const [qaMessage, setQaMessage] = useState("");
   const lock = useRef(false);
   const key = useRef("");
+  const reloadSequence = useRef(0);
   const url = "/api/v1/whatsapp/inbox";
   const reload = useCallback(async () => {
+    const sequence = ++reloadSequence.current;
     try {
       const r = await fetch(url, { cache: "no-store" });
-      setData(r.ok ? await r.json() : null);
+      if (!r.ok) return;
+      const next = await r.json() as Data;
+      if (sequence === reloadSequence.current) setData(next);
     } catch {
-      setData(null);
+      // Keep the last confirmed inbox state during transient network failures.
     }
   }, []);
   async function runSynthetic(action: "simulate" | "expire" | "renew" | "stop" | "cleanup") {
