@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Inter, Noto_Sans_Arabic, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
@@ -50,8 +51,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
 };
-export default async function Layout({ children, params }: { children: React.ReactNode; params: Promise<{ lang?: string }> }) {
-  const { lang } = await params;
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  const lang = (await headers()).get("x-stayguide-locale");
   const locale: SiteLocale = lang && isSiteLocale(lang) ? lang : "en";
   return (
     <html lang={locale} dir={siteDir(locale)} className={`${sans.variable} ${display.variable} ${arabic.variable}`}>
