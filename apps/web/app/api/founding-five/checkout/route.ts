@@ -103,7 +103,7 @@ export async function POST(request: Request) {
           property_id: propertyId,
         },
       },
-      success_url: origin + "/dashboard/editor?foundingFive=payment-received",
+      success_url: origin + "/dashboard/editor?foundingFive=payment-received&session_id={CHECKOUT_SESSION_ID}",
       cancel_url: origin + "/dashboard/editor?foundingFive=cancelled",
     }, { idempotencyKey: identity.idempotencyKey });
 
