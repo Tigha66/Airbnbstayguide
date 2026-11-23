@@ -152,9 +152,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS portfolio_reply_templates_owner_title_idx
 -- Draft Founding Five fulfilment record. No API issues grants or creates Stripe payments.
 -- A one-time setup purchase never changes plan, paid subscription or OpenWA privileges.
 -- Records are issued only after independently verified payment and publication approval.
+CREATE UNIQUE INDEX IF NOT EXISTS properties_id_owner_unique ON properties(id, owner_id);
 CREATE TABLE IF NOT EXISTS commissioned_guide_hosting (
-  property_id text PRIMARY KEY REFERENCES properties(id) ON DELETE CASCADE,
-  owner_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  property_id text PRIMARY KEY,
+  owner_id uuid NOT NULL,
+  CONSTRAINT commissioned_guide_hosting_owner_fk
+    FOREIGN KEY (property_id, owner_id) REFERENCES properties(id, owner_id) ON DELETE CASCADE,
   payment_reference text NOT NULL UNIQUE CHECK (char_length(payment_reference) BETWEEN 3 AND 200),
   agreement_version text NOT NULL CHECK (char_length(agreement_version) BETWEEN 3 AND 80),
   starts_at timestamptz NOT NULL,
