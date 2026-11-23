@@ -59,7 +59,7 @@ export function LanguageMenu({ locale }: { locale: SiteLocale }) {
   );
 }
 
-export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
+export function MarketingNav({ locale = "en", registrationAvailable = false }: { locale?: SiteLocale; registrationAvailable?: boolean }) {
   const t = siteText(locale).nav;
   const base = localeBase(locale);
   const pathname = usePathname();
@@ -85,8 +85,8 @@ export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
         <Link href="/demo" onClick={close}>{t.demo}</Link>
         <Link href="/login" onClick={close}>{t.login}</Link>
         <LanguageMenu locale={locale} />
-        <Link href="/login?mode=register" className="button" onClick={close}>
-          {onboardingText[locale].trial}
+        <Link href={registrationAvailable ? "/login?mode=register" : "/demo"} className="button" onClick={close}>
+          {registrationAvailable ? onboardingText[locale].trial : t.demo}
           <ArrowUpRight size={14} />
         </Link>
       </nav>
