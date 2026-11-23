@@ -7,7 +7,7 @@
 - `/g/[slug]` loads this published guide; no payment is required simply to read a published guide.
 - The Free plan allows **one property** and currently includes **25 concierge messages per month** (`packages/shared/src/index.ts`); the 14-day verified-account trial temporarily raises effective access to Pro. A paid £49 setup fee does **not** grant extra AI allowance, manager privileges, OpenWA, subscription or WhatsApp auto-sends.
 - When the 14-day trial expires, `effectivePlanSql` reverts to `free` and existing guide records are not deleted. Tests on this branch exercise published access after over one year with no Stripe state and separate tenant access.
-- **Important exceptions:** A host can unpublish or delete their guide; account deletion cascades to properties. A production database deletion, hosting outage, changed Free-plan rules or future policy change could also end access. There is currently **no £49 payment record, dedicated commissioned-guide entitlement, 12-month hosting-start date, renewal prompt or contractual hosting monitor**. Therefore these implementation details alone are insufficient to warrant advertising an unconditional 12-month guarantee.
+- **Important exceptions:** A host can unpublish or delete their guide; account deletion cascades to properties. A production database deletion, hosting outage, changed Free-plan rules or future policy change could also end access. This **draft branch** adds a separate `commissioned_guide_hosting` table and read-only, owner-scoped status helper, with controlled-date tests for one-year expiry/cancellation and ownership. It does **not** issue grants, verify a £49 payment, activate customer entitlements or send renewal notices. Those operational pieces and an approved agreement are still required before advertising an unconditional 12-month guarantee.
 
 ## Proposed commercial terms — require owner and qualified legal review
 
@@ -33,7 +33,7 @@
 
 - [ ] Owner identifies legal supplier and VAT position; qualified review of B2B and consumer wording
 - [ ] Separate customer agreement approved and persisted with explicit acceptance/consents
-- [ ] Dedicated commissioned-guide entitlement and hosting start/end recorded only after **verified** payment and approved guide publication (or documented manual fulfilment with equivalent audited records)
+- [ ] Deploy and integrate the QA-tested hosting record under a reviewed production migration; issue each record only after **verified** payment and approved guide publication, with audited agreement acceptance and no paid-feature grant
 - [ ] Controlled-date tests on entitlement, owner isolation, trial expiry, no auto-billing, and no unintended AI/WhatsApp privileges
 - [ ] Demonstrate one real published-guide link after trial under expected customer plan
 - [ ] Verify backups, restoration and expiry/renewal communications
