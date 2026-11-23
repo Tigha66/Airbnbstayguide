@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_Arabic, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { ServiceWorker } from "@/components/service-worker";
+import { isSiteLocale, siteDir, type SiteLocale } from "@/lib/site-i18n";
 const sans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -49,9 +50,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
 };
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({ children, params }: { children: React.ReactNode; params: Promise<{ lang?: string }> }) {
+  const { lang } = await params;
+  const locale: SiteLocale = lang && isSiteLocale(lang) ? lang : "en";
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} ${arabic.variable}`}>
+    <html lang={locale} dir={siteDir(locale)} className={`${sans.variable} ${display.variable} ${arabic.variable}`}>
       <body>
         {children}
         <Analytics />
