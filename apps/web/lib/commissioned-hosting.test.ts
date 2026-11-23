@@ -22,10 +22,11 @@ describe("commissioned guide hosting (QA only; no payment grant endpoint)", () =
     const owner = await upsertUser("founding-five@example.test");
     const stranger = await upsertUser("unrelated-five@example.test");
     const property = await createProperty(owner, { name: "Founding guide", location: "London", description: "" });
+    await query("UPDATE properties SET status='published', published_at='2026-12-01T00:00:00Z' WHERE id=$1", [property.id]);
     await query(
       `INSERT INTO commissioned_guide_hosting
-        (property_id, owner_id, payment_reference, agreement_version, starts_at, ends_at)
-        VALUES ($1, $2, 'synthetic-payment-ref', 'draft-v1', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
+        (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at)
+        VALUES ($1, $2, 'synthetic-payment-ref', 'draft-v1', '2026-11-30T12:00:00Z', '2026-11-30T12:05:00Z', '2026-12-01T00:00:00Z', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
       [property.id, owner.id],
     );
 
