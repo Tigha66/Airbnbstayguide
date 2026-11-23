@@ -29,9 +29,11 @@ CREATE TABLE IF NOT EXISTS properties (
   slug text NOT NULL UNIQUE,
   status text NOT NULL DEFAULT 'published',
   data jsonb NOT NULL,
+  published_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS published_at timestamptz;
 CREATE INDEX IF NOT EXISTS properties_owner_idx ON properties(owner_id);
 CREATE TABLE IF NOT EXISTS chat_messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
