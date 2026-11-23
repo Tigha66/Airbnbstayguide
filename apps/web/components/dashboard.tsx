@@ -141,16 +141,13 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const property =
     state.properties.find((p) => p.id === selected) || state.properties[0];
   const [commissionedHosting, setCommissionedHosting] = useState<{
-    startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean;
+    propertyId: string; startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean;
   } | null>(null);
   useEffect(() => {
-    if (!live || !property?.id) {
-      setCommissionedHosting(null);
-      return;
-    }
+    if (!live || !property?.id) return;
     const controller = new AbortController();
-    setCommissionedHosting(null);
-    void fetch(`/api/commissioned-hosting/${encodeURIComponent(property.id)}`, {
+    const propertyId = property.id;
+    void fetch(`/api/commissioned-hosting/${encodeURIComponent(propertyId)}`, {
       cache: "no-store",
       signal: controller.signal,
     }).then(async (response) => {
@@ -158,7 +155,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
       if (!response.ok) throw new Error("Hosting status unavailable");
       return await response.json() as { startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean };
     }).then((status) => {
-      if (!controller.signal.aborted) setCommissionedHosting(status);
+      if (!controller.signal.aborted) setCommissionedHosting(status ? { ...status, propertyId } : null);
     }).catch(() => {
       if (!controller.signal.aborted) setCommissionedHosting(null);
     });
@@ -890,7 +887,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   </button>
                 </div>
               </div>
-              {live && commissionedHosting && (
+              {live && commissionedHosting?.propertyId === property?.id && (
                 <div className="card panel" aria-live="polite">
                   <h3>{tr("Commissioned guide hosting")}</h3>
                   <p>
