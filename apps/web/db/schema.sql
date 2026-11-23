@@ -174,3 +174,25 @@ CREATE TABLE IF NOT EXISTS commissioned_guide_hosting (
 );
 CREATE INDEX IF NOT EXISTS commissioned_guide_hosting_owner_idx
   ON commissioned_guide_hosting(owner_id, ends_at);
+
+-- QA-only one-time commissioning order ledger. Checkout/payment events update status,
+-- but the hosting record is created only by the owner after publication and direct verification.
+CREATE TABLE IF NOT EXISTS commissioned_guide_orders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_id text NOT NULL,
+  owner_id uuid NOT NULL,
+  checkout_session_id text NOT NULL UNIQUE,
+  payment_reference text UNIQUE,
+  agreement_version text NOT NULL CHECK (char_length(agreement_version) BETWEEN 3 AND 80),
+  agreement_accepted_at timestamptz NOT NULL,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'fulfilled', 'cancelled', 'refunded')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT commissioned_guide_orders_owner_fk
+    FOREIGN KEY (property_id, owner_id) REFERENCES properties(id, owner_id) ON DELETE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS commissioned_guide_orders_one_active_property_idx
+  ON commissioned_guide_orders(property_id)
+  WHERE status IN ('pending', 'paid', 'fulfilled');
+CREATE INDEX IF NOT EXISTS commissioned_guide_orders_payment_idx
+  ON commissioned_guide_orders(payment_reference);
