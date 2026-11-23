@@ -214,7 +214,7 @@ export function HomePage({ locale, registrationAvailable }: { locale: SiteLocale
           <div className="eyebrow">{t.pricingSection.eyebrow}</div>
           <h2>{t.pricingSection.title}</h2>
           <p>{t.pricingSection.body}</p>
-          <Pricing locale={locale} />
+          <Pricing locale={locale} registrationAvailable={registrationAvailable} />
         </section>
         <section className="marketing-section center">
           <div className="eyebrow">{t.faq.eyebrow}</div>
