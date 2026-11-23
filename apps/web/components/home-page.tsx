@@ -10,7 +10,7 @@ import { integrationCategories, integrationDisclaimer } from "@/lib/integrations
 const pointIcons = [BookOpen, MessageCircle, ShieldCheck];
 
 /** The marketing homepage, in any of the website languages. */
-export function HomePage({ locale }: { locale: SiteLocale }) {
+export function HomePage({ locale, registrationAvailable }: { locale: SiteLocale; registrationAvailable: boolean }) {
   const t = siteText(locale);
   const integrations = t.integrationsSection;
   return (
@@ -28,8 +28,8 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
             </h1>
             <p>{t.hero.body}</p>
             <div className="row" style={{ flexWrap: "wrap" }}>
-              <Link className="button" href="/login?mode=register">
-                {onboardingText[locale].trial}
+              <Link className="button" href={registrationAvailable ? "/login?mode=register" : "/demo"}>
+                {registrationAvailable ? onboardingText[locale].trial : t.hero.secondary}
                 <ArrowRight size={16} />
               </Link>
               <Link className="button secondary" href="/demo">
