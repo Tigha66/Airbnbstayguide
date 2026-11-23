@@ -140,6 +140,15 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const [error, setError] = useState("");
   const property =
     state.properties.find((p) => p.id === selected) || state.properties[0];
+  const [foundingFiveSessionId, setFoundingFiveSessionId] = useState("");
+  const [foundingFiveMessage, setFoundingFiveMessage] = useState("");
+  const [foundingFiveBusy, setFoundingFiveBusy] = useState(false);
+  useEffect(() => {
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+    if (!sessionId) return;
+    const timer = window.setTimeout(() => setFoundingFiveSessionId(sessionId), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   const [commissionedHosting, setCommissionedHosting] = useState<{
     propertyId: string; startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean;
   } | null>(null);
@@ -161,6 +170,30 @@ export function Dashboard({ view = "" }: { view?: string }) {
     });
     return () => controller.abort();
   }, [live, property?.id]);
+  async function activateFoundingFiveHosting() {
+    if (!foundingFiveSessionId) return;
+    setFoundingFiveBusy(true);
+    setFoundingFiveMessage("");
+    try {
+      const response = await fetch("/api/founding-five/fulfill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: foundingFiveSessionId }),
+      });
+      const result = await response.json() as { error?: string; startsAt?: string; endsAt?: string };
+      if (!response.ok) throw new Error(result.error || tr("Hosting could not be activated."));
+      setFoundingFiveMessage(tr("Hosting is active from {starts} until {ends}. No automatic renewal.", {
+        starts: result.startsAt ? new Date(result.startsAt).toLocaleDateString(locale) : "",
+        ends: result.endsAt ? new Date(result.endsAt).toLocaleDateString(locale) : "",
+      }));
+      setFoundingFiveSessionId("");
+      router.replace(window.location.pathname);
+    } catch (error) {
+      setFoundingFiveMessage(error instanceof Error ? error.message : tr("Hosting could not be activated."));
+    } finally {
+      setFoundingFiveBusy(false);
+    }
+  }
   const notify = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(""), 4000);
@@ -549,6 +582,19 @@ export function Dashboard({ view = "" }: { view?: string }) {
           </div>
         </header>
         <main className="dashboard-content">
+          {(foundingFiveSessionId || foundingFiveMessage) && (
+            <section className="card panel" aria-live="polite">
+              <h3>{tr("Founding Five QA hosting")}</h3>
+              {foundingFiveMessage ? <p>{foundingFiveMessage}</p> : (
+                <>
+                  <p>{tr("Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.")}</p>
+                  <button className="button" type="button" disabled={!live || property?.status !== "published" || foundingFiveBusy} onClick={() => void activateFoundingFiveHosting()}>
+                    {foundingFiveBusy ? tr("Verifying payment…") : tr("Verify payment and activate hosting")}
+                  </button>
+                </>
+              )}
+            </section>
+          )}
           {view === "" && <DashboardOnboarding />}
           {view !== "billing" && <TrialNotice />}
           {view === "" && (
