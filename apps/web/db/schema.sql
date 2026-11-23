@@ -162,11 +162,15 @@ CREATE TABLE IF NOT EXISTS commissioned_guide_hosting (
     FOREIGN KEY (property_id, owner_id) REFERENCES properties(id, owner_id) ON DELETE CASCADE,
   payment_reference text NOT NULL UNIQUE CHECK (char_length(payment_reference) BETWEEN 3 AND 200),
   agreement_version text NOT NULL CHECK (char_length(agreement_version) BETWEEN 3 AND 80),
+  agreement_accepted_at timestamptz NOT NULL,
+  payment_verified_at timestamptz NOT NULL,
+  published_at timestamptz NOT NULL,
   starts_at timestamptz NOT NULL,
   ends_at timestamptz NOT NULL,
   status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'refunded')),
   created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT commissioned_guide_hosting_period CHECK (ends_at > starts_at)
+  CONSTRAINT commissioned_guide_hosting_period CHECK (ends_at > starts_at),
+  CONSTRAINT commissioned_guide_hosting_publication_start CHECK (starts_at = published_at)
 );
 CREATE INDEX IF NOT EXISTS commissioned_guide_hosting_owner_idx
   ON commissioned_guide_hosting(owner_id, ends_at);
