@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       return reply({ error: "The paid line item does not match the QA £49 one-time price." }, 409);
     const price = await stripe.prices.retrieve(priceId);
     const productId = typeof price.product === "string" ? price.product : price.product.id;
-    const product = typeof price.product === "string" ? await stripe.products.retrieve(productId) : price.product;
+    const product = await stripe.products.retrieve(productId);
     if (!price.active || price.currency !== "gbp" || price.unit_amount !== 4900 || price.recurring ||
         price.metadata?.qa_only !== "true" || product.metadata?.qa_only !== "true" ||
         product.metadata?.environment !== "test_mode_only")
