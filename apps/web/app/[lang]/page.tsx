@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { HomePage } from "@/components/home-page";
 import { isSiteLocale, siteLocales } from "@/lib/site-i18n";
 import { siteMetadata } from "@/lib/site-metadata";
-import { authConfigured } from "@/auth";
+import { signupConfigured } from "@/auth";
 
 // Only /fr, /es, /de and /ar exist; anything else is a 404. English is served at "/".
 export const dynamicParams = false;
@@ -16,5 +16,5 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (!isSiteLocale(lang) || lang === "en") notFound();
-  return <HomePage locale={lang} registrationAvailable={authConfigured()} />;
+  return <HomePage locale={lang} registrationAvailable={signupConfigured()} />;
 }
