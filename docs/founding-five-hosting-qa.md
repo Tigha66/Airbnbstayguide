@@ -7,7 +7,7 @@
 - `/g/[slug]` loads this published guide; no payment is required simply to read a published guide.
 - The Free plan allows **one property** and currently includes **25 concierge messages per month** (`packages/shared/src/index.ts`); the 14-day verified-account trial temporarily raises effective access to Pro. A paid £49 setup fee does **not** grant extra AI allowance, manager privileges, OpenWA, subscription or WhatsApp auto-sends.
 - When the 14-day trial expires, `effectivePlanSql` reverts to `free` and existing guide records are not deleted. Tests on this branch exercise published access after over one year with no Stripe state and separate tenant access.
-- **Important exceptions:** A host can unpublish or delete their guide; account deletion cascades to properties. A production database deletion, hosting outage, changed Free-plan rules or future policy change could also end access. This **draft branch** adds a separate `commissioned_guide_hosting` table and read-only, owner-scoped status helper, with controlled-date tests for one-year expiry/cancellation and ownership. It does **not** issue grants, verify a £49 payment, activate customer entitlements or send renewal notices. Those operational pieces and an approved agreement are still required before advertising an unconditional 12-month guarantee.
+- **Important exceptions:** A host can unpublish or delete their guide; account deletion cascades to properties. A production database deletion, hosting outage, changed Free-plan rules or future policy change could also end access. This **draft branch** adds a separate `commissioned_guide_hosting` record and `commissioned_guide_orders` ledger, a preview-only test-mode checkout route, direct Stripe payment verification, a signed-webhook status handler, and an explicit owner-triggered fulfilment route. Hosting can be recorded only for the owner’s published guide after payment and agreement metadata match; it starts at publication and expires 12 months later. The route does not grant subscription, AI, WhatsApp or manager entitlements, and blocks cancelled/refunded orders. Controlled-date/schema tests and isolated restore checks cover ownership, duplicates, cancellation/refund states and account cleanup. **The Stripe connector write call failed reauthentication, so no test product, checkout, webhook delivery or end-to-end fulfilment has yet been exercised.** A fresh Preview deployment, customer-approved agreement, tested payment cycle and operational support/backup controls are still required before advertising an unconditional 12-month guarantee.
 
 ## Proposed commercial terms — require owner and qualified legal review
 
@@ -40,7 +40,7 @@
 - [x] Owner confirms they are currently operating without UK VAT registration (23 Nov 2026); registration obligation still needs validation
 - [ ] Owner identifies legal supplier identity/address and confirms VAT registration is not already required; qualified review of B2B/consumer wording
 - [ ] Separate customer agreement approved and persisted with explicit acceptance/consents
-- [ ] Deploy and integrate the QA-tested hosting record under a reviewed production migration; issue each record only after **verified** payment and approved guide publication, with audited agreement acceptance and no paid-feature grant
+- [ ] Deploy the draft code to an isolated Preview and exercise the owner-triggered fulfilment flow end to end after a verified QA payment; only later review a production migration and issue records after **verified** payment and approved guide publication, with audited agreement acceptance and no paid-feature grant
 - [ ] Controlled-date tests on entitlement, owner isolation, trial expiry, no auto-billing, and no unintended AI/WhatsApp privileges
 - [ ] Demonstrate one real published-guide link after trial under expected customer plan
 - [ ] Verify backups, restoration and expiry/renewal communications
@@ -49,4 +49,4 @@
 
 ## Current GO / NO-GO
 
-**Technical Free guide retention**: supported by current code, conditional on an active account and published property; regression tests have been added. **Commercial 12-month service promise**: NO-GO until payment-linked entitlement/record, legal terms, operational controls and approval are complete.
+**Technical Free guide retention**: supported by current code, conditional on an active account and published property; regression tests have been added. **Commercial 12-month service promise**: NO-GO until the implemented QA flow has passed a real test-mode checkout/fulfilment cycle, consumer and business terms are approved, supplier/tax position is confirmed, operational controls are verified, and production release is separately approved.
