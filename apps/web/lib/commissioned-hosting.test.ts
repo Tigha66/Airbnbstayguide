@@ -55,26 +55,26 @@ describe("commissioned guide hosting (QA only; no payment grant endpoint)", () =
     await query("INSERT INTO properties (id, owner_id, slug, status, data) VALUES ($1, $2, 'property-second', 'draft', '{}'::jsonb)", [secondProperty.id, owner.id]);
     await expect(query(
       `INSERT INTO commissioned_guide_hosting
-        (property_id, owner_id, payment_reference, agreement_version, starts_at, ends_at)
-        VALUES ($1, $2, 'synthetic-cross-owner', 'draft-v1', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
+        (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at)
+        VALUES ($1, $2, 'synthetic-cross-owner', 'draft-v1', '2026-11-30T12:00:00Z', '2026-11-30T12:05:00Z', '2026-12-01T00:00:00Z', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
       [property.id, unrelated.id],
     )).rejects.toThrow();
     await query(
       `INSERT INTO commissioned_guide_hosting
-        (property_id, owner_id, payment_reference, agreement_version, starts_at, ends_at)
-        VALUES ($1, $2, 'synthetic-unique-payment', 'draft-v1', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
+        (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at)
+        VALUES ($1, $2, 'synthetic-unique-payment', 'draft-v1', '2026-11-30T12:00:00Z', '2026-11-30T12:05:00Z', '2026-12-01T00:00:00Z', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
       [property.id, owner.id],
     );
     await expect(query(
       `INSERT INTO commissioned_guide_hosting
-        (property_id, owner_id, payment_reference, agreement_version, starts_at, ends_at)
-        VALUES ($1, $2, 'synthetic-unique-payment', 'draft-v1', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
+        (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at)
+        VALUES ($1, $2, 'synthetic-unique-payment', 'draft-v1', '2026-11-30T12:00:00Z', '2026-11-30T12:05:00Z', '2026-12-01T00:00:00Z', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
       [secondProperty.id, owner.id],
     )).rejects.toThrow();
     await expect(query(
       `INSERT INTO commissioned_guide_hosting
-        (property_id, owner_id, payment_reference, agreement_version, starts_at, ends_at)
-        VALUES ($1, $2, 'synthetic-second-payment', 'draft-v1', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
+        (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at)
+        VALUES ($1, $2, 'synthetic-second-payment', 'draft-v1', '2026-11-30T12:00:00Z', '2026-11-30T12:05:00Z', '2026-12-01T00:00:00Z', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
       [property.id, owner.id],
     )).rejects.toThrow();
   });
@@ -84,8 +84,8 @@ describe("commissioned guide hosting (QA only; no payment grant endpoint)", () =
     const property = await createProperty(owner, { name: "Deletion test guide", location: "London", description: "" });
     await query(
       `INSERT INTO commissioned_guide_hosting
-        (property_id, owner_id, payment_reference, agreement_version, starts_at, ends_at)
-        VALUES ($1, $2, 'synthetic-deletion-payment', 'draft-v1', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
+        (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at)
+        VALUES ($1, $2, 'synthetic-deletion-payment', 'draft-v1', '2026-11-30T12:00:00Z', '2026-11-30T12:05:00Z', '2026-12-01T00:00:00Z', '2026-12-01T00:00:00Z', '2027-12-01T00:00:00Z')`,
       [property.id, owner.id],
     );
     await deleteUser(owner.id);
