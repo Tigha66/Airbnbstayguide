@@ -6,6 +6,7 @@ import { guestLanguageChips, siteDir, siteText, type SiteLocale } from "@/lib/si
 import { onboardingText } from "@/lib/onboarding-i18n";
 import { localeBase } from "@/lib/site-i18n";
 import { integrationCategories, integrationDisclaimer } from "@/lib/integrations";
+import { WalkthroughEnquiryForm } from "./walkthrough-enquiry-form";
 
 const pointIcons = [BookOpen, MessageCircle, ShieldCheck];
 
@@ -86,10 +87,10 @@ export function HomePage({ locale, registrationAvailable }: { locale: SiteLocale
               {t.hero.secondary}
               <ArrowUpRight size={15} />
             </Link>
-            <a className="button secondary" href="mailto:abdelhaktirha@gmail.com?subject=GetStayGuide%20property%20walkthrough">
-              {t.preview.contactCta}
-              <ArrowRight size={15} />
-            </a>
+            <div>
+              <h3>{t.preview.contactCta}</h3>
+              <WalkthroughEnquiryForm />
+            </div>
           </div>
           <small style={{ display: "block", marginTop: 16 }}>{t.preview.disclaimer}</small>
         </section>
