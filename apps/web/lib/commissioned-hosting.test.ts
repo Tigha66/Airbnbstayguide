@@ -10,7 +10,7 @@ let serverTime = "2026-12-01T12:00:00Z";
 
 beforeAll(async () => {
   setQueryOverride(async (text, params) =>
-    (await pg.query(text.replace(/\\bnow\\(\\)/g, `'${serverTime}'::timestamptz`), params)).rows as Record<string, unknown>[]);
+    (await pg.query(text.replace(/\bnow\(\)/g, `'${serverTime}'::timestamptz`), params)).rows as Record<string, unknown>[]);
   for (const statement of splitStatements(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8"))) {
     await pg.exec(statement);
   }
@@ -50,7 +50,8 @@ describe("commissioned guide hosting (QA only; no payment grant endpoint)", () =
     const owner = await upsertUser("commission-owner@example.test");
     const unrelated = await upsertUser("commission-unrelated@example.test");
     const property = await createProperty(owner, { name: "Owned property", location: "London", description: "" });
-    const secondProperty = await createProperty(owner, { name: "Second property", location: "London", description: "" });
+    const secondProperty = { id: "property-second" };
+    await query("INSERT INTO properties (id, owner_id, slug, status, data) VALUES ($1, $2, 'property-second', 'draft', '{}'::jsonb)", [secondProperty.id, owner.id]);
     await expect(query(
       `INSERT INTO commissioned_guide_hosting
         (property_id, owner_id, payment_reference, agreement_version, starts_at, ends_at)
