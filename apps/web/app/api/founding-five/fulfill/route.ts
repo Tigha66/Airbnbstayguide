@@ -72,8 +72,10 @@ export async function POST(request: Request) {
     if (!order || order.agreement_version !== metadata.agreement_version ||
         new Date(order.agreement_accepted_at).getTime() !== new Date(metadata.agreement_accepted_at).getTime())
       return reply({ error: "Matching owner-approved QA agreement record was not found." }, 409);
-    if (order.status === "cancelled" || order.status === "refunded")
-      return reply({ error: "Cancelled or refunded orders cannot be fulfilled." }, 409);
+    if (order.status !== "paid" && order.status !== "fulfilled")
+      return reply({ error: "Wait for the signed Stripe webhook to record the paid order before fulfilment." }, 409);
+    if (order.payment_reference && order.payment_reference !== paymentIntentId)
+      return reply({ error: "The recorded payment reference does not match this checkout." }, 409);
 
     const [property] = await query<{ id: string; status: string; published_at: string | null }>(
       "SELECT id, status, published_at FROM properties WHERE id=$1 AND owner_id=$2",
@@ -84,7 +86,7 @@ export async function POST(request: Request) {
 
     const results = await transaction([
       { text: "SELECT id, status, payment_reference FROM commissioned_guide_orders WHERE id=$1 AND owner_id=$2 FOR UPDATE", params: [order.id, host.user.id] },
-      { text: "INSERT INTO commissioned_guide_hosting (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at) SELECT p.id, p.owner_id, $3, $4, $5, now(), p.published_at, p.published_at, p.published_at + interval '12 months' FROM properties p WHERE p.id=$1 AND p.owner_id=$2 AND p.status='published' AND p.published_at IS NOT NULL ON CONFLICT (property_id) DO NOTHING", params: [property.id, host.user.id, paymentIntentId, order.agreement_version, order.agreement_accepted_at] },
+      { text: "INSERT INTO commissioned_guide_hosting (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at) SELECT p.id, p.owner_id, $3, $4, $5, now(), p.published_at, p.published_at, p.published_at + interval '12 months' FROM properties p WHERE p.id=$1 AND p.owner_id=$2 AND p.status='published' AND p.published_at IS NOT NULL AND EXISTS (SELECT 1 FROM commissioned_guide_orders o WHERE o.id=$6 AND o.owner_id=$2 AND o.property_id=$1 AND o.status IN ('paid','fulfilled') AND (o.payment_reference IS NULL OR o.payment_reference=$3)) ON CONFLICT (property_id) DO NOTHING", params: [property.id, host.user.id, paymentIntentId, order.agreement_version, order.agreement_accepted_at, order.id] },
       { text: "SELECT payment_reference, status, starts_at, ends_at FROM commissioned_guide_hosting WHERE property_id=$1 AND owner_id=$2", params: [property.id, host.user.id] },
       { text: "UPDATE commissioned_guide_orders SET status='fulfilled', payment_reference=$2, updated_at=now() WHERE id=$1 AND owner_id=$3 AND status IN ('paid','fulfilled') AND (payment_reference IS NULL OR payment_reference=$2)", params: [order.id, paymentIntentId, host.user.id] },
     ]);
