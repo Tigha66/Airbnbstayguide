@@ -7,7 +7,7 @@ test("WhatsApp sales demo shares the actual Casa Serena sample guide without sen
   await expect(page.getByRole("heading", { name: "Try sharing Casa Serena" })).toBeVisible();
 
   const guestGuideInput = page.getByLabel("Sample guest-guide URL");
-  await expect(guestGuideInput).toHaveValue(/^https?:\\/\\//);
+  await expect(guestGuideInput).toHaveValue(/https?:/);
   const sampleUrl = new URL(await guestGuideInput.inputValue());
   expect(sampleUrl.pathname).toBe("/g/casa-serena");
   expect(sampleUrl.origin).toBe(new URL(page.url()).origin);
