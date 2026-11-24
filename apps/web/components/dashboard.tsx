@@ -170,6 +170,31 @@ export function Dashboard({ view = "" }: { view?: string }) {
     });
     return () => controller.abort();
   }, [live, property?.id]);
+  const [qaOfferAccepted, setQaOfferAccepted] = useState(false);
+  const [qaCheckoutVisible, setQaCheckoutVisible] = useState(false);
+  useEffect(() => {
+    setQaCheckoutVisible(window.location.hostname === "stayguide-isolated-qa-git-test-founding-fi-6322a7-hajabdelhak66.vercel.app");
+  }, []);
+  async function startQaCheckout() {
+    if (!property?.id || !qaOfferAccepted || foundingFiveBusy) return;
+    setFoundingFiveBusy(true);
+    setFoundingFiveMessage("");
+    try {
+      const response = await fetch("/api/founding-five/checkout", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId: property.id, qaAgreementAccepted: true }),
+      });
+      const result = await response.json() as { error?: string; url?: string };
+      if (!response.ok || !result.url) throw new Error(result.error || "QA checkout unavailable.");
+      const destination = new URL(result.url);
+      if (destination.protocol !== "https:" || destination.hostname !== "checkout.stripe.com")
+        throw new Error("Unexpected checkout destination.");
+      window.location.assign(destination.toString());
+    } catch (error) {
+      setFoundingFiveMessage(error instanceof Error ? error.message : "QA checkout unavailable.");
+      setFoundingFiveBusy(false);
+    }
+  }
   async function activateFoundingFiveHosting() {
     if (!foundingFiveSessionId) return;
     setFoundingFiveBusy(true);
@@ -933,6 +958,16 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   </button>
                 </div>
               </div>
+              {live && qaCheckoutVisible && property?.id && (
+                <div className="card panel">
+                  <h3>Founding Five checkout — QA only</h3>
+                  <p>Test payment only. This does not record genuine customer consent.</p>
+                  <label><input type="checkbox" checked={qaOfferAccepted} onChange={(event) => setQaOfferAccepted(event.target.checked)} /> Confirm the synthetic QA agreement</label>
+                  <button className="button" type="button" disabled={!qaOfferAccepted || foundingFiveBusy} onClick={() => void startQaCheckout()}>
+                    {foundingFiveBusy ? "Opening test checkout…" : "Start £49 test checkout"}
+                  </button>
+                </div>
+              )}
               {live && commissionedHosting?.propertyId === property?.id && (
                 <div className="card panel" aria-live="polite">
                   <h3>{tr("Commissioned guide hosting")}</h3>
