@@ -12,7 +12,11 @@ export function unavailable(service: string) {
 export function safeOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return !request.headers.has("cookie");
-  try { return origin === applicationOrigin() && request.headers.get("sec-fetch-site") !== "cross-site"; }
+  try {
+    const qaOrigin = "https://stayguide-isolated-qa-git-test-founding-fi-6322a7-hajabdelhak66.vercel.app";
+    const approved = origin === applicationOrigin() || (process.env.VERCEL_ENV === "preview" && origin === qaOrigin);
+    return approved && request.headers.get("sec-fetch-site") !== "cross-site";
+  }
   catch { return false; }
 }
 export function parseJson(raw: string) {
