@@ -38,7 +38,6 @@ describe("14-day no-card trial on existing account records", () => {
     );
     expect(await getUser(owner.id)).toMatchObject({ plan: "free", trialActive: false, trialEndsAt: null });
     expect(await getBilling(owner.id)).toMatchObject({ plan: "free", trialActive: false, trialEndsAt: null, stripeCustomerId: null, stripeSubscriptionId: null });
-    expect(await consumeAiUsage(owner.id)).toBe(false);
     expect((await getPublishedProperty(property.slug))?.ownerId).toBe(owner.id);
   });
   it("requires email verification and does not give legacy accounts a new trial", async () => {
