@@ -173,7 +173,8 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const [qaOfferAccepted, setQaOfferAccepted] = useState(false);
   const [qaCheckoutVisible, setQaCheckoutVisible] = useState(false);
   useEffect(() => {
-    setQaCheckoutVisible(window.location.hostname === "stayguide-isolated-qa-git-test-founding-fi-6322a7-hajabdelhak66.vercel.app");
+    const timer = window.setTimeout(() => setQaCheckoutVisible(window.location.hostname === "stayguide-isolated-qa-git-test-founding-fi-6322a7-hajabdelhak66.vercel.app"), 0);
+    return () => window.clearTimeout(timer);
   }, []);
   async function startQaCheckout() {
     if (!property?.id || !qaOfferAccepted || foundingFiveBusy) return;
