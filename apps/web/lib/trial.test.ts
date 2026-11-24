@@ -14,7 +14,7 @@ async function fixture(email: string, options: { verified?: boolean; plan?: stri
 }
 beforeAll(async () => {
   // Control only the DB clock in this isolated database; production uses Postgres now().
-  setQueryOverride(async (text, params) => (await pg.query(text.replace(/\bnow\(\)/g, `'${serverTime}'::timestamptz`), params)).rows as Record<string, unknown>[]);
+  setQueryOverride(async (text, params) => (await pg.query(text.replace(/\\bnow\\(\\)/g, `'${serverTime}'::timestamptz`), params)).rows as Record<string, unknown>[]);
   for (const statement of splitStatements(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8"))) await pg.exec(statement);
 }, 30000);
 afterAll(async () => { setQueryOverride(null); await pg.close(); });
@@ -27,6 +27,19 @@ describe("14-day no-card trial on existing account records", () => {
     expect(billing).toMatchObject({ plan: "pro", trialActive: true, stripeCustomerId: null, stripeSubscriptionId: null, subscriptionStatus: null, trialEndsAt: "2026-11-19T00:00:00.000Z" });
     expect((await query("SELECT plan FROM users WHERE id=$1", [user.id]))[0].plan).toBe("free");
     expect((await getUser(user.id))?.trialEndsAt).toEqual(user.trialEndsAt);
+  });
+  it("keeps a paid Founding Five customer on Free without a Pro AI trial", async () => {
+    const owner = await fixture("founding-five-paid@example.test");
+    const property = await createProperty(owner, { name: "Purchased guide", location: "Sampletown", description: "" });
+    await updateProperty(owner.id, property.id, { ...property, status: "published" });
+    await query(
+      "INSERT INTO commissioned_guide_orders (property_id,owner_id,checkout_session_id,agreement_version,agreement_accepted_at,status) VALUES ($1,$2,'cs_found_five_trial_suppression','qa-v1',now(),'paid')",
+      [property.id, owner.id],
+    );
+    expect(await getUser(owner.id)).toMatchObject({ plan: "free", trialActive: false, trialEndsAt: null });
+    expect(await getBilling(owner.id)).toMatchObject({ plan: "free", trialActive: false, trialEndsAt: null, stripeCustomerId: null, stripeSubscriptionId: null });
+    expect(await consumeAiUsage(owner.id)).toBe(false);
+    expect((await getPublishedProperty(property.slug))?.ownerId).toBe(owner.id);
   });
   it("requires email verification and does not give legacy accounts a new trial", async () => {
     expect(await fixture("unverified-trial@example.test", { verified: false })).toMatchObject({ plan: "free", trialActive: false });
