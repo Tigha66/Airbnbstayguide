@@ -14,7 +14,7 @@ async function fixture(email: string, options: { verified?: boolean; plan?: stri
 }
 beforeAll(async () => {
   // Control only the DB clock in this isolated database; production uses Postgres now().
-  setQueryOverride(async (text, params) => (await pg.query(text.replace(/\\bnow\\(\\)/g, `'${serverTime}'::timestamptz`), params)).rows as Record<string, unknown>[]);
+  setQueryOverride(async (text, params) => (await pg.query(text.replace(/\bnow\(\)/g, `'${serverTime}'::timestamptz`), params)).rows as Record<string, unknown>[]);
   for (const statement of splitStatements(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8"))) await pg.exec(statement);
 }, 30000);
 afterAll(async () => { setQueryOverride(null); await pg.close(); });
