@@ -10,7 +10,7 @@ it("accepts only the configured Stripe account in test mode", async () => {
   vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_qa_placeholder");
   vi.stubEnv("STRIPE_EXPECTED_ACCOUNT_ID", "acct_expected_qa");
   const fetchMock = vi.fn().mockResolvedValue(new Response(
-    JSON.stringify({ id: "acct_expected_qa", livemode: false }),
+    JSON.stringify({ id: "acct_expected_qa" }),
     { status: 200, headers: { "Content-Type": "application/json" } },
   ));
   vi.stubGlobal("fetch", fetchMock);
@@ -53,12 +53,13 @@ it("distinguishes account mismatch and mode mismatch", async () => {
   vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_qa_placeholder");
   vi.stubEnv("STRIPE_EXPECTED_ACCOUNT_ID", "acct_expected_qa");
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(
-    JSON.stringify({ id: "acct_other", livemode: false }), { status: 200 },
+    JSON.stringify({ id: "acct_other" }), { status: 200 },
   )));
   await expect(assertStripeAccountIdentity()).rejects.toMatchObject({ code: "stripe_account_mismatch" });
 
+  vi.stubEnv("STRIPE_SECRET_KEY", "sk_live_qa_placeholder");
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(
-    JSON.stringify({ id: "acct_expected_qa", livemode: true }), { status: 200 },
+    JSON.stringify({ id: "acct_expected_qa" }), { status: 200 },
   )));
   await expect(assertStripeAccountIdentity()).rejects.toMatchObject({ code: "stripe_mode_mismatch" });
 });
@@ -86,7 +87,6 @@ it("distinguishes invalid JSON from a JSON response missing account identity fie
     code: "stripe_response_missing_identity_fields",
     stripeStatus: 200,
     responseHasId: false,
-    responseHasLivemode: false,
   });
 });
 
