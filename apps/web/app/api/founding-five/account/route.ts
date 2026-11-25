@@ -20,8 +20,23 @@ export async function GET() {
     const stripeStatus = error instanceof StripeAccountIdentityError
       ? error.stripeStatus
       : undefined;
-    // Log only a fixed diagnostic code and HTTP status; never log keys or Stripe response bodies.
-    console.error("[stripe] account identity check failed", { diagnosticCode, stripeStatus });
+    const responseContentType = error instanceof StripeAccountIdentityError
+      ? error.responseContentType
+      : undefined;
+    const responseHasId = error instanceof StripeAccountIdentityError
+      ? error.responseHasId
+      : undefined;
+    const responseHasLivemode = error instanceof StripeAccountIdentityError
+      ? error.responseHasLivemode
+      : undefined;
+    // Log only response metadata; never log keys, account payloads or Stripe response bodies.
+    console.error("[stripe] account identity check failed", {
+      diagnosticCode,
+      stripeStatus,
+      responseContentType,
+      responseHasId,
+      responseHasLivemode,
+    });
     return NextResponse.json(
       { verified: false, error: "Stripe account identity verification failed", diagnosticCode },
       { status: 503, headers: { "Cache-Control": "private, no-store" } },
