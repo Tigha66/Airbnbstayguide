@@ -16,7 +16,7 @@ export type StripeAccountIdentityFailureCode =
   | "stripe_permission_denied"
   | "stripe_rate_limited"
   | "stripe_api_error"
-  | "invalid_stripe_response"
+  | "stripe_response_invalid_json" | "stripe_response_missing_identity_fields"
   | "stripe_account_mismatch"
   | "stripe_mode_mismatch"
   | "unexpected_identity_check_failure";
@@ -26,6 +26,9 @@ export class StripeAccountIdentityError extends Error {
   constructor(
     readonly code: StripeAccountIdentityFailureCode,
     readonly stripeStatus?: number,
+    readonly responseContentType?: string,
+    readonly responseHasId?: boolean,
+    readonly responseHasLivemode?: boolean,
   ) {
     super(code);
     this.name = "StripeAccountIdentityError";
@@ -63,14 +66,28 @@ export async function assertStripeAccountIdentity() {
     throw new StripeAccountIdentityError(code, response.status);
   }
 
-  let account: { id?: string; livemode?: boolean };
+  const responseContentType = response.headers.get("content-type") ?? undefined;
+  let payload: unknown;
   try {
-    account = await response.json() as { id?: string; livemode?: boolean };
+    payload = await response.json();
   } catch {
-    throw new StripeAccountIdentityError("invalid_stripe_response", response.status);
+    throw new StripeAccountIdentityError(
+      "stripe_response_invalid_json",
+      response.status,
+      responseContentType,
+    );
   }
+  const account = payload && typeof payload === "object"
+    ? payload as { id?: unknown; livemode?: unknown }
+    : null;
   if (!account || typeof account.id !== "string" || typeof account.livemode !== "boolean")
-    throw new StripeAccountIdentityError("invalid_stripe_response", response.status);
+    throw new StripeAccountIdentityError(
+      "stripe_response_missing_identity_fields",
+      response.status,
+      responseContentType,
+      Boolean(account && typeof account.id === "string"),
+      Boolean(account && typeof account.livemode === "boolean"),
+    );
   if (account.id !== expectedAccountId)
     throw new StripeAccountIdentityError("stripe_account_mismatch", response.status);
   if (account.livemode !== stripeLiveMode())
