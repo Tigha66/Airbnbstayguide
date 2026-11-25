@@ -57,7 +57,8 @@ export async function handleStripeEvent(event: Stripe.Event) {
       }
       return "ignored";
     }
-    case "checkout.session.expired": {
+    case "checkout.session.expired":
+    case "checkout.session.async_payment_failed": {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.app !== "stayguide") return "ignored";
       if (session.metadata.kind === "commissioned_hosting" && session.metadata.qa_only === "true") {
