@@ -26,16 +26,12 @@ export async function GET() {
     const responseHasId = error instanceof StripeAccountIdentityError
       ? error.responseHasId
       : undefined;
-    const responseHasLivemode = error instanceof StripeAccountIdentityError
-      ? error.responseHasLivemode
-      : undefined;
     // Log only response metadata; never log keys, account payloads or Stripe response bodies.
     console.error("[stripe] account identity check failed", {
       diagnosticCode,
       stripeStatus,
       responseContentType,
       responseHasId,
-      responseHasLivemode,
     });
     return NextResponse.json(
       { verified: false, error: "Stripe account identity verification failed", diagnosticCode },
