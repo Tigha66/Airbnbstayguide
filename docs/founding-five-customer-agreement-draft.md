@@ -1,6 +1,6 @@
 # Founding Five Customer Agreement — Draft
 
-> **DRAFT FOR REVIEW — NOT APPROVED FOR SALE OR SIGNATURE.** This template is prepared for the proposed £49 one-off guest-guide service. It contains placeholders for supplier details and is not legal advice. Obtain qualified UK legal review before presenting it to customers. No checkout, customer agreement or production release is authorised by this draft.
+> **DRAFT FOR REVIEW — NOT APPROVED FOR SALE OR SIGNATURE.** This template is prepared for the proposed $49.00 USD one-off guest-guide service. It contains placeholders for supplier details and is not legal advice. Obtain qualified UK legal review before presenting it to customers. No checkout, customer agreement or production release is authorised by this draft.
 
 **Version:** [agreement version]  
 **Date offered:** [date]  
@@ -33,7 +33,7 @@ The supplier will prepare one mobile-friendly digital guest guide for the proper
 
 The customer must supply complete, accurate information and assets that they are entitled to use. The supplier aims to provide the first preview within five UK working days after cleared payment and receipt of all required information and assets. The time estimate pauses while information, permissions or customer decisions are outstanding. Publication takes place only after the customer approves the guide.
 
-The total fee is **£49.00 GBP**, paid once. The fee does not include a monthly subscription, automatic renewal or later continuation charge. Any work outside the included scope requires a separate written quote and the customer's agreement before it starts.
+The total fee is **$49.00 USD**, paid once. The invoice or payment receipt should describe this as “Founding Five guest guide and 12 months of basic hosting — $49.00 USD (one-time; no subscription or automatic renewal).” The supplier currently reports that it is not registered for UK VAT; no VAT is charged on this draft price. The fee does not include a monthly subscription, automatic renewal or later continuation charge. Any work outside the included scope requires a separate written quote and the customer's agreement before it starts.
 
 ## 3. Hosting period
 
@@ -47,7 +47,7 @@ The hosting service covers publication of the guide on the supplier's service. I
 
 ## 4. Not included
 
-This agreement does not include a paid StayGuide subscription, Pro AI allowance, automated AI replies, automated WhatsApp messaging, PMS integration, third-party integrations, accommodation management, custom software, or a guarantee of bookings, revenue, guest behaviour or property performance. Those services are not included in the £49 fee and will not be activated by this agreement.
+This agreement does not include a paid StayGuide subscription, Pro AI allowance, automated AI replies, automated WhatsApp messaging, PMS integration, third-party integrations, accommodation management, custom software, or a guarantee of bookings, revenue, guest behaviour or property performance. Those services are not included in the $49 fee and will not be activated by this agreement.
 
 ## 5. Customer content and responsibilities
 
@@ -85,7 +85,7 @@ Nothing in this agreement removes any statutory right, remedy or refund entitlem
 
 The supplier will use customer information to provide and support the service in accordance with its privacy notice at [PRIVACY NOTICE URL]. The customer remains responsible for ensuring that information they choose to publish is appropriate for public access.
 
-The service is also subject to the supplier's general terms at [GENERAL TERMS URL], provided those terms are supplied to the customer before acceptance and do not reduce rights stated in this agreement or rights that cannot be excluded by law. If there is a conflict about the £49 service, this agreement governs that service.
+The service is also subject to the supplier's general terms at [GENERAL TERMS URL], provided those terms are supplied to the customer before acceptance and do not reduce rights stated in this agreement or rights that cannot be excluded by law. If there is a conflict about the $49 service, this agreement governs that service.
 
 ## 10. Governing law and disputes
 
@@ -102,7 +102,7 @@ The supplier must present the complete agreement, the total price and any applic
 [ ] I expressly consent to the digital content identified in the order being supplied before the end of my cancellation period. I acknowledge that I may lose the right to cancel the digital-content supply once it begins, but only to the extent and under the conditions provided by law.
 
 **Customer agreement acceptance:**  
-[ ] I have read and agree to this agreement, including the service scope, one-off £49 fee and 12-month hosting period described above.
+[ ] I have read and agree to this agreement, including the service scope, one-off $49 fee and 12-month hosting period described above.
 
 Customer name: [name]  
 Accepted electronically on: [date and time]  

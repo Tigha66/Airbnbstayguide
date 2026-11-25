@@ -9,6 +9,23 @@ import { integrationCategories, integrationDisclaimer } from "@/lib/integrations
 
 const pointIcons = [BookOpen, MessageCircle, ShieldCheck];
 
+function FoundingFiveOffer({ locale }: { locale: SiteLocale }) {
+  const offer = siteText(locale).foundingFiveOffer;
+  return (
+    <div className="founding-five-offer feature-card center" id="founding-five">
+      <div className="eyebrow">{offer.eyebrow}</div>
+      <h2>{offer.title}</h2>
+      <p><strong>{offer.price}</strong></p>
+      <p>{offer.body}</p>
+      <small className="muted">{offer.details}</small>
+      <Link className="button secondary" href={`${localeBase(locale)}/pricing#founding-five`}>
+        {offer.cta}
+        <ArrowRight size={15} />
+      </Link>
+    </div>
+  );
+}
+
 /** The marketing homepage, in any of the website languages. */
 export function HomePage({ locale }: { locale: SiteLocale }) {
   const t = siteText(locale);
@@ -174,6 +191,7 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
           <h2>{t.pricingSection.title}</h2>
           <p>{t.pricingSection.body}</p>
           <Pricing locale={locale} />
+          <FoundingFiveOffer locale={locale} />
         </section>
         <section className="marketing-section center">
           <div className="eyebrow">{t.faq.eyebrow}</div>
@@ -234,6 +252,7 @@ export function PricingPage({ locale }: { locale: SiteLocale }) {
         <h2>{t.pricingPage.title}</h2>
         <p>{t.pricingPage.body}</p>
         <Pricing locale={locale} />
+        <FoundingFiveOffer locale={locale} />
       </main>
       <MarketingFooter locale={locale} />
     </div>

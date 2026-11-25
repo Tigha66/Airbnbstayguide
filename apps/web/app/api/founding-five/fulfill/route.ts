@@ -4,10 +4,12 @@ import { query, transaction } from "@/lib/db";
 import { requireHost } from "@/lib/session";
 import { assertStripeAccountIdentity, stripeClient, stripeConfigured, stripeLiveMode } from "@/lib/stripe";
 import { parseJson, safeOrigin } from "@/lib/api";
+import { foundingFiveConfirmationEmail } from "@/lib/founding-five-email";
+import { sendEmail } from "@/lib/mailer";
 
 export const dynamic = "force-dynamic";
 const reply = (data: unknown, status = 200) => NextResponse.json(data, { status, headers: { "Cache-Control": "private, no-store" } });
-const schema = z.object({ sessionId: z.string().trim().min(10).max(255) });
+const schema = z.object({ sessionId: z.string().trim().min(10).max(255), locale: z.enum(["en", "fr", "es", "de", "ar"]).default("en") });
 
 function qaFulfilmentEnabled() {
   return process.env.VERCEL_ENV === "preview" &&
@@ -57,18 +59,18 @@ export async function POST(request: Request) {
     const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 2, expand: ["data.price.product"] });
     if (lineItems.data.length !== 1 || lineItems.data[0].price?.id !== priceId ||
         lineItems.data[0].quantity !== 1 || lineItems.data[0].amount_total !== 4900 ||
-        lineItems.data[0].currency !== "gbp")
-      return reply({ error: "The paid line item does not match the QA £49 one-time price." }, 409);
+        lineItems.data[0].currency !== "usd")
+      return reply({ error: "The paid line item does not match the QA $49 USD one-time price." }, 409);
     const price = await stripe.prices.retrieve(priceId);
     const productId = typeof price.product === "string" ? price.product : price.product.id;
     const product = await stripe.products.retrieve(productId);
-    if (!price.active || price.currency !== "gbp" || price.unit_amount !== 4900 || price.recurring ||
+    if (!price.active || price.currency !== "usd" || price.unit_amount !== 4900 || price.recurring ||
         price.metadata?.qa_only !== "true" || product.metadata?.qa_only !== "true" ||
         product.metadata?.environment !== "test_mode_only")
-      return reply({ error: "Configured price is not the QA-only £49 one-time price." }, 409);
+      return reply({ error: "Configured price is not the QA-only $49 USD one-time price." }, 409);
 
-    const [order] = await query<{ id: string; status: string; payment_reference: string | null; agreement_version: string; agreement_accepted_at: string }>(
-      "SELECT id, status, payment_reference, agreement_version, agreement_accepted_at FROM commissioned_guide_orders WHERE checkout_session_id=$1 AND owner_id=$2 AND property_id=$3",
+    const [order] = await query<{ id: string; status: string; payment_reference: string | null; agreement_version: string; agreement_accepted_at: string; confirmation_email_sent_at: string | null }>(
+      "SELECT id, status, payment_reference, agreement_version, agreement_accepted_at, confirmation_email_sent_at FROM commissioned_guide_orders WHERE checkout_session_id=$1 AND owner_id=$2 AND property_id=$3",
       [session.id, host.user.id, metadata.property_id],
     );
     if (!order || order.agreement_version !== metadata.agreement_version ||
@@ -98,7 +100,40 @@ export async function POST(request: Request) {
     const hosting = results[3]?.[0] as { payment_reference: string; status: string; starts_at: string; ends_at: string } | undefined;
     if (!results[1]?.length || !hosting || hosting.payment_reference !== paymentIntentId || hosting.status !== "active" || !results[4]?.length)
       return reply({ error: "Hosting was not activated because the order could not be safely reconciled." }, 409);
-    return reply({ activated: true, idempotent: order.status === "fulfilled", startsAt: hosting.starts_at, endsAt: hosting.ends_at, status: hosting.status });
+    let confirmationEmailSent = Boolean(order.confirmation_email_sent_at);
+    if (!confirmationEmailSent) {
+      const email = foundingFiveConfirmationEmail({
+        locale: parsed.data.locale,
+        startsAt: hosting.starts_at,
+        endsAt: hosting.ends_at,
+      });
+      try {
+        await sendEmail({
+          to: host.user.email,
+          subject: email.subject,
+          text: email.text,
+          idempotencyKey: `founding-five-confirmation/${order.id}`,
+        });
+        await query(
+          "UPDATE commissioned_guide_orders SET confirmation_email_sent_at=COALESCE(confirmation_email_sent_at, now()) WHERE id=$1",
+          [order.id],
+        );
+        confirmationEmailSent = true;
+      } catch (error) {
+        console.error("[founding-five] confirmation email failed", {
+          orderId: order.id,
+          error: error instanceof Error ? error.name : "UnknownError",
+        });
+      }
+    }
+    return reply({
+      activated: true,
+      idempotent: order.status === "fulfilled",
+      startsAt: hosting.starts_at,
+      endsAt: hosting.ends_at,
+      status: hosting.status,
+      confirmationEmailSent,
+    });
   } catch {
     return reply({ error: "QA payment verification or fulfilment failed. No subscription or premium entitlement was granted." }, 502);
   }

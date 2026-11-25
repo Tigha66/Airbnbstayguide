@@ -9,6 +9,13 @@ type Dict = Record<string, string>;
 
 const fr: Dict = {
   "Founding Five QA hosting": "Hébergement QA Founding Five",
+  "Founding Five checkout — QA only": "Offre Founding Five — paiement test QA",
+  "Test payment only. This does not record genuine customer consent.": "Paiement de test uniquement. Cela n’enregistre pas un consentement client réel.",
+  "Confirm the synthetic QA agreement": "Confirmer l’accord QA synthétique",
+  "Opening test checkout…": "Ouverture du paiement test…",
+  "Start $49 USD test checkout": "Démarrer le paiement test de $49 USD",
+  "One-time test price: $49 USD. Includes one guide and 12 months of hosting; no subscription or automatic renewal.": "Prix de test unique : $49 USD. Un guide et 12 mois d’hébergement ; sans abonnement ni renouvellement automatique.",
+  "Hosting is active, but the confirmation email is pending. Retry activation to send it.": "L’hébergement est actif, mais l’e-mail de confirmation est en attente. Réessayez l’activation pour l’envoyer.",
   "Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.": "Le paiement attend la mise en service. Publiez le guide approuvé, puis vérifiez et activez l’hébergement de douze mois.",
   "Verifying payment…": "Vérification du paiement…",
   "Verify payment and activate hosting": "Vérifier le paiement et activer l’hébergement",
@@ -443,6 +450,13 @@ const fr: Dict = {
 
 const es: Dict = {
   "Founding Five QA hosting": "Alojamiento QA Founding Five",
+  "Founding Five checkout — QA only": "Oferta Founding Five — pago de prueba",
+  "Test payment only. This does not record genuine customer consent.": "Solo pago de prueba. No registra el consentimiento real de un cliente.",
+  "Confirm the synthetic QA agreement": "Confirmar el acuerdo sintético de QA",
+  "Opening test checkout…": "Abriendo el pago de prueba…",
+  "Start $49 USD test checkout": "Iniciar pago de prueba de $49 USD",
+  "One-time test price: $49 USD. Includes one guide and 12 months of hosting; no subscription or automatic renewal.": "Precio de prueba único: $49 USD. Incluye una guía y 12 meses de alojamiento; sin suscripción ni renovación automática.",
+  "Hosting is active, but the confirmation email is pending. Retry activation to send it.": "El alojamiento está activo, pero el correo de confirmación está pendiente. Vuelve a activar para enviarlo.",
   "Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.": "El pago está pendiente de cumplimiento. Publica la guía aprobada y verifica y activa el alojamiento de doce meses.",
   "Verifying payment…": "Verificando el pago…",
   "Verify payment and activate hosting": "Verificar el pago y activar el alojamiento",
@@ -865,6 +879,13 @@ const es: Dict = {
 
 const de: Dict = {
   "Founding Five QA hosting": "Founding Five QA-Hosting",
+  "Founding Five checkout — QA only": "Founding-Five-Angebot — QA-Testzahlung",
+  "Test payment only. This does not record genuine customer consent.": "Nur eine Testzahlung. Dies erfasst keine echte Kundeneinwilligung.",
+  "Confirm the synthetic QA agreement": "Synthetische QA-Vereinbarung bestätigen",
+  "Opening test checkout…": "Testzahlung wird geöffnet…",
+  "Start $49 USD test checkout": "$49-USD-Testzahlung starten",
+  "One-time test price: $49 USD. Includes one guide and 12 months of hosting; no subscription or automatic renewal.": "Einmaliger Testpreis: $49 USD. Enthält einen Guide und 12 Monate Hosting; kein Abo und keine automatische Verlängerung.",
+  "Hosting is active, but the confirmation email is pending. Retry activation to send it.": "Das Hosting ist aktiv, aber die Bestätigungs-E-Mail steht aus. Bitte erneut aktivieren, um sie zu senden.",
   "Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.": "Die Zahlung wartet auf Erfüllung. Veröffentlichen Sie den freigegebenen Guide und aktivieren Sie anschließend den zwölfmonatigen Hostingzeitraum.",
   "Verifying payment…": "Zahlung wird geprüft…",
   "Verify payment and activate hosting": "Zahlung prüfen und Hosting aktivieren",
@@ -1287,6 +1308,13 @@ const de: Dict = {
 
 const ar: Dict = {
   "Founding Five QA hosting": "استضافة Founding Five للاختبار",
+  "Founding Five checkout — QA only": "عرض Founding Five — دفعة اختبار فقط",
+  "Test payment only. This does not record genuine customer consent.": "دفعة اختبار فقط. لا يسجل ذلك موافقة عميل حقيقية.",
+  "Confirm the synthetic QA agreement": "تأكيد اتفاقية QA الاصطناعية",
+  "Opening test checkout…": "جارٍ فتح الدفع التجريبي…",
+  "Start $49 USD test checkout": "بدء دفع اختباري بقيمة $49 USD",
+  "One-time test price: $49 USD. Includes one guide and 12 months of hosting; no subscription or automatic renewal.": "سعر اختبار لمرة واحدة: $49 USD. يشمل دليلاً واحداً واستضافة لمدة 12 شهراً؛ دون اشتراك أو تجديد تلقائي.",
+  "Hosting is active, but the confirmation email is pending. Retry activation to send it.": "الاستضافة نشطة، لكن رسالة التأكيد معلّقة. أعد محاولة التفعيل لإرسالها.",
   "Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.": "الدفع بانتظار التنفيذ. انشر الدليل المعتمد، ثم تحقّق من سجل الاستضافة لمدة اثني عشر شهرًا وفعّله.",
   "Verifying payment…": "جارٍ التحقق من الدفع…",
   "Verify payment and activate hosting": "تحقّق من الدفع وفعّل الاستضافة",

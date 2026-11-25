@@ -188,9 +188,11 @@ CREATE TABLE IF NOT EXISTS commissioned_guide_orders (
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'fulfilled', 'cancelled', 'refunded')),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
+  confirmation_email_sent_at timestamptz,
   CONSTRAINT commissioned_guide_orders_owner_fk
     FOREIGN KEY (property_id, owner_id) REFERENCES properties(id, owner_id) ON DELETE CASCADE
 );
+ALTER TABLE commissioned_guide_orders ADD COLUMN IF NOT EXISTS confirmation_email_sent_at timestamptz;
 CREATE UNIQUE INDEX IF NOT EXISTS commissioned_guide_orders_one_active_property_idx
   ON commissioned_guide_orders(property_id)
   WHERE status IN ('pending', 'paid', 'fulfilled');

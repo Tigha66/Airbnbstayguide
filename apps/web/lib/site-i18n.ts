@@ -85,6 +85,7 @@ const en = {
     cta: "See integration coverage",
   },
   pricingSection: { eyebrow: "ROOM TO GROW", title: "Your properties. Your pace.", body: "From your first little hideaway to a whole collection of memorable places." },
+  foundingFiveOffer: { eyebrow: "FOUNDING FIVE", title: "One guest guide. Twelve months of hosting.", price: "$49 USD · one-time", body: "A commissioned guest guide with one consolidated revision and 12 months of basic hosting from publication.", details: "No subscription or automatic renewal. Your StayGuide account remains on the Free plan.", cta: "Read the offer" },
   pricingPage: { eyebrow: "A LITTLE INVESTMENT IN A BETTER STAY", title: "Simple plans. Thoughtful hospitality.", body: "Start small. Make it yours. Grow when you’re ready." },
   pricing: {
     places: "Your little places",
@@ -206,6 +207,7 @@ const fr: SiteText = {
     cta: "Voir les intégrations",
   },
   pricingSection: { eyebrow: "DE LA PLACE POUR GRANDIR", title: "Vos logements. Votre rythme.", body: "De votre premier petit refuge à toute une collection de lieux mémorables." },
+  foundingFiveOffer: { eyebrow: "FOUNDING FIVE", title: "Un guide voyageur. Douze mois d’hébergement.", price: "$49 USD · paiement unique", body: "Un guide voyageur personnalisé, une révision groupée et 12 mois d’hébergement de base à compter de la publication.", details: "Sans abonnement ni renouvellement automatique. Votre compte StayGuide reste sur le forfait gratuit.", cta: "Découvrir l’offre" },
   pricingPage: { eyebrow: "UN PETIT INVESTISSEMENT POUR UN MEILLEUR SÉJOUR", title: "Des offres simples. Une hospitalité attentionnée.", body: "Commencez petit. Faites-le vôtre. Grandissez quand vous êtes prêt." },
   pricing: {
     places: "Vos logements",
@@ -326,6 +328,7 @@ const es: SiteText = {
     cta: "Ver cobertura de integraciones",
   },
   pricingSection: { eyebrow: "ESPACIO PARA CRECER", title: "Tus alojamientos. Tu ritmo.", body: "Desde tu primer pequeño refugio hasta toda una colección de lugares memorables." },
+  foundingFiveOffer: { eyebrow: "FOUNDING FIVE", title: "Una guía para huéspedes. Doce meses de alojamiento.", price: "$49 USD · pago único", body: "Una guía personalizada para huéspedes, una revisión consolidada y 12 meses de alojamiento básico desde la publicación.", details: "Sin suscripción ni renovación automática. Tu cuenta StayGuide seguirá en el plan gratuito.", cta: "Ver la oferta" },
   pricingPage: { eyebrow: "UNA PEQUEÑA INVERSIÓN EN UNA MEJOR ESTANCIA", title: "Planes sencillos. Hospitalidad cuidada.", body: "Empieza poco a poco. Hazlo tuyo. Crece cuando quieras." },
   pricing: {
     places: "Tus alojamientos",
@@ -446,6 +449,7 @@ const de: SiteText = {
     cta: "Integrationen ansehen",
   },
   pricingSection: { eyebrow: "PLATZ ZUM WACHSEN", title: "Ihre Unterkünfte. Ihr Tempo.", body: "Von Ihrem ersten kleinen Rückzugsort bis zu einer ganzen Sammlung unvergesslicher Orte." },
+  foundingFiveOffer: { eyebrow: "FOUNDING FIVE", title: "Ein Gästeguide. Zwölf Monate Hosting.", price: "$49 USD · einmalig", body: "Ein individuell erstellter Gästeguide mit einer gebündelten Überarbeitung und 12 Monaten Basis-Hosting ab Veröffentlichung.", details: "Kein Abo und keine automatische Verlängerung. Ihr StayGuide-Konto bleibt im kostenlosen Tarif.", cta: "Angebot ansehen" },
   pricingPage: { eyebrow: "EINE KLEINE INVESTITION IN BESSERE AUFENTHALTE", title: "Einfache Tarife. Durchdachte Gastfreundschaft.", body: "Klein anfangen. Individuell gestalten. Wachsen, wenn Sie so weit sind." },
   pricing: {
     places: "Ihre Unterkünfte",
@@ -566,6 +570,7 @@ const ar: SiteText = {
     cta: "اطّلع على تغطية التكاملات",
   },
   pricingSection: { eyebrow: "مساحة للنمو", title: "عقاراتك. بإيقاعك.", body: "من أول مكان صغير لك إلى مجموعة كاملة من الأماكن التي لا تُنسى." },
+  foundingFiveOffer: { eyebrow: "FOUNDING FIVE", title: "دليل واحد للضيوف. واستضافة لمدة 12 شهراً.", price: "$49 USD · دفعة واحدة", body: "دليل ضيوف مُعدّ خصيصاً، مع مراجعة موحّدة واحدة و12 شهراً من الاستضافة الأساسية بدءاً من النشر.", details: "دون اشتراك أو تجديد تلقائي. سيظل حساب StayGuide على الخطة المجانية.", cta: "اطّلع على العرض" },
   pricingPage: { eyebrow: "استثمار صغير في إقامة أفضل", title: "خطط بسيطة. ضيافة مدروسة.", body: "ابدأ صغيرًا. اجعله خاصًا بك. وانمُ حين تكون مستعدًا." },
   pricing: {
     places: "عدد عقاراتك",

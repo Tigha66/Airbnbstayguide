@@ -6,7 +6,7 @@ import { appUrl, assertStripeAccountIdentity, checkoutIdentity, stripeClient, st
 import { parseJson, safeOrigin } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
-const agreementVersion = "founding-five-qa-v1";
+const agreementVersion = "founding-five-qa-usd-v2";
 const schema = z.object({
   propertyId: z.string().trim().min(1).max(80),
   qaAgreementAccepted: z.literal(true),
@@ -47,10 +47,10 @@ export async function POST(request: Request) {
     const price = await stripe.prices.retrieve(configuredPriceId);
     const productId = typeof price.product === "string" ? price.product : price.product.id;
     const product = await stripe.products.retrieve(productId);
-    if (!price.active || price.currency !== "gbp" || price.unit_amount !== 4900 || price.recurring ||
+    if (!price.active || price.currency !== "usd" || price.unit_amount !== 4900 || price.recurring ||
         price.metadata?.qa_only !== "true" || product.metadata?.qa_only !== "true" ||
         product.metadata?.environment !== "test_mode_only")
-      return reply({ error: "The configured Founding Five price is not the approved QA-only one-time £49 GBP price." }, 503);
+      return reply({ error: "The configured Founding Five price is not the approved QA-only one-time $49 USD price." }, 503);
 
     const [existing] = await query<{
       id: string; checkout_session_id: string; status: "pending" | "paid" | "fulfilled" | "cancelled" | "refunded";

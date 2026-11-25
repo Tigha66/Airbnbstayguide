@@ -2,6 +2,7 @@ import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { query, setQueryOverride, splitStatements } from "./db";
+import { sendEmail } from "@/lib/mailer";
 
 const fixture = vi.hoisted(() => ({
   ownerId: "aaaaaaa1-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -16,6 +17,7 @@ const fixture = vi.hoisted(() => ({
 vi.mock("@/lib/session", () => ({
   requireHost: async () => ({ user: { id: fixture.ownerId, email: "owner@example.test", emailVerified: true } }),
 }));
+vi.mock("@/lib/mailer", () => ({ sendEmail: vi.fn(async () => undefined) }));
 vi.mock("@/lib/api", () => ({
   safeOrigin: () => true,
   parseJson: (raw: string) => JSON.parse(raw),
@@ -32,11 +34,11 @@ vi.mock("@/lib/stripe", () => ({
         metadata: {
           app: "stayguide", kind: "commissioned_hosting", qa_only: "true",
           user_id: fixture.ownerId, property_id: fixture.propertyId,
-          agreement_version: "founding-five-qa-v1", agreement_accepted_at: fixture.acceptedAt, price_id: fixture.priceId,
+          agreement_version: "founding-five-qa-usd-v2", agreement_accepted_at: fixture.acceptedAt, price_id: fixture.priceId,
         },
       }),
       listLineItems: async () => ({
-        data: [{ price: { id: fixture.priceId }, quantity: 1, amount_total: 4900, currency: "gbp" }],
+        data: [{ price: { id: fixture.priceId }, quantity: 1, amount_total: 4900, currency: "usd" }],
       }),
     } },
     paymentIntents: { retrieve: async () => ({
@@ -45,7 +47,7 @@ vi.mock("@/lib/stripe", () => ({
         user_id: fixture.ownerId, property_id: fixture.propertyId },
     }) },
     prices: { retrieve: async () => ({
-      active: true, currency: "gbp", unit_amount: 4900, recurring: null,
+      active: true, currency: "usd", unit_amount: 4900, recurring: null,
       product: "prod_test_founding_five_qa", metadata: { qa_only: "true" },
     }) },
     products: { retrieve: async () => ({
@@ -78,7 +80,7 @@ beforeAll(async () => {
     [fixture.propertyId, fixture.ownerId, fixture.publishedAt],
   );
   await query(
-    "INSERT INTO commissioned_guide_orders(property_id,owner_id,checkout_session_id,payment_reference,agreement_version,agreement_accepted_at,status) VALUES ($1,$2,$3,$4,'founding-five-qa-v1',$5,'paid')",
+    "INSERT INTO commissioned_guide_orders(property_id,owner_id,checkout_session_id,payment_reference,agreement_version,agreement_accepted_at,status) VALUES ($1,$2,$3,$4,'founding-five-qa-usd-v2',$5,'paid')",
     [fixture.propertyId, fixture.ownerId, fixture.sessionId, fixture.paymentId, fixture.acceptedAt],
   );
 }, 30000);
@@ -101,7 +103,7 @@ function request() {
   return new Request("https://qa.example.test/api/founding-five/fulfill", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sessionId: fixture.sessionId }),
+    body: JSON.stringify({ sessionId: fixture.sessionId, locale: "en" }),
   });
 }
 
@@ -109,24 +111,26 @@ it("activates exactly one 12-month hosting term after a verified paid test order
   const response = await POST(request());
   expect(response.status).toBe(200);
   expect(await response.json()).toMatchObject({
-    activated: true, idempotent: false, status: "active",
+    activated: true, idempotent: false, status: "active", confirmationEmailSent: true,
     startsAt: fixture.publishedAt, endsAt: "2027-11-23T12:00:00.000Z",
   });
   const [user] = await query<{ plan: string; stripe_subscription_id: string | null }>(
     "SELECT plan, stripe_subscription_id FROM users WHERE id=$1", [fixture.ownerId],
   );
   expect(user).toEqual({ plan: "free", stripe_subscription_id: null });
+  expect(sendEmail).toHaveBeenCalledTimes(1);
 });
 
 it("retries idempotently without extending the term or creating a second grant", async () => {
   const response = await POST(request());
   expect(response.status).toBe(200);
   expect(await response.json()).toMatchObject({
-    activated: true, idempotent: true, status: "active",
+    activated: true, idempotent: true, status: "active", confirmationEmailSent: true,
     startsAt: fixture.publishedAt, endsAt: "2027-11-23T12:00:00.000Z",
   });
   const [count] = await query<{ n: number }>("SELECT count(*)::int AS n FROM commissioned_guide_hosting WHERE property_id=$1", [fixture.propertyId]);
   expect(count.n).toBe(1);
+  expect(sendEmail).toHaveBeenCalledTimes(1);
 });
 
 it("does not reactivate hosting after refund", async () => {

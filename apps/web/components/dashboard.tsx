@@ -204,15 +204,19 @@ export function Dashboard({ view = "" }: { view?: string }) {
       const response = await fetch("/api/founding-five/fulfill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: foundingFiveSessionId }),
+        body: JSON.stringify({ sessionId: foundingFiveSessionId, locale }),
       });
-      const result = await response.json() as { error?: string; startsAt?: string; endsAt?: string };
+      const result = await response.json() as { error?: string; startsAt?: string; endsAt?: string; confirmationEmailSent?: boolean };
       if (!response.ok) throw new Error(result.error || tr("Hosting could not be activated."));
-      setFoundingFiveMessage(tr("Hosting is active from {starts} until {ends}. No automatic renewal.", {
-        starts: result.startsAt ? new Date(result.startsAt).toLocaleDateString(locale) : "",
-        ends: result.endsAt ? new Date(result.endsAt).toLocaleDateString(locale) : "",
-      }));
-      setFoundingFiveSessionId("");
+      if (result.confirmationEmailSent === false) {
+        setFoundingFiveMessage(tr("Hosting is active, but the confirmation email is pending. Retry activation to send it."));
+      } else {
+        setFoundingFiveMessage(tr("Hosting is active from {starts} until {ends}. No automatic renewal.", {
+          starts: result.startsAt ? new Date(result.startsAt).toLocaleDateString(locale) : "",
+          ends: result.endsAt ? new Date(result.endsAt).toLocaleDateString(locale) : "",
+        }));
+        setFoundingFiveSessionId("");
+      }
       router.replace(window.location.pathname);
     } catch (error) {
       setFoundingFiveMessage(error instanceof Error ? error.message : tr("Hosting could not be activated."));
@@ -961,12 +965,13 @@ export function Dashboard({ view = "" }: { view?: string }) {
               </div>
               {live && qaCheckoutVisible && property?.id && (
                 <div className="card panel">
-                  <h3>Founding Five checkout — QA only</h3>
-                  <p>Test payment only. This does not record genuine customer consent.</p>
-                  <label><input type="checkbox" checked={qaOfferAccepted} onChange={(event) => setQaOfferAccepted(event.target.checked)} /> Confirm the synthetic QA agreement</label>
+                  <h3>{tr("Founding Five checkout — QA only")}</h3>
+                  <p>{tr("Test payment only. This does not record genuine customer consent.")}</p>
+                  <label><input type="checkbox" checked={qaOfferAccepted} onChange={(event) => setQaOfferAccepted(event.target.checked)} /> {tr("Confirm the synthetic QA agreement")}</label>
                   <button className="button" type="button" disabled={!qaOfferAccepted || foundingFiveBusy} onClick={() => void startQaCheckout()}>
-                    {foundingFiveBusy ? "Opening test checkout…" : "Start £49 test checkout"}
+                    {foundingFiveBusy ? tr("Opening test checkout…") : tr("Start $49 USD test checkout")}
                   </button>
+                  <p className="muted">{tr("One-time test price: $49 USD. Includes one guide and 12 months of hosting; no subscription or automatic renewal.")}</p>
                 </div>
               )}
               {live && commissionedHosting?.propertyId === property?.id && (
