@@ -77,22 +77,22 @@ export async function assertStripeAccountIdentity() {
       responseContentType,
     );
   }
+  // Stripe's /v1/account response provides the account ID, but not a livemode field.
+  // Determine mode from the API key prefix; the configured account ID independently
+  // pins this integration to the intended account or sandbox.
   const account = payload && typeof payload === "object"
-    ? payload as { id?: unknown; livemode?: unknown }
+    ? payload as { id?: unknown }
     : null;
-  if (!account || typeof account.id !== "string" || typeof account.livemode !== "boolean")
+  if (!account || typeof account.id !== "string")
     throw new StripeAccountIdentityError(
       "stripe_response_missing_identity_fields",
       response.status,
       responseContentType,
       Boolean(account && typeof account.id === "string"),
-      Boolean(account && typeof account.livemode === "boolean"),
     );
   if (account.id !== expectedAccountId)
     throw new StripeAccountIdentityError("stripe_account_mismatch", response.status);
-  if (account.livemode !== stripeLiveMode())
-    throw new StripeAccountIdentityError("stripe_mode_mismatch", response.status);
-  return { id: account.id, livemode: account.livemode };
+  return { id: account.id, livemode: stripeLiveMode() };
 }
 let client: Stripe | null = null;
 export function stripeClient() {
