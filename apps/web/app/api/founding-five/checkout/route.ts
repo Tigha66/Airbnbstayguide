@@ -78,7 +78,8 @@ export async function POST(request: Request) {
 
     const identity = checkoutIdentity(`${host.user.id}:${propertyId}`, price.id, 1);
     const acceptedAt = new Date().toISOString();
-    const origin = appUrl(request);
+    const qaOrigin = "https://stayguide-isolated-qa-git-test-founding-fi-6322a7-hajabdelhak66.vercel.app";
+    const origin = request.headers.get("origin") === qaOrigin ? qaOrigin : appUrl(request);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: host.user.email,
