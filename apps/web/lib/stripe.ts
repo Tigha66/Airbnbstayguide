@@ -42,6 +42,8 @@ export async function assertStripeAccountIdentity() {
   if (!secretKey) throw new StripeAccountIdentityError("missing_secret_key");
   if (!stripeConfigured()) throw new StripeAccountIdentityError("invalid_secret_key_format");
   if (!expectedAccountId) throw new StripeAccountIdentityError("missing_expected_account");
+  // Founding Five is an isolated QA flow; never permit a live-mode key here.
+  if (stripeLiveMode()) throw new StripeAccountIdentityError("stripe_mode_mismatch");
 
   let response: Response;
   try {
@@ -92,7 +94,7 @@ export async function assertStripeAccountIdentity() {
     );
   if (account.id !== expectedAccountId)
     throw new StripeAccountIdentityError("stripe_account_mismatch", response.status);
-  return { id: account.id, livemode: stripeLiveMode() };
+  return { id: account.id, livemode: false };
 }
 let client: Stripe | null = null;
 export function stripeClient() {
