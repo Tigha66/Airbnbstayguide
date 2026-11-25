@@ -5,6 +5,25 @@ import { applicationFee, plans, CURRENCY, type Plan } from "@stayguide/shared";
 
 export const stripeConfigured = () => /^(?:sk|rk)_(?:test|live)_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 export const stripeLiveMode = () => /^(?:sk|rk)_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
+
+/** Refuse QA billing operations unless the API key resolves to the operator-approved Stripe account and mode. */
+export async function assertStripeAccountIdentity() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  const expectedAccountId = process.env.STRIPE_EXPECTED_ACCOUNT_ID?.trim();
+  if (!secretKey || !stripeConfigured() || !expectedAccountId)
+    throw new Error("Stripe account identity is not configured");
+  const response = await fetch("https://api.stripe.com/v1/account", {
+    method: "GET",
+    headers: { Authorization: `Bearer ${secretKey}` },
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!response.ok) throw new Error("Stripe account identity could not be verified");
+  const account = await response.json() as { id?: string; livemode?: boolean };
+  if (account.id !== expectedAccountId || account.livemode !== stripeLiveMode())
+    throw new Error("Stripe account identity or mode does not match the QA configuration");
+  return { id: account.id, livemode: account.livemode };
+}
 let client: Stripe | null = null;
 export function stripeClient() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");
