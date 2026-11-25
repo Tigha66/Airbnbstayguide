@@ -1,7 +1,39 @@
 # Founding Five £49 guest-guide offer — QA readiness and draft terms
+
+## Current status — 25 November 2026
+
+This section supersedes conflicting statements in the historical 24 November snapshot below. PR #40 remains a draft and unmerged; production is unchanged.
+
+- **Code and CI:** GitHub release-candidate run [#45514636261](https://github.com/Tigha66/Airbnbstayguide/actions/runs/45514636261) passed for code head `28b319c`. The associated isolated Preview was READY. A documentation-only agreement draft has now been added at [`docs/founding-five-customer-agreement-draft.md`](founding-five-customer-agreement-draft.md); no application code changed in that commit.
+- **QA property and guide:** The synthetic property is published, its owner matches the owner on the hosting record, and its public Preview guide returned HTTP 200. Vercel logged one application-initialization timeout on an earlier request; a subsequent request returned HTTP 200. Recheck after the next Preview deployment.
+- **Neon lifecycle state:** Neon currently has one fulfilled order and one active hosting grant. The grant is linked to the matching owner and published property, with start `2026-11-24T11:42:59Z` and end `2027-11-24T11:42:59Z`. The three accounts remain on Free and none has a Stripe subscription. Lifecycle test coverage exists in CI.
+- **Payment evidence is not valid for the specified account:** The QA database contains a completed-order record and a processed `checkout.session.completed` event, but their Checkout Session/event references could not be retrieved from the connected Stripe test account `acct_1Rdzf0G3wnn7CPRM`. Do not count those database records as verified payment evidence or as a payment in that account.
+- **Correct test price:** The connected account has active test-mode price `price_1Uf2xBG3wnn7CPRMl3nuMIYM`, GBP 4,900 pence, one-time, `livemode=false`. The branch-scoped Preview variable `STRIPE_FOUNDING_FIVE_QA_PRICE_ID` was corrected to this ID. That environment edit occurred after the latest Preview deployment, so it is not active until a new Preview deployment.
+- **Secret and checkout state:** Branch-scoped sensitive variables `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` remain configured but their values were not read. The user is replacing the Stripe test key with one for the exact connected account. `FOUNDING_FIVE_QA_ENABLED=false` remains in the branch Preview environment; no fresh Checkout Session or payment should be attempted until the key is confirmed and a new Preview is deployed.
+- **Webhook state:** The dedicated test-mode Stripe destinations `we_1UfCldG3wnn7CPRMsPVhsdbe` and `we_1Uf4ewG3wnn7CPRM4qQWv4NF` are disabled. The Stripe API response showed no configured URL/signing secret for them. Signed delivery, invalid-signature rejection and endpoint idempotency are therefore still unverified. Do not route Founding Five events to unrelated legacy endpoints.
+- **Older Preview risk:** Vercel reports SSO protection enabled for production deployment URLs and all Preview deployments. An older READY Preview created with the checkout flag enabled remains in the project. This protection contains public access, but the available Vercel connector has no deployment-delete action; explicit cleanup of that old deployment remains outstanding. The current branch Preview flag is false.
+- **Tax:** The owner confirms they are not currently UK VAT-registered. No production tax or payment setting was changed.
+
+### Remaining technical release gates
+
+1. After the owner updates the branch-scoped Preview Stripe key, verify its account identity and keep all operations in test mode.
+2. Deploy the branch-scoped corrected price/key configuration to a fresh isolated Preview.
+3. Configure a dedicated test-mode webhook for that Preview and verify a real signed delivery; keep the checkout flag off until endpoint identity, URL, signature secret, Vercel protection and Neon isolation all agree.
+4. Run a fresh £49 GBP Checkout Session/payment in the specified account and match the session, payment and event IDs to Neon QA.
+5. Verify success, failure, expiry, duplicate events, refunds and duplicate fulfilment; confirm the account remains Free with no subscription and the hosting grant remains exactly 12 months from publication.
+6. Recheck the old checkout-enabled Preview. SSO currently restricts all Preview deployments; remove or otherwise disable the old deployment when the Vercel UI provides a safe control.
+7. Complete release acceptance and obtain separate approval before any merge, production change or public sale.
+
+### Historical GO / NO-GO (24 November 2026)
+
+**NO-GO for paid customers.** QA proves the published guide, owner linkage, 12-month hosting record and Free-plan state. The payment record is not corroborated in the specified Stripe account, the dedicated webhook is disabled, the corrected Preview price variable has not yet been deployed, and the prior startup timeout needs a clean retest. The separate agreement draft is not approved for sale or signature. Keep PR #40 unmerged and production unchanged.
+
+---
+
+
 *Internal proposal only. Not published, not legal advice, not a customer agreement, and not permission to charge or send.*
 
-## Current technical evidence (PR #40 draft, checked 24 November 2026)
+## Historical technical evidence (checked 24 November 2026; superseded by current status above)
 
 - Published guest guides are selected by `getPublishedProperty(slug)` in `apps/web/lib/repo.ts` using `status = 'published'`, without a subscription or trial-expiry condition. `/g/[slug]` is public.
 - A synthetic QA account was registered and verified through PR #40's Resend configuration, logged out and back in, and retained an authenticated session. The Neon QA record is on isolated project `shy-voice-70913438`, branch `br-crimson-band-zascnds1`, database `stayguide_qa`; it remains Free with no Stripe customer or subscription.
