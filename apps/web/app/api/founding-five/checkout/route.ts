@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { query } from "@/lib/db";
 import { requireHost } from "@/lib/session";
-import { appUrl, checkoutIdentity, stripeClient, stripeConfigured, stripeLiveMode } from "@/lib/stripe";
+import { appUrl, assertStripeAccountIdentity, checkoutIdentity, stripeClient, stripeConfigured, stripeLiveMode } from "@/lib/stripe";
 import { parseJson, safeOrigin } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,8 @@ function qaCheckoutEnabled() {
   return process.env.VERCEL_ENV === "preview" &&
     process.env.FOUNDING_FIVE_QA_ENABLED === "true" &&
     stripeConfigured() && !stripeLiveMode() &&
-    Boolean(process.env.STRIPE_FOUNDING_FIVE_QA_PRICE_ID);
+    Boolean(process.env.STRIPE_FOUNDING_FIVE_QA_PRICE_ID) &&
+    Boolean(process.env.STRIPE_EXPECTED_ACCOUNT_ID);
 }
 
 export async function POST(request: Request) {
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
   if (!property) return reply({ error: "Property not found." }, 404);
 
   try {
+    await assertStripeAccountIdentity();
     const stripe = stripeClient();
     const configuredPriceId = process.env.STRIPE_FOUNDING_FIVE_QA_PRICE_ID!.trim();
     const price = await stripe.prices.retrieve(configuredPriceId);

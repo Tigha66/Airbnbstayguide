@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { query, transaction } from "@/lib/db";
 import { requireHost } from "@/lib/session";
-import { stripeClient, stripeConfigured, stripeLiveMode } from "@/lib/stripe";
+import { assertStripeAccountIdentity, stripeClient, stripeConfigured, stripeLiveMode } from "@/lib/stripe";
 import { parseJson, safeOrigin } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,8 @@ function qaFulfilmentEnabled() {
   return process.env.VERCEL_ENV === "preview" &&
     process.env.FOUNDING_FIVE_QA_ENABLED === "true" &&
     stripeConfigured() && !stripeLiveMode() &&
-    Boolean(process.env.STRIPE_FOUNDING_FIVE_QA_PRICE_ID);
+    Boolean(process.env.STRIPE_FOUNDING_FIVE_QA_PRICE_ID) &&
+    Boolean(process.env.STRIPE_EXPECTED_ACCOUNT_ID);
 }
 
 /** Owner-triggered, idempotent fulfilment. Checkout completion alone never grants hosting. */
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return reply({ error: "A valid Checkout Session ID is required." }, 400);
 
   try {
+    await assertStripeAccountIdentity();
     const stripe = stripeClient();
     const session = await stripe.checkout.sessions.retrieve(parsed.data.sessionId, {
       expand: ["line_items.data.price.product", "payment_intent"],

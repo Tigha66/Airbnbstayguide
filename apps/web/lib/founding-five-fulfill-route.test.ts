@@ -23,6 +23,7 @@ vi.mock("@/lib/api", () => ({
 vi.mock("@/lib/stripe", () => ({
   stripeConfigured: () => true,
   stripeLiveMode: () => false,
+  assertStripeAccountIdentity: async () => ({ id: "acct_test_founding_five_qa", livemode: false }),
   stripeClient: () => ({
     checkout: { sessions: {
       retrieve: async () => ({
@@ -60,12 +61,14 @@ const oldEnv = {
   vercelEnv: process.env.VERCEL_ENV,
   enabled: process.env.FOUNDING_FIVE_QA_ENABLED,
   price: process.env.STRIPE_FOUNDING_FIVE_QA_PRICE_ID,
+  expectedAccount: process.env.STRIPE_EXPECTED_ACCOUNT_ID,
 };
 
 beforeAll(async () => {
   process.env.VERCEL_ENV = "preview";
   process.env.FOUNDING_FIVE_QA_ENABLED = "true";
   process.env.STRIPE_FOUNDING_FIVE_QA_PRICE_ID = fixture.priceId;
+  process.env.STRIPE_EXPECTED_ACCOUNT_ID = "acct_test_founding_five_qa";
   setQueryOverride(async (sql, params) => (await pg.query(sql, params)).rows as Record<string, unknown>[]);
   for (const statement of splitStatements(readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8")))
     await pg.exec(statement);
@@ -87,6 +90,7 @@ afterAll(async () => {
     ["VERCEL_ENV", oldEnv.vercelEnv],
     ["FOUNDING_FIVE_QA_ENABLED", oldEnv.enabled],
     ["STRIPE_FOUNDING_FIVE_QA_PRICE_ID", oldEnv.price],
+    ["STRIPE_EXPECTED_ACCOUNT_ID", oldEnv.expectedAccount],
   ] as const) {
     if (value === undefined) delete process.env[key];
     else process.env[key] = value;

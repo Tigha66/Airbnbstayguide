@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
-import { stripeClient, stripeConfigured } from "@/lib/stripe";
+import { assertStripeAccountIdentity, stripeClient, stripeConfigured } from "@/lib/stripe";
 import { handleVerifiedStripeEvent } from "@/lib/stripe-events";
 import { unavailable } from "@/lib/api";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!stripeConfigured() || !secret) return unavailable("Billing");
+  if (process.env.STRIPE_EXPECTED_ACCOUNT_ID) {
+    try { await assertStripeAccountIdentity(); }
+    catch { return unavailable("Billing"); }
+  }
   const signature = request.headers.get("stripe-signature");
   const payload = await request.text();
   let event;
