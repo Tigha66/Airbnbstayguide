@@ -112,3 +112,25 @@ it("cancels expired unpaid orders and records full refunds without creating or e
   expect((await query<{ status: string }>("SELECT status FROM commissioned_guide_orders WHERE payment_reference=$1", [paymentRef]))[0].status).toBe("refunded");
   expect((await query<{ plan: string }>("SELECT plan FROM users WHERE id=$1", [owner]))[0].plan).toBe("free");
 });
+
+it("cancels a terminal asynchronous payment failure without granting hosting", async () => {
+  const failedPropertyId = propertyId + "-async-failed";
+  const session = {
+    id: "cs_async_failed_qa",
+    mode: "payment",
+    payment_status: "unpaid",
+    metadata: { app: "stayguide", kind: "commissioned_hosting", qa_only: "true", user_id: owner, property_id: failedPropertyId },
+  };
+  await query(
+    "INSERT INTO properties(id,owner_id,slug,status,data,published_at) VALUES ($1,$2,'qa-hosting-async-failed','published','{}',now())",
+    [failedPropertyId, owner],
+  );
+  await query(
+    "INSERT INTO commissioned_guide_orders(property_id,owner_id,checkout_session_id,agreement_version,agreement_accepted_at) VALUES ($1,$2,$3,'qa-v1',now())",
+    [failedPropertyId, owner, session.id],
+  );
+  expect(await handleVerifiedStripeEvent(stripeEvent("checkout.session.async_payment_failed", "evt_async_failed_qa", session))).toBe("commissioned_hosting:cancelled");
+  expect((await query<{ status: string }>("SELECT status FROM commissioned_guide_orders WHERE checkout_session_id=$1", [session.id]))[0].status).toBe("cancelled");
+  expect((await query<{ count: number }>("SELECT count(*)::int AS count FROM commissioned_guide_hosting WHERE property_id=$1", [failedPropertyId]))[0].count).toBe(0);
+  expect((await query<{ plan: string }>("SELECT plan FROM users WHERE id=$1", [owner]))[0].plan).toBe("free");
+});
