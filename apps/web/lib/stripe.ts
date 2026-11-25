@@ -6,22 +6,75 @@ import { applicationFee, plans, CURRENCY, type Plan } from "@stayguide/shared";
 export const stripeConfigured = () => /^(?:sk|rk)_(?:test|live)_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 export const stripeLiveMode = () => /^(?:sk|rk)_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 
+export type StripeAccountIdentityFailureCode =
+  | "missing_secret_key"
+  | "invalid_secret_key_format"
+  | "missing_expected_account"
+  | "stripe_request_timeout"
+  | "stripe_network_error"
+  | "stripe_authentication_failed"
+  | "stripe_permission_denied"
+  | "stripe_rate_limited"
+  | "stripe_api_error"
+  | "invalid_stripe_response"
+  | "stripe_account_mismatch"
+  | "stripe_mode_mismatch"
+  | "unexpected_identity_check_failure";
+
+/** Safe diagnostic error: never include or log API credentials or Stripe response bodies. */
+export class StripeAccountIdentityError extends Error {
+  constructor(
+    readonly code: StripeAccountIdentityFailureCode,
+    readonly stripeStatus?: number,
+  ) {
+    super(code);
+    this.name = "StripeAccountIdentityError";
+  }
+}
+
 /** Refuse QA billing operations unless the API key resolves to the operator-approved Stripe account and mode. */
 export async function assertStripeAccountIdentity() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   const expectedAccountId = process.env.STRIPE_EXPECTED_ACCOUNT_ID?.trim();
-  if (!secretKey || !stripeConfigured() || !expectedAccountId)
-    throw new Error("Stripe account identity is not configured");
-  const response = await fetch("https://api.stripe.com/v1/account", {
-    method: "GET",
-    headers: { Authorization: `Bearer ${secretKey}` },
-    cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!response.ok) throw new Error("Stripe account identity could not be verified");
-  const account = await response.json() as { id?: string; livemode?: boolean };
-  if (account.id !== expectedAccountId || account.livemode !== stripeLiveMode())
-    throw new Error("Stripe account identity or mode does not match the QA configuration");
+  if (!secretKey) throw new StripeAccountIdentityError("missing_secret_key");
+  if (!stripeConfigured()) throw new StripeAccountIdentityError("invalid_secret_key_format");
+  if (!expectedAccountId) throw new StripeAccountIdentityError("missing_expected_account");
+
+  let response: Response;
+  try {
+    response = await fetch("https://api.stripe.com/v1/account", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${secretKey}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    if (name === "TimeoutError" || name === "AbortError")
+      throw new StripeAccountIdentityError("stripe_request_timeout");
+    throw new StripeAccountIdentityError("stripe_network_error");
+  }
+
+  if (!response.ok) {
+    const code = response.status === 401 ? "stripe_authentication_failed"
+      : response.status === 403 ? "stripe_permission_denied"
+      : response.status === 429 ? "stripe_rate_limited"
+      : "stripe_api_error";
+    throw new StripeAccountIdentityError(code, response.status);
+  }
+
+  let account: { id?: string; livemode?: boolean };
+  try {
+    account = await response.json() as { id?: string; livemode?: boolean };
+  } catch {
+    throw new StripeAccountIdentityError("invalid_stripe_response", response.status);
+  }
+  if (!account || typeof account.id !== "string" || typeof account.livemode !== "boolean")
+    throw new StripeAccountIdentityError("invalid_stripe_response", response.status);
+  if (account.id !== expectedAccountId)
+    throw new StripeAccountIdentityError("stripe_account_mismatch", response.status);
+  if (account.livemode !== stripeLiveMode())
+    throw new StripeAccountIdentityError("stripe_mode_mismatch", response.status);
   return { id: account.id, livemode: account.livemode };
 }
 let client: Stripe | null = null;
