@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { query } from "@/lib/db";
+import { query, transaction } from "@/lib/db";
+import { reserveFoundingFiveCustomer } from "@/lib/founding-five-reservations";
 import { requireHost } from "@/lib/session";
 import { appUrl, assertStripeAccountIdentity, checkoutIdentity, stripeClient, stripeConfigured, stripeLiveMode } from "@/lib/stripe";
 import { parseJson, safeOrigin } from "@/lib/api";
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
       }
       if (previous.status === "expired") {
         await query("UPDATE commissioned_guide_orders SET status='cancelled', updated_at=now() WHERE id=$1 AND status='pending'", [existing.id]);
+        await query("UPDATE founding_five_offer_reservations SET status='cancelled' WHERE checkout_session_id=$1 AND status='pending'", [existing.checkout_session_id]);
       } else {
         return reply({ error: "An existing QA checkout needs to finish or expire before another can start." }, 409);
       }
@@ -78,68 +80,94 @@ export async function POST(request: Request) {
       return reply({ error: "This property already has a paid or fulfilled Founding Five order." }, 409);
     }
 
-    const identity = checkoutIdentity(`${host.user.id}:${propertyId}`, price.id, 1);
+    const reservation = await reserveFoundingFiveCustomer(host.user.id, propertyId);
+    if (!reservation.reserved) {
+      if (reservation.reason === "duplicate")
+        return reply({ error: "Founding Five is limited to one purchase per customer. This account already has an active or completed order." }, 409);
+      return reply({ error: "All five Founding Five places are currently reserved or sold." }, 409);
+    }
+
     const acceptedAt = new Date().toISOString();
+    const identity = checkoutIdentity(`${host.user.id}:${propertyId}:${reservation.reservationId}`, price.id, 1);
     const qaOrigin = "https://stayguide-isolated-qa-git-test-founding-fi-6322a7-hajabdelhak66.vercel.app";
     const origin = request.headers.get("origin") === qaOrigin ? qaOrigin : appUrl(request);
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      customer_email: host.user.email,
-      client_reference_id: host.user.id,
-      line_items: [{ price: price.id, quantity: 1 }],
-      metadata: {
-        app: "stayguide",
-        kind: "commissioned_hosting",
-        qa_only: "true",
-        user_id: host.user.id,
-        property_id: propertyId,
-        agreement_version: agreementVersion,
-        agreement_accepted_at: acceptedAt,
-        price_id: price.id,
-      },
-      customer_creation: "always",
-      automatic_tax: { enabled: false },
-      invoice_creation: {
-        enabled: true,
-        invoice_data: {
-          description: "Founding Five guest guide, one consolidated revision, and 12 months of basic hosting from publication.",
-          footer: "Supplier is not VAT registered. No UK VAT charged.",
-          metadata: {
-            app: "stayguide",
-            kind: "commissioned_hosting",
-            qa_only: "true",
-            user_id: host.user.id,
-            property_id: propertyId,
-            price_id: price.id,
-          },
-        },
-      },
-      custom_text: {
-        submit: { message: "Supplier is not VAT registered. No UK VAT charged." },
-      },
-      payment_intent_data: {
-        description: "Founding Five guide and 12 months basic hosting. Supplier is not VAT registered. No UK VAT charged.",
+    let createdSessionId: string | null = null;
+    try {
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer_email: host.user.email,
+        customer_creation: "always",
+        client_reference_id: host.user.id,
+        line_items: [{ price: price.id, quantity: 1 }],
         metadata: {
           app: "stayguide",
           kind: "commissioned_hosting",
           qa_only: "true",
-          vat_status: "not_registered_no_uk_vat_charged",
           user_id: host.user.id,
           property_id: propertyId,
+          reservation_id: reservation.reservationId,
+          agreement_version: agreementVersion,
+          agreement_accepted_at: acceptedAt,
+          price_id: price.id,
         },
-      },
-      success_url: origin + "/dashboard/editor?foundingFive=payment-received&session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: origin + "/dashboard/editor?foundingFive=cancelled",
-    }, { idempotencyKey: identity.idempotencyKey });
-
-    await query(
-      `INSERT INTO commissioned_guide_orders
-        (property_id, owner_id, checkout_session_id, agreement_version, agreement_accepted_at)
-       VALUES ($1,$2,$3,$4,$5)
-       ON CONFLICT (checkout_session_id) DO NOTHING`,
-      [propertyId, host.user.id, session.id, agreementVersion, acceptedAt],
-    );
-    return reply({ url: session.url });
+        automatic_tax: { enabled: false },
+        invoice_creation: {
+          enabled: true,
+          invoice_data: {
+            description: "Founding Five guest guide, one consolidated revision, and 12 months of basic hosting from publication.",
+            footer: "Supplier is not VAT registered. No UK VAT charged.",
+            metadata: {
+              app: "stayguide",
+              kind: "commissioned_hosting",
+              qa_only: "true",
+              user_id: host.user.id,
+              property_id: propertyId,
+              price_id: price.id,
+            },
+          },
+        },
+        custom_text: {
+          submit: { message: "Supplier is not VAT registered. No UK VAT charged." },
+        },
+        payment_intent_data: {
+          description: "Founding Five guide and 12 months basic hosting. Supplier is not VAT registered. No UK VAT charged.",
+          metadata: {
+            app: "stayguide",
+            kind: "commissioned_hosting",
+            qa_only: "true",
+            vat_status: "not_registered_no_uk_vat_charged",
+            user_id: host.user.id,
+            property_id: propertyId,
+          },
+        },
+        success_url: origin + "/dashboard/editor?foundingFive=payment-received&session_id={CHECKOUT_SESSION_ID}",
+        cancel_url: origin + "/dashboard/editor?foundingFive=cancelled",
+      }, { idempotencyKey: identity.idempotencyKey });
+      if (!session.url || !session.expires_at) throw new Error("Stripe returned an incomplete Checkout Session");
+      createdSessionId = session.id;
+      const saved = await transaction([{
+        text: `
+          WITH reserved AS (
+            UPDATE founding_five_offer_reservations
+            SET checkout_session_id=$2, expires_at=to_timestamp($3)
+            WHERE id=$1 AND status='pending'
+            RETURNING id
+          )
+          INSERT INTO commissioned_guide_orders
+            (property_id, owner_id, checkout_session_id, agreement_version, agreement_accepted_at)
+          SELECT $4,$5,$2,$6,$7 FROM reserved
+          ON CONFLICT (checkout_session_id) DO NOTHING
+          RETURNING id
+        `,
+        params: [reservation.reservationId, session.id, session.expires_at, propertyId, host.user.id, agreementVersion, acceptedAt],
+      }]);
+      if (!saved[0]?.length) throw new Error("Founding Five reservation could not be linked to checkout");
+      return reply({ url: session.url });
+    } catch (error) {
+      if (createdSessionId) await stripe.checkout.sessions.expire(createdSessionId).catch(() => undefined);
+      await query("UPDATE founding_five_offer_reservations SET status='cancelled' WHERE id=$1 AND status='pending'", [reservation.reservationId]).catch(() => undefined);
+      throw error;
+    }
   } catch {
     return reply({ error: "QA checkout could not be prepared. No hosting or paid subscription was granted." }, 502);
   }
