@@ -12,6 +12,7 @@ describe("Founding Five confirmation email", () => {
       });
       expect(email.subject).toBeTruthy();
       expect(email.text).toContain("$49 USD");
+      expect(email.text).toContain("Supplier is not VAT registered. No UK VAT charged.");
       expect(email.text).toContain(locale === "en" ? "Free plan" : locale === "fr" ? "forfait gratuit" : locale === "es" ? "plan gratuito" : locale === "de" ? "kostenlosen Tarif" : "الخطة المجانية");
       expect(email.text.length).toBeGreaterThan(100);
       expect(email.text).toMatch(locale === "de" ? /12|zwölf/i : /12|twelve/i);
