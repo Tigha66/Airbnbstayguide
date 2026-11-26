@@ -151,6 +151,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
   }, []);
   const [commissionedHosting, setCommissionedHosting] = useState<{
     propertyId: string; startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean;
+    receiptUrl: string | null; invoiceUrl: string | null; invoicePdfUrl: string | null;
   } | null>(null);
   useEffect(() => {
     if (!live || !property?.id) return;
@@ -162,7 +163,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
     }).then(async (response) => {
       if (response.status === 404) return null;
       if (!response.ok) throw new Error("Hosting status unavailable");
-      return await response.json() as { startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean };
+      return await response.json() as { startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean; receiptUrl: string | null; invoiceUrl: string | null; invoicePdfUrl: string | null };
     }).then((status) => {
       if (!controller.signal.aborted) setCommissionedHosting(status ? { ...status, propertyId } : null);
     }).catch(() => {
@@ -995,6 +996,17 @@ export function Dashboard({ view = "" }: { view?: string }) {
                       expires: new Date(commissionedHosting.endsAt).toLocaleDateString(locale),
                     })}
                   </p>
+                  <div className="hosting-documents">
+                    {commissionedHosting.invoiceUrl && (
+                      <a href={commissionedHosting.invoiceUrl} target="_blank" rel="noreferrer">{tr("View invoice")}</a>
+                    )}
+                    {commissionedHosting.invoicePdfUrl && (
+                      <a href={commissionedHosting.invoicePdfUrl} target="_blank" rel="noreferrer">{tr("Download invoice PDF")}</a>
+                    )}
+                    {commissionedHosting.receiptUrl && (
+                      <a href={commissionedHosting.receiptUrl} target="_blank" rel="noreferrer">{tr("View payment receipt")}</a>
+                    )}
+                  </div>
                 </div>
               )}
               <div className="card property-details">
