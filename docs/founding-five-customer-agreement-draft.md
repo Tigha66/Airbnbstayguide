@@ -19,7 +19,7 @@
 **Contact email:** [SUPPLIER CONTACT EMAIL]  
 **Complaint contact:** [SUPPLIER COMPLAINT CONTACT]
 
-The supplier must fill in and confirm these details before this agreement is offered. The supplier currently reports that it is not registered for UK VAT. The price below is stated without VAT charged. If the supplier's tax status or obligations change, it must update the customer-facing price and invoice wording before taking further orders.
+The supplier must fill in and confirm these details before this agreement is offered. The supplier is not registered for UK VAT. The customer-facing invoice wording is: “Supplier is not VAT registered. No UK VAT charged”. The supplier must not display a VAT number or describe the supply as VAT-exempt. The supplier must monitor taxable turnover and obtain professional advice if mandatory registration may apply. If the supplier's tax status or obligations change, it must update the customer-facing price and invoice wording before taking further orders.
 
 ## 2. Service and fee
 
@@ -33,7 +33,7 @@ The supplier will prepare one mobile-friendly digital guest guide for the proper
 
 The customer must supply complete, accurate information and assets that they are entitled to use. The supplier aims to provide the first preview within five UK working days after cleared payment and receipt of all required information and assets. The time estimate pauses while information, permissions or customer decisions are outstanding. Publication takes place only after the customer approves the guide.
 
-The total fee is **$49.00 USD**, paid once. The invoice or payment receipt should describe this as “Founding Five guest guide and 12 months of basic hosting — $49.00 USD (one-time; no subscription or automatic renewal).” The supplier currently reports that it is not registered for UK VAT; no VAT is charged on this draft price. The fee does not include a monthly subscription, automatic renewal or later continuation charge. Any work outside the included scope requires a separate written quote and the customer's agreement before it starts.
+The total fee is **$49.00 USD**, paid once. The invoice or payment receipt should describe this as “Founding Five guest guide and 12 months of basic hosting — $49.00 USD (one-time; no subscription or automatic renewal).” Supplier is not VAT registered. No UK VAT charged. No VAT number is displayed, and this is not described as VAT-exempt. The fee does not include a monthly subscription, automatic renewal or later continuation charge. Any work outside the included scope requires a separate written quote and the customer's agreement before it starts.
 
 ## 3. Hosting period
 
