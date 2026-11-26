@@ -18,10 +18,15 @@ function FoundingFiveOffer({ locale }: { locale: SiteLocale }) {
       <p><strong>{offer.price}</strong></p>
       <p>{offer.body}</p>
       <small className="muted">{offer.details}</small>
-      <Link className="button secondary" href={`${localeBase(locale)}/pricing#founding-five`}>
-        {offer.cta}
-        <ArrowRight size={15} />
-      </Link>
+      <div className="row" style={{ justifyContent: "center", flexWrap: "wrap" }}>
+        <Link className="button secondary" href={`${localeBase(locale)}/pricing#founding-five`}>
+          {offer.cta}
+          <ArrowRight size={15} />
+        </Link>
+        <Link className="button secondary" href={`/sample?lang=${locale}`}>
+          {({ en: "Request a free personalised sample", fr: "Demander un exemple personnalisé gratuit", es: "Solicitar una muestra personalizada gratuita", de: "Kostenloses persönliches Beispiel anfordern", ar: "اطلب نموذجًا شخصيًا مجانيًا" } as const)[locale]}
+        </Link>
+      </div>
     </div>
   );
 }
