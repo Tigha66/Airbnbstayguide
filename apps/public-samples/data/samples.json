@@ -1,0 +1,202 @@
+[
+  {
+    "slug": "amos-denstone-lodge",
+    "propertyName": "Denstone Woodland Lodge",
+    "location": "Staffordshire Moorlands",
+    "accent": "#2d6a4f",
+    "summary": "A four-bedroom woodland lodge for up to eight guests, with a hot tub and countryside setting near Alton Towers.",
+    "highlights": [
+      "Four-bedroom lodge accommodating up to eight guests.",
+      "Hot tub and countryside setting near Alton Towers.",
+      "Operator already provides online guest check-in and information pages."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Staffordshire Moorlands walks",
+      "Alton Towers area",
+      "Nearby Peak District outings"
+    ],
+    "sourceUrl": "https://www.amosholidayhomes.co.uk/denstone-guests/"
+  },
+  {
+    "slug": "beach-house-apartments-porth",
+    "propertyName": "Beach House Apartments",
+    "location": "Porth, Newquay, Cornwall",
+    "accent": "#2d7180",
+    "summary": "Self-catering accommodation in Porth, Newquay, with an existing guest information folder covering property and safety information.",
+    "highlights": [
+      "Located in Porth, Newquay.",
+      "Self-catering accommodation near the North Cornwall coastline.",
+      "The operator already provides a guest information folder."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Porth Beach",
+      "Newquay coastal walks",
+      "North Cornwall activities"
+    ],
+    "sourceUrl": "https://www.breaksincornwall.com/find-us/"
+  },
+  {
+    "slug": "brambles-forest-dean",
+    "propertyName": "Brambles",
+    "location": "Forest of Dean, Gloucestershire",
+    "accent": "#56734b",
+    "summary": "A romantic self-catering cottage for two, part of a collection of Forest Barns cottages.",
+    "highlights": [
+      "A romantic cottage for two.",
+      "A private hot tub is listed among the facilities.",
+      "Part of a collection of cottages in Gloucestershire."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Forest of Dean trails",
+      "Nearby woodland cycling and walking",
+      "Activities listed by Forest Barn Holidays"
+    ],
+    "sourceUrl": "https://www.forestbarnholidays.co.uk/the-hamlet/brambles"
+  },
+  {
+    "slug": "dinas-ddu-beddgelert",
+    "propertyName": "Dinas-Ddu",
+    "location": "Near Beddgelert, North Wales",
+    "accent": "#39715f",
+    "summary": "A pet-friendly holiday cottage near Beddgelert, with an independent sample complementing the operator’s area information packs.",
+    "highlights": [
+      "Pet-friendly holiday cottage near Beddgelert.",
+      "Dioni provides local-area information packs.",
+      "The agency focuses on holiday cottages in North Wales."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Beddgelert village",
+      "Eryri / Snowdonia walks",
+      "North Wales days out"
+    ],
+    "sourceUrl": "https://www.dioni.co.uk/cottage/dinas-ddu/"
+  },
+  {
+    "slug": "harveys-corner-cottage",
+    "propertyName": "Harvey’s Corner Cottage",
+    "location": "Chadlington, Cotswolds",
+    "accent": "#8a744a",
+    "summary": "A three-bedroom Cotswold cottage for six, near a village shop, butcher and The Tite Inn pub.",
+    "highlights": [
+      "Three-bedroom cottage accommodating six guests.",
+      "Located in Chadlington.",
+      "Listing places it near village shops, a butcher and The Tite Inn."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Chadlington village shops",
+      "The Tite Inn",
+      "North Cotswolds countryside walks"
+    ],
+    "sourceUrl": "https://www.staycotswold.com/property/harveys-corner-cottage-3-bed-cotswold-holiday-accommodation/"
+  },
+  {
+    "slug": "isaacs-cottage",
+    "propertyName": "Isaac’s Cottage",
+    "location": "Allendale village, Northumberland",
+    "accent": "#496b83",
+    "summary": "A property-specific welcome pack can be shaped into a compact mobile guide for guests staying in Allendale Village.",
+    "highlights": [
+      "The operator says property information is provided in a welcome pack.",
+      "The cottage is in Allendale Village centre, with local shops and pubs.",
+      "The public listing places it about a 20-minute drive from Hexham."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Allendale village shops and pubs",
+      "Hadrian’s Wall",
+      "Hexham market town"
+    ],
+    "sourceUrl": "https://www.hexhamholidayhomes.co.uk/"
+  },
+  {
+    "slug": "old-millhouse-dalkeith",
+    "propertyName": "The Old Millhouse",
+    "location": "Dalkeith, near Edinburgh",
+    "accent": "#74634a",
+    "summary": "A historic house dating from 1703 with five bedrooms for up to ten guests, a swimspa and 3.5 acres of garden.",
+    "highlights": [
+      "Historic house dating from 1703.",
+      "Five bedrooms accommodating up to ten guests.",
+      "Swimspa and 3.5 acres of garden."
+    ],
+    "arrival": "Published arrival time: from 4 pm. Host must confirm access method and arrival-day instructions.",
+    "departure": "Published departure time: by 10 am. Host must confirm any checkout checklist.",
+    "recommendations": [
+      "Edinburgh day trips",
+      "Dalkeith countryside",
+      "River Esk and garden walks"
+    ],
+    "sourceUrl": "https://www.lettingsofdistinction.com/luxury-holiday-homes/148354-the-old-millhouse"
+  },
+  {
+    "slug": "rose-suite-woking",
+    "propertyName": "The Rose Suite",
+    "location": "Woking, Surrey",
+    "accent": "#8b536b",
+    "summary": "A one-bedroom Woking apartment for two, on the sixth floor with views towards the Surrey Hills.",
+    "highlights": [
+      "One-bedroom apartment for two guests.",
+      "Guest gym and 24/7 building security are listed.",
+      "Listing notes no reception service or on-site parking."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Woking town centre",
+      "Surrey Hills excursions",
+      "Local rail and transport options"
+    ],
+    "sourceUrl": "https://oakdaleapartments.co.uk/property/the-rose-suite/"
+  },
+  {
+    "slug": "salt-lodge-st-ives",
+    "propertyName": "The Salt Lodge",
+    "location": "St Ives, Cornwall",
+    "accent": "#2f7185",
+    "summary": "A three-bedroom cottage in central St Ives for up to six guests, near Porthmeor Beach and the harbour front.",
+    "highlights": [
+      "Three-bedroom cottage accommodating up to six guests.",
+      "Located in central St Ives.",
+      "Cornish Gems already offers a downloadable Digital Welcome Folder."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Porthmeor Beach",
+      "St Ives harbour",
+      "Coastal walking and local galleries"
+    ],
+    "sourceUrl": "https://www.cornishgems.com/locations/west-cornwall/st-ives"
+  },
+  {
+    "slug": "west-street-covent-garden",
+    "propertyName": "Clarendon West Street",
+    "location": "Covent Garden, London",
+    "accent": "#405c79",
+    "summary": "Clarendon lists one- and two-bedroom serviced apartments at 36–38 West Street, with a welcome tablet carrying local information.",
+    "highlights": [
+      "One- and two-bedroom serviced apartments at 36–38 West Street, London WC2H 9NB.",
+      "The listing places Leicester Square station under five minutes away on foot.",
+      "A welcome tablet, iron and hairdryer are noted in the listing."
+    ],
+    "arrival": "No check-in time or entry instructions supplied; host confirmation required before publication.",
+    "departure": "No checkout time or departure instructions supplied; host confirmation required before publication.",
+    "recommendations": [
+      "Covent Garden piazza",
+      "Leicester Square",
+      "West End shops and nearby restaurants"
+    ],
+    "sourceUrl": "https://clarendonlondon.com/serviced-apartments/covent-garden/clarendon-west-street/"
+  }
+]
