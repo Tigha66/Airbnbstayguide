@@ -13,5 +13,5 @@ const pageCopy: Record<SiteLocale,{title:string;body:string}> = {
 };
 export default async function SamplePage({searchParams}:{searchParams:Promise<{lang?:string}>}) {
   const params=await searchParams; const locale=isSiteLocale(params.lang||"")?params.lang as SiteLocale:"en"; const t=siteText(locale);
-  return <div className="marketing" lang={locale} dir={siteDir(locale)}><MarketingNav locale={locale}/><main className="marketing-section center" style={{maxWidth:900}}><div className="eyebrow">GETSTAYGUIDE · PERSONAL SAMPLE</div><h1>{pageCopy[locale].title}</h1><p>{pageCopy[locale].body}</p><WalkthroughEnquiryForm locale={locale}/><p><Link className="text-link" href={locale==="en"?"/demo":`/${locale}/demo`}>{t.hero.secondary}</Link></p></main><MarketingFooter locale={locale}/></div>;
+  return <div className="marketing" lang={locale} dir={siteDir(locale)}><MarketingNav locale={locale}/><main className="marketing-section center" style={{maxWidth:900}}><div className="eyebrow">GETSTAYGUIDE · PERSONAL SAMPLE</div><h1>{pageCopy[locale].title}</h1><p>{pageCopy[locale].body}</p><WalkthroughEnquiryForm locale={locale}/><p><Link className="text-link" href="/demo">{t.hero.secondary}</Link></p></main><MarketingFooter locale={locale}/></div>;
 }
