@@ -210,3 +210,25 @@ CREATE TABLE IF NOT EXISTS property_walkthrough_enquiries (
 );
 CREATE INDEX IF NOT EXISTS property_walkthrough_enquiries_created_idx
   ON property_walkthrough_enquiries(created_at DESC);
+
+-- One-use-capable, expiring links for private prospect sample concepts.
+-- Only a SHA-256 hash of the high-entropy link token is stored.
+CREATE TABLE IF NOT EXISTS property_sample_previews (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug text NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]{2,80}$'),
+  token_hash text NOT NULL,
+  manager_name text NOT NULL,
+  property_name text NOT NULL,
+  location text NOT NULL,
+  accent text NOT NULL CHECK (accent ~ '^#[0-9a-fA-F]{6}$'),
+  summary text NOT NULL,
+  highlights jsonb NOT NULL DEFAULT '[]',
+  arrival text NOT NULL,
+  departure text NOT NULL,
+  recommendations jsonb NOT NULL DEFAULT '[]',
+  source_url text NOT NULL CHECK (source_url LIKE 'https://%'),
+  expires_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS property_sample_previews_expiry_idx
+  ON property_sample_previews(expires_at);
