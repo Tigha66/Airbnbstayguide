@@ -16,10 +16,10 @@ PR #40 remains an unmerged draft. Production and live payments are unchanged. Th
 
 ## Current implementation and verification limits
 
-- Latest draft branch head at the time of this update: `9ac5d06090246c5b6f04b4287a379dd756b1f840`. The isolated Preview for that commit is READY: https://stayguide-isolated-6rsv7owwy-hajabdelhak66.vercel.app/
+- Latest implementation commit before this documentation refresh: `c654bb0e9f958e6519364cf26b55eb2f2a383914`. CI run [#384](https://github.com/Tigha66/Airbnbstayguide/actions/runs/45891958454) passed unit tests, lint, typecheck, build and Chromium browser acceptance. The isolated QA and standard Preview checks passed; the separate prospect-samples deployment failed because its Vercel root directory `apps/public-samples` does not exist.
 - The current commit status shows the isolated Preview and production project's check successful; the prospect-samples project check failed because its configured root directory `apps/public-samples` does not exist. The prospect page links therefore are not externally usable or incognito-verified.
 - Commit `5a56f81` had 186/186 unit tests passing and lint passing, but failed TypeScript on receipt-link narrowing. Commit `9ac5d06` fixes that TypeScript error; a complete green CI result for that exact head has not yet been observed.
-- The hosted sample-request path previously had a mocked browser POST, not an actual persisted hosted submission. Email notifications for enquiries are not implemented in that route; no sample-request acknowledgement email has been verified.
+- The sample-request route now persists requests, attempts idempotent customer acknowledgements and internal support notifications, and records each delivery status for the founder-only dashboard. Hosted form submission, Neon persistence and Resend delivery remain unverified; the earlier browser test used a mocked POST.
 - The Stripe Checkout code now requests a customer and enables one-time invoice creation, adds a service description, VAT-status footer and QA metadata, and exposes owner-scoped receipt/invoice links. Actual generation, email delivery and customer access for an invoice remain unverified until a fresh eligible test checkout can be completed.
 
 ## Offer terms currently represented in the draft
