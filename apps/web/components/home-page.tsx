@@ -45,12 +45,12 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
             </h1>
             <p>{t.hero.body}</p>
             <div className="row">
-              <Link className="button" href="/login?mode=register">
-                {onboardingText[locale].trial}
+              <Link className="button" href="#founding-five">
+                {t.foundingFiveOffer.cta}
                 <ArrowRight size={16} />
               </Link>
-              <Link className="button secondary" href={`${localeBase(locale)}/tour`}>
-                {onboardingText[locale].learn}
+              <Link className="button secondary" href="/demo">
+                {t.hero.secondary}
                 <ArrowUpRight size={14} />
               </Link>
             </div>
@@ -76,6 +76,8 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
             </div>
           </div>
         </section>
+
+        <FoundingFiveOffer locale={locale} />
 
         <div className="marketing-band">
           <section className="marketing-section center" id="how-it-works">
@@ -191,7 +193,6 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
           <h2>{t.pricingSection.title}</h2>
           <p>{t.pricingSection.body}</p>
           <Pricing locale={locale} />
-          <FoundingFiveOffer locale={locale} />
         </section>
         <section className="marketing-section center">
           <div className="eyebrow">{t.faq.eyebrow}</div>
