@@ -173,8 +173,19 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const [qaOfferAccepted, setQaOfferAccepted] = useState(false);
   const [qaCheckoutVisible, setQaCheckoutVisible] = useState(false);
   useEffect(() => {
-    const timer = window.setTimeout(() => setQaCheckoutVisible(window.location.hostname === "stayguide-isolated-qa-git-test-founding-fi-6322a7-hajabdelhak66.vercel.app"), 0);
-    return () => window.clearTimeout(timer);
+    const controller = new AbortController();
+    fetch("/api/founding-five/account", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return await response.json() as { verified?: boolean; livemode?: boolean };
+      })
+      .then((account) => {
+        if (!controller.signal.aborted) setQaCheckoutVisible(account?.verified === true && account.livemode === false);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setQaCheckoutVisible(false);
+      });
+    return () => controller.abort();
   }, []);
   async function startQaCheckout() {
     if (!property?.id || !qaOfferAccepted || foundingFiveBusy) return;
