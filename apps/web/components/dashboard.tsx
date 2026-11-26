@@ -974,7 +974,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   </button>
                 </div>
               </div>
-              {live && qaCheckoutVisible && property?.id && (
+              {live && qaCheckoutVisible && property?.id && commissionedHosting?.propertyId !== property?.id && (
                 <div className="card panel">
                   <h3>{tr("Founding Five checkout — QA only")}</h3>
                   <p>{tr("Test payment only. This does not record genuine customer consent.")}</p>
