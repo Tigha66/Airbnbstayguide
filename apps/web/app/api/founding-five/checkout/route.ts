@@ -97,7 +97,23 @@ export async function POST(request: Request) {
         agreement_accepted_at: acceptedAt,
         price_id: price.id,
       },
+      customer_creation: "always",
       automatic_tax: { enabled: false },
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: "Founding Five guest guide, one consolidated revision, and 12 months of basic hosting from publication.",
+          footer: "Supplier is not VAT registered. No UK VAT charged.",
+          metadata: {
+            app: "stayguide",
+            kind: "commissioned_hosting",
+            qa_only: "true",
+            user_id: host.user.id,
+            property_id: propertyId,
+            price_id: price.id,
+          },
+        },
+      },
       custom_text: {
         submit: { message: "Supplier is not VAT registered. No UK VAT charged." },
       },
