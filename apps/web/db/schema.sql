@@ -198,3 +198,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS commissioned_guide_orders_one_active_property_
   WHERE status IN ('pending', 'paid', 'fulfilled');
 CREATE INDEX IF NOT EXISTS commissioned_guide_orders_payment_idx
   ON commissioned_guide_orders(payment_reference);
+
+-- Public property sample requests (Preview feature, manually reviewed; no automated mail).
+CREATE TABLE IF NOT EXISTS property_walkthrough_enquiries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL CHECK (char_length(name) BETWEEN 2 AND 100),
+  email text NOT NULL CHECK (char_length(email) <= 254),
+  property_name text NOT NULL CHECK (char_length(property_name) BETWEEN 2 AND 120),
+  property_url text NOT NULL CHECK (char_length(property_url) <= 2048 AND property_url LIKE 'https://%'),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS property_walkthrough_enquiries_created_idx
+  ON property_walkthrough_enquiries(created_at DESC);
