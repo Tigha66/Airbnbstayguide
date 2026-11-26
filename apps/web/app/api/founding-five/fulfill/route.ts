@@ -96,9 +96,14 @@ export async function POST(request: Request) {
       { text: "INSERT INTO commissioned_guide_hosting (property_id, owner_id, payment_reference, agreement_version, agreement_accepted_at, payment_verified_at, published_at, starts_at, ends_at) SELECT p.id, p.owner_id, $3, $4, $5, now(), p.published_at, p.published_at, p.published_at + interval '12 months' FROM properties p WHERE p.id=$1 AND p.owner_id=$2 AND p.status='published' AND p.published_at IS NOT NULL AND EXISTS (SELECT 1 FROM commissioned_guide_orders o WHERE o.id=$6 AND o.owner_id=$2 AND o.property_id=$1 AND o.status IN ('paid','fulfilled') AND (o.payment_reference IS NULL OR o.payment_reference=$3)) ON CONFLICT (property_id) DO NOTHING", params: [property.id, host.user.id, paymentIntentId, order.agreement_version, order.agreement_accepted_at, order.id] },
       { text: "SELECT payment_reference, status, starts_at, ends_at FROM commissioned_guide_hosting WHERE property_id=$1 AND owner_id=$2", params: [property.id, host.user.id] },
       { text: "UPDATE commissioned_guide_orders SET status='fulfilled', payment_reference=$2, updated_at=now() WHERE id=$1 AND owner_id=$3 AND status='paid' AND payment_reference=$2 RETURNING id", params: [order.id, paymentIntentId, host.user.id] },
+      { text: "UPDATE founding_five_offer_reservations SET status='fulfilled', payment_reference=$3 WHERE checkout_session_id=$1 AND owner_id=$2 AND status IN ('paid','fulfilled') AND payment_reference=$3 RETURNING id", params: [session.id, host.user.id, paymentIntentId] },
+      { text: "SELECT status FROM founding_five_offer_reservations WHERE checkout_session_id=$1 AND owner_id=$2", params: [session.id, host.user.id] },
     ]);
     const hosting = results[3]?.[0] as { payment_reference: string; status: string; starts_at: string; ends_at: string } | undefined;
-    if (!results[1]?.length || !hosting || hosting.payment_reference !== paymentIntentId || hosting.status !== "active" || !results[4]?.length)
+    const reservationRows = results[6] ?? [];
+    const reservation = reservationRows[0] as { status: string } | undefined;
+    if (!results[1]?.length || !hosting || hosting.payment_reference !== paymentIntentId || hosting.status !== "active" || !results[4]?.length ||
+        (reservation && (reservation.status !== "fulfilled" || !results[5]?.length)))
       return reply({ error: "Hosting was not activated because the order could not be safely reconciled." }, 409);
     let confirmationEmailSent = Boolean(order.confirmation_email_sent_at);
     if (!confirmationEmailSent) {
