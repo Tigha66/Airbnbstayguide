@@ -1,7 +1,7 @@
 // Public-source sample copy only. No guest data, access details, photos, or raw tokens.
 module.exports = {
   "amos-denstone-lodge": {
-    tokenHash: "775257973ebc2a959d59df33fb00e8fed99fa1aa4c12b6bebe343dbfd17ee2d1",
+    tokenHash: "b8d7622a0e31c33d58480fc69a9158ec0ee0869ddc083ed7c1284a2fc1e1c563",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Amos Holiday Homes",
     property: "Denstone Woodland Lodge",
@@ -15,7 +15,7 @@ module.exports = {
     source: "https://www.amosholidayhomes.co.uk/denstone-guests/"
   },
   "beach-house-apartments-porth": {
-    tokenHash: "a3ed570c5387e4d12a3349beb42f1b39b34259f77f4324a8affce0a32a48b86d",
+    tokenHash: "2f999356c6fc706a4b1a25020e4ce8d6b090af400b6d4a0af23733e2967c6f52",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Breaks in Cornwall",
     property: "Beach House Apartments",
@@ -29,7 +29,7 @@ module.exports = {
     source: "https://www.breaksincornwall.com/find-us/"
   },
   "brambles-forest-dean": {
-    tokenHash: "2bab1b692189bfaaf6c0268e4c6867d58242644b023a7c5fa833ca72e677734d",
+    tokenHash: "2b33dd08d6c61b5d91f35798e458c3c6e35ec755953ce74bb2353422f061437d",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Forest Barn Holidays",
     property: "Brambles",
@@ -43,7 +43,7 @@ module.exports = {
     source: "https://www.forestbarnholidays.co.uk/the-hamlet/brambles"
   },
   "dinas-ddu-beddgelert": {
-    tokenHash: "82ec19572e75fafe29296f9e54c521b85bfbe624317bb8e2b7bf73b2e66a9120",
+    tokenHash: "48a50ff11b18fb9a6731abce204159cc4548e4fe0478a33649b6b78f2daead3c",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Dioni Holiday Cottages",
     property: "Dinas-Ddu",
@@ -57,7 +57,7 @@ module.exports = {
     source: "https://www.dioni.co.uk/cottage/dinas-ddu/"
   },
   "harveys-corner-cottage": {
-    tokenHash: "d189b9880131a342c0605b3b4981b57bd698b91ac2af366657ed059549d73dfe",
+    tokenHash: "5e6d12f6129dc74d4569870d3df1944fce8ce7b7816796d6a3236a9be1c1ccb8",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "StayCotswold",
     property: "Harvey’s Corner Cottage",
@@ -71,7 +71,7 @@ module.exports = {
     source: "https://www.staycotswold.com/property/harveys-corner-cottage-3-bed-cotswold-holiday-accommodation/"
   },
   "isaacs-cottage": {
-    tokenHash: "9ca861039dd2186422d1af6293a600f111d48bc0de16ff9200b0bd31f3d740c8",
+    tokenHash: "5cba4e2f92d9884a98eb4f7c8195bb8214656426be3e2ec2ef9eb592e9166766",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Hexham Holiday Homes",
     property: "Isaac’s Cottage",
@@ -85,7 +85,7 @@ module.exports = {
     source: "https://www.hexhamholidayhomes.co.uk/"
   },
   "old-millhouse-dalkeith": {
-    tokenHash: "63d33aa849a1478023eb08d7bff70a092229c12ee6425140d8d23a93136ec44c",
+    tokenHash: "d423c82933849fc864ae85c2072c3d0a7eba9b522b45a8a676576b0d1b462082",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Lettings of Distinction",
     property: "The Old Millhouse",
@@ -99,7 +99,7 @@ module.exports = {
     source: "https://www.lettingsofdistinction.com/luxury-holiday-homes/148354-the-old-millhouse"
   },
   "rose-suite-woking": {
-    tokenHash: "9ccc10e8fcc41dd89808f77cdddaf58c3b19b6b4be566ad3d321d429cac35157",
+    tokenHash: "c02b8f34f3aa56f4e417e5a3278794a5dd02543bece4af79ed044bb2a5b60df7",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Oakdale Serviced Apartments",
     property: "The Rose Suite",
@@ -113,7 +113,7 @@ module.exports = {
     source: "https://oakdaleapartments.co.uk/property/the-rose-suite/"
   },
   "salt-lodge-st-ives": {
-    tokenHash: "41aa6204d7177df233fd64d85e38f38dcd69097c58adfc4a76708a494c17c71d",
+    tokenHash: "7d01310b0556c3e35c43a954300738d642cfd82dd22716f98f691500f7d8ba41",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Cornish Gems",
     property: "The Salt Lodge",
@@ -127,7 +127,7 @@ module.exports = {
     source: "https://www.cornishgems.com/locations/west-cornwall/st-ives"
   },
   "west-street-covent-garden": {
-    tokenHash: "c3cd3d4618ecacbd9a1e3b7fa96bb706d11b000de7b602ddd9c0ab41e9e09692",
+    tokenHash: "bc2b1c17cc35e1ceb8ca84aeedf887366d37b37e65e7b48824fa9b5c4584da40",
     expiresAt: "2026-12-26T12:09:24.186Z",
     manager: "Clarendon Apartments",
     property: "Clarendon West Street",
