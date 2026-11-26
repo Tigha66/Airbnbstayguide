@@ -39,6 +39,10 @@ export async function handleStripeEvent(event: Stripe.Event) {
           "UPDATE commissioned_guide_orders SET status='paid', payment_reference=$2, updated_at=now() WHERE checkout_session_id=$1 AND status='pending' AND (payment_reference IS NULL OR payment_reference=$2)",
           [session.id, piId],
         );
+        await query(
+          "UPDATE founding_five_offer_reservations SET status='paid', payment_reference=$2 WHERE checkout_session_id=$1 AND status='pending'",
+          [session.id, piId],
+        );
         return "commissioned_hosting:paid";
       }
       if (session.metadata.kind === "extra") {
@@ -63,6 +67,7 @@ export async function handleStripeEvent(event: Stripe.Event) {
       if (session.metadata?.app !== "stayguide") return "ignored";
       if (session.metadata.kind === "commissioned_hosting" && session.metadata.qa_only === "true") {
         await query("UPDATE commissioned_guide_orders SET status='cancelled', updated_at=now() WHERE checkout_session_id=$1 AND status='pending'", [session.id]);
+        await query("UPDATE founding_five_offer_reservations SET status='cancelled' WHERE checkout_session_id=$1 AND status='pending'", [session.id]);
         return "commissioned_hosting:cancelled";
       }
       if (session.metadata.kind !== "extra") return "ignored";
@@ -99,6 +104,7 @@ export async function handleStripeEvent(event: Stripe.Event) {
         const paymentReference = charge.payment_intent;
         await query("UPDATE commissioned_guide_orders SET status='refunded', updated_at=now() WHERE payment_reference=$1 AND status IN ('paid','fulfilled')", [paymentReference]);
         await query("UPDATE commissioned_guide_hosting SET status='refunded' WHERE payment_reference=$1 AND status='active'", [paymentReference]);
+        await query("UPDATE founding_five_offer_reservations SET status='refunded' WHERE payment_reference=$1 AND status IN ('paid','fulfilled')", [paymentReference]);
       }
       const customer = typeof charge?.customer === "string" ? charge.customer : null;
       if (!customer) return "ignored";
