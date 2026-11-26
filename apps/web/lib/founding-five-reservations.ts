@@ -10,9 +10,10 @@ export type FoundingFiveReservationResult =
  * cannot reserve the same final place.
  */
 export async function reserveFoundingFiveCustomer(ownerId: string, propertyId: string): Promise<FoundingFiveReservationResult> {
-  const [, , insertedRows, [summary]] = await transaction([
+  const [, , , insertedRows, [summary]] = await transaction([
     { text: "SELECT id FROM founding_five_offer_capacity WHERE id=1 FOR UPDATE" },
     { text: "UPDATE commissioned_guide_orders SET status='cancelled', updated_at=now() WHERE status='pending' AND created_at <= now() - interval '25 hours'" },
+    { text: "UPDATE founding_five_offer_reservations SET status='cancelled' WHERE status='pending' AND ((checkout_session_id IS NULL AND created_at <= now() - interval '10 minutes') OR (checkout_session_id IS NOT NULL AND expires_at <= now()))" },
     { text: `
       INSERT INTO founding_five_offer_reservations (property_id, owner_id)
       SELECT $1, $2
