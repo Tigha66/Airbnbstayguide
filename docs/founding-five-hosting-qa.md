@@ -1,13 +1,24 @@
 # Founding Five $49 USD guest-guide offer — QA readiness and draft terms
 
-## Current USD change status — 25 November 2026
+## Current QA status — 26 November 2026
 
-PR #40 remains an unmerged draft; production is unchanged and checkout remains disabled. This USD conversion is not yet ready for acceptance: Stripe authorization currently exposes only an unrelated Sandbox, so no new USD Price has been created and no QA Preview price variable has been changed. Do not enable checkout until the dedicated GetStayGuide Sandbox (`acct_1UfSytGLQPXVXXJZ`) is reauthorized and its test-mode identity is verified.
+PR #40 remains an unmerged draft. Production is unchanged. The customer-facing agreement remains a draft and is not approved for sale or signature.
 
-- The new offer is defined as a one-time $49 USD purchase. Monthly subscription prices remain unchanged.
-- The legacy £49 GBP Price and historical payment/order/event evidence are retained as audit records; the new USD checkout must use a separate Price ID.
-- Code changes in this PR are being prepared to validate the new USD Price, display the offer in English, French, Spanish, German, and Arabic, and provide localized confirmation details. The agreement remains a draft with supplier name and invoice-address placeholders; the owner has confirmed no UK VAT registration.
-- No USD payment, signed USD webhook, Stripe-to-Neon reconciliation, or USD fulfilment has been completed. No production change or live-mode payment has occurred.
+- Founding Five is a **$49 USD one-time** offer for one professionally prepared property guide, one consolidated revision, and 12 months of basic hosting from publication. There is no automatic renewal, and the account remains on Free.
+- The connected Stripe account `acct_1UfSytGLQPXVXXJZ` is the dedicated **GetStayGuide QA** account. Stripe confirmed test mode (`livemode=false`).
+- Active test Price `price_1UfpybGLQPXVXXJZWoSFpu3F` is $49 USD, one-time, and tagged QA-only. The isolated Preview's branch-scoped price and expected account variables point to this account and Price. The QA checkout flag is enabled only on the SSO-protected Preview branch.
+- The read-only `/api/founding-five/account` check returned `verified=true`, the expected account ID, and `livemode=false`.
+- Current code commit: `7823cc4f8af452cf0b2b3a39e78748496e5ae028`. Isolated Vercel Preview is READY: https://stayguide-isolated-pagby3rps-hajabdelhak66.vercel.app/
+- Hosted GET checks returned HTTP 200 for the homepage, pricing page, guest demo, and English, French, Spanish, German and Arabic homepages. The offer appeared in all five languages; Arabic retained `lang="ar" dir="rtl"`.
+- GitHub release-candidate CI run [#352](https://github.com/Tigha66/Airbnbstayguide/actions/runs/45810408559) passed tests, lint, typecheck, build and Chromium browser acceptance.
+
+## Remaining end-to-end gates
+
+No synthetic checkout/payment, signed webhook delivery, Stripe-to-Neon reconciliation, payment-linked fulfilment, or hosted failure/expiry/duplicate/refund cycle has been completed in this run. The 12-month entitlement lifecycle and Free-plan retention therefore remain unverified through a real hosted purchase flow.
+
+The synthetic owner account needs the user-controlled password-reset step before authenticated QA can continue. Once the account is accessible, create and publish a customer-owned guide, then complete the isolated test-mode purchase and lifecycle checks.
+
+The agreement still has supplier legal-name, invoice-address, support and privacy placeholders and requires qualified legal review. The owner reports no UK VAT registration; the draft does not state that VAT has been collected. No live-mode payment, production setting, production database, production deployment or merge was made.
 
 ## Historical QA notes
 
