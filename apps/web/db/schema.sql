@@ -223,15 +223,20 @@ CREATE UNIQUE INDEX IF NOT EXISTS founding_five_offer_active_customer_idx
 CREATE INDEX IF NOT EXISTS founding_five_offer_reservations_status_idx
   ON founding_five_offer_reservations(status, expires_at);
 
--- Public property sample requests (Preview feature, manually reviewed; no automated mail).
+-- Public property sample requests; manually reviewed, with status for transactional notification attempts.
 CREATE TABLE IF NOT EXISTS property_walkthrough_enquiries (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL CHECK (char_length(name) BETWEEN 2 AND 100),
   email text NOT NULL CHECK (char_length(email) <= 254),
   property_name text NOT NULL CHECK (char_length(property_name) BETWEEN 2 AND 120),
   property_url text NOT NULL CHECK (char_length(property_url) <= 2048 AND property_url LIKE 'https://%'),
+  customer_email_status text NOT NULL DEFAULT 'pending' CHECK (customer_email_status IN ('pending','sent','failed')),
+  internal_email_status text NOT NULL DEFAULT 'pending' CHECK (internal_email_status IN ('pending','sent','failed')),
   created_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE property_walkthrough_enquiries
+  ADD COLUMN IF NOT EXISTS customer_email_status text NOT NULL DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS internal_email_status text NOT NULL DEFAULT 'pending';
 CREATE INDEX IF NOT EXISTS property_walkthrough_enquiries_created_idx
   ON property_walkthrough_enquiries(created_at DESC);
 
