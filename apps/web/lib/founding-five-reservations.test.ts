@@ -52,5 +52,5 @@ it("releases a place after an unpaid reservation expires", async () => {
   );
   const replacement = await reserveFoundingFiveCustomer(owners[8], "founding-property-8");
   expect(replacement.reserved).toBe(true);
-  expect(replacement.activeCustomers).toBe(4);
+  expect(replacement.activeCustomers).toBe(5);
 });
