@@ -36,10 +36,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ pro
       const paymentIntent = typeof paymentIntentValue === "string"
         ? await stripe.paymentIntents.retrieve(paymentIntentValue, { expand: ["latest_charge"] })
         : paymentIntentValue;
-      if (paymentIntent && typeof paymentIntent.latest_charge === "object" && paymentIntent.latest_charge)
-        receiptUrl = paymentIntent.latest_charge.receipt_url ?? null;
-      else if (paymentIntent?.latest_charge)
-        receiptUrl = (await stripe.charges.retrieve(paymentIntent.latest_charge)).receipt_url ?? null;
+      const latestCharge = paymentIntent?.latest_charge;
+      if (typeof latestCharge === "string")
+        receiptUrl = (await stripe.charges.retrieve(latestCharge)).receipt_url ?? null;
+      else
+        receiptUrl = latestCharge?.receipt_url ?? null;
     } catch {
       // Keep hosting status available when the billing provider is temporarily unavailable.
     }
