@@ -6,7 +6,8 @@
   "outputDirectory": ".next",
   "git": {
     "deploymentEnabled": {
-      "fix/launch-acceptance-20261127": false
+      "fix/launch-acceptance-20261127": false,
+      "fix/security-dependencies-20261127": false
     }
   }
 }
