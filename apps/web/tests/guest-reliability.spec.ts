@@ -58,3 +58,15 @@ test("account recovery and verification pages are absent from offline caches", a
   });
   expect(privatePages).toEqual([]);
 });
+
+test("a failed French translation clearly explains that the original guide is displayed", async ({ page }) => {
+  // Simulate a provider failure; never contact a real HCN model or guest record.
+  await page.route("**/api/v1/guides/casa-serena/translation?lang=fr", route => route.fulfill({
+    status: 503, json: { error: "Translation temporarily unavailable", code: "TRANSLATION_UNAVAILABLE" },
+  }));
+  await page.goto("/g/casa-serena");
+  await page.getByRole("combobox", { name: "Language" }).selectOption("fr");
+  await expect(page.getByText("La traduction est momentanément indisponible. Le guide original est affiché.")).toBeVisible({ timeout: 20000 });
+  await expect(page.getByText("Sunlit mornings. Slow afternoons. Your own little corner of Lisbon.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Traduit automatiquement")).toHaveCount(0);
+});

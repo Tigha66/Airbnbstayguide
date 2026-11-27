@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/build-sw.mjs && next dev --hostname 0.0.0.0",
-    "build": "node scripts/build-sw.mjs && next build",
+    "build": "node scripts/build-sw.mjs && tsx scripts/prepare-manager-catalogue.mts && tsx scripts/verify-billing-preflight.mts && tsx scripts/verify-hcn-translation.mts && tsx scripts/verify-hcn-concierge.mts && next build",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "tsx scripts/seed.mts",
     "stripe:setup": "tsx scripts/stripe-setup.mts",

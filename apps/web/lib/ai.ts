@@ -26,14 +26,15 @@ export function aiConfigured() {
       return false;
   }
 }
-export function aiModel() {
+export function aiModel(modelOverride?: string) {
   const p = provider();
+  const requestedModel = modelOverride || process.env.AI_MODEL;
   if (p === "huggingface")
-    return createOpenAI({ baseURL: HF_ROUTER, apiKey: process.env.HF_TOKEN }).chat(process.env.AI_MODEL || DEFAULT_HF_MODEL);
+    return createOpenAI({ baseURL: HF_ROUTER, apiKey: process.env.HF_TOKEN }).chat(requestedModel || DEFAULT_HF_MODEL);
   if (p === "openai-compatible")
-    return createOpenAI({ baseURL: process.env.AI_BASE_URL, apiKey: process.env.AI_API_KEY }).chat(process.env.AI_MODEL!);
-  if (p === "openai") return createOpenAI({ apiKey: process.env.OPENAI_API_KEY })(process.env.AI_MODEL!);
-  if (p === "anthropic") return createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })(process.env.AI_MODEL!);
+    return createOpenAI({ baseURL: process.env.AI_BASE_URL, apiKey: process.env.AI_API_KEY }).chat(requestedModel!);
+  if (p === "openai") return createOpenAI({ apiKey: process.env.OPENAI_API_KEY })(requestedModel!);
+  if (p === "anthropic") return createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })(requestedModel!);
   throw new Error("AI is not configured");
 }
 /** Extracts the first JSON object/array from model text (open models often wrap JSON in prose or fences). */
@@ -58,15 +59,90 @@ export function extractJson(text: string): unknown {
   }
   throw new Error("Unterminated JSON in model output");
 }
-export async function generateJson(system: string, prompt: string, maxOutputTokens = 1200, timeoutMs = 25000) {
+/**
+ * The HCN gateway accepts OpenAI chat completions, but some reasoning models
+ * consume the entire SDK token budget before emitting any message.content.
+ * For a dedicated translation model only, ask the gateway to use its model's
+ * non-thinking chat template. This never changes the general concierge's
+ * Production model or the other provider integrations.
+ */
+async function generateHcnTranslationJson(system: string, prompt: string, maxOutputTokens: number, timeoutMs: number, model: string) {
+  const endpoint = new URL("/v1/chat/completions", process.env.AI_BASE_URL!);
+  const signal = AbortSignal.timeout(timeoutMs);
+  const deadline = Date.now() + timeoutMs;
+  let response: Response | null = null;
+  // HCN can temporarily fail to route an otherwise valid model ("get_channel_failed").
+  // Retry transient gateway responses once, using the SAME overall deadline.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    // Reserve part of the single request budget for recovery when the first
+    // connection stalls. A retry must never restart the guest's overall clock.
+    const attemptSignal = attempt === 1
+      ? AbortSignal.any([signal, AbortSignal.timeout(Math.max(1, Math.floor(timeoutMs * 0.6)))])
+      : signal;
+    try {
+      response = await fetch(endpoint, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${process.env.AI_API_KEY}`, "Content-Type": "application/json" },
+      signal: attemptSignal,
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        max_tokens: maxOutputTokens,
+        // DeepSeek's documented switch differs from Qwen-compatible templates:
+        // https://api-docs.deepseek.com/guides/thinking_mode/
+        ...(model.toLowerCase().startsWith("deepseek")
+          ? { thinking: { type: "disabled" } }
+          : { chat_template_kwargs: { enable_thinking: false } }),
+        messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
+      }),
+      });
+    } catch (error) {
+      const transportFailure = error instanceof TypeError ||
+        (error instanceof Error && ["AbortError", "TimeoutError"].includes(error.name));
+      if (!transportFailure || attempt === 2 || signal.aborted)
+        throw new Error("HCN gateway request unavailable within its deadline");
+      response = null;
+    }
+    if (response && (response.ok || ![408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526].includes(response.status) || attempt === 2)) break;
+    if (signal.aborted || Date.now() + 350 >= deadline)
+      throw new Error("HCN gateway request unavailable within its deadline");
+    if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1")
+      console.log("[hcn-preview-raw-translation] transient " + (response ? "HTTP " + response.status : "transport failure") + "; retrying once");
+    await new Promise(resolve => setTimeout(resolve, 350));
+  }
+  if (!response?.ok) {
+    // Do not leak provider response bodies, user content, or API keys.
+    throw new Error("HCN translation gateway HTTP " + (response?.status ?? "no-response"));
+  }
+  const data = await response.json() as {
+    choices?: Array<{ finish_reason?: string; message?: { content?: string | null; reasoning?: string | null } }>;
+  };
+  const first = data.choices?.[0];
+  const content = first?.message?.content ?? "";
+  if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1")
+    console.log("[hcn-preview-raw-translation] contentChars=" + content.length +
+      " reasoningChars=" + (first?.message?.reasoning?.length || 0) +
+      " finishReason=" + String(first?.finish_reason || "unknown").slice(0, 24));
+  return extractJson(content);
+}
+
+export async function generateJson(system: string, prompt: string, maxOutputTokens = 1200, timeoutMs = 25000, modelOverride?: string) {
+  if (modelOverride && provider() === "openai-compatible" &&
+      new URL(process.env.AI_BASE_URL || "https://invalid.example").hostname === "api.hcnsec.cn") {
+    return generateHcnTranslationJson(system, prompt, maxOutputTokens, timeoutMs, modelOverride);
+  }
   const result = await generateText({
-    model: aiModel(),
+    model: aiModel(modelOverride),
     system,
     prompt,
     temperature: 0.2,
     maxOutputTokens,
     abortSignal: AbortSignal.timeout(timeoutMs),
   });
+  if (process.env.HCN_PREVIEW_BUILD_ACCEPTANCE === "1")
+    console.log("[hcn-preview-ai] responseChars=" + result.text.length +
+      " containsJsonStart=" + /[\\[{]/.test(result.text) +
+      " finishReason=" + String(result.finishReason || "unknown").slice(0, 30));
   return extractJson(result.text);
 }
 

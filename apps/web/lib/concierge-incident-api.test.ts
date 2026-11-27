@@ -30,3 +30,32 @@ it("saves the leak report as needing host help, runs triage and spends no AI quo
   expect(repo.consumeAiUsage).not.toHaveBeenCalled();
   expect(generateJson).not.toHaveBeenCalled();
 });
+
+
+it("falls back to the guide without logging HCN provider secrets", async () => {
+  vi.mocked(repo.consumeRateLimit).mockResolvedValue(true);
+  vi.mocked(repo.consumeAiUsage).mockResolvedValue(true);
+  vi.mocked(repo.getPublishedProperty).mockResolvedValue({ property: demoProperties[0], ownerId: "owner" });
+  vi.mocked(repo.applyPortfolioRules).mockResolvedValue(true);
+  const secretMarker = "private-provider-headers-must-stay-private";
+  vi.mocked(generateJson).mockRejectedValueOnce(Object.assign(new Error(secretMarker), {
+    name: "TimeoutError", statusCode: 522, raw: { authorization: secretMarker },
+  }));
+  const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    const response = await POST(new Request("https://example.test/api/v1/guides/test/chat", {
+      method: "POST",
+      body: JSON.stringify({ message: "What is the Wi-Fi password?", language: "en" }),
+    }), { params: Promise.resolve({ slug: "test" }) });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.mode).toBe("keyword");
+    expect(body.answer).toBeTruthy();
+    expect(JSON.stringify(spy.mock.calls)).not.toContain(secretMarker);
+    expect(spy).toHaveBeenCalledWith("[concierge] AI answer failed; using keyword search", {
+      type: "TimeoutError", code: undefined, status: 522,
+    });
+  } finally {
+    spy.mockRestore();
+  }
+});
