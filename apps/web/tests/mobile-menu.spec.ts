@@ -7,8 +7,10 @@ test("phone visitors can open the menu and reach every page", async ({ page }) =
   await expect(toggle).toBeVisible();
   await expect(page.getByRole("link", { name: "Pricing" }).first()).toBeHidden();
   await toggle.click();
-  for (const name of ["How to use StayGuide", "Pricing", "Guest demo", "Log in", "Start your 14-day free trial"])
+  for (const name of ["How to use StayGuide", "Pricing", "Log in"])
     await expect(page.locator("#site-menu").getByRole("link", { name })).toBeVisible();
+  await expect(page.locator("#site-menu").getByRole("link", { name: "Guest demo" }).first()).toBeVisible();
+  await expect(page.locator("#site-menu a.button[href=\"/demo\"]")).toBeVisible();
   await expect(page.locator("#site-menu").getByRole("combobox", { name: "Language" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   await page.locator("#site-menu").getByRole("link", { name: "Pricing" }).click();

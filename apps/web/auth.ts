@@ -4,10 +4,12 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { dbConfigured, query } from "@/lib/db";
 import { authenticatePassword, passwordLoginConfigured } from "@/lib/password-login";
+import { mailerConfigured } from "@/lib/mailer";
 
 export const googleConfigured = () => Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 export const appleConfigured = () => Boolean(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET);
 export const authConfigured = passwordLoginConfigured;
+export const signupConfigured = () => passwordLoginConfigured() && mailerConfigured();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,

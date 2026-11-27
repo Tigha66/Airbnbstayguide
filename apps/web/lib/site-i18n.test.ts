@@ -45,6 +45,19 @@ describe("website translations", () => {
     expect(arabic.demoTag).toContain("بالعربية");
   });
 
+  it("offers an honest, translated sample-first path for prospects", () => {
+    for (const locale of siteLocales) {
+      const copy = siteText(locale).preview;
+      expect(copy.title.trim().length).toBeGreaterThan(8);
+      expect(copy.points).toHaveLength(3);
+      expect(copy.points.every(([title, body]) => title.trim().length > 0 && body.trim().length > 0)).toBe(true);
+      expect(copy.contactCta.trim().length).toBeGreaterThan(5);
+      expect(copy.disclaimer.trim().length).toBeGreaterThan(15);
+    }
+    expect(siteText("en").preview.disclaimer).toContain("not a live WhatsApp");
+    expect(siteText("en").preview.body).toContain("no account needed");
+  });
+
   it("keeps placeholders in every language", () => {
     for (const locale of siteLocales) {
       const t = siteText(locale);

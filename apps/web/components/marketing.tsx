@@ -59,7 +59,7 @@ export function LanguageMenu({ locale }: { locale: SiteLocale }) {
   );
 }
 
-export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
+export function MarketingNav({ locale = "en", registrationAvailable = false }: { locale?: SiteLocale; registrationAvailable?: boolean }) {
   const t = siteText(locale).nav;
   const base = localeBase(locale);
   const pathname = usePathname();
@@ -85,8 +85,8 @@ export function MarketingNav({ locale = "en" }: { locale?: SiteLocale }) {
         <Link href="/demo" onClick={close}>{t.demo}</Link>
         <Link href="/login" onClick={close}>{t.login}</Link>
         <LanguageMenu locale={locale} />
-        <Link href="/login?mode=register" className="button" onClick={close}>
-          {onboardingText[locale].trial}
+        <Link href={registrationAvailable ? "/login?mode=register" : "/demo"} className="button" onClick={close}>
+          {registrationAvailable ? onboardingText[locale].trial : t.demo}
           <ArrowUpRight size={14} />
         </Link>
       </nav>
@@ -122,7 +122,7 @@ export function MarketingFooter({ locale = "en" }: { locale?: SiteLocale }) {
   );
 }
 
-export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
+export function Pricing({ locale = "en", registrationAvailable = false }: { locale?: SiteLocale; registrationAvailable?: boolean }) {
   const all = siteText(locale);
   const t = all.pricing;
   const [annual, setAnnual] = useState(false);
@@ -193,8 +193,8 @@ export function Pricing({ locale = "en" }: { locale?: SiteLocale }) {
                 </li>
               )}
             </ul>
-            <Link className={`button ${key === "pro" ? "" : "secondary"}`} href="/login?mode=register">
-              {key === "pro" ? onboardingText[locale].trial : t.cta}
+            <Link className={`button ${key === "pro" ? "" : "secondary"}`} href={registrationAvailable ? "/login?mode=register" : "/demo"}>
+              {registrationAvailable ? (key === "pro" ? onboardingText[locale].trial : t.cta) : t.cta}
               <ArrowRight size={14} />
             </Link>
           </div>
