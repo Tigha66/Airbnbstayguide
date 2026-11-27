@@ -1,3 +1,4 @@
+import { additionalSalesPreviewProperties } from "./sales-preview-data-additional";
 /**
  * Sales-only demonstrations from publicly listed property facts (20 Nov 2026).
  * NOT authorised house manuals. Never publish private access, guest or Wi-Fi credentials here.
@@ -20,7 +21,7 @@ export type SalesPreviewProperty = {
   sections: SalesPreviewSection[];
 };
 
-export const salesPreviewProperties: SalesPreviewProperty[] = [
+const baseSalesPreviewProperties: SalesPreviewProperty[] = [
   {
     slug: "dinas-ddu",
     name: "Dinas-Ddu",
@@ -87,6 +88,55 @@ export const salesPreviewProperties: SalesPreviewProperty[] = [
       { title: "Departure and assistance", content: "Approved checkout times, key return procedures and support contacts would go here in the finished guide. This independent concept does not connect to Oakdale's real guest-support services." },
     ],
   },
+
+  {
+    slug: "the-salt-lodge",
+    name: "The Salt Lodge",
+    operator: "Cornish Gems",
+    region: "West Cornwall",
+    shortLocation: "Downalong, St Ives",
+    heroTitle: "A coastal welcome in St Ives",
+    intro: "A public-information concept for Cornish Gems’ split-level St Ives cottage, with practical highlights and local ideas gathered into a mobile-friendly guide.",
+    capacity: "Sleeps 6 · 3 bedrooms · 2 bathrooms",
+    highlights: ["Two living spaces", "Courtyard outside space", "Allocated parking noted", "Near harbour and beaches"],
+    icon: "cottage",
+    accent: "#26716d",
+    tint: "#e8f3ef",
+    sourceUrl: "https://www.cornishgems.com/destinations/west-cornwall/st-ives/the-salt-lodge",
+    sections: [
+      { title: "Arriving in St Ives", content: "The public listing places The Salt Lodge in the Downalong area of St Ives. The confirmed address, check-in time and entry details must be supplied privately by Cornish Gems after booking. This concept contains no access codes." },
+      { title: "A cottage across four floors", content: "The listing describes a split-level cottage with three bedrooms, two bathrooms, a ground-floor kitchen and dining area, and two separate living spaces. It is set over four floors with three internal flights of stairs; guests should review the operator’s accessibility information before booking." },
+      { title: "Parking and beach days", content: "The listing notes two allocated parking spaces about a 15-minute uphill walk away. Island Car Park is described as the nearest public car park, around a three-minute walk. Porthmeor is the nearest beach; confirm current parking terms and local conditions before travelling." },
+      { title: "Explore locally", content: "The listing highlights St Ives harbour, Porthmeor and Porthgwidden beaches, galleries, Tate St Ives and the Barbara Hepworth Museum. Opening times and seasonal access should be checked with each venue." },
+      { title: "Guest details to confirm", content: "The finished guide would add host-approved Wi-Fi details, arrival steps, house rules, emergency contacts and checkout instructions. None of those private details are included in this public concept." },
+    ],
+  },
+  {
+    slug: "harveys-corner-cottage",
+    name: "Harvey’s Corner Cottage",
+    operator: "StayCotswold",
+    region: "The Cotswolds",
+    shortLocation: "Chadlington, near Charlbury",
+    heroTitle: "A village-cottage welcome",
+    intro: "A public-information concept for StayCotswold’s three-bedroom Chadlington cottage, bringing the home’s listed features and nearby village essentials into a mobile guide.",
+    capacity: "Sleeps 6 · 3 bedrooms · 2 bathrooms",
+    highlights: ["Log burner", "Separate garden room", "Tiered garden and BBQ", "Village shop and pub nearby"],
+    icon: "cottage",
+    accent: "#7a5b3c",
+    tint: "#f4eee6",
+    sourceUrl: "https://www.staycotswold.com/property/harveys-corner-cottage-3-bed-cotswold-holiday-accommodation/",
+    sections: [
+      { title: "Getting here", content: "The public listing places Harvey’s Corner Cottage in Chadlington, near Charlbury. The exact address, check-in time and entry instructions should come from the property manager in the pre-arrival message. This concept includes no private access details." },
+      { title: "A place to gather", content: "The listing describes three bedrooms for six guests, a family bathroom and ensuite, an open-plan kitchen and sitting room with a log burner, plus a separate garden room. The public listing also notes Wi-Fi; the network and password would be added only after host approval." },
+      { title: "Garden and house information", content: "The property listing describes a tiered garden with two seating areas and a gas BBQ. Confirm the house rules, BBQ guidance, safety details and checkout instructions with the property manager." },
+      { title: "Around Chadlington", content: "The listing mentions a village shop, butcher and The Tite Inn. Charlbury is a short drive away and has a station with services towards Oxford and London; check current transport times and venue opening hours." },
+      { title: "Guest details to confirm", content: "The completed guide would include approved arrival steps, Wi-Fi credentials, house rules, emergency contacts and departure instructions. These private details are intentionally omitted from this public-information concept." },
+    ],
+  },
+];
+export const salesPreviewProperties: SalesPreviewProperty[] = [
+  ...baseSalesPreviewProperties,
+  ...additionalSalesPreviewProperties,
 ];
 
 export function salesPreviewBySlug(slug: string): SalesPreviewProperty | undefined {

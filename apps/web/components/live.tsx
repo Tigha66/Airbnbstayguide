@@ -262,6 +262,8 @@ type Stats = {
   views30: number;
   questions: number;
   resolutionRate: number;
+  automatedAnswers: number;
+  escalations: number;
   extrasRevenue: number;
   extraRequests: number;
   topQuestions: { question: string; count: number }[];
@@ -276,7 +278,7 @@ export function LiveOverviewStats() {
     [tr("Guide views"), data?.views.toLocaleString()],
     [tr("Guest questions"), data?.questions.toLocaleString()],
     [tr("Extras paid"), data ? money(data.extrasRevenue) : undefined],
-    [tr("Answered from your guide"), data?.questions ? String(data.resolutionRate) + "%" : data ? "—" : undefined],
+    [tr("AI replies without escalation"), data?.automatedAnswers || data?.escalations ? String(data.resolutionRate) + "%" : data ? "—" : undefined],
   ];
   return <>{metrics.map(([label, value]) => <div className="card stat-card" key={label}>
     <div className="stat-top">{label}</div>
@@ -310,7 +312,9 @@ export function LiveAnalytics() {
               [tr("Guide views (all time)"), data.views.toLocaleString()],
               [tr("Views, last 30 days"), data.views30.toLocaleString()],
               [tr("Guest questions"), data.questions.toLocaleString()],
-              [tr("Answered without you"), data.questions ? `${data.resolutionRate}%` : "—"],
+              [tr("AI replies without escalation"), (data.automatedAnswers + data.escalations) > 0 ? `${data.resolutionRate}%` : "—"],
+              [tr("AI answers (not escalated)"), data.automatedAnswers.toLocaleString()],
+              [tr("Questions requiring host help"), data.escalations.toLocaleString()],
               [tr("Extras paid"), money(data.extrasRevenue)],
               [tr("Extra requests"), String(data.extraRequests)],
               [tr("AI messages this month"), data.aiMessageLimit ? `${data.aiMessagesThisMonth.toLocaleString()} / ${data.aiMessageLimit.toLocaleString()}` : String(data.aiMessagesThisMonth)],
@@ -321,6 +325,7 @@ export function LiveAnalytics() {
               </div>
             ))}
           </div>
+          <p className="muted" style={{ marginTop: 12, fontSize: 12 }}>{tr("These counts describe logged AI replies, not verified staff time saved.")}</p>
           <div className="card panel" style={{ marginTop: 25 }}>
             <h3>{tr("The things guests ask")}</h3>
             {data.topQuestions.length === 0 && <p>{tr("Questions will appear here once guests start chatting.")}</p>}

@@ -4,9 +4,16 @@ const candidates = [
   { slug: "dinas-ddu", name: "Dinas-Ddu" },
   { slug: "isaacs-cottage", name: "Isaac's Cottage" },
   { slug: "rose-suite", name: "The Rose Suite" },
+  { slug: "the-salt-lodge", name: "The Salt Lodge" },
+  { slug: "harveys-corner-cottage", name: "Harvey’s Corner Cottage" },
+  { slug: "fernwood-libbys-place", name: "Libby’s Place" },
+  { slug: "cornish-escapes-artist-cottage", name: "Artist Cottage" },
+  { slug: "cotswold-laburnum-cottage", name: "Laburnum Cottage" },
+  { slug: "cumbrian-anley-cottage", name: "Anley Cottage" },
+  { slug: "cotswold-gems-greystones-cottage", name: "Greystones Cottage" },
 ] as const;
 
-test("three independent concept previews are discoverable", async ({ page }) => {
+test("all independent concept previews are discoverable", async ({ page }) => {
   await page.goto("/demo/previews");
   await expect(page.getByRole("heading", { name: /Show the guest experience/ })).toBeVisible();
   for (const sample of candidates) {

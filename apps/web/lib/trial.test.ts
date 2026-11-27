@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { query, setQueryOverride, splitStatements } from "./db";
-import { applySubscription, consumeAiUsage, createProperty, getBilling, getUser, LimitError, listProperties, upsertUser } from "./repo";
+import { applySubscription, consumeAiUsage, createProperty, getBilling, getPublishedProperty, getUser, LimitError, listProperties, updateProperty, upsertUser } from "./repo";
 import { TRIAL_DAYS } from "./trial";
 const pg = new PGlite();
 let serverTime = "2026-11-06T00:00:00Z";
@@ -47,9 +47,11 @@ describe("14-day no-card trial on existing account records", () => {
     expect(failed.reason).toBeInstanceOf(LimitError);
     expect(await listProperties(user.id)).toHaveLength(1);
   });
-  it("enforces the Pro AI allowance then expires exactly at 14 days without losing the guide", async () => {
+  it("keeps a published guide accessible for twelve months after the no-card trial expires", async () => {
     const user = await fixture("expiry-trial@example.test");
     const guide = await createProperty(user, { name: "Keep my guide", location: "London", description: "" });
+    await updateProperty(user.id, guide.id, { ...guide, status: "published" });
+    expect((await getPublishedProperty(guide.slug))?.property.id).toBe(guide.id);
     await query("INSERT INTO usage_counters (owner_id, month, messages) VALUES ($1,$2,1499)", [user.id, new Date().toISOString().slice(0, 7)]);
     expect(await consumeAiUsage(user.id)).toBe(true);
     expect(await consumeAiUsage(user.id)).toBe(false);
@@ -59,7 +61,13 @@ describe("14-day no-card trial on existing account records", () => {
     expect(await getUser(user.id)).toMatchObject({ plan: "free", trialActive: false });
     expect((await getBilling(user.id))?.stripeCustomerId).toBeNull();
     expect((await listProperties(user.id))[0].id).toBe(guide.id);
+    expect((await getPublishedProperty(guide.slug))?.property.id).toBe(guide.id);
+    expect((await getBilling(user.id))?.stripeSubscriptionId).toBeNull();
     expect(await consumeAiUsage(user.id)).toBe(false);
+    serverTime = "2027-11-05T00:00:00Z";
+    expect(await getUser(user.id)).toMatchObject({ plan: "free", trialActive: false });
+    expect((await getPublishedProperty(guide.slug))?.property.id).toBe(guide.id);
+    expect((await getBilling(user.id))?.stripeSubscriptionId).toBeNull();
     serverTime = "2026-11-06T00:00:00Z";
   });
   it("lets a Stripe subscription override the trial and never reactivates it after cancellation", async () => {
