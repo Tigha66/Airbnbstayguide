@@ -140,6 +140,102 @@ export function Dashboard({ view = "" }: { view?: string }) {
   const [error, setError] = useState("");
   const property =
     state.properties.find((p) => p.id === selected) || state.properties[0];
+  const [foundingFiveSessionId, setFoundingFiveSessionId] = useState("");
+  const [foundingFiveMessage, setFoundingFiveMessage] = useState("");
+  const [foundingFiveBusy, setFoundingFiveBusy] = useState(false);
+  useEffect(() => {
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+    if (!sessionId) return;
+    const timer = window.setTimeout(() => setFoundingFiveSessionId(sessionId), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const [commissionedHosting, setCommissionedHosting] = useState<{
+    propertyId: string; startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean;
+    receiptUrl: string | null; invoiceUrl: string | null; invoicePdfUrl: string | null;
+  } | null>(null);
+  useEffect(() => {
+    if (!live || !property?.id) return;
+    const controller = new AbortController();
+    const propertyId = property.id;
+    void fetch(`/api/commissioned-hosting/${encodeURIComponent(propertyId)}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    }).then(async (response) => {
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error("Hosting status unavailable");
+      return await response.json() as { startsAt: string; endsAt: string; status: "active" | "cancelled" | "refunded"; withinTerm: boolean; receiptUrl: string | null; invoiceUrl: string | null; invoicePdfUrl: string | null };
+    }).then((status) => {
+      if (!controller.signal.aborted) setCommissionedHosting(status ? { ...status, propertyId } : null);
+    }).catch(() => {
+      if (!controller.signal.aborted) setCommissionedHosting(null);
+    });
+    return () => controller.abort();
+  }, [live, property?.id]);
+  const [qaOfferAccepted, setQaOfferAccepted] = useState(false);
+  const [qaCheckoutVisible, setQaCheckoutVisible] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/founding-five/account", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return await response.json() as { verified?: boolean; livemode?: boolean };
+      })
+      .then((account) => {
+        if (!controller.signal.aborted) setQaCheckoutVisible(account?.verified === true && account.livemode === false);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setQaCheckoutVisible(false);
+      });
+    return () => controller.abort();
+  }, []);
+  async function startQaCheckout() {
+    if (!property?.id || !qaOfferAccepted || foundingFiveBusy) return;
+    setFoundingFiveBusy(true);
+    setFoundingFiveMessage("");
+    try {
+      const response = await fetch("/api/founding-five/checkout", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId: property.id, qaAgreementAccepted: true }),
+      });
+      const result = await response.json() as { error?: string; url?: string };
+      if (!response.ok || !result.url) throw new Error(result.error || "QA checkout unavailable.");
+      const destination = new URL(result.url);
+      if (destination.protocol !== "https:" || destination.hostname !== "checkout.stripe.com")
+        throw new Error("Unexpected checkout destination.");
+      window.location.assign(destination.toString());
+    } catch (error) {
+      setFoundingFiveMessage(error instanceof Error ? error.message : "QA checkout unavailable.");
+      setFoundingFiveBusy(false);
+    }
+  }
+  async function activateFoundingFiveHosting() {
+    if (!foundingFiveSessionId) return;
+    setFoundingFiveBusy(true);
+    setFoundingFiveMessage("");
+    try {
+      const response = await fetch("/api/founding-five/fulfill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: foundingFiveSessionId, locale }),
+      });
+      const result = await response.json() as { error?: string; startsAt?: string; endsAt?: string; confirmationEmailSent?: boolean };
+      if (!response.ok) throw new Error(result.error || tr("Hosting could not be activated."));
+      if (result.confirmationEmailSent === false) {
+        setFoundingFiveMessage(tr("Hosting is active, but the confirmation email is pending. Retry activation to send it."));
+      } else {
+        setFoundingFiveMessage(tr("Hosting is active from {starts} until {ends}. No automatic renewal.", {
+          starts: result.startsAt ? new Date(result.startsAt).toLocaleDateString(locale) : "",
+          ends: result.endsAt ? new Date(result.endsAt).toLocaleDateString(locale) : "",
+        }));
+        setFoundingFiveSessionId("");
+      }
+      router.replace(window.location.pathname);
+    } catch (error) {
+      setFoundingFiveMessage(error instanceof Error ? error.message : tr("Hosting could not be activated."));
+    } finally {
+      setFoundingFiveBusy(false);
+    }
+  }
   const notify = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(""), 4000);
@@ -528,6 +624,19 @@ export function Dashboard({ view = "" }: { view?: string }) {
           </div>
         </header>
         <main className="dashboard-content">
+          {(foundingFiveSessionId || foundingFiveMessage) && (
+            <section className="card panel" aria-live="polite">
+              <h3>{tr("Founding Five QA hosting")}</h3>
+              {foundingFiveMessage ? <p>{foundingFiveMessage}</p> : (
+                <>
+                  <p>{tr("Payment is pending fulfilment. Publish the approved guide, then verify and activate its twelve-month hosting record.")}</p>
+                  <button className="button" type="button" disabled={!live || property?.status !== "published" || foundingFiveBusy} onClick={() => void activateFoundingFiveHosting()}>
+                    {foundingFiveBusy ? tr("Verifying payment…") : tr("Verify payment and activate hosting")}
+                  </button>
+                </>
+              )}
+            </section>
+          )}
           {view === "" && <DashboardOnboarding />}
           {view !== "billing" && <TrialNotice />}
           {view === "" && (
@@ -866,6 +975,40 @@ export function Dashboard({ view = "" }: { view?: string }) {
                   </button>
                 </div>
               </div>
+              {live && qaCheckoutVisible && property?.id && commissionedHosting?.propertyId !== property?.id && (
+                <div className="card panel">
+                  <h3>{tr("Founding Five checkout — QA only")}</h3>
+                  <p>{tr("Test payment only. This does not record genuine customer consent.")}</p>
+                  <label><input type="checkbox" checked={qaOfferAccepted} onChange={(event) => setQaOfferAccepted(event.target.checked)} /> {tr("Confirm the synthetic QA agreement")}</label>
+                  <button className="button" type="button" disabled={!qaOfferAccepted || foundingFiveBusy} onClick={() => void startQaCheckout()}>
+                    {foundingFiveBusy ? tr("Opening test checkout…") : tr("Start $49 USD test checkout")}
+                  </button>
+                  <p className="muted">{tr("One-time test price: $49 USD. Includes one guide and 12 months of hosting; no subscription or automatic renewal.")}</p>
+                </div>
+              )}
+              {live && commissionedHosting?.propertyId === property?.id && (
+                <div className="card panel" aria-live="polite">
+                  <h3>{tr("Commissioned guide hosting")}</h3>
+                  <p>
+                    {tr("Hosting status: {status}. Published on {published}; hosting ends on {expires}. No automatic renewal.", {
+                      status: tr(commissionedHosting.status === "refunded" ? "Refunded" : commissionedHosting.status === "cancelled" ? "Cancelled" : commissionedHosting.withinTerm ? "Active" : "Expired"),
+                      published: new Date(commissionedHosting.startsAt).toLocaleDateString(locale),
+                      expires: new Date(commissionedHosting.endsAt).toLocaleDateString(locale),
+                    })}
+                  </p>
+                  <div className="hosting-documents">
+                    {commissionedHosting.invoiceUrl && (
+                      <a href={commissionedHosting.invoiceUrl} target="_blank" rel="noreferrer">{tr("View invoice")}</a>
+                    )}
+                    {commissionedHosting.invoicePdfUrl && (
+                      <a href={commissionedHosting.invoicePdfUrl} target="_blank" rel="noreferrer">{tr("Download invoice PDF")}</a>
+                    )}
+                    {commissionedHosting.receiptUrl && (
+                      <a href={commissionedHosting.receiptUrl} target="_blank" rel="noreferrer">{tr("View payment receipt")}</a>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="card property-details">
                 <div className="property-details-head">
                   <h3>{tr("Property details")}</h3>

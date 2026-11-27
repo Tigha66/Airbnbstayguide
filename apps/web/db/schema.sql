@@ -29,9 +29,11 @@ CREATE TABLE IF NOT EXISTS properties (
   slug text NOT NULL UNIQUE,
   status text NOT NULL DEFAULT 'published',
   data jsonb NOT NULL,
+  published_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS published_at timestamptz;
 CREATE INDEX IF NOT EXISTS properties_owner_idx ON properties(owner_id);
 CREATE TABLE IF NOT EXISTS chat_messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -148,3 +150,114 @@ CREATE TABLE IF NOT EXISTS portfolio_reply_templates (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS portfolio_reply_templates_owner_title_idx
   ON portfolio_reply_templates(owner_id, lower(title));
+
+-- Draft Founding Five fulfilment record. No API issues grants or creates Stripe payments.
+-- A one-time setup purchase never changes plan, paid subscription or OpenWA privileges.
+-- Records are issued only after independently verified payment and publication approval.
+CREATE UNIQUE INDEX IF NOT EXISTS properties_id_owner_unique ON properties(id, owner_id);
+CREATE TABLE IF NOT EXISTS commissioned_guide_hosting (
+  property_id text PRIMARY KEY,
+  owner_id uuid NOT NULL,
+  CONSTRAINT commissioned_guide_hosting_owner_fk
+    FOREIGN KEY (property_id, owner_id) REFERENCES properties(id, owner_id) ON DELETE CASCADE,
+  payment_reference text NOT NULL UNIQUE CHECK (char_length(payment_reference) BETWEEN 3 AND 200),
+  agreement_version text NOT NULL CHECK (char_length(agreement_version) BETWEEN 3 AND 80),
+  agreement_accepted_at timestamptz NOT NULL,
+  payment_verified_at timestamptz NOT NULL,
+  published_at timestamptz NOT NULL,
+  starts_at timestamptz NOT NULL,
+  ends_at timestamptz NOT NULL,
+  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'refunded')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT commissioned_guide_hosting_period CHECK (ends_at > starts_at),
+  CONSTRAINT commissioned_guide_hosting_publication_start CHECK (starts_at = published_at)
+);
+CREATE INDEX IF NOT EXISTS commissioned_guide_hosting_owner_idx
+  ON commissioned_guide_hosting(owner_id, ends_at);
+
+-- QA-only one-time commissioning order ledger. Checkout/payment events update status,
+-- but the hosting record is created only by the owner after publication and direct verification.
+CREATE TABLE IF NOT EXISTS commissioned_guide_orders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_id text NOT NULL,
+  owner_id uuid NOT NULL,
+  checkout_session_id text NOT NULL UNIQUE,
+  payment_reference text UNIQUE,
+  agreement_version text NOT NULL CHECK (char_length(agreement_version) BETWEEN 3 AND 80),
+  agreement_accepted_at timestamptz NOT NULL,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'fulfilled', 'cancelled', 'refunded')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  confirmation_email_sent_at timestamptz,
+  CONSTRAINT commissioned_guide_orders_owner_fk
+    FOREIGN KEY (property_id, owner_id) REFERENCES properties(id, owner_id) ON DELETE CASCADE
+);
+ALTER TABLE commissioned_guide_orders ADD COLUMN IF NOT EXISTS confirmation_email_sent_at timestamptz;
+CREATE UNIQUE INDEX IF NOT EXISTS commissioned_guide_orders_one_active_property_idx
+  ON commissioned_guide_orders(property_id)
+  WHERE status IN ('pending', 'paid', 'fulfilled');
+CREATE INDEX IF NOT EXISTS commissioned_guide_orders_payment_idx
+  ON commissioned_guide_orders(payment_reference);
+
+-- Reserve the five Founding Five customer places atomically across concurrent checkout requests.
+CREATE TABLE IF NOT EXISTS founding_five_offer_capacity (
+  id smallint PRIMARY KEY CHECK (id = 1),
+  max_customers smallint NOT NULL DEFAULT 5 CHECK (max_customers = 5)
+);
+INSERT INTO founding_five_offer_capacity(id, max_customers) VALUES (1, 5)
+  ON CONFLICT (id) DO NOTHING;
+CREATE TABLE IF NOT EXISTS founding_five_offer_reservations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_id text NOT NULL,
+  owner_id uuid NOT NULL,
+  checkout_session_id text UNIQUE,
+  payment_reference text UNIQUE,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'fulfilled', 'cancelled', 'refunded')),
+  expires_at timestamptz NOT NULL DEFAULT now() + interval '25 hours',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY (property_id, owner_id) REFERENCES properties(id, owner_id) ON DELETE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS founding_five_offer_active_customer_idx
+  ON founding_five_offer_reservations(owner_id)
+  WHERE status IN ('pending', 'paid', 'fulfilled');
+CREATE INDEX IF NOT EXISTS founding_five_offer_reservations_status_idx
+  ON founding_five_offer_reservations(status, expires_at);
+
+-- Public property sample requests; manually reviewed, with status for transactional notification attempts.
+CREATE TABLE IF NOT EXISTS property_walkthrough_enquiries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL CHECK (char_length(name) BETWEEN 2 AND 100),
+  email text NOT NULL CHECK (char_length(email) <= 254),
+  property_name text NOT NULL CHECK (char_length(property_name) BETWEEN 2 AND 120),
+  property_url text NOT NULL CHECK (char_length(property_url) <= 2048 AND property_url LIKE 'https://%'),
+  customer_email_status text NOT NULL DEFAULT 'pending' CHECK (customer_email_status IN ('pending','sent','failed')),
+  internal_email_status text NOT NULL DEFAULT 'pending' CHECK (internal_email_status IN ('pending','sent','failed')),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE property_walkthrough_enquiries
+  ADD COLUMN IF NOT EXISTS customer_email_status text NOT NULL DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS internal_email_status text NOT NULL DEFAULT 'pending';
+CREATE INDEX IF NOT EXISTS property_walkthrough_enquiries_created_idx
+  ON property_walkthrough_enquiries(created_at DESC);
+
+-- One-use-capable, expiring links for private prospect sample concepts.
+-- Only a SHA-256 hash of the high-entropy link token is stored.
+CREATE TABLE IF NOT EXISTS property_sample_previews (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug text NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]{2,80}$'),
+  token_hash text NOT NULL,
+  manager_name text NOT NULL,
+  property_name text NOT NULL,
+  location text NOT NULL,
+  accent text NOT NULL CHECK (accent ~ '^#[0-9a-fA-F]{6}$'),
+  summary text NOT NULL,
+  highlights jsonb NOT NULL DEFAULT '[]',
+  arrival text NOT NULL,
+  departure text NOT NULL,
+  recommendations jsonb NOT NULL DEFAULT '[]',
+  source_url text NOT NULL CHECK (source_url LIKE 'https://%'),
+  expires_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS property_sample_previews_expiry_idx
+  ON property_sample_previews(expires_at);

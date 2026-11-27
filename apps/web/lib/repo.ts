@@ -134,7 +134,9 @@ export async function updateProperty(ownerId: string, id: string, data: z.infer<
   if (!existing) return null;
   const next: Property = { ...data, id, slug: existing.slug };
   await query(
-    `UPDATE properties SET data = $3, status = $4, updated_at = now() WHERE owner_id = $1 AND id = $2`,
+    `UPDATE properties SET data = $3, status = $4,
+      published_at = CASE WHEN $4 = 'published' THEN COALESCE(published_at, now()) ELSE NULL END,
+      updated_at = now() WHERE owner_id = $1 AND id = $2`,
     [ownerId, id, JSON.stringify(next), next.status],
   );
   return next;

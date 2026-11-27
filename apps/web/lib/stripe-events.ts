@@ -26,6 +26,25 @@ export async function handleStripeEvent(event: Stripe.Event) {
     case "checkout.session.async_payment_succeeded": {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.app !== "stayguide") return "ignored";
+      if (session.metadata.kind === "commissioned_hosting") {
+        if (session.metadata.qa_only !== "true" || session.mode !== "payment" || session.payment_status !== "paid") return "ignored";
+        const piId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
+        if (!piId || !session.metadata.user_id || !session.metadata.property_id) return "ignored";
+        const pi = await stripeClient().paymentIntents.retrieve(piId);
+        if (pi.status !== "succeeded" || pi.livemode !== stripeLiveMode() ||
+            pi.metadata?.app !== "stayguide" || pi.metadata?.kind !== "commissioned_hosting" ||
+            pi.metadata?.qa_only !== "true" || pi.metadata?.user_id !== session.metadata.user_id ||
+            pi.metadata?.property_id !== session.metadata.property_id) return "ignored";
+        await query(
+          "UPDATE commissioned_guide_orders SET status='paid', payment_reference=$2, updated_at=now() WHERE checkout_session_id=$1 AND status='pending' AND (payment_reference IS NULL OR payment_reference=$2)",
+          [session.id, piId],
+        );
+        await query(
+          "UPDATE founding_five_offer_reservations SET status='paid', payment_reference=$2 WHERE checkout_session_id=$1 AND status='pending'",
+          [session.id, piId],
+        );
+        return "commissioned_hosting:paid";
+      }
       if (session.metadata.kind === "extra") {
         const piId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
         if (!piId) return "ignored";
@@ -42,9 +61,16 @@ export async function handleStripeEvent(event: Stripe.Event) {
       }
       return "ignored";
     }
-    case "checkout.session.expired": {
+    case "checkout.session.expired":
+    case "checkout.session.async_payment_failed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      if (session.metadata?.app !== "stayguide" || session.metadata.kind !== "extra") return "ignored";
+      if (session.metadata?.app !== "stayguide") return "ignored";
+      if (session.metadata.kind === "commissioned_hosting" && session.metadata.qa_only === "true") {
+        await query("UPDATE commissioned_guide_orders SET status='cancelled', updated_at=now() WHERE checkout_session_id=$1 AND status='pending'", [session.id]);
+        await query("UPDATE founding_five_offer_reservations SET status='cancelled' WHERE checkout_session_id=$1 AND status='pending'", [session.id]);
+        return "commissioned_hosting:cancelled";
+      }
+      if (session.metadata.kind !== "extra") return "ignored";
       await settleExtraCheckout(session.id, "expired", null);
       return "extra:expired";
     }
@@ -71,8 +97,15 @@ export async function handleStripeEvent(event: Stripe.Event) {
     case "charge.refunded":
     case "charge.dispute.created":
     case "radar.early_fraud_warning.created": {
-      const object = event.data.object as unknown as { id: string; charge?: string; customer?: string };
+      const object = event.data.object as unknown as { id: string; charge?: string; customer?: string; payment_intent?: string | { id: string }; refunded?: boolean; amount?: number; amount_refunded?: number };
       const charge = event.type === "charge.refunded" ? object : object.charge ? await stripeClient().charges.retrieve(object.charge) : null;
+      if (event.type === "charge.refunded" && charge?.refunded === true &&
+          typeof charge.payment_intent === "string") {
+        const paymentReference = charge.payment_intent;
+        await query("UPDATE commissioned_guide_orders SET status='refunded', updated_at=now() WHERE payment_reference=$1 AND status IN ('paid','fulfilled')", [paymentReference]);
+        await query("UPDATE commissioned_guide_hosting SET status='refunded' WHERE payment_reference=$1 AND status='active'", [paymentReference]);
+        await query("UPDATE founding_five_offer_reservations SET status='refunded' WHERE payment_reference=$1 AND status IN ('paid','fulfilled')", [paymentReference]);
+      }
       const customer = typeof charge?.customer === "string" ? charge.customer : null;
       if (!customer) return "ignored";
       await query("INSERT INTO billing_alerts (event_id, user_id, event_type, object_id) SELECT $1, id, $2, $3 FROM users WHERE stripe_customer_id = $4 ON CONFLICT (event_id) DO NOTHING", [event.id, event.type, object.id, customer]);

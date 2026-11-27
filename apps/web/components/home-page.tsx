@@ -9,6 +9,28 @@ import { integrationCategories, integrationDisclaimer } from "@/lib/integrations
 
 const pointIcons = [BookOpen, MessageCircle, ShieldCheck];
 
+function FoundingFiveOffer({ locale }: { locale: SiteLocale }) {
+  const offer = siteText(locale).foundingFiveOffer;
+  return (
+    <div className="founding-five-offer feature-card center" id="founding-five">
+      <div className="eyebrow">{offer.eyebrow}</div>
+      <h2>{offer.title}</h2>
+      <p><strong>{offer.price}</strong></p>
+      <p>{offer.body}</p>
+      <small className="muted">{offer.details}</small>
+      <div className="row" style={{ justifyContent: "center", flexWrap: "wrap" }}>
+        <Link className="button secondary" href={`${localeBase(locale)}/pricing#founding-five`}>
+          {offer.cta}
+          <ArrowRight size={15} />
+        </Link>
+        <Link className="button secondary" href={`/sample?lang=${locale}`}>
+          {({ en: "Request a free personalised sample", fr: "Demander un exemple personnalisé gratuit", es: "Solicitar una muestra personalizada gratuita", de: "Kostenloses persönliches Beispiel anfordern", ar: "اطلب نموذجًا شخصيًا مجانيًا" } as const)[locale]}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 /** The marketing homepage, in any of the website languages. */
 export function HomePage({ locale }: { locale: SiteLocale }) {
   const t = siteText(locale);
@@ -28,12 +50,12 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
             </h1>
             <p>{t.hero.body}</p>
             <div className="row">
-              <Link className="button" href="/login?mode=register">
-                {onboardingText[locale].trial}
+              <Link className="button" href="#founding-five">
+                {t.foundingFiveOffer.cta}
                 <ArrowRight size={16} />
               </Link>
-              <Link className="button secondary" href={`${localeBase(locale)}/tour`}>
-                {onboardingText[locale].learn}
+              <Link className="button secondary" href="/demo">
+                {t.hero.secondary}
                 <ArrowUpRight size={14} />
               </Link>
             </div>
@@ -59,6 +81,8 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
             </div>
           </div>
         </section>
+
+        <FoundingFiveOffer locale={locale} />
 
         <div className="marketing-band">
           <section className="marketing-section center" id="how-it-works">
@@ -234,6 +258,7 @@ export function PricingPage({ locale }: { locale: SiteLocale }) {
         <h2>{t.pricingPage.title}</h2>
         <p>{t.pricingPage.body}</p>
         <Pricing locale={locale} />
+        <FoundingFiveOffer locale={locale} />
       </main>
       <MarketingFooter locale={locale} />
     </div>

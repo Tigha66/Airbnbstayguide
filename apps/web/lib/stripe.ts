@@ -5,6 +5,97 @@ import { applicationFee, plans, CURRENCY, type Plan } from "@stayguide/shared";
 
 export const stripeConfigured = () => /^(?:sk|rk)_(?:test|live)_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 export const stripeLiveMode = () => /^(?:sk|rk)_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
+
+export type StripeAccountIdentityFailureCode =
+  | "missing_secret_key"
+  | "invalid_secret_key_format"
+  | "missing_expected_account"
+  | "stripe_request_timeout"
+  | "stripe_network_error"
+  | "stripe_authentication_failed"
+  | "stripe_permission_denied"
+  | "stripe_rate_limited"
+  | "stripe_api_error"
+  | "stripe_response_invalid_json" | "stripe_response_missing_identity_fields"
+  | "stripe_account_mismatch"
+  | "stripe_mode_mismatch"
+  | "unexpected_identity_check_failure";
+
+/** Safe diagnostic error: never include or log API credentials or Stripe response bodies. */
+export class StripeAccountIdentityError extends Error {
+  constructor(
+    readonly code: StripeAccountIdentityFailureCode,
+    readonly stripeStatus?: number,
+    readonly responseContentType?: string,
+    readonly responseHasId?: boolean,
+    readonly responseHasLivemode?: boolean,
+  ) {
+    super(code);
+    this.name = "StripeAccountIdentityError";
+  }
+}
+
+/** Refuse QA billing operations unless the API key resolves to the operator-approved Stripe account and mode. */
+export async function assertStripeAccountIdentity() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  const expectedAccountId = process.env.STRIPE_EXPECTED_ACCOUNT_ID?.trim();
+  if (!secretKey) throw new StripeAccountIdentityError("missing_secret_key");
+  if (!stripeConfigured()) throw new StripeAccountIdentityError("invalid_secret_key_format");
+  if (!expectedAccountId) throw new StripeAccountIdentityError("missing_expected_account");
+  // Founding Five is an isolated QA flow; never permit a live-mode key here.
+  if (stripeLiveMode()) throw new StripeAccountIdentityError("stripe_mode_mismatch");
+
+  let response: Response;
+  try {
+    response = await fetch("https://api.stripe.com/v1/account", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${secretKey}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    if (name === "TimeoutError" || name === "AbortError")
+      throw new StripeAccountIdentityError("stripe_request_timeout");
+    throw new StripeAccountIdentityError("stripe_network_error");
+  }
+
+  if (!response.ok) {
+    const code = response.status === 401 ? "stripe_authentication_failed"
+      : response.status === 403 ? "stripe_permission_denied"
+      : response.status === 429 ? "stripe_rate_limited"
+      : "stripe_api_error";
+    throw new StripeAccountIdentityError(code, response.status);
+  }
+
+  const responseContentType = response.headers.get("content-type") ?? undefined;
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new StripeAccountIdentityError(
+      "stripe_response_invalid_json",
+      response.status,
+      responseContentType,
+    );
+  }
+  // Stripe's /v1/account response provides the account ID, but not a livemode field.
+  // Determine mode from the API key prefix; the configured account ID independently
+  // pins this integration to the intended account or sandbox.
+  const account = payload && typeof payload === "object"
+    ? payload as { id?: unknown }
+    : null;
+  if (!account || typeof account.id !== "string")
+    throw new StripeAccountIdentityError(
+      "stripe_response_missing_identity_fields",
+      response.status,
+      responseContentType,
+      Boolean(account && typeof account.id === "string"),
+    );
+  if (account.id !== expectedAccountId)
+    throw new StripeAccountIdentityError("stripe_account_mismatch", response.status);
+  return { id: account.id, livemode: false };
+}
 let client: Stripe | null = null;
 export function stripeClient() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");

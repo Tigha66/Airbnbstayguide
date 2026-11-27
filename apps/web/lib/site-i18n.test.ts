@@ -26,6 +26,7 @@ describe("website translations", () => {
     expect(siteText("fr").hero.title1).toBe("Moins de gestion.");
     expect(siteText("de").nav.pricing).toBe("Preise");
     expect(siteText("ar").faq.items).toHaveLength(6);
+    for (const locale of siteLocales) expect(siteText(locale).foundingFiveOffer.price).toContain("$49 USD");
   });
   it("keeps the guest-concierge sample in the visitor's selected language", () => {
     const french = siteText("fr").langs;
