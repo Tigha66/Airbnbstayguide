@@ -34,7 +34,7 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       key: "accounts",
       label: "Host accounts",
       ok: auth,
-      detail: auth ? `Hosts can sign in with ${authProviders}.` : "Needs AUTH_SECRET, at least one login provider, and a working database.",
+      detail: auth ? `Login providers configured: ${authProviders}. Live sign-in requires a separate end-to-end check.` : "Needs AUTH_SECRET, at least one login provider, and a working database.",
     },
     {
       key: "email",
@@ -46,7 +46,7 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       key: "ai",
       label: "AI concierge & guide builder",
       ok: aiConfigured(),
-      detail: aiConfigured() ? "AI provider configured." : "Needs HF_TOKEN (Hugging Face). Guests get keyword answers from the guide meanwhile.",
+      detail: aiConfigured() ? "AI credentials are configured; verify provider connectivity in owner diagnostics before launch." : "No usable AI credentials detected. Guests receive guide-based keyword answers meanwhile.",
     },
     {
       key: "payments",
