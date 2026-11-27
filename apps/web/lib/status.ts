@@ -4,6 +4,7 @@ import { aiConfigured } from "@/lib/ai";
 import { dbConfigured, query } from "@/lib/db";
 import { mailerConfigured } from "@/lib/mailer";
 import { stripeConfigured, stripeLiveMode } from "@/lib/stripe";
+import { applicationOrigin } from "@/lib/origin";
 
 export type ServiceStatus = { key: string; label: string; ok: boolean; detail: string };
 
@@ -20,7 +21,11 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       dbDetail = "DATABASE_URL is set but the database could not be reached or is not migrated.";
     }
   }
-  const auth = authConfigured() && dbOk;
+  // A broken canonical origin makes email verification/reset and checkout
+  // redirects unusable even when all provider credentials are configured.
+  let originOk = false;
+  try { applicationOrigin(); originOk = true; } catch { /* Report the configuration failure without leaking URL details. */ }
+  const auth = authConfigured() && dbOk && originOk;
   const authProviders = [
     googleConfigured() && "Google",
     appleConfigured() && "Apple",
@@ -34,7 +39,9 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
       key: "accounts",
       label: "Host accounts",
       ok: auth,
-      detail: auth ? `Hosts can sign in with ${authProviders}.` : "Needs AUTH_SECRET, at least one login provider, and a working database.",
+      detail: auth ? `Hosts can sign in with ${authProviders}; email verification and reset delivery must still be tested.`
+          : originOk ? "Needs AUTH_SECRET, at least one login provider, and a working database."
+          : "Trusted application URL is not configured; login/recovery links cannot be verified.",
     },
     {
       key: "email",
@@ -51,8 +58,9 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
     {
       key: "payments",
       label: "Payments (Stripe)",
-      ok: stripe,
-      detail: stripe ? `Stripe configured (${mode} mode); checkout, webhooks and payouts still need end-to-end verification.` : "Not connected yet: needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET.",
+      ok: stripe && originOk,
+      detail: !originOk ? "Trusted application URL is not configured for checkout redirects."
+        : stripe ? `Stripe configured (${mode} mode); checkout, webhooks and payouts still need end-to-end verification.` : "Not connected yet: needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET.",
     },
   ];
 }

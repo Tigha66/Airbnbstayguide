@@ -5,6 +5,9 @@ import { applicationFee, plans, CURRENCY, type Plan } from "@stayguide/shared";
 
 export const stripeConfigured = () => /^(?:sk|rk)_(?:test|live)_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 export const stripeLiveMode = () => /^(?:sk|rk)_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
+/** Never let a protected Preview environment take real Stripe payments. */
+export const stripeCheckoutAllowed = () => stripeConfigured() &&
+  !(process.env.VERCEL_ENV === "preview" && stripeLiveMode());
 let client: Stripe | null = null;
 export function stripeClient() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");
@@ -32,12 +35,21 @@ export async function priceId(plan: "starter" | "pro" | "manager", yearly: boole
     throw new Error("The selected subscription price needs operator configuration");
   return price.id;
 }
+/**
+ * Validate the self-service portal before taking a customer's first payment.
+ * A defined configuration ID is not proof it still exists or allows cancellation.
+ */
 export async function portalConfigurationId() {
-  if (process.env.STRIPE_PORTAL_CONFIGURATION_ID?.trim()) return process.env.STRIPE_PORTAL_CONFIGURATION_ID.trim();
-  const { data } = await stripeClient().billingPortal.configurations.list({ active: true, limit: 100 });
-  const configuration = data.find((item) => item.metadata?.app === "stayguide")?.id;
-  if (!configuration) throw new Error("Configure StayGuide's self-service billing portal first");
-  return configuration;
+  const stripe = stripeClient();
+  const configured = process.env.STRIPE_PORTAL_CONFIGURATION_ID?.trim();
+  const portal = configured
+    ? await stripe.billingPortal.configurations.retrieve(configured)
+    : (await stripe.billingPortal.configurations.list({ active: true, limit: 100 }))
+      .data.find((item) => item.metadata?.app === "stayguide");
+  if (!portal?.active || !portal.features?.subscription_cancel?.enabled ||
+      !portal.features?.payment_method_update?.enabled)
+    throw new Error("StayGuide's billing portal must allow subscription cancellation and payment updates");
+  return portal.id;
 }
 export function checkoutIdentity(userId: string, price: string, quantity: number, time = Date.now()) {
   const key = ["stayguide", "checkout", userId, price, quantity, Math.floor(time / 900_000)].join(":");

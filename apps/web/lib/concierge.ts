@@ -4,7 +4,9 @@ import { conciergeSystemPrompt } from "@stayguide/shared";
 import { generateJson } from "./ai";
 import { guideContext, retrieve } from "./retrieval";
 import { guestText } from "./guest-i18n";
-export const CONCIERGE_AI_TIMEOUT_MS = 12000;
+// HCN auto-routing can exceed the former 12s budget. Keep a hard deadline and
+// preserve the existing grounded keyword fallback when AI is unavailable.
+export const CONCIERGE_AI_TIMEOUT_MS = 20000;
 export type ConciergeAnswer = { answer: string; citations: string[]; escalate: boolean };
 const languageNames: Record<string, string> = { en: "English", fr: "French", es: "Spanish", de: "German", it: "Italian", pt: "Portuguese", nl: "Dutch", ar: "Arabic", ja: "Japanese", zh: "Chinese", ko: "Korean", hi: "Hindi" };
 // Shown when the guide doesn't cover a question; the conversation is escalated to the host.
@@ -85,9 +87,12 @@ export async function aiAnswer(property: Property, question: string, language: s
     conciergeSystemPrompt(`${facts}\n\n${context}`, languageNames[language] ?? "English") +
       `\nValid citation titles: ${JSON.stringify(["Stay details", ...sections.map((s) => s.title)])}.\nRespond with JSON only, for example {"answer":"...","citations":["Checkout"],"escalate":false}.`,
     question,
-    700,
-    // Guests are waiting: fall back to the keyword search rather than leave them hanging.
-    CONCIERGE_AI_TIMEOUT_MS,
+    // A branch-scoped dedicated model can use the full output budget without
+    // exhausting tokens on HCN reasoning. Production still defaults to auto.
+    process.env.AI_CONCIERGE_MODEL?.trim() ? 8192 : 700,
+    // Guests must never wait for a full-guide generation window.
+    process.env.AI_CONCIERGE_MODEL?.trim() ? 25000 : CONCIERGE_AI_TIMEOUT_MS,
+    process.env.AI_CONCIERGE_MODEL?.trim() || undefined,
   );
   const out = schema.parse(json);
   const valid = new Set(["Stay details", ...sections.map((s) => s.title)]);

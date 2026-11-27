@@ -35,7 +35,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       mode = "ai";
     } catch (error) {
       // Visible in Vercel → Logs; the guest still gets an answer from the keyword search.
-      console.error("[concierge] AI answer failed; using keyword search", error);
+      // Provider errors may contain raw response headers, request payloads or API metadata.
+      // Keep logs diagnostic-only: never serialize the provider exception.
+      const failure = error as { name?: unknown; code?: unknown; statusCode?: unknown } | null;
+      console.error("[concierge] AI answer failed; using keyword search", {
+        type: typeof failure?.name === "string" ? failure.name : "UnknownError",
+        code: typeof failure?.code === "string" ? failure.code : undefined,
+        status: typeof failure?.statusCode === "number" ? failure.statusCode : undefined,
+      });
       answer = keywordAnswer(found.property, body.message, language);
     }
   } else answer = keywordAnswer(found.property, body.message, language);
