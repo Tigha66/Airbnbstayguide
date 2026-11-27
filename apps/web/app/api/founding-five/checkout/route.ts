@@ -72,12 +72,9 @@ export async function POST(request: Request) {
       const previous = await stripe.checkout.sessions.retrieve(existing.checkout_session_id);
       if (previous.status === "open" && previous.url) return reply({ url: previous.url, reused: true });
       if (previous.status === "complete" && previous.payment_status === "paid") {
-        const paymentReference = typeof previous.payment_intent === "string" ? previous.payment_intent : previous.payment_intent?.id;
-        await query(
-          "UPDATE commissioned_guide_orders SET status='paid', payment_reference=$2, updated_at=now() WHERE id=$1 AND status='pending'",
-          [existing.id, paymentReference ?? null],
-        );
-        return reply({ error: "Payment is recorded. Publish the approved guide, then complete hosting activation." }, 409);
+        // Only the verified Stripe webhook may reconcile a pending order as paid.
+        // A retry must not bypass signature verification or reservation reconciliation.
+        return reply({ error: "Stripe reports payment received. Wait for the signed webhook to record your order before activating hosting." }, 409);
       }
       if (previous.status === "expired") {
         await query("UPDATE commissioned_guide_orders SET status='cancelled', updated_at=now() WHERE id=$1 AND status='pending'", [existing.id]);
