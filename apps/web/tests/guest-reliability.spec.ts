@@ -1,5 +1,28 @@
 import { test, expect } from "@playwright/test";
 
+test("authenticated inbox does not show demo fixtures while the host session is resolving", async ({ page }) => {
+  let releaseSession!: () => void;
+  const sessionReady = new Promise<void>((resolve) => { releaseSession = resolve; });
+  await page.route("**/api/v1/me", async (route) => {
+    await sessionReady;
+    await route.fulfill({ json: {
+      user: { id: "qa-host", email: "host@example.test", name: "QA Host", image: null, plan: "free", emailVerified: true },
+      properties: [],
+      services: { accounts: true, ai: false },
+    } });
+  });
+  await page.route("**/api/v1/inbox", (route) => route.fulfill({ json: { threads: [] } }));
+  await page.route("**/api/v1/whatsapp/inbox", (route) => route.fulfill({ json: { thread: null } }));
+
+  const navigation = page.goto("/dashboard/inbox");
+  await expect(page.getByRole("status")).toContainText("Loading conversations…");
+  await expect(page.getByText("Sarah Mitchell")).toHaveCount(0);
+  releaseSession();
+  await navigation;
+  await expect(page.getByText("Sarah Mitchell")).toHaveCount(0);
+  await expect(page.getByText("All quiet for now")).toBeVisible();
+});
+
 test("a blocked browser storage still permits guide reading and questions", async ({ page }) => {
   await page.addInitScript(() => {
     Storage.prototype.getItem = () => { throw new DOMException("Storage disabled", "SecurityError"); };

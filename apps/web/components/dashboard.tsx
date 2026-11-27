@@ -256,7 +256,7 @@ export function Dashboard({ view = "" }: { view?: string }) {
   ];
   const onboarding = [
     {
-      label: tr("Verify your email"),
+      label: liveState.user?.emailVerified ? tr("Email verified") : tr("Verify your email"),
       done: !live || Boolean(liveState.user?.emailVerified),
       href: "/dashboard/settings",
       detail: live ? tr("Keeps account recovery and support safe.") : tr("Demo mode uses sample account details."),
@@ -1096,7 +1096,10 @@ export function Dashboard({ view = "" }: { view?: string }) {
             </div>
           )}
           {view === "inbox" && live && <LiveInbox notify={notify} />}
-          {view === "inbox" && !live && (
+          {view === "inbox" && !live && !liveState.checked && (
+            <div className="card panel" role="status">{tr("Loading conversations…")}</div>
+          )}
+          {view === "inbox" && !live && liveState.checked && (
             <>
               <PageHeading
                 title={tr("A little human touch")}
