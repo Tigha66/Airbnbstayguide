@@ -1,7 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/samples/:slug", "destination": "/api/sample?slug=:slug" },
-    { "source": "/samples/:slug/", "destination": "/api/sample?slug=:slug" }
-  ]
+    {
+      "source": "/samples/:slug",
+      "destination": "/api/sample?slug=:slug"
+    },
+    {
+      "source": "/samples/:slug/",
+      "destination": "/api/sample?slug=:slug"
+    }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "fix/launch-acceptance-20261127": false
+    }
+  }
 }

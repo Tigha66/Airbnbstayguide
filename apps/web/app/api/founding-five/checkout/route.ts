@@ -41,6 +41,15 @@ export async function POST(request: Request) {
   );
   if (!property) return reply({ error: "Property not found." }, 404);
 
+  // Fail before creating anything in Stripe when the offer migration is missing.
+  try {
+    await query("SELECT id FROM founding_five_offer_capacity WHERE id=1");
+    await query("SELECT id FROM founding_five_offer_reservations LIMIT 1");
+  } catch {
+    console.error("[founding-five] checkout blocked: offer schema unavailable");
+    return reply({ error: "Checkout is temporarily unavailable while billing setup is completed." }, 503);
+  }
+
   try {
     await assertStripeAccountIdentity();
     const stripe = stripeClient();
@@ -168,7 +177,10 @@ export async function POST(request: Request) {
       await query("UPDATE founding_five_offer_reservations SET status='cancelled' WHERE id=$1 AND status='pending'", [reservation.reservationId]).catch(() => undefined);
       throw error;
     }
-  } catch {
+  } catch (error) {
+    console.error("[founding-five] checkout preparation failed", {
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
     return reply({ error: "QA checkout could not be prepared. No hosting or paid subscription was granted." }, 502);
   }
 }
