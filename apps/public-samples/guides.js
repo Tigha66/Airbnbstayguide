@@ -139,7 +139,8 @@ module.exports = {
     departure: "No checkout time or departure instructions supplied. Host confirmation is required before publication.",
     recommendations: ["Covent Garden piazza", "Leicester Square", "West End shops and nearby restaurants"],
     source: "https://clarendonlondon.com/serviced-apartments/covent-garden/clarendon-west-street/"
-  }  "libbys-place": {
+  },
+  "libbys-place": {
     "tokenHash": "b6fcddce05405b1879700887cb96275c12288dbecf03e2011999b8aab820ae47",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Fernwood Cottages",
@@ -160,7 +161,8 @@ module.exports = {
       "Local shops and food in Ambleside"
     ],
     "source": "https://fernwoodcottages.co.uk/properties/libbys-place/"
-  },  "artist-cottage": {
+  },
+  "artist-cottage": {
     "tokenHash": "3f2da64610a06b01bf3f29cf7773e4d5c8a1a20c590ab892127310c6f08ce14e",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Cornish Escapes",
@@ -181,7 +183,8 @@ module.exports = {
       "Town centre"
     ],
     "source": "https://cornish-escapes.com/properties/artist-cottage/"
-  },  "manesty-cottage": {
+  },
+  "manesty-cottage": {
     "tokenHash": "815e3afe57e9e46fc677aadc5f933fa1a60a5b82751bc6d0e4a3bc36b88e094d",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Manesty",
@@ -202,7 +205,8 @@ module.exports = {
       "Lake District walks"
     ],
     "source": "https://manesty.co.uk/the-cottages/manesty/"
-  },  "laburnum-cottage": {
+  },
+  "laburnum-cottage": {
     "tokenHash": "b82f413315a3bc711a1fd3a97a77d8087fb04aa4169dd91b74d74bdcd497f493",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Cotswold Cottage Holidays",
@@ -223,7 +227,8 @@ module.exports = {
       "Local shops and places to eat"
     ],
     "source": "https://www.cotswoldcottageholidays.co.uk/laburnum-cottage/"
-  },  "crofts-cottage": {
+  },
+  "crofts-cottage": {
     "tokenHash": "0d3591776e3fb7d7a997ec944e7d09b67513d5f2af9da7b763ca9de59bfac0d7",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Keswick Holiday Homes",
@@ -244,7 +249,8 @@ module.exports = {
       "Surrounding fells and trails"
     ],
     "source": "https://keswickholidayhomes.co.uk/portfolio/crofts-cottage-keswick/"
-  },  "old-dairy-cornwall": {
+  },
+  "old-dairy-cornwall": {
     "tokenHash": "7491528e6620e69c78fb2181e780cae382543f2dc138ebf20d00c00b4437bc5b",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Cornish Holiday Escapes",
@@ -265,7 +271,8 @@ module.exports = {
       "Nearby walks"
     ],
     "source": "https://www.cornishholidayescapes.co.uk/"
-  },  "greystones-cottage": {
+  },
+  "greystones-cottage": {
     "tokenHash": "1b48956575d2d38696b26ca0a0c908e5a824528f4a96cd8838bfd1894f9c18bf",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Cotswold Cottage Gems",
@@ -286,7 +293,8 @@ module.exports = {
       "Nearby Cotswold market towns"
     ],
     "source": "https://www.cotswoldcottagegems.co.uk/greystones-cottage"
-  },  "seamist-gwithian": {
+  },
+  "seamist-gwithian": {
     "tokenHash": "01aaf7eca7618fde0976b12d97601bbc6d69aead42bb2e5d428b4955cc9fce58",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Forever Cornwall",
@@ -307,7 +315,8 @@ module.exports = {
       "West Cornwall coastal walks"
     ],
     "source": "https://www.forevercornwall.co.uk/cottages/gwithian/seamist"
-  },  "anley-cottage": {
+  },
+  "anley-cottage": {
     "tokenHash": "9c729aa53b95ef14dfb49f81acd068862214b91c36149891bdbdb8a182c1a1d0",
     "expiresAt": "2026-12-26T23:59:59.000Z",
     "manager": "Cumbrian Cottage Holidays",
