@@ -28,12 +28,12 @@ export function HomePage({ locale }: { locale: SiteLocale }) {
             </h1>
             <p>{t.hero.body}</p>
             <div className="row">
-              <Link className="button" href="/login?mode=register">
-                {onboardingText[locale].trial}
+              <Link className="button" href="/demo/previews">
+                {t.hero.primary}
                 <ArrowRight size={16} />
               </Link>
-              <Link className="button secondary" href={`${localeBase(locale)}/tour`}>
-                {onboardingText[locale].learn}
+              <Link className="button secondary" href="mailto:abdelhaktirha@gmail.com?subject=Free%20personalised%20guest-guide%20sample">
+                {t.hero.secondary}
                 <ArrowUpRight size={14} />
               </Link>
             </div>
