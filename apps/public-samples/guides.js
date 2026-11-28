@@ -159,7 +159,7 @@ module.exports = {
       "Lake District walks and viewpoints",
       "Local shops and food in Ambleside"
     ],
-    "source": "https://www.fernwoodcottages.co.uk/cottages/libbys-place/"
+    "source": "https://fernwoodcottages.co.uk/properties/libbys-place/"
   },  "artist-cottage": {
     "tokenHash": "3f2da64610a06b01bf3f29cf7773e4d5c8a1a20c590ab892127310c6f08ce14e",
     "expiresAt": "2026-12-26T23:59:59.000Z",
@@ -180,7 +180,7 @@ module.exports = {
       "Porthmeor area",
       "Town centre"
     ],
-    "source": "https://www.cornishescapes.co.uk/properties/artist-cottage/"
+    "source": "https://cornish-escapes.com/properties/artist-cottage/"
   },  "manesty-cottage": {
     "tokenHash": "815e3afe57e9e46fc677aadc5f933fa1a60a5b82751bc6d0e4a3bc36b88e094d",
     "expiresAt": "2026-12-26T23:59:59.000Z",
@@ -201,7 +201,7 @@ module.exports = {
       "Derwentwater area",
       "Lake District walks"
     ],
-    "source": "https://www.manesty.co.uk/"
+    "source": "https://manesty.co.uk/the-cottages/manesty/"
   },  "laburnum-cottage": {
     "tokenHash": "b82f413315a3bc711a1fd3a97a77d8087fb04aa4169dd91b74d74bdcd497f493",
     "expiresAt": "2026-12-26T23:59:59.000Z",
@@ -222,7 +222,7 @@ module.exports = {
       "Cotswold countryside walks",
       "Local shops and places to eat"
     ],
-    "source": "https://www.cotswoldcottageholidays.co.uk/cottages/laburnum-cottage/"
+    "source": "https://www.cotswoldcottageholidays.co.uk/laburnum-cottage/"
   },  "crofts-cottage": {
     "tokenHash": "0d3591776e3fb7d7a997ec944e7d09b67513d5f2af9da7b763ca9de59bfac0d7",
     "expiresAt": "2026-12-26T23:59:59.000Z",
@@ -243,7 +243,7 @@ module.exports = {
       "Derwentwater",
       "Surrounding fells and trails"
     ],
-    "source": "https://www.keswickholidayhomes.co.uk/property/crofts-cottage/"
+    "source": "https://keswickholidayhomes.co.uk/portfolio/crofts-cottage-keswick/"
   },  "old-dairy-cornwall": {
     "tokenHash": "7491528e6620e69c78fb2181e780cae382543f2dc138ebf20d00c00b4437bc5b",
     "expiresAt": "2026-12-26T23:59:59.000Z",
@@ -285,7 +285,7 @@ module.exports = {
       "Cotswold countryside walks",
       "Nearby Cotswold market towns"
     ],
-    "source": "https://www.cotswoldcottagegems.co.uk/greystones-cottage/"
+    "source": "https://www.cotswoldcottagegems.co.uk/greystones-cottage"
   },  "seamist-gwithian": {
     "tokenHash": "01aaf7eca7618fde0976b12d97601bbc6d69aead42bb2e5d428b4955cc9fce58",
     "expiresAt": "2026-12-26T23:59:59.000Z",
@@ -306,7 +306,7 @@ module.exports = {
       "Hayle area",
       "West Cornwall coastal walks"
     ],
-    "source": "https://www.forevercornwall.co.uk/property/seamist/"
+    "source": "https://www.forevercornwall.co.uk/cottages/gwithian/seamist"
   },  "anley-cottage": {
     "tokenHash": "9c729aa53b95ef14dfb49f81acd068862214b91c36149891bdbdb8a182c1a1d0",
     "expiresAt": "2026-12-26T23:59:59.000Z",
@@ -327,6 +327,6 @@ module.exports = {
       "Keswick town",
       "Lake District walking routes"
     ],
-    "source": "https://www.cumbriancottageholidays.co.uk/"
+    "source": "https://www.cumbriancottageholidays.co.uk/cottages/anley-cottage-keswick/"
   },
 };
