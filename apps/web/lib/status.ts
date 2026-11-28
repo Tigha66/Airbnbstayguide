@@ -14,6 +14,13 @@ export async function serviceStatus(): Promise<ServiceStatus[]> {
   if (dbConfigured()) {
     try {
       await query("SELECT id, session_version, billing_event_created FROM users LIMIT 1");
+      if (process.env.VERCEL_ENV === "preview" && process.env.FOUNDING_FIVE_QA_ENABLED === "true") {
+        await query("SELECT id FROM founding_five_offer_capacity WHERE id=1");
+        await query("SELECT id FROM founding_five_offer_reservations LIMIT 1");
+      }
+      if (process.env.VERCEL_ENV === "preview" && process.env.WALKTHROUGH_ENQUIRIES_ENABLED === "true") {
+        await query("SELECT customer_email_status, internal_email_status FROM property_walkthrough_enquiries LIMIT 1");
+      }
       dbOk = true;
       dbDetail = "Connected to Postgres; tables are in place.";
     } catch {

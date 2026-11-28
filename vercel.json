@@ -3,5 +3,11 @@
   "framework": "nextjs",
   "installCommand": "corepack pnpm install --frozen-lockfile",
   "buildCommand": "corepack pnpm --filter @stayguide/web build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "git": {
+    "deploymentEnabled": {
+      "fix/launch-acceptance-20261127": false,
+      "fix/security-dependencies-20261127": false
+    }
+  }
 }

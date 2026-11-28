@@ -33,7 +33,7 @@
     return;
   }
 
-  fetch("/api/sample", {
+  fetch("/api/sample?slug=" + encodeURIComponent(slug), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
@@ -107,17 +107,12 @@
     stay.append(departure);
     mount.append(stay);
 
-    const offer = node("section", "offer");
-    const offerCopy = node("div", "");
-    offerCopy.append(node("p", "eyebrow", "FOUNDING FIVE"));
-    offerCopy.append(node("h2", "", "$49 USD <span>· one-time</span>"));
-    offerCopy.append(node("p", "body-copy", "One personalised property guide, one consolidated revision, and 12 months of basic hosting from publication. No automatic renewal or monthly charge."));
-    offerCopy.append(node("p", "fine-print", "AI automation, automated WhatsApp messaging, PMS connections and property management are not included."));
-    offer.append(offerCopy);
-    const cta = link("mailto:" + support + "?subject=" + encodeURIComponent("GetStayGuide Founding Five — " + guide.property) + "&body=" + encodeURIComponent("Hello, I would like to discuss a GetStayGuide guest guide for my property.\n\nI understand the Founding Five offer is $49 USD one-time for one guide, one consolidated revision and 12 months of basic hosting from publication, with no automatic renewal.\n\nPlease send me the next steps."), "Request your $49 guide", "button button-primary");
-    cta.setAttribute("aria-label", "Request the $49 USD Founding Five guide by email");
-    offer.append(cta);
-    mount.append(offer);
+    const response = node("section", "offer");
+    response.append(node("p", "eyebrow", "A SAMPLE TO REVIEW"));
+    response.append(node("h2", "", "Would an owner-approved version of this guide be useful?"));
+    response.append(node("p", "body-copy", "This private sample uses public listing information only. The property operator must confirm every detail before any guide is used with guests."));
+    response.append(link("mailto:" + support + "?subject=" + encodeURIComponent("Guest guide sample — " + guide.property), "Ask a question or request a revision", "button button-primary"));
+    mount.append(response);
 
     const source = node("section", "source-note");
     source.append(node("p", "fine-print", "Sample information is limited to the public source below. The property operator must confirm all facts, arrival and departure instructions before any real guest guide is published. No endorsement or business relationship is implied."));

@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { assertStripeAccountIdentity, StripeAccountIdentityError } from "./stripe";
+import { assertStripeAccountIdentity } from "./stripe";
 
 afterEach(() => {
   vi.unstubAllGlobals();

@@ -139,5 +139,225 @@ module.exports = {
     departure: "No checkout time or departure instructions supplied. Host confirmation is required before publication.",
     recommendations: ["Covent Garden piazza", "Leicester Square", "West End shops and nearby restaurants"],
     source: "https://clarendonlondon.com/serviced-apartments/covent-garden/clarendon-west-street/"
-  }
+  },
+  "libbys-place": {
+    "tokenHash": "b6fcddce05405b1879700887cb96275c12288dbecf03e2011999b8aab820ae47",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Fernwood Cottages",
+    "property": "Libby's Place",
+    "location": "Ambleside, Lake District",
+    "accent": "#496b83",
+    "summary": "A two-bedroom, two-bathroom ground-floor cottage for four, about a five-minute walk from Ambleside centre.",
+    "highlights": [
+      "Two bedrooms and two bathrooms; sleeps four.",
+      "Ground-floor accommodation with Wi-Fi and parking listed.",
+      "The operator lists a five-minute walk to Ambleside centre."
+    ],
+    "arrival": "Published check-in is 4 pm and check-out is 10 am. Confirm access details with the operator.",
+    "departure": "Published check-in is 4 pm and check-out is 10 am. Confirm any property-specific departure steps with the operator.",
+    "recommendations": [
+      "Ambleside centre",
+      "Lake District walks and viewpoints",
+      "Local shops and food in Ambleside"
+    ],
+    "source": "https://fernwoodcottages.co.uk/properties/libbys-place/"
+  },
+  "artist-cottage": {
+    "tokenHash": "3f2da64610a06b01bf3f29cf7773e4d5c8a1a20c590ab892127310c6f08ce14e",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Cornish Escapes",
+    "property": "Artist Cottage",
+    "location": "St Ives, Cornwall",
+    "accent": "#2f7185",
+    "summary": "A three-bedroom, dog-friendly cottage with a south-west-facing courtyard and off-site parking, close to St Ives harbour and town.",
+    "highlights": [
+      "Three bedrooms; dog friendly.",
+      "South-west-facing courtyard and off-site parking are listed.",
+      "The listing places the cottage near the harbour, town and Porthmeor."
+    ],
+    "arrival": "Published check-in is 5 pm and check-out is 10 am. Confirm access details with the operator.",
+    "departure": "Published check-in is 5 pm and check-out is 10 am. Confirm any property-specific departure steps with the operator.",
+    "recommendations": [
+      "St Ives harbour",
+      "Porthmeor area",
+      "Town centre"
+    ],
+    "source": "https://cornish-escapes.com/properties/artist-cottage/"
+  },
+  "manesty-cottage": {
+    "tokenHash": "815e3afe57e9e46fc677aadc5f933fa1a60a5b82751bc6d0e4a3bc36b88e094d",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Manesty",
+    "property": "Manesty Cottage",
+    "location": "Borrowdale, Lake District",
+    "accent": "#56734b",
+    "summary": "A three-bedroom farmhouse cottage sleeping up to seven, with a stove, Wi-Fi and parking; the operator lists it as non-smoking and no pets.",
+    "highlights": [
+      "Three bedrooms and sleeps up to seven.",
+      "Stove, Wi-Fi and parking listed.",
+      "Non-smoking and no pets, according to the operator."
+    ],
+    "arrival": "No public check-in time or entry instructions confirmed in this sample. Host confirmation required.",
+    "departure": "No public check-out time or departure steps confirmed in this sample. Host confirmation required.",
+    "recommendations": [
+      "Borrowdale valley",
+      "Derwentwater area",
+      "Lake District walks"
+    ],
+    "source": "https://manesty.co.uk/the-cottages/manesty/"
+  },
+  "laburnum-cottage": {
+    "tokenHash": "b82f413315a3bc711a1fd3a97a77d8087fb04aa4169dd91b74d74bdcd497f493",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Cotswold Cottage Holidays",
+    "property": "Laburnum Cottage",
+    "location": "Broadway, Worcestershire",
+    "accent": "#8a744a",
+    "summary": "A pet-friendly cottage with private parking and an enclosed garden, just over half a mile from Broadway village.",
+    "highlights": [
+      "Pet-friendly; enclosed garden and private parking listed.",
+      "Located just over half a mile from Broadway village.",
+      "Property details should be confirmed with the operator before guest use."
+    ],
+    "arrival": "No public check-in time or entry instructions confirmed in this sample. Host confirmation required.",
+    "departure": "No public check-out time or departure steps confirmed in this sample. Host confirmation required.",
+    "recommendations": [
+      "Broadway village",
+      "Cotswold countryside walks",
+      "Local shops and places to eat"
+    ],
+    "source": "https://www.cotswoldcottageholidays.co.uk/laburnum-cottage/"
+  },
+  "crofts-cottage": {
+    "tokenHash": "0d3591776e3fb7d7a997ec944e7d09b67513d5f2af9da7b763ca9de59bfac0d7",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Keswick Holiday Homes",
+    "property": "Crofts Cottage",
+    "location": "Keswick, Cumbria",
+    "accent": "#496b83",
+    "summary": "A two-bedroom holiday cottage for four, with fell views and walking access to Keswick town.",
+    "highlights": [
+      "Two bedrooms; sleeps four.",
+      "Fell views are noted in the listing.",
+      "Keswick town is within walking distance, according to the listing."
+    ],
+    "arrival": "No public check-in time or entry instructions confirmed in this sample. Host confirmation required.",
+    "departure": "No public check-out time or departure steps confirmed in this sample. Host confirmation required.",
+    "recommendations": [
+      "Keswick town centre",
+      "Derwentwater",
+      "Surrounding fells and trails"
+    ],
+    "source": "https://keswickholidayhomes.co.uk/portfolio/crofts-cottage-keswick/"
+  },
+  "old-dairy-cornwall": {
+    "tokenHash": "7491528e6620e69c78fb2181e780cae382543f2dc138ebf20d00c00b4437bc5b",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Cornish Holiday Escapes",
+    "property": "The Old Dairy",
+    "location": "Little Rosewarne, West Cornwall",
+    "accent": "#2f7185",
+    "summary": "A converted former cattle shed and creamery in West Cornwall. The public listing mentions a wood burner and EV charging.",
+    "highlights": [
+      "Converted former cattle shed and creamery.",
+      "Wood burner and EV charging are listed for The Old Dairy.",
+      "The operator also lists a separate Hayloft at Little Rosewarne; details are not mixed into this sample."
+    ],
+    "arrival": "No public check-in time or entry instructions confirmed in this sample. Host confirmation required.",
+    "departure": "No public check-out time or departure steps confirmed in this sample. Host confirmation required.",
+    "recommendations": [
+      "West Cornwall coast",
+      "Local villages and beaches",
+      "Nearby walks"
+    ],
+    "source": "https://www.cornishholidayescapes.co.uk/"
+  },
+  "greystones-cottage": {
+    "tokenHash": "1b48956575d2d38696b26ca0a0c908e5a824528f4a96cd8838bfd1894f9c18bf",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Cotswold Cottage Gems",
+    "property": "Greystones Cottage",
+    "location": "Cold Aston, Gloucestershire",
+    "accent": "#8a744a",
+    "summary": "A 300-year-old, dog-friendly cottage with three bedrooms for six, a log burner, two parking spaces and a garden with BBQ.",
+    "highlights": [
+      "Three bedrooms; sleeps six.",
+      "Dog friendly; log burner and garden BBQ listed.",
+      "Parking for two cars is listed by the operator."
+    ],
+    "arrival": "No public check-in time or entry instructions confirmed in this sample. Host confirmation required.",
+    "departure": "No public check-out time or departure steps confirmed in this sample. Host confirmation required.",
+    "recommendations": [
+      "Cold Aston and surrounding villages",
+      "Cotswold countryside walks",
+      "Nearby Cotswold market towns"
+    ],
+    "source": "https://www.cotswoldcottagegems.co.uk/greystones-cottage"
+  },
+  "seamist-gwithian": {
+    "tokenHash": "01aaf7eca7618fde0976b12d97601bbc6d69aead42bb2e5d428b4955cc9fce58",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Forever Cornwall",
+    "property": "Seamist",
+    "location": "Gwithian, Cornwall",
+    "accent": "#2f7185",
+    "summary": "A one-bedroom cottage for two where two dogs are welcome. The listing notes a mezzanine with a low ceiling and parking for two.",
+    "highlights": [
+      "One bedroom; sleeps two; two dogs welcome.",
+      "The listing notes a low ceiling on the mezzanine.",
+      "Parking for two cars; published check-in from 4 pm and check-out by 10 am."
+    ],
+    "arrival": "Published check-in is 4 pm and check-out is 10 am. Confirm access details with the operator.",
+    "departure": "Published check-in is 4 pm and check-out is 10 am. Confirm any property-specific departure steps with the operator.",
+    "recommendations": [
+      "Gwithian beach",
+      "Hayle area",
+      "West Cornwall coastal walks"
+    ],
+    "source": "https://www.forevercornwall.co.uk/cottages/gwithian/seamist"
+  },
+  "anley-cottage": {
+    "tokenHash": "9c729aa53b95ef14dfb49f81acd068862214b91c36149891bdbdb8a182c1a1d0",
+    "expiresAt": "2026-12-26T23:59:59.000Z",
+    "manager": "Cumbrian Cottage Holidays",
+    "property": "Anley Cottage",
+    "location": "Keswick area, Cumbria",
+    "accent": "#496b83",
+    "summary": "A two-bedroom cottage for four with private parking, a garden and wood burner. The listing says no pets, with Derwentwater nearby.",
+    "highlights": [
+      "Two bedrooms; sleeps four; no pets, according to the listing.",
+      "Private parking, garden and wood burner listed.",
+      "Derwentwater is noted nearby; published times are 3 pm check-in and 10 am check-out."
+    ],
+    "arrival": "Published check-in is 3 pm and check-out is 10 am. Confirm access details with the operator.",
+    "departure": "Published check-in is 3 pm and check-out is 10 am. Confirm any property-specific departure steps with the operator.",
+    "recommendations": [
+      "Derwentwater",
+      "Keswick town",
+      "Lake District walking routes"
+    ],
+    "source": "https://www.cumbriancottageholidays.co.uk/cottages/anley-cottage-keswick/"
+  },
+  "the-warren-laik": {
+    tokenHash: "59d0ea145653fb655991655c0def9372a4137b5c88209b7ad3a8a8a5393477c8",
+    expiresAt: "2026-12-26T23:59:59.000Z",
+    manager: "Laik Ltd",
+    property: "The Warren",
+    location: "Bowness-on-Windermere, Cumbria",
+    accent: "#2f7185",
+    summary: "A Lakeland retreat in Bowness-on-Windermere for four, with two bedrooms, one bathroom and private parking.",
+    highlights: [
+      "Two bedrooms; sleeps four, according to Laik.",
+      "Private parking for one car is listed.",
+      "The property is a short stroll from Bowness shops, cafes, pubs and the Lake Windermere shore."
+    ],
+    arrival: "Published check-in is 4 pm. Confirm access details with the operator.",
+    departure: "Published check-out is 10 am. Confirm any property-specific departure steps with the operator.",
+    recommendations: [
+      "Bowness-on-Windermere shops and cafes",
+      "Lake Windermere shore",
+      "Nearby Lake District walks and viewpoints"
+    ],
+    source: "https://laik.co.uk/properties/the-warren/"
+  },
 };

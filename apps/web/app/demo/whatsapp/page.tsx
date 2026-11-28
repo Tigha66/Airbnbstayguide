@@ -245,12 +245,12 @@ export default function WhatsAppSalesDemo() {
           <span className={styles.offerTag}>DONE-FOR-YOU GUEST GUIDE</span>
           <h2>One property. One beautiful guest experience.</h2>
           <p>A branded mobile guide, owner-approved property information, shareable guest link, QR code and setup walkthrough.</p>
-          <p className={styles.terms}>£99 is a one-time setup price. Any ongoing hosting, support or subscription terms are agreed before purchase.</p>
+          <p className={styles.terms}>Founding Five: $49 USD once for the first five customers. One property, one consolidated revision and 12 months of basic hosting from publication. No automatic renewal; your account remains on Free.</p>
         </div>
         <div className={styles.priceCard}>
           <span>ONE-TIME SETUP</span>
-          <strong>£99</strong>
-          <a href="mailto:abdelhaktirha@gmail.com?subject=GetStayGuide%20%C2%A399%20guest%20guide%20enquiry" className={styles.primaryAction}>
+          <strong>$49 USD</strong>
+          <a href="mailto:abdelhaktirha@gmail.com?subject=GetStayGuide%20%2449%20USD%20guest%20guide%20enquiry" className={styles.primaryAction}>
             Ask about your property <ArrowRight size={17} aria-hidden="true" />
           </a>
         </div>

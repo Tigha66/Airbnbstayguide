@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
-import { setQueryOverride, splitStatements } from "./db";
+import { query, setQueryOverride, splitStatements } from "./db";
 import * as repo from "./repo";
 
 let a: repo.User;
@@ -44,6 +44,15 @@ describe("repository (Neon schema on PGlite)", () => {
     const free = { ...b, plan: "free" as const };
     await repo.createProperty(free, { name: "One", location: "Lisbon", description: "" });
     await expect(repo.createProperty(free, { name: "Two", location: "Lisbon", description: "" })).rejects.toBeInstanceOf(repo.LimitError);
+  });
+  it("preserves the first publication date when a host unpublishes and republishes", async () => {
+    const [p] = await repo.listProperties(a.id);
+    await query("UPDATE properties SET published_at='2026-01-15T12:00:00Z' WHERE id=$1", [p.id]);
+    await repo.updateProperty(a.id, p.id, repo.propertyDataSchema.parse({ ...p, status: "draft" }));
+    expect(await repo.getPublishedProperty(p.slug)).toBeNull();
+    await repo.updateProperty(a.id, p.id, repo.propertyDataSchema.parse({ ...p, status: "published" }));
+    const [row] = await query<{ published_at: string }>("SELECT published_at FROM properties WHERE id=$1", [p.id]);
+    expect(new Date(row.published_at).toISOString()).toBe("2026-01-15T12:00:00.000Z");
   });
   it("serializes property creation and uses the stored plan rather than a stale caller plan", async () => {
     const host = await repo.upsertUser("quota-race@example.test", "Quota Test");

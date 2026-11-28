@@ -41,6 +41,15 @@ export async function POST(request: Request) {
   );
   if (!property) return reply({ error: "Property not found." }, 404);
 
+  // Fail before creating anything in Stripe when the offer migration is missing.
+  try {
+    await query("SELECT id FROM founding_five_offer_capacity WHERE id=1");
+    await query("SELECT id FROM founding_five_offer_reservations LIMIT 1");
+  } catch {
+    console.error("[founding-five] checkout blocked: offer schema unavailable");
+    return reply({ error: "Checkout is temporarily unavailable while billing setup is completed." }, 503);
+  }
+
   try {
     await assertStripeAccountIdentity();
     const stripe = stripeClient();
@@ -63,12 +72,9 @@ export async function POST(request: Request) {
       const previous = await stripe.checkout.sessions.retrieve(existing.checkout_session_id);
       if (previous.status === "open" && previous.url) return reply({ url: previous.url, reused: true });
       if (previous.status === "complete" && previous.payment_status === "paid") {
-        const paymentReference = typeof previous.payment_intent === "string" ? previous.payment_intent : previous.payment_intent?.id;
-        await query(
-          "UPDATE commissioned_guide_orders SET status='paid', payment_reference=$2, updated_at=now() WHERE id=$1 AND status='pending'",
-          [existing.id, paymentReference ?? null],
-        );
-        return reply({ error: "Payment is recorded. Publish the approved guide, then complete hosting activation." }, 409);
+        // Only the verified Stripe webhook may reconcile a pending order as paid.
+        // A retry must not bypass signature verification or reservation reconciliation.
+        return reply({ error: "Stripe reports payment received. Wait for the signed webhook to record your order before activating hosting." }, 409);
       }
       if (previous.status === "expired") {
         await query("UPDATE commissioned_guide_orders SET status='cancelled', updated_at=now() WHERE id=$1 AND status='pending'", [existing.id]);
@@ -168,7 +174,10 @@ export async function POST(request: Request) {
       await query("UPDATE founding_five_offer_reservations SET status='cancelled' WHERE id=$1 AND status='pending'", [reservation.reservationId]).catch(() => undefined);
       throw error;
     }
-  } catch {
+  } catch (error) {
+    console.error("[founding-five] checkout preparation failed", {
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
     return reply({ error: "QA checkout could not be prepared. No hosting or paid subscription was granted." }, 502);
   }
 }

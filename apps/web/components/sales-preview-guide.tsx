@@ -38,7 +38,7 @@ export function SalesPreviewGuide({ property }: { property: SalesPreviewProperty
     pageUrl + " — no booking details or access codes are included.";
   const whatsappUrl = pageUrl ? "https://wa.me/?text=" + encodeURIComponent(message) : "";
   const enquiry = "mailto:abdelhaktirha@gmail.com?subject=" +
-    encodeURIComponent("£99 guest guide enquiry — " + property.name);
+    encodeURIComponent("$49 USD guest guide enquiry — " + property.name);
 
   async function copyLink() {
     if (!pageUrl) return;
@@ -62,7 +62,7 @@ export function SalesPreviewGuide({ property }: { property: SalesPreviewProperty
       <nav className={styles.nav} aria-label="Sales demonstration navigation">
         <Link href="/demo/previews" className={styles.back}><ArrowLeft size={17} aria-hidden="true" /> Three concept previews</Link>
         <Link href="/" className={styles.brand}>GetStayGuide<span>.</span></Link>
-        <a href="#offer" className={styles.navCta}>£99 offer <ArrowRight size={14} aria-hidden="true" /></a>
+        <a href="#offer" className={styles.navCta}>$49 USD offer <ArrowRight size={14} aria-hidden="true" /></a>
       </nav>
       <div className={styles.notice} role="note">
         <ShieldCheck size={16} aria-hidden="true" />
@@ -126,7 +126,7 @@ export function SalesPreviewGuide({ property }: { property: SalesPreviewProperty
         <div className={styles.sectionIntro}>
           <span className={styles.eyebrow}>TRY IT YOURSELF</span>
           <h2>WhatsApp message + scannable QR</h2>
-          <p>The sample link opens this concept page. The finished £99 guide would have a dedicated approved guest URL and QR code for the actual property.</p>
+          <p>The sample link opens this concept page. The finished $49 USD guide would have a dedicated approved guest URL and QR code for the actual property.</p>
         </div>
         <div className={styles.shareGrid}>
           <article className={styles.messageCard}>
@@ -161,9 +161,9 @@ export function SalesPreviewGuide({ property }: { property: SalesPreviewProperty
           <span>FOR ONE FINISHED, OWNER-APPROVED PROPERTY GUIDE</span>
           <h2>One professional guide, ready for guests.</h2>
           <p>Branded mobile layout, approved arrival and house information, local tips, a shareable guest URL, QR code and manual WhatsApp sharing, with a handover walkthrough.</p>
-          <small>One-time setup price. Hosting, future maintenance and any recurring fees must be agreed before purchase. No automated OpenWA sending is included.</small>
+          <small>Founding Five: first five customers. One property, one consolidated revision and 12 months of basic hosting from publication. No automatic renewal; your account remains on Free. Automated WhatsApp sending is not included.</small>
         </div>
-        <div className={styles.offerCard}><span>ONE-TIME SETUP</span><strong>£99</strong><a href={enquiry} className={styles.primary}>Ask about this guide <ArrowRight size={16} aria-hidden="true" /></a></div>
+        <div className={styles.offerCard}><span>ONE-TIME SETUP</span><strong>$49 USD</strong><a href={enquiry} className={styles.primary}>Ask about this guide <ArrowRight size={16} aria-hidden="true" /></a></div>
       </section>
       <footer className={styles.footer}>
         <p>GetStayGuide independent demonstration · No endorsement or live guest support implied.</p>
