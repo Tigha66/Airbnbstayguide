@@ -152,8 +152,8 @@ module.exports = {
       "Ground-floor accommodation with Wi-Fi and parking listed.",
       "The operator lists a five-minute walk to Ambleside centre."
     ],
-    "arrival": "Published check-in from 4 pm. Confirm the access method and arrival instructions with the operator.",
-    "departure": "Published check-out by 10 am. Confirm any property-specific departure steps with the operator.",
+    "arrival": "Published check-in is 4 pm and check-out is 10 am. Confirm access details with the operator.",
+    "departure": "Published check-in is 4 pm and check-out is 10 am. Confirm any property-specific departure steps with the operator.",
     "recommendations": [
       "Ambleside centre",
       "Lake District walks and viewpoints",
@@ -173,8 +173,8 @@ module.exports = {
       "South-west-facing courtyard and off-site parking are listed.",
       "The listing places the cottage near the harbour, town and Porthmeor."
     ],
-    "arrival": "No public check-in time or entry instructions confirmed in this sample. Host confirmation required.",
-    "departure": "No public check-out time or departure steps confirmed in this sample. Host confirmation required.",
+    "arrival": "Published check-in is 5 pm and check-out is 10 am. Confirm access details with the operator.",
+    "departure": "Published check-in is 5 pm and check-out is 10 am. Confirm any property-specific departure steps with the operator.",
     "recommendations": [
       "St Ives harbour",
       "Porthmeor area",
@@ -299,8 +299,8 @@ module.exports = {
       "The listing notes a low ceiling on the mezzanine.",
       "Parking for two cars; published check-in from 4 pm and check-out by 10 am."
     ],
-    "arrival": "Published check-in from 4 pm. Confirm the access method and arrival instructions with the operator.",
-    "departure": "Published check-out by 10 am. Confirm any property-specific departure steps with the operator.",
+    "arrival": "Published check-in is 4 pm and check-out is 10 am. Confirm access details with the operator.",
+    "departure": "Published check-in is 4 pm and check-out is 10 am. Confirm any property-specific departure steps with the operator.",
     "recommendations": [
       "Gwithian beach",
       "Hayle area",
@@ -320,8 +320,8 @@ module.exports = {
       "Private parking, garden and wood burner listed.",
       "Derwentwater is noted nearby; published times are 3 pm check-in and 10 am check-out."
     ],
-    "arrival": "Published check-in from 3 pm. Confirm the access method and arrival instructions with the operator.",
-    "departure": "Published check-out by 10 am. Confirm any property-specific departure steps with the operator.",
+    "arrival": "Published check-in is 3 pm and check-out is 10 am. Confirm access details with the operator.",
+    "departure": "Published check-in is 3 pm and check-out is 10 am. Confirm any property-specific departure steps with the operator.",
     "recommendations": [
       "Derwentwater",
       "Keswick town",
