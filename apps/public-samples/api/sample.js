@@ -30,8 +30,8 @@ module.exports = function sampleHandler(req, res) {
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
-<title>GetStayGuide | Private property sample</title><link rel="stylesheet" href="/styles.css">
-<script defer src="/sample.js"></script>
+<title>GetStayGuide | Private property sample</title><link rel="stylesheet" href="/public/styles.css">
+<script defer src="/public/sample.js"></script>
 </head>
 <body><main id="sample" data-slug="${slug}"><div class="loading" role="status">Loading your private sample…</div></main></body>
 </html>`);
