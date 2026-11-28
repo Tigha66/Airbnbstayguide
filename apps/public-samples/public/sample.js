@@ -33,7 +33,7 @@
     return;
   }
 
-  fetch("/api/sample", {
+  fetch("/api/sample?slug=" + encodeURIComponent(slug), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
