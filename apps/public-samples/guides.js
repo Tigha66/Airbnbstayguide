@@ -338,4 +338,26 @@ module.exports = {
     ],
     "source": "https://www.cumbriancottageholidays.co.uk/cottages/anley-cottage-keswick/"
   },
+  "the-warren-laik": {
+    tokenHash: "59d0ea145653fb655991655c0def9372a4137b5c88209b7ad3a8a8a5393477c8",
+    expiresAt: "2026-12-26T23:59:59.000Z",
+    manager: "Laik Ltd",
+    property: "The Warren",
+    location: "Bowness-on-Windermere, Cumbria",
+    accent: "#2f7185",
+    summary: "A Lakeland retreat in Bowness-on-Windermere for four, with two bedrooms, one bathroom and private parking.",
+    highlights: [
+      "Two bedrooms; sleeps four, according to Laik.",
+      "Private parking for one car is listed.",
+      "The property is a short stroll from Bowness shops, cafes, pubs and the Lake Windermere shore."
+    ],
+    arrival: "Published check-in is 4 pm. Confirm access details with the operator.",
+    departure: "Published check-out is 10 am. Confirm any property-specific departure steps with the operator.",
+    recommendations: [
+      "Bowness-on-Windermere shops and cafes",
+      "Lake Windermere shore",
+      "Nearby Lake District walks and viewpoints"
+    ],
+    source: "https://laik.co.uk/properties/the-warren/"
+  },
 };
