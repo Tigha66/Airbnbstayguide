@@ -107,7 +107,7 @@
     stay.append(departure);
     mount.append(stay);
 
-    const response = node("section", "contact-card");
+    const response = node("section", "offer");
     response.append(node("p", "eyebrow", "A SAMPLE TO REVIEW"));
     response.append(node("h2", "", "Would an owner-approved version of this guide be useful?"));
     response.append(node("p", "body-copy", "This private sample uses public listing information only. The property operator must confirm every detail before any guide is used with guests."));
